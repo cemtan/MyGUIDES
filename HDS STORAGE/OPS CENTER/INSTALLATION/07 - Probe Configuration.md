@@ -39,7 +39,7 @@ C:\HORCM\etc>inqraid $Phys –CLI
 	/opt/jp1pc/tools/jpcstart agtd inst=<instance-number>
 /opt/jp1pc/tools/jpcctrl list "*"
 /opt/jp1pc/htnm/bin/htmsrv start -all
-/opt/jp1pc/tools/jpcuninssetup agtd -inst instance-name (instance_name-SERIAL NUMBER)
+/opt/jp1pc/tools/jpcinsunsetup agtd -inst instance-name (instance_name-SERIAL NUMBER)
 ```
 
 		
@@ -69,7 +69,7 @@ C:\HORCM\etc>inqraid $Phys –CLI
 **- In the Primary Analyzer detail view Server Information window, specify the following details:**
 		If you are connecting the Analyzer detail view server to the Analyzer probe server using the host name and a proxy server, you must add the IP address and host name of the Analyzer detail view server to the /etc/hosts file on the Analyzer probe server.
 		If you edit the existing connection details, make sure that you update these details on the Analyzer detail view server by updating the downloader. For more information, refer to Updating the downloader on the Analyzer detail view server (on page 416) of Hitachi Ops Center Analyzer Installation and Configuration Guide.pdf.
-						* **PROTOCOL**: FTP, FTPS, SFTP, or HTTPS. (SFTP)
+						* **PROTOCOL**: FTP, FTPS, SFTP, or HTTPS. (SFTP)<
 						* **HOST**: Analyzer detail view server or intermediate FTP server IP address.
 						* **PORT**: Based on the selected protocol.
 						* **USER**: Username for the host. 
@@ -97,6 +97,12 @@ C:\HORCM\etc>inqraid $Phys –CLI
 	* Cisco FC Switch (CLI) probe
 	* Linux probe
 
+
+#### Registering Probe to Common Services
+---
+```bash
+	setupcommonservice -csUri https://example.com/portal -csUsername sysadmin -appHostname MyHost -appPort 8443 -appName MyProbe -appDescription ""
+```
 
 #### Changing Data Collection Interval
 ---
@@ -204,7 +210,7 @@ https://docs.hitachivantara.com/r/en-us/ops-center-api-configuration-manager/11.
 ```
 → Run **curl** command
 ```bash
- curl --insecure -v -H "Accept:application/json" -H "Content-Type:application/json" -u opsconfmng:Opscenter123 -X  POST --data-binary @./InputParameters_60869.json http://10.218.163.139:23450/ConfigurationManager/v1/objects/storages
+curl --insecure -v -H "Accept:application/json" -H "Content-Type:application/json" -u opsconfmng:Opscenter123 -X  POST --data-binary @./InputParameters_60869.json http://10.218.163.139:23450/ConfigurationManager/v1/objects/storages
 ```
 → Output will be
 ```json

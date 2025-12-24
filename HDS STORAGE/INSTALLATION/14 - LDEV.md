@@ -45,4 +45,16 @@
 	raidcom modify ldev -ldev_id 0x1013 -ldev_name WINDOWS_E790_DS_03_LUN_13 -I642833
 	raidcom modify ldev -ldev_id 0x1014 -ldev_name WINDOWS_E790_DS_04_LUN_14 -I642833
 	raidcom modify ldev -ldev_id 0x1015 -ldev_name WINDOWS_E790_DS_05_LUN_15 -I642833
+
+###### DRS VOLUME
+	raidcom add ldev -pool 0 -ldev_id <LDEV> -capacity <CAP> -drs -request_id auto -capacity_saving compression -I<INST>
+
+	Capacity sadece sayi yazinca block olarak yaratiyor.Yanina 1024G  1024 Gigabyte, 2T  2 terabyte gibi yaziliyor.
+	
+	-capacity_saving compression 								→ Sadece compress için
+	-capacity_saving deduplication_compression 		→ Dedup+compress için
+	-drs -request_id auto 											→ DRS disk yaratmak için
+
+###### ALUA ENABLE
+	raidcom modify ldev -ldev_id 0 -alua enable -IH0
 	

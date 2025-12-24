@@ -1,5 +1,6 @@
 ### CREATE BASIC LDEVS
 ---
+---
 
 
 
@@ -27,3 +28,29 @@ Use the space left for Basic LDEVs.
 
 ![st_bldev04.png](../../.images/st_bldev04.png)
 ![st_bldev05.png](../../.images/st_bldev05.png)
+
+
+#### CREATE PARITY GROUP AND BASIC LDEVS (CCI)
+---
+
+##### ADD Parity Group
+	raidcom add parity_grp -parity_grp_id 1-1 -drive_location 0-0 0-1 0-2 0-3 -raid_type 3D1P
+
+##### CREATE Basic Ldevs
+	raidcom add ldev -parity_group_id 1-1 -ldev_id 0xFA00 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-1 -ldev_id 0xFA01 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-1 -ldev_id 0xFA02 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-1 -ldev_id 0xFA03 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-1 -ldev_id 0xFA04 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-1 -ldev_id 0xFA05 -capacity 3072G  
+
+	raidcom add ldev -parity_group_id 1-2 -ldev_id 0xFB00 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-2 -ldev_id 0xFB01 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-2 -ldev_id 0xFB02 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-2 -ldev_id 0xFB03 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-2 -ldev_id 0xFB04 -capacity 3072G
+	raidcom add ldev -parity_group_id 1-2 -ldev_id 0xFB05 -capacity 3072G  
+
+##### CREATE POOL from Basic Ldevs
+	raidcom add dp-pool -pool_id 0 -pool_name Pool0 -ldev_id 0xFA00 -cnt 6
+	raidcom add dp-pool -pool_id 0 -ldev_id 0xFB00 -cnt 6

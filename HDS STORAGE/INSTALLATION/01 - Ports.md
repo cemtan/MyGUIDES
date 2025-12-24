@@ -7,7 +7,7 @@
 
 |  Source |  Target |  Ports |  Protocol |
 |---|---|---|---|
-|  Storage SVP / Controller(s)   |  Ops Center     |  161,162, 35046, 36047    |  udp |
+|  Storage SVP / Controller(s)   |  Ops Center     |  161,162    |  udp |
 |                Storage SVP / Controller(s)                |     Ops Center           |       443, 1099, 11099, 51099, 51100, 23450-23454       |   tcp   |
 |  Ops Center   |  Storage SVP / Controller(s)    |   31001,161,162  |  udp |
 |      Ops Center         |             Storage SVP / Controller(s)                   |                              443,1099, 5443, 11099, 51099, 51100-51355, 23454, 23450-23454                               |   tcp   |

@@ -151,3 +151,10 @@
 	raidcom add lun -ldev_id 0x1015 -lun_id 15 -port CL4-A-50 -I64283
 	raidcom add lun -ldev_id 0x1015 -lun_id 15 -port CL2-B-50 -I64283
 	raidcom add lun -ldev_id 0x1015 -lun_id 15 -port CL4-B-50 -I64283
+
+
+#### SET ALUA OPTIMIZED PATH
+---
+
+	raidcom get lun -port CL4-E-0 -key opt_page1
+	raidcom modify lun -port CL4-E-2 -lun_id all -asymmetric_access_state optimized

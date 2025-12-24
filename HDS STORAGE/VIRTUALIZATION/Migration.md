@@ -27,7 +27,7 @@ For disks larger than 4TB, Data Direct Mapping (DDM) pool is required
 **6. Present Disks to Target Ports**
 	a. Select Disks and Click "Add LUN Paths"
 
-**7. Run "Discover External Storage" at Target Storage (External Volumes Section)**
+**7. Run "Discover External Storage" at Target Storage (External Volumes Section → Add External Volumes)**
 
 **8. Check if Task is Completed**
 
