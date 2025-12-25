@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ipeng</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ipeng</h1>
+<p>Report/set engineering IP configuration</p>
+<h1>Syntax</h1>
+<pre>ipeng 	 [-g &lt;interface&gt;] [-w &lt;bytes&gt;] [-y on|off] [-s on|off]
+	 [-r on|off] [-n on|off] [-a on|off] [-i on|off] [-f on|off]
+	 [-l on|off] [-q on|off] [-o &lt;min_rto&gt;] [-O &lt;max_rto&gt;] [-k on|off]
+	 [-T on|off] [-S on|off] [-P on|off] [-W on|off] [-F &lt;factor&gt;]
+	 [-R on|off] [-d] [-x init|create|delete|list|show-all]
+</pre>
+
+<h1>Description</h1>
+<p>The ipeng command permits manipulation of low level engineering IP parameters. Only use under instruction from your support provider.</p>
+<p>Some of these parameters can be set on a per-interface basis, the rest are global settings.</p>
+<p>To create a specific configuration for an interface use "-x create -g &lt;interface&gt;" Note that an interface-specific configuration must be created before specific values can be set for that interface, the interface-specific configuration can be created prior to creating the interface.</p>
+<p>To delete an interface-specific configuration use "-x delete -g &lt;interface&gt;"</p>
+<p>The following options are available:</p>
+<dl>
+<dt><strong>-w, --def-wnd &lt;bytes&gt;</strong></dt>
+<dd><p>Sets default window size. The valid range is 250 to 65534 bytes.</p></dd>
+<dt><strong>-y, --delayedacks on|off</strong></dt>
+<dd><p>Enable/disable delayed acks.</p></dd>
+<dt><strong>-s, --slowstartca on|off</strong></dt>
+<dd><p>Enable/disable slow start congestion avoidance. This may be configured on a specific interface.</p></dd>
+<dt><strong>-r, --ssrestartdoublemss on|off</strong></dt>
+<dd><p>Enable/disable SS restart double mss.</p></dd>
+<dt><strong>-n, --nagle on|off</strong></dt>
+<dd><p>Enable/disable nagle.</p></dd>
+<dt><strong>-a, --sillywindowavoid on|off</strong></dt>
+<dd><p>Enable/disable silly window avoid.</p></dd>
+<dt><strong>-i, --slowstartonidle on|off</strong></dt>
+<dd><p>Enable/disable slow start on idle.</p></dd>
+<dt><strong>-f, --fastretxfastrecovery on|off</strong></dt>
+<dd><p>Enable/disable fast retx fast recovery.</p></dd>
+<dt><strong>-l, --intelliseg on|off</strong></dt>
+<dd><p>Enable/disable intelliseg.</p></dd>
+<dt><strong>-q, --quickr1teardown on|off</strong></dt>
+<dd><p>Enable/disable quick R1 teardown.</p></dd>
+<dt><strong>-o, --minimumrto &lt;minrto&gt;</strong></dt>
+<dd><p>Sets the TCP minimum RTO in milliseconds. The valid range is 300 to 1000 milliseconds.</p></dd>
+<dt><strong>-O, --maximumrto &lt;maxrto&gt;</strong></dt>
+<dd><p>Sets the TCP maximum RTO in milliseconds. The valid range is 10000 to 240000 milliseconds.</p></dd>
+<dt><strong>-k, --loosekarn on|off</strong></dt>
+<dd><p>Enable/disable use of loose Karn.</p></dd>
+<dt><strong>-T, --stricttimewait on|off</strong></dt>
+<dd><p>Enable/disable use of strict TIME_WAIT.</p></dd>
+<dt><strong>-S, --sack on|off</strong></dt>
+<dd><p>Enable/disable use of TCP SACK. This may be configured on a specific interface.</p></dd>
+<dt><strong>-P, --paws on|off</strong></dt>
+<dd><p>Enable/disable use of TCP PAWS.</p></dd>
+<dt><strong>-W, --windowscaling on|off</strong></dt>
+<dd><p>Enable/disable use of TCP window scaling. This may be configured on a specific interface.</p></dd>
+<dt><strong>-F, --windowscalefactor &lt;factor&gt;</strong></dt>
+<dd><p>Sets the TCP window scale factor. The valid range is 0 to 14.</p></dd>
+<dt><strong>-R, --tcp-rate-control on|off</strong></dt>
+<dd><p>Enables the TCP Rate Control feature. This may be configured on a specific interface.</p></dd>
+<dt><strong>-p, --path-mtu-timeout</strong></dt>
+<dd><p>Sets the Path MTU timeout. The valid range is 300 to 3600 seconds.</p></dd>
+<dt><strong>-d, --default</strong></dt>
+<dd><p>Restores the default IP Engineering configuration. Must be the only option used.</p></dd>
+<dt><strong>-g, --aggportname</strong></dt>
+<dd><p>Name of interface on which to act.</p></dd>
+<dt><strong>-x, --xtraaction</strong></dt>
+<dd><p>Specifies an extra action to take (init, create, delete, list, show-all).</p></dd>
+</dl>
+<p>Note that settings are not applied to eth0, eth1 or aggregate Linux interfaces (e.g. eth-ag1).</p>
+<h1>Examples</h1>
+<pre>To set a value globally:
+    Change the default window to 32000 bytes:
+    ipeng -w 32000
+</pre>
+<p></p>
+<pre>To create a specific configuration for port ag1:
+    ipeng -x create -g ag1
+</pre>
+<p></p>
+<pre>To set a specific value for a specific port:
+    Disable Selective Acknowledge just on port ag1:
+    ipeng -g ag1 -S off
+</pre>
+<p></p>
+<pre>To delete a specific configuration for port ag1:
+    ipeng -x delete -g ag1
+</pre>
+<p></p>
+<pre>To show the current global configuration settings and the default values:
+    ipeng
+</pre>
+<p></p>
+<pre>To show the current configuration settings for port ag1:
+    ipeng -g ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ipadv.html">ipadv</a> <a href="../Supervisor/ipeng-path-mtu-timeout.html">ipeng-path-mtu-timeout</a> <a href="../Supervisor/ipeng-tx-buffer-limit.html">ipeng-tx-buffer-limit</a> <a href="../Supervisor/ipeng-zwp-limit-mode.html">ipeng-zwp-limit-mode</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

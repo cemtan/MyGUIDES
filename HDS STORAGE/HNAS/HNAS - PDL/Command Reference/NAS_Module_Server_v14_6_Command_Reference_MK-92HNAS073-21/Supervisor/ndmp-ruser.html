@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-ruser</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ndmp-ruser</h1>
+<p>Display/modify NDMP/adc restricted users</p>
+<h1>Syntax</h1>
+<pre>ndmp-ruser   &lt;action&gt; &lt;action specific parameters&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The ndmp-ruser command is used to administer restricted access to resources through NDMP interfaces including adc. It might typically be used to allow ordinary users limited access so that they can use adc to copy subsections of the file systems.</p>
+<p>After creating an ndmp-ruser, the user can be granted access to paths and devices at the server through the enable function.</p>
+<p>Available actions are list, show, add, change, delete, enable and disable. These are defined in detail below:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Lists the existing restricted users - no parameters</p></dd>
+<dt><strong>show &lt;username&gt;</strong></dt>
+<dd><p>Displays details of the restricted user &lt;username&gt;</p></dd>
+<dt><strong>add [-s {none | temp | keep}] &lt;username&gt; [&lt;password&gt;]</strong></dt>
+<dd><p>Creates a restricted user with optional password. The -s option indicates if the user can create snapshots and if it can delay deletion of those snapshots until after a following incremental backup/copy.</p></dd>
+<dt><strong>change [-p] [-s {none | temp | keep}] &lt;username&gt; [&lt;password&gt;]</strong></dt>
+<dd><p>Change restricted user. Optionally change password. If -p specified but no password supplied the user will be prompted. Optionally change snapshot creation option -s</p></dd>
+<dt><strong>delete { &lt;username&gt; | * }</strong></dt>
+<dd><p>Delete a restricted user or * meaning all users. On UNIX systems you will need to escape the * parameter.</p></dd>
+<dt><strong>enable &lt;username&gt; {read|write|device} &lt;name&gt;</strong></dt>
+<dd><p>Enable access to a directory or device. Resource type specified as read = (read-only directory), write = (read/write access to directory) or device  = (tape or autochanger device). Note the name entered must match exactly the path/device name that is used in the adc parameter file. Note that the paths are not validated so you must take care to get them exactly right. Subdirectories of the enabled directory may also be accessed.</p></dd>
+<dt><strong>disable &lt;username&gt; { &lt;name&gt; | * }</strong></dt>
+<dd><p>Deny access to a directory or devices or all resources (*). On UNIX systems you will need to escape the * parameter.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>ndmp-ruser list
+</pre>
+<p></p>
+<p>Lists all currently configured restricted users.</p>
+<pre>ndmp-ruser add johnx passwd
+</pre>
+<p></p>
+<p>Creates restricted user "johnx" with password "passwd". At this point johnx will not be able to do anything via NDMP because no paths have been enabled for the user. Note that the user level command ndmp-ruser-pwd command can be used by the user themselves to set the password to one of their choice.</p>
+<pre>ndmp-ruser enable johnx write /root/home/johnx
+</pre>
+<p></p>
+<p>Allows user johnx to copy data into or from the home directory using adc.</p>
+<pre>ndmp-ruser enable johnx read /root/etc
+</pre>
+<p></p>
+<p>Allows user johnx to copy data from /etc.</p>
+<pre>ndmp-ruser enable johnx device /dev/mt_d0l1
+</pre>
+<p></p>
+<p>Allows user johnx to read/write tapes in tape drive /dev/mt_d0l1.</p>
+<pre>ndmp-ruser show johnx
+</pre>
+<p></p>
+<p>Shows the directories and devices that user johnx may access.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/ndmp-ruser-pwd.html">ndmp-ruser-pwd</a> <a href="../Supervisor/ndmp-user.html">ndmp-user</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

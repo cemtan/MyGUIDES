@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-link-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fc-link-status</h1>
+<p>Show FC link status and config</p>
+<h1>Syntax</h1>
+<pre>fc-link-status -i [1|...|N]
+Alias:       fclinkstatus
+</pre>
+
+<h1>Description</h1>
+<p>This command provides information about the server's Fibre Channel links. It displays each one's current speed, its port type, whether it is enabled, and the current status of the link.</p>
+<p>The command takes a single, optional argument:</p>
+<dl>
+<dt><strong>-i</strong></dt>
+<dd><p>Specify the FC interface to display. If this option is not provided the command displays information about all the available interfaces. Interfaces are numbered from 1.</p></dd>
+</dl>
+<p>Possible statuses are:</p>
+<dl>
+<dt><strong>Up</strong></dt>
+<dd><p><code></code> <code></code></p></dd>
+<dt><strong>Down</strong></dt>
+<dd><p>(including when because disabled)</p></dd>
+<dt><strong>DOWN</strong></dt>
+<dd><p>Down since boot, for more than 1 minute</p></dd>
+<dt><strong>Isolated</strong></dt>
+<dd><p>(Arbitrated Loop only) The link is up, but has recently been unstable. The server has isolated itself from the loop to avoid unnecessary disruption. It will automatically attempt to rejoin the loop once the link has been stably up for 30 s, or when it comes up after being down continuously for at least 5 minutes. To force reparticipation sooner, run "<code>fc-link enable</code>".</p></dd>
+<dt><strong>ISOLATED</strong></dt>
+<dd><p>(Ditto) The link has been persistently unstable over an extended period. It will remain isolated until cleared manually, as above.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ fc-link-status
+FC 1:  4 Gbps  N-port  Enabled   Up
+FC 2:  4 Gbps  N-port  Enabled   Up
+FC 3:  4 Gbps  N-port  Enabled   DOWN
+FC 4:  4 Gbps  N-port  Enabled   Down
+</pre>
+<p></p>
+<pre>server:$ fc-link-status -i 1
+FC 1:  4 Gbps  N-port  Enabled   Up
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-link.html">fc-link</a> <a href="../Supervisor/fc-link-speed.html">fc-link-speed</a> <a href="../Supervisor/fc-link-type.html">fc-link-type</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

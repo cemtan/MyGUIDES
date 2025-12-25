@@ -1,0 +1,344 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strjoin</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>strjoin</h1>
+<p>Join lines</p>
+<h1>Syntax</h1>
+<pre>... | strjoin [ (-t|--trim) | (-l|--left-trim) | (-r|--right-trim) ]
+	[-s|--separator &lt;token&gt;] [-g|--group-size &lt;N lines&gt;]
+	[-d|--discard-lines &lt;list of line numbers&gt; | -k|--keep-lines &lt;list of line numbers&gt;]
+	[-m|--max-joins-per-line &lt;num lines&gt;
+	[-M|--max-output-lines &lt;num lines&gt;
+	[-j|--joins-to-display &lt;num-joins&gt;]
+	[ (-i|--if-strquery) &lt;arguments&gt; | (-u|--unless-strquery) &lt;arguments&gt; | --if &lt;arguments&gt; ]
+</pre>
+
+<h1>Description</h1>
+<p>Join successive non-blank lines from the standard output of the preceding command by replacing each newline character with a single space. All blank lines will be discarded. A use case is converting a script to a single line to feed into the mse command.</p>
+<p>The filter allows joining specific lines. To this end, the entire standard input lines are divided into groups of N consecutive lines. Within each group the lines are numbered from 1 to N. If the group size is not specified, the entire standard input is treated as a single group where the group size is equal to the total number of input lines.</p>
+<p>By default, all lines within individual groups are joined. For example, if the total number of input lines is 110 and the group size is 20, the filter will see 6 groups and, hence, will join lines within each group, resulting in six output lines.</p>
+<p>The filter also supports options to discard or keep certain lines in each group. Those lines that are not discarded can be further subject to conditional joining by specifying a conditional option such as --if-strquery, or --unless-strquery, or --if. For more information, see the strquery man page. In particular, strquery supports many built-in variables similar to strtoken and some specific to strjoin as follows:</p>
+<pre>   .lineno         : the line number of the current standard input line.
+   .outlineno      : the line number of the current standard output line.
+   .line           : the text of the current input line.
+   .linelen        : the length of the current input line (excluding newline).
+   .rawline        : the text of the current input line, including newline if any.
+   .rawlinelen     : the length of .rawline
+   .trimmedline    : the text of the current input line with leading and trailing white space removed.
+   .trimmedlinelen : the length of .trimmedline
+   .grouplineno    : the line number of the current input line within a group; the first line is 1.
+   .groupcount     : the group number of the current group; the first group is number 1.
+</pre>
+<p></p>
+<h2>Options</h2>
+<dl>
+<dt><strong>--trim, -t</strong></dt>
+<dd><p>Trim both the leading and trailing white spaces before joining.</p></dd>
+<dt><strong>--left-trim, -l</strong></dt>
+<dd><p>Trim all the leading white spaces before joining.</p></dd>
+<dt><strong>--right-trim, -r</strong></dt>
+<dd><p>Trim all the trailing white spaces before joining.</p></dd>
+<dt><strong>--separator, -s &lt;token&gt;</strong></dt>
+<dd><p>Replace the newline with the specified token. By default, the token is a single space.</p></dd>
+<dt><strong>--group-size &lt;N lines&gt;</strong></dt>
+<dd><p>Specify that the input lines are grouped together in to groups of N consecutive lines. Only lines within each group can be joined together.</p></dd>
+<dd><p>For example, '--group-size 5' means joining every group of 5 lines. These lines are not joined: 5 and 6, 10 and 11, 15 and 16, etc.</p></dd>
+<dt><strong>--discard-lines, -d &lt;list of line numbers&gt;</strong></dt>
+<dd><p>Discard all input lines specified in the line number list as if they did not exist. Note that the line number counter keeps increasing whether an input line is discarded or not.</p></dd>
+<dd><p>The list of line numbers is a comma-delimited list of integers and/or ranges of integers. The ranges are specified by "start-end" or "start-end/stepsize". The hyphen can be replaced with a colon, which is particularly helpful when the numbers are negative.  For example, "2,4,10:12,20-30/3" is a list of integers 2, 4, 10, 11, 12, 20, 23, 26, and 29. The filter does not fail if the list over-specifies the line numbers.</p></dd>
+<dt><strong>--keep-lines, -k &lt;list of line numbers&gt;</strong></dt>
+<dd><p>Keep all input lines specified in the line number list.</p></dd>
+<dd><p>Note that options --discard-lines and --keep-lines are mutually exclusive. If none of them are specified, the default is to keep (i.e., process) all input lines.</p></dd>
+<dt><strong>--max-joins-per-line, -m &lt;num lines&gt;</strong></dt>
+<dd><p>Joining two input lines constitutes a join. If an output line consists of one input line, it is said to have no joins. If this output line is then joined by N input lines, it is said to have N joins. In other words, an output line with N joins must consist of N+1 input lines joined together.</p></dd>
+<dd><p>This option specifies the maximum number of joins per output line. By default, the limit is infinite.</p></dd>
+<dd><p>If an input line is qualified to join to the current output line but the output line already reaches the join limit, the input line will not be joined; it will be discarded.</p></dd>
+<dt><strong>--joins-to-display, -j &lt;list of joins per line&gt;]</strong></dt>
+<dd><p>When this option is specified, each output line is buffered until the joining is complete. If the output line has N joins and N is specified in the list, the line will be displayed. Otherwise, the line is discarded.</p></dd>
+<dd><p>For example, '--joins-to-display 2-5,7' means to display only those output lines that have 2, 3, 4, 5, or 7 joins.</p></dd>
+<dd><p>By default, if this option is not specified, all output lines are displayed.</p></dd>
+<dt><strong>--max-output-lines, -M &lt;num output lines&gt;</strong></dt>
+<dd><p>Stop processing the standard input after the number of output lines has reached the specified limit.</p></dd>
+<dd><p>This option is useful in the following case. Suppose the standard input has a hundred thousand lines. Suppose we use strjoin to produce output lines which have a variable number of joins. If we are interested in the first output line that contains exactly 10 joins, why waste the time processing the rest of the standard input. The simplest way is to specify as follows.</p></dd>
+</dl>
+<pre>     ... | strjoin ... --max-output-lines 1 --joins-to-display 10
+</pre>
+<p></p>
+<dl>
+<dt><strong>--if-strquery &lt;arguments&gt;</strong></dt>
+<dd><p>Specify conditional joining: join the current line to the previous line if the strquery command returns true.</p></dd>
+<dd><p>If this option is specified, it must be the last option in the command line. All tokens that appear after --if-strquery to the end of the command line are treated as if they were specified to the following 'strquery' filter:</p></dd>
+</dl>
+<pre>            strquery --quiet &lt;arguments&gt;
+</pre>
+<p></p>
+
+<p>The 'strquery' filter reads and processes the same standard input line as the 'strline' filter. The --quiet option causes 'strquery' to run without producing any output as described in its man page. The 'strquery' filter will return an integer result where a positive value is interpreted as true, 0 as false, and negative as error. If the result is true, join the standard input line. Otherwise, discard the standard input line.</p>
+<p>--unless-strquery &lt;arguments&gt;</p>
+<p>This option specifies conditional joining: join the current line to the previous one unless the strquery command returns true.</p>
+<p>This option is almost opposite to --if-strquery. If the 'strquery' command is evaluated to true for a standard input line, discard the line. Otherwise, join the standard input line. This option is not exactly opposite to --if-strquery because the joining will occur when strquery returns an error.</p>
+<p>--if &lt;arguments&gt;</p>
+<p>This option is similar to --if-strquery in that it must be the last option in the command line. All tokens that appear after --if to the end of the command line are concatenated together with a space inserted in between. The resulting string is treated as an expression specified to the 'calculate' command. Therefore, it can have options to the 'calculate' command embedded in the expression.</p>
+<p>The expression is evaluated in the current minishell environment. If the result is non-zero, the test is interpreted as true and the current input line is joined to the preceding line. Otherwise, the current input line is not joined.</p>
+
+<p>Note that the three conditional options (--if-strquery, --unless-strquery, and --if) are processed after --discard-lines and --keep-lines.</p>
+<h1>Examples</h1>
+<p>1. Suppose we have a flash file:</p>
+<pre>   $ sscat file1  # display flash file
+   It
+   is
+   good.
+</pre>
+<p></p>
+<pre>   $ sscat file1 | strjoin
+   It is good.
+</pre>
+<p></p>
+<pre>   $ sscat file1 | strjoin -s ""
+   Itisgood.
+</pre>
+<p></p>
+<pre>   $ sscat file1 | strjoin -s " xyz "
+   It xyz is xyz good.
+</pre>
+<p></p>
+<p>2. Build a list of tokens for use with the foreach statement in an mse script.</p>
+<pre>   $ df
+</pre>
+<p></p>
+<pre>     ID  Label      Size            Used  Snapshots  Reduction           Avail  Thin              FS Type
+   ----  -----  --------  --------------  ---------  ---------  --------------  ----  -------------------
+   1024     fs  7.938 GB  2.128 GB (27%)   0 B (0%)         NA  5.809 GB (73%)    No  4 KB,WFS-2,128 DSBs
+   1025    fs1  71.66 GB   2.321 GB (3%)   0 B (0%)         NA  69.34 GB (97%)    No  4 KB,WFS-2,128 DSBs
+   1026    fs2  3.969 GB  2.116 GB (53%)   0 B (0%)         NA  1.853 GB (47%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>   $ df | grep ^1
+   1024     fs  7.938 GB  2.128 GB (27%)   0 B (0%)         NA  5.809 GB (73%)    No  4 KB,WFS-2,128 DSBs
+   1025    fs1  71.66 GB   2.321 GB (3%)   0 B (0%)         NA  69.34 GB (97%)    No  4 KB,WFS-2,128 DSBs
+   1026    fs2  3.969 GB  2.116 GB (53%)   0 B (0%)         NA  1.853 GB (47%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>   $ df | grep ^1 | strtoken %2
+   fs
+   fs1
+   fs2
+</pre>
+<p></p>
+<pre>   $ df | grep ^1 | strtoken %2 | strjoin
+   fs fs1 fs2
+</pre>
+<p></p>
+<pre>   $ df | grep ^1 | strtoken %2 | strjoin | env-set -v filesystems
+   filesystems=fs fs1 fs2
+</pre>
+<p></p>
+<pre>   $ mse 'foreach fs (%filesystems) { echo File system: %fs; }'
+   File system: fs
+   File system: fs1
+   File system: fs2
+</pre>
+<p></p>
+<p>3. Conditional joining</p>
+<p>a. The tree-clone-job-list command may return a list of jobs as follows:</p>
+<pre>   $ tree-clone-job-list | sswrdata joblist
+   $ sscat joblist
+   JOB ID : ca5f2f00-dc75-11d0-9084-3909d434570f
+       . . . . (lines omitted for brevity) . . . .
+       Started : 2015-08-30 04:00:59-07:00
+       . . . . (lines omitted for brevity) . . . .
+       Ended   : 2015-08-30 04:15:32-07:00
+       . . . . (lines omitted for brevity) . . . .
+   JOB ID : ab126810-dc70-11d0-9083-3909d434570f
+       . . . . (lines omitted for brevity) . . . .
+       Started : 2015-08-30 05:16:13-07:00
+       . . . . (lines omitted for brevity) . . . .
+       Ended   : 2015-08-30 05:34:08-07:00
+       . . . . (lines omitted for brevity) . . . .
+</pre>
+<p></p>
+<p>b. To keep only 3 lines for each job: JOB ID line, "Started" line, and "Ended" line.</p>
+<pre>   $ sscat joblist | strline --if-strquery --start JOB --has Started --has Ended --cal .TC==1 | sswrdata joblist1
+   JOB ID : ca5f2f00-dc75-11d0-9084-3909d434570f
+       Started : 2015-08-30 04:00:59-07:00
+       Ended   : 2015-08-30 04:15:32-07:00
+   JOB ID : ab126810-dc70-11d0-9083-3909d434570f
+       Started : 2015-08-30 05:16:13-07:00
+       Ended   : 2015-08-30 05:34:08-07:00
+</pre>
+<p></p>
+<p>Note that strquery maintains a numeric stack which is cleared when strquery processes a new standard input line. The "--start JOB" query will push 1 (true) to the numeric stack if the line starts with "JOB" and push 0 if not. The "--has Started" query will push 1 (true) to the numeric stack if the line contains "Started" and push 0 if not. The "--has Ended" query will push 1 (true) to the numeric stack if the line contains "Ended" and push 0 if not. The ".TC" built-in variable is the current true count (total number of true queries) in the numeric stack. The "--cal .TC==1" query calculates if the true count is equal to 1. If so, strline will display it. Otherwise, the line is discarded.</p>
+<p>c. Use conditional joining to join 3 lines per job. This means leaving intact the line starting with "JOB".</p>
+<pre>   $ sscat joblist1 | strjoin --trim --unless-strquery --start-with JOB | sswrdata jobtimes.txt
+   $ sscat jobtimes.txt
+   JOB ID : ca5f2f00-dc75-11d0-9084-3909d434570f Started : 2015-08-30 04:00:59-07:00 Ended   : 2015-08-30 04:15:32-07:00
+   JOB ID : ab126810-dc70-11d0-9083-3909d434570f Started : 2015-08-30 05:16:13-07:00 Ended   : 2015-08-30 05:34:08-07:00
+</pre>
+<p></p>
+<p>4. Manipulate output of poolstats command</p>
+<p>a. Output of poolstats command</p>
+<pre>   $ poolstats
+   AddExportAndBindRootWork (296 B) (LongTermAllocations) :
+     capacity : 10000, 2.975 MB (3120000 B)
+     current  : 0 (0%), 0 B
+     hwm      : 2 (0%), 624 B
+     mandate  : 0 (0%), 0 B
+     mallocs  : 0 (of 3 allocations since last poolstats -r)
+     warn at  : 13000
+   AddReportedExportsForExportWork (32 B) (LongTermAllocations) :
+     capacity : 10000, 390.6 KB (400000 B)
+     current  : 0 (0%), 0 B
+     hwm      : 0 (0%), 0 B
+     mandate  : 0 (0%), 0 B
+     mallocs  : 0 (of 0 allocations since last poolstats -r)
+     warn at  : 13000
+   AggCacheEntryObserver (72 B) (LongTermAllocations) :
+     . . . . . (omitted for brevity) . . . . .
+   YieldingOStreamImplementation (48 B) (ManuallyTunablePerformance) :
+     capacity : 1000, 54.69 KB (56000 B)
+     current  : 241 (24%), 13.18 KB (13496 B)
+     hwm      : 258 (25%), 14.11 KB (14448 B)
+     mandate  : 0 (0%), 0 B
+     mallocs  : 1 (of 5505259 allocations since last poolstats -r)
+     warn at  : 0
+</pre>
+<p></p>
+<pre>   Default total capacity of all pools this boot : 4.682 GB (5027037928 B) in 12570009 objects
+   Default total capacity of all pools next boot : 4.682 GB (5027037928 B) in 12570009 objects
+   Current total capacity of all pools this boot : 4.753 GB (5103893064 B) in 12572469 objects
+   Expected total capacity of all pools next boot : 4.753 GB (5103893064 B) in 12572469 objects
+   That is expected to fit with a big-size lwm during heap-pool creation of : 739.8 MB (775775128 B)
+   Current total usage within all pools : 560.1 MB (587323128 B) in 344599 objects
+   Current total overflow from all pools : 146.8 KB (150360 B) in 385 objects
+   Current total usage, within and overflowing, all pools : 560.3 MB (587473488 B) in 344984 objects
+   Current total free space within all pools : 4.206 GB (4516569936 B) in 12227870 objects
+   Mandatory capacity totaled over all pools : 626.1 MB (656555992 B) in 4777 objects
+   Unused mandatory capacity totaled over all pools : 188.7 MB (197855192 B) in 1449 objects
+   Used mandatory capacity totaled over all pools : 437.5 MB (458700800 B) in 3328 objects
+</pre>
+<p></p>
+<p>b. Discard the bottom part that starts with "Default total".</p>
+<pre>   $ poolstats | strline --ltoken Default
+     ..... (omitted for brevity) .....
+   YieldingOStreamImplementation (48 B) (ManuallyTunablePerformance) :
+     capacity : 1000, 54.69 KB (56000 B)
+     current  : 241 (24%), 13.18 KB (13496 B)
+     hwm      : 258 (25%), 14.11 KB (14448 B)
+     mandate  : 0 (0%), 0 B
+     mallocs  : 1 (of 5505259 allocations since last poolstats -r)
+     warn at  : 0
+</pre>
+<p></p>
+<pre>   Default total capacity of all pools this boot : 4.682 GB (5027037928 B) in 12570009 objects
+</pre>
+<p></p>
+<p>c. Discard the last two lines from the output in (b):</p>
+<pre>   $ poolstats | strline --ltoken Default --ldelta -2
+   [line 1] AddExportAndBindRootWork (296 B) (LongTermAllocations) :
+   [line 2]   capacity : 10000, 2.975 MB (3120000 B)
+   [line 3]   current  : 0 (0%), 0 B
+   [line 4]   hwm      : 2 (0%), 624 B
+   [line 5]   mandate  : 0 (0%), 0 B
+   [line 6]   mallocs  : 0 (of 3 allocations since last poolstats -r)
+   [line 7]   warn at  : 13000
+   [line 8] AddReportedExportsForExportWork (32 B) (LongTermAllocations) :
+            .......
+</pre>
+<p></p>
+<p>Note that the square bracketed text is not part of the output; it is added for convenient reference in the subsequent examples.</p>
+<p>Examples (4b) and (4c) took advantage of the options of strline to select a range of input lines where the first and last lines of the range can be specified by the tokens in the lines:</p>
+<pre>    * Option --ftoken specifies the token in the first line of the range.
+      If not specified, the range starts at the first input line.
+    * Option --ltoken specifies the token in the last line of the range.
+      If not specified, the range ends at the last input line.
+</pre>
+<p></p>
+<p>The range boundaries can be adjusted by the line number offsets or deltas, which can be positive or negative:</p>
+<pre>    * Option --ftoken specifies the delta added to the line number of the first line of the range.
+    * Option --ltoken specifies the delta added to the line number of the last line of the range.
+</pre>
+<p></p>
+<p>d. The output of (c) contains groups of 7 lines. To join all lines within 7-line groups:</p>
+<pre>   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7
+</pre>
+<p></p>
+<p>e. Same as (d) but keep only lines 1, 3, 4, and 5 within each group. This can be obtained by any of the following commands:</p>
+<pre>   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --keep-lines 1,3-5 | head 10
+   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --discard-lines 2,6-7 | head 10
+   AddExportAndBindRootWork (296 B) (LongTermAllocations) : current  : 0 (0%), 0 B hwm      : 1 (0%), 312 B mandate  : 0 (0%), 0 B
+   AddReportedExportsForExportWork (32 B) (LongTermAllocations) : current  : 0 (0%), 0 B hwm      : 0 (0%), 0 B mandate  : 0 (0%), 0 B
+   AggCacheEntryObserver (72 B) (LongTermAllocations) : current  : 14 (0%), 1.203 KB (1232 B) hwm      : 16 (0%), 1.375 KB (1408 B) mandate  : 0 (0%), 0 B
+</pre>
+<p></p>
+<p>f. Same as (e) but join only lines 3 and 4:</p>
+<pre>   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --keep-lines 1,3-5 --if-strquery --calc .grouplineno==4 | head 9
+   AddExportAndBindRootWork (296 B) (LongTermAllocations) :
+   current  : 0 (0%), 0 B hwm      : 1 (0%), 312 B
+   mandate  : 0 (0%), 0 B
+   AddReportedExportsForExportWork (32 B) (LongTermAllocations) :
+   current  : 0 (0%), 0 B hwm      : 0 (0%), 0 B
+   mandate  : 0 (0%), 0 B
+   AggCacheEntryObserver (72 B) (LongTermAllocations) :
+   current  : 14 (0%), 1.203 KB (1232 B) hwm      : 16 (0%), 1.375 KB (1408 B)
+   mandate  : 0 (0%), 0 B
+</pre>
+<p></p>
+<p>Note that the --calc option to strquery computes the expression following it exactly in the same way as the 'calculate' command. Thus, all the built-in functions described in the calculate man page can be used. The expression contains the builtin variable ".grouplineno", which refers to the relative line number of the current line in the group. Because the group size is 7, the variable has the value from 1 to 7.</p>
+<p>g. Same as (f) but join lines 3 and 4 and 5. This can be obtained by any of the following commands:</p>
+<pre>   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --keep-lines 1,3-5 --if-strquery --calc "belong(%.grouplineno,'4-5')" | head 6
+   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --keep-lines 1,3-5 --if-strquery --calc .grouplineno==4.or..grouplineno==5 | head 6
+   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --keep-lines 1,3-5 --if-strquery --calc ".grouplineno==4 .or. .grouplineno==5" | head 6
+   $ poolstats | strline --ltoken Default --ldelta -2 | strjoin --trim --group 7 --keep-lines 1,3-5 --if-strquery --calc ".grouplineno==4 || .grouplineno==5" | head 6
+</pre>
+<p></p>
+<pre>   AddExportAndBindRootWork (296 B) (LongTermAllocations) :
+   current  : 0 (0%), 0 B hwm      : 1 (0%), 312 B mandate  : 0 (0%), 0 B
+   AddReportedExportsForExportWork (32 B) (LongTermAllocations) :
+   current  : 0 (0%), 0 B hwm      : 0 (0%), 0 B mandate  : 0 (0%), 0 B
+   AggCacheEntryObserver (72 B) (LongTermAllocations) :
+   current  : 14 (0%), 1.203 KB (1232 B) hwm      : 16 (0%), 1.375 KB (1408 B) mandate  : 0 (0%), 0 B
+</pre>
+<p></p>
+<p>Note that the built-in function "belong(number,list_of_numbers)" has been used. For more information, see the calculate man page.</p>
+<p>5. List local groups that have only 1 member</p>
+<p>a. List all local groups that have only 1 member, one group per line:</p>
+<pre>   $ localgroup list | strjoin -j 1 --unless-strquery --has group
+   Unix group\545:  Unix user\1159 (S-1-77-0-1159)
+   Unix group\1009:  Unix user\1045 (S-1-77-0-1045)
+</pre>
+<p></p>
+<p>b. Same as (a), but stop after displaying 1 output line.    $ localgroup list | strjoin -j 1 -M 1 --unless-strquery --has group    Unix group\545:  Unix user\1159 (S-1-77-0-1159)</p>
+<p>Note that the conditional can be specified with the --if option as follows.</p>
+<pre>   $ localgroup list | strjoin -j 1 -M 1 --if !has(.line,mstr(group))
+   Unix group\545:  Unix user\1159 (S-1-77-0-1159)
+</pre>
+<p></p>
+<p>The expression specified to --if uses the built-in functions mstr and has, both of which are documented in the 'mse-functions' and 'calculate' man pages.</p>
+<h1>See Also</h1>
+<p><a href="../../Dev/backquote.html">backquote</a> <a href="../../Filter/Dev/calculate.html">calculate</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/mse-functions.html">mse-functions</a> <a href="../../Filter/Dev/sswrdata.html">sswrdata</a> <a href="../../Filter/Dev/strline.html">strline</a> <a href="../../Filter/Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strreplace.html">strreplace</a> <a href="../../Filter/Dev/strsplit.html">strsplit</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

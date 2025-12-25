@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nim-pause-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nim-pause-stats</h1>
+<p>Display NIM MAC PAUSE stats</p>
+<h1>Syntax</h1>
+<pre>nim-pause-stats [-i &lt;name&gt;] [-w] [-e] [-c] [-h] [-m N]
+</pre>
+
+<h1>Description</h1>
+<p>The nim-pause-stats command displays data about MAC PAUSE frame activity. Each line of the displayed data contains the time at which the data was gathered, the number of VLSI clock cycles for which a PAUSE was in effect and the percentage of the sample for which a PAUSE was in effect. Note that the VLSI clock cycle time varies according to the hardware in use.</p>
+<dl>
+<dt><strong>-i &lt;name&gt;, --interface &lt;name&gt;</strong></dt>
+<dd><p>Specifies the interface for which MAC PAUSE frame information should be displayed. If not specified, all available information is displayed.</p></dd>
+<dt><strong>-w, --switch</strong></dt>
+<dd><p>Displays information about MAC PAUSE frames sent by the server to a connected switch.</p></dd>
+<dt><strong>-e, --server</strong></dt>
+<dd><p>Displays information about MAC PAUSE frames sent to the server by a connected switch.</p></dd>
+<dd><p>If neither -w nor -e are specified, both will be assumed.</p></dd>
+<dt><strong>-c, --current</strong></dt>
+<dd><p>Displays current data: less than 15 minutes old and accumulated each second.</p></dd>
+<dt><strong>-h, --historical</strong></dt>
+<dd><p>Displays historical data: between 15 minutes and 48 hours old, accumulated in blocks of 15 minutes.</p></dd>
+<dd><p>If neither -h nor -c are specified, both will be assumed.</p></dd>
+<dt><strong>-m N, --max N</strong></dt>
+<dd><p>Display at most N entries for each selected port</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display MAC PAUSE frame data for ag1:</p>
+<pre>    nim-pause-stats -i ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

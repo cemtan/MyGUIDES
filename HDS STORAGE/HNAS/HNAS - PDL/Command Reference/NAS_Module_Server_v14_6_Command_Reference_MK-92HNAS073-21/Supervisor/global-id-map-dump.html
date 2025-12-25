@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>global-id-map-dump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>global-id-map-dump</h1>
+<p>Dump current state of Global Id lists</p>
+<h1>Syntax</h1>
+<pre>global-id-map-dump 
+</pre>
+
+<h1>Description</h1>
+<p>There are a number of objects on the NAS server which are tracked and cached based on a globally unique identifier.  There are a series of maps of these globally unique identifiers which are used to retrieve objects based on their globally unique identifier.  This command is used to print out all of these maps and hence the output can be quite large.</p>
+<h2>SCOPING</h2>
+<p>The scope that an object is cached at is dependent on that object's natural scoping.  We list the scoping of each class of object in the TRACKED CLASSES section below.  The command shows the scoping that applies to each map as it prints them.  In most cases this is simply the evs identifier but in some cases it can be something else, e.g. the virtual volume identifier in the case of quotas.</p>
+<p>Note that on a cluster what you see when you run this command will depend on the current evs, e.g. if evs 1 is in context you will see the maps for the cluster node that hosts evs 1 regardless of which cluster node you actually run the command on.</p>
+<h2>TRACKED CLASSES</h2>
+<p>The classes of objects which are currently tracked are as follows.</p>
+<dl>
+<dt><strong>exports</strong></dt>
+<dd><p>Exports are scoped at the evs level.</p></dd>
+<dt><strong>shares</strong></dt>
+<dd><p>Shares are scoped at the evs level.</p></dd>
+<dt><strong>user mappings</strong></dt>
+<dd><p>User mappings are scoped within the current EVS security context.</p></dd>
+<dt><strong>group mappings</strong></dt>
+<dd><p>Group mappings share the same scoping as user mappings.</p></dd>
+<dt><strong>quotas</strong></dt>
+<dd><p>Quotas are scoped at the file system level.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display all objects referenced by a globally unique identifier.</p>
+<pre>global-id-map-dump
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/evs-security.html">evs-security</a> <a href="../Supervisor/global-id-cache-dump.html">global-id-cache-dump</a> <a href="../Supervisor/global-id-cache-query-export.html">global-id-cache-query-export</a> <a href="../Supervisor/global-id-cache-query-group-mappings.html">global-id-cache-query-group-mappings</a> <a href="../Supervisor/global-id-cache-query-quota.html">global-id-cache-query-quota</a> <a href="../Supervisor/global-id-cache-query-share.html">global-id-cache-query-share</a> <a href="../Supervisor/global-id-cache-query-user-mappings.html">global-id-cache-query-user-mappings</a> <a href="../Supervisor/global-id-counter-dump.html">global-id-counter-dump</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

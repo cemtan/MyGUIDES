@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-extend-join</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cluster-extend-join</h1>
+<p>Join the cluster to form an extended cluster</p>
+<h1>Syntax</h1>
+<pre>cluster-extend-join [-c | --confirm] &lt;cluster name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Joins the cluster to an existing unified cluster prepared for cluster extension using the command 'cluster-extend-create'. This configuration is mainly used to provide disaster recovery support for the unified cluster. The command can also be used on a single node unified system to join the existing extended cluster. That is useful if one node of the extended cluster is re-installed.</p>
+<p>To join the extended cluster, the nodes have to change their cluster communication links. The internal communication over the backplane does not work in extended configuration. Before running this command, make sure the node IP address on the maintenance network is unique on all four nodes of the extended cluster. The cluster ports must be configured properly to mirror the NVRAM data across the unified cluster. This command will reboot the server automatically to join the extended cluster. The server's configuration (including all EVSs and file systems) will be removed when the node joins the cluster and replaced with the extended cluster's existing configuration.</p>
+<p>See the 'cluster-interfaces' man page for guidelines on configuring the cluster network.</p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>Do not prompt for confirmation.</p></dd>
+<dt><strong>&lt;cluster name&gt;</strong></dt>
+<dd><p>Specifies the name of the extended unified cluster.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>cluster-extend-join example_server
+This command will update the configuration and reboot the cluster.
+Do you want to proceed?(Y/N)[N]:
+y
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-extend-create.html">cluster-extend-create</a> <a href="../Supervisor/cluster-extend-delete.html">cluster-extend-delete</a> <a href="../User/cluster-extend-status.html">cluster-extend-status</a> <a href="../Topic/cluster-interfaces.html">cluster-interfaces</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>snmp-traps</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>snmp-traps</h1>
+<p>Manipulate SNMP traps</p>
+<h1>Syntax</h1>
+<pre>snmp-traps operation
+where &#39;operation&#39; is one of:
+list
+add    [-h &lt;TrapHost&gt;] &lt;CommunityName&gt;
+del    [-h &lt;TrapHost&gt;] &lt;CommunityName&gt;
+delall [--confirm]
+modcom &lt;NewCommunityName&gt; &lt;CommunityName&gt;
+modhst &lt;NewTrapHost&gt; &lt;CommunityName&gt; &lt;TrapHost&gt;
+Alias:       snmptraps
+</pre>
+
+<h1>Description</h1>
+<p>snmp-traps configures the communities and hosts to which SNMP traps will be sent. Communities and hosts can be listed, added and removed.</p>
+<p>The command requires one of the following operations:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Displays a list of both communities and hosts.</p></dd>
+<dt><strong>add -h &lt;TrapHost&gt; &lt;CommunityName&gt;</strong></dt>
+<dl>
+<dt><strong>-h, --host</strong></dt>
+<dd><p>The host to which traps are to be sent</p></dd>
+</dl>
+<dd><p>Adds a host to the list of hosts in the specified community to which traps are sent. The host may be specified as either an IPv4 address, IPv6 address, or a host name. The SNMP community to which that host belongs is always required.  A maximum of 32 communities can be configured.  A maximum of 32 hosts can be configured for a community. A community name is limited to alphanumeric or characters !#$'+-.=@{}() []_~ (but no leading or trailing spaces).</p></dd>
+<dt><strong>del [-h &lt;TrapHost&gt;] &lt;CommunityName&gt;</strong></dt>
+<dl>
+<dt><strong>-h, --host</strong></dt>
+<dd><p>The host to be removed</p></dd>
+</dl>
+<dd><p>Removes a host from the list of hosts to which traps are sent. The SNMP community to which that host belongs is always required. If the host is not specified, then all hosts belonging to that community, and the community, will be deleted.</p></dd>
+<dt><strong>delall [--confirm]</strong></dt>
+<dd><p>Remove all hosts and communities from the list of hosts to which traps are sent. The --confirm option prevents the command prompting for confirmation.</p></dd>
+<dt><strong>modcom &lt;NewCommunityName&gt; &lt;CommunityName&gt;</strong></dt>
+<dd><p>Change the name of a community from the name given by CommunityName to the name given by NewCommunityName. A community name is limited to alphanumeric or characters !#$'+-.=@{}() []_~ (but no leading or trailing spaces).</p></dd>
+<dt><strong>modhst &lt;NewTrapHost&gt; &lt;CommunityName&gt; &lt;TrapHost&gt;</strong></dt>
+<dd><p>Change the listed destination name or IP address of a host to which traps are sent.</p></dd>
+</dl>
+<p>When a host is specified by host name, it will be resolved to an IPv6 address when such an address is available and reachable, otherwise it will be resolved to an IPv4 address.</p>
+<p>The behavior of SNMP traps is affected by the syslog_and_snmptrap_come_from_admin_vnode variable. When set to false (default), traps will be sent from the cluster node where the trap was generated. When set to true, traps will be sent from an admin vnode IP address. As its name suggests, this variable also affects the sending of syslog alerts.</p>
+<h1>Examples</h1>
+<p>To list the hosts currently configured:</p>
+<p>snmp-traps list</p>
+<pre>     Trap community name: engineering
+          Trap Host: 192.168.42.114
+          Trap Host: deervalley
+</pre>
+<p></p>
+<p>To add the host '10.1.2.3' in the public SNMP community as a destination of SNMP traps:</p>
+<p>snmp-traps add -h 10.1.2.3 public</p>
+<p>To add the host 'fdca:f995:220a::2:c' in the 'engineering' SNMP community as a destination of SNMP traps:</p>
+<p>snmp-traps add -h fdca:f995:220a::2:c engineering</p>
+<p>To remove all hosts in SNMP community 'engineering' from the list of destinations to which SNMP traps are sent:</p>
+<p>snmp-traps del engineering</p>
+<p>The host 10.1.2.3 in community 'public' is already listed as a host to which traps are sent. Change the entry to show the destination as 'snmpMgr' in community 'public':</p>
+<p>snmp-traps modhst 10.1.2.3 public snmpMgr</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/snmp.html">snmp</a> <a href="../User/snmp-communities.html">snmp-communities</a> <a href="../User/snmp-hosts.html">snmp-hosts</a> <a href="../Supervisor/snmp-port-set.html">snmp-port-set</a> <a href="../Supervisor/snmp-port-show.html">snmp-port-show</a> <a href="../Supervisor/snmp-protocol.html">snmp-protocol</a> <a href="../User/snmp-stats.html">snmp-stats</a> <a href="../Supervisor/snmp-trap-port-set.html">snmp-trap-port-set</a> <a href="../Supervisor/snmp-trap-port-show.html">snmp-trap-port-show</a> <a href="../Supervisor/snmp-trap-send.html">snmp-trap-send</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

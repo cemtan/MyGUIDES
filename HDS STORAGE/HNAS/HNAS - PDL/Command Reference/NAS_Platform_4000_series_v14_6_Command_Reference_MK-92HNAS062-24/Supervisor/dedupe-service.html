@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dedupe-service</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>dedupe-service</h1>
+<p>Start/Stop dedupe service</p>
+<h1>Syntax</h1>
+<pre>dedupe-service [--start [--force]] | [--stop] | [--verbose]
+</pre>
+
+<h1>Description</h1>
+<p>This command shows the status (if no option is specified) or starts/stops the dedupe service.</p>
+<p>Users can run this command directly to start/stop the dedupe service right away. Or they can set up cron jobs by themselves (using 'crontab add' command) to run this command at their choice of date and time.</p>
+<p>The dedupe service state is initially set to auto-enable on demand from factory. This state means dedupe is effectively disabled until there is a need for deduplication. The deduplication need can come from the dedupe server or the following commands: format, mount, fs-convert-to-support-dedupe, fs-dedupe-status-set, dedupe-queue-add, dedupe-service.</p>
+<p>When such a need arises, the server will enable the dedupe service if there is sufficient uncommitted memory available. Otherwise, the dedupe service remains in the auto-enable state and an event is logged for most cases except fs-dedupe-status-set. In the case of fs-dedupe-status-set, if the dedupe service cannot be changed from auto-enable to enabled state, the command will fail and display an appropriate error message.</p>
+<p>If there is insufficient free memory available to enable dedupe, the server keeps trying to enable the dedupe service whenever it receives a deduplication request. Of course, all the enabling attempts will fail and all failure events are logged. However, events with identical error messages will not be logged right away to avoid spamming the event log.  Rather, they are paced, i.e., the first event will be logged immediately but subsequent events are counted and a summary will be logged after some time interval.</p>
+<p>Note that once the dedupe service state is changed from auto-enable, it will never go back to the auto-enable state. The dedupe-service command can only change the state from enabled to disabled and vice versa.</p>
+<dl>
+<dt><strong>--start</strong></dt>
+<dd><p>If the dedupe service is not in the 'enabled' state (e.g. auto-enable or disabled), this option changes the dedupe service state to enabled. If there is insufficient free memory to run deduplication, the command will fail.</p></dd>
+<dd><p>If the command fails, the dedupe service state is left unchanged. Otherwise, the dedupe service becomes enabled and remains in this state until changed subsequently by another run of 'dedupe-service'.</p></dd>
+<dt><strong>--force</strong></dt>
+<dd><p>This option can only be specified together with --start. In general, it forces the dedupe service to be enabled immediately even if there is insufficient uncommitted memory.</p></dd>
+<dt><strong>--stop</strong></dt>
+<dd><p>This stops the dedupe service immediately. The dedupe service becomes disabled and remains in this state until changed subsequently by another run of 'dedupe-service'.</p></dd>
+<dt><strong>--verbose</strong></dt>
+<dd><p>If only this option is specified, the command displays the dedupe service status and additional information such as the maximum amount of memory reserved for the dedupe service.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. Show current dedupe service status</p>
+<pre>      server:$ dedupe-service
+      Current dedupe service status: disabled
+</pre>
+<p></p>
+<pre>      server:$ dedupe-service -v
+      Current dedupe service status: enabled
+      Dedupe memory requirement: 308 MB
+</pre>
+<p></p>
+<p>2. Turn on dedupe service immediately</p>
+<pre>      server:$ dedupe-service --start
+</pre>
+<p></p>
+<p>3. Turn off dedupe service immediately</p>
+<pre>      server:$ dedupe-service --stop
+</pre>
+<p></p>
+<p>4. Set up dedupe cron jobs manually</p>
+<p>Users can manually set up cron jobs to start/stop dedupe services at their own choice of dates and times.</p>
+<p>As an example, suppose we want to set up the following weekly schedule for every day of the week:</p>
+<pre>                 Simple Weekly Dedupe Schedule
+</pre>
+<p></p>
+<pre>    - Sat-Sun: Enable dedupe the whole day from 0:00 to 24:00
+    - Mon-Fri: Enable dedupe from 0:00 to 7:30,
+               disable from 7:30 to 19:30,
+               and enable again from 19:30 to 24:00
+</pre>
+<p></p>
+<p>We will use the following syntax to add a cron job:</p>
+<pre>   crontab add "mm hh * * dd"  "dedupe-service --start|--stop"
+</pre>
+<p></p>
+<p>where 'mm' is minutes, 'hh' is hour in 24-hour format, 'dd' is a list of day numbers where Sunday is 0 or 7, Monday is 1, Tuesday is 2, ..., and Saturday is 6. The list can contain one or more days separated by commas and/or hyphens. A hyphen is used to indicate an inclusive range. Examples of 'dd' are  '4' for Thursday, '1-5' for Monday through Friday', '0,6' or '6-7' for Saturday and Sunday.</p>
+<p>The following commands support the schedule stated above:</p>
+<pre>    4a. To add a cron job to start dedupe at 0:00 on Saturday and Sunday
+</pre>
+<p></p>
+<pre>           crontab add "0 0 * * 0,6" "dedupe-service --start"
+</pre>
+<p></p>
+<pre>    4b. No need to stop dedupe service at 24:00 on Saturday and Sunday.
+</pre>
+<p></p>
+<pre>        As a general rule, there is no need to schedule any job
+        at 24:00 of a day because this time point belongs to the
+        next day and is managed by the cron job at 0:00 of the next day.
+</pre>
+<p></p>
+<pre>    4c. To add a cron job to start dedupe at 0:00 on Monday-Friday:
+</pre>
+<p></p>
+<pre>           crontab add "0 0 * * 1,5" "dedupe-service --start"
+</pre>
+<p></p>
+<pre>    4d. To add a cron job to stop dedupe at 7:30 on Monday-Friday:
+</pre>
+<p></p>
+<pre>           crontab add "30 7 * * 1,5" "dedupe-service --stop"
+</pre>
+<p></p>
+<pre>    4e. To add a cron job to start dedupe at 19:30 on Monday-Friday:
+</pre>
+<p></p>
+<pre>           crontab add "30 19 * * 1,5" "dedupe-service --start"
+</pre>
+<p></p>
+<pre>    4f. No need to stop dedupe service at 24:00 on Monday-Friday
+        for the same reason as stated in 4b.
+</pre>
+<p></p>
+<p>5. More on setting up dedupe cron jobs manually</p>
+<p>Let's go back to Example 4. Commands (4a) and (4c) can be combined by specifying the day range as '0-6' to cover the entire week. Thus, to support the schedule stated in Example 4 we can simply create 3 cron jobs as follows:</p>
+<pre>      crontab add "0 0 * * 0-6" "dedupe-service --start"
+      crontab add "30 7 * * 1,5" "dedupe-service --stop"
+      crontab add "30 19 * * 1,5" "dedupe-service --start"
+</pre>
+<p></p>
+<p>To list all cron jobs for verify purposes:</p>
+<pre>    server:$ crontab list
+</pre>
+<p></p>
+<pre>    ID Date Specification Mail Recipient(s)      Level             Command(s)
+    -- ------------------ ----------------- ---------- ----------------------
+     1        0 0 * * 0-6                   SUPERVISOR dedupe-service --start
+     2       30 7 * * 1,5                   SUPERVISOR  dedupe-service --stop
+     3      30 19 * * 1,5                   SUPERVISOR dedupe-service --start
+</pre>
+<p></p>
+<p>To redefine job 3 to start dedupe at 20:00 instead of 19:30, we first have to delete cron job #3, then add a new job:</p>
+<pre>    server:$ crontab del 3
+    server:$ crontab list
+</pre>
+<p></p>
+<pre>    ID Date Specification Mail Recipient(s)      Level             Command(s)
+    -- ------------------ ----------------- ---------- ----------------------
+     1        0 0 * * 0-6                   SUPERVISOR dedupe-service --start
+     2       30 7 * * 1,5                   SUPERVISOR  dedupe-service --stop
+</pre>
+<p></p>
+<pre>    server:$ crontab add "0 20 * * 1,5" "dedupe-service --start"
+    server:$ crontab list
+</pre>
+<p></p>
+<pre>    ID Date Specification Mail Recipient(s)      Level             Command(s)
+    -- ------------------ ----------------- ---------- ----------------------
+     1        0 0 * * 0-6                   SUPERVISOR dedupe-service --start
+     2       30 7 * * 1,5                   SUPERVISOR  dedupe-service --stop
+     3       0 20 * * 1,5                   SUPERVISOR dedupe-service --start
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/crontab.html">crontab</a> <a href="../Supervisor/dedupe-queue-add.html">dedupe-queue-add</a> <a href="../Topic/deduplication.html">deduplication</a> <a href="../Supervisor/format.html">format</a> <a href="../Supervisor/fs-convert-to-support-dedupe.html">fs-convert-to-support-dedupe</a> <a href="../Supervisor/fs-dedupe-status-set.html">fs-dedupe-status-set</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Topic/resource-config.html">resource-config</a> <a href="../Topic/units.html">units</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

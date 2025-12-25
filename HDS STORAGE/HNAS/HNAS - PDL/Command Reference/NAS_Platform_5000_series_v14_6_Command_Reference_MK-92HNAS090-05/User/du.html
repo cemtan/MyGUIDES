@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>du</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>du</h1>
+<p>Displays true and apparent disk usage for a specific file</p>
+<h1>Syntax</h1>
+<pre>du [--human-readable] [--apparent-size] [--exclude-overhead] [--block-size &lt;block size&gt;] [--more] [--file-system &lt;file-system&gt;] &lt;file&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The du command displays disk usage for a selected file. Disk usage differs from file length because it includes metadata overhead.  Additionally, if sparse files are in use, disk usage may be reduced significantly, as empty data blocks are not allocated by the file system.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-h, --human-readable</strong></dt>
+<dd><p>(optional) Print sizes in human-readable format as a number of bytes (e.g., 1K 234M 2G).  By default usage is reported in blocks.</p></dd>
+<dt><strong>--apparent-size</strong></dt>
+<dd><p>(optional) Print apparent size (the "file length") in bytes, rather than disk usage.  Although the apparent size is usually smaller than disk usage (when expressed in bytes), it may be larger for sparse files.</p></dd>
+<dt><strong>-B, --block-size</strong></dt>
+<dd><p>(optional) Use a specific block size when reporting disk usage in blocks.  Use 1 to report disk usage in bytes.</p></dd>
+<dt><strong>-e, --exclude-overhead</strong></dt>
+<dd><p>(optional) Prints disk usage excluding metadata overhead.  Ignored when used with --apparent-size.</p></dd>
+<dt><strong>-m, --more</strong></dt>
+<dd><p>(optional) Prints apparent size, disk usage in bytes, disk usage in blocks, the data/metadata split, and the block size used.</p></dd>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>(optional) Looks for the requested file on an alternate file system.</p></dd>
+<dt><strong>&lt;file&gt;</strong></dt>
+<dd><p>(required) The name of the file to examine.</p></dd>
+</dl>
+<h1>Examples</h1>
+<dl>
+<dt><strong>du chr2.bed</strong></dt>
+<dd><p>Displays the disk usage in blocks of the file "chr2.bed".</p></dd>
+<dt><strong>du -B 1 ubcs.RData</strong></dt>
+<dd><p>Displays the disk usage in bytes of the file "ubcs.RData".</p></dd>
+<dt><strong>du -h sequence.wib</strong></dt>
+<dd><p>Displays in human-readable form, the disk usage in bytes of the file "sequence.wib".</p></dd>
+<dt><strong>du -h --apparent-size rhesus.scaffold</strong></dt>
+<dd><p>Displays in human-readable form, the apparent size in bytes of the file "rhesus.scaffold".</p></dd>
+<dt><strong>du -B 512 --exclude-overhead human-chimp.alignment</strong></dt>
+<dd><p>Displays the disk usage, excluding metadata overhead, in blocks of size 512 of the file "human-chimp.alignment".</p></dd>
+<dt><strong>du -m chimp_chr2a.bed</strong></dt>
+<dd><p>Displays everything for the file "chimp_chr2a.bed".</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Dev/sparse-blocks.html">sparse-blocks</a> <a href="../Supervisor/true-sparse-files.html">true-sparse-files</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

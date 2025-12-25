@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-scalability</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>filesystem-scalability</h1>
+<p>Estimate how far filesystems might expand, given space</p>
+<h1>Syntax</h1>
+<pre>filesystem-scalability &lt;span-or-filesystem-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The server uses a chip called 'DI' to interface to the storage.  This chip uses table entries to describe the chunks in a filesystem.  The number of table entries is limited to 1,023 per filesystem.</p>
+<p>When a filesystem is created or expanded, the server allocates sequential 'runs' of several chunks each; each run fits into a single table entry.  This technique makes filesystems much more scalable than they would otherwise be.  The average length of a run is influenced by the span's run bias, which is displayed and configured by 'span-tune-allocator'.</p>
+<p>The 'filesystem-scalability' shows how many chunks and runs a filesystem has used so far, and calculates a ratio to show how effectively scalability has been optimized.</p>
+<p>It also provides two estimates -- one pessimistic, one optimistic -- of how far it might be possible to expand the filesystem in the future.  The pessimistic estimate assumes that free space will be very fragmented, and no scalability optimization will be possible.  The optimistic estimate assumes that each table entry will be able to hold R chunks, where R equals the span's run bias.</p>
+<p>The estimates take no account of the free space on the span or of any confinement, nor of any limit imposed by the model of the server on which the command is run, though they do honor the maximum filesystem capacity and the maximum number of chunks in a span.  To achieve the predicted scalability, you may have to expand the span or even delete other filesystems that reside on it, or you may have to upgrade the server.</p>
+<p>If passed a filesystem instance name, 'filesystem-scalability' shows statistics for that one filesystem; given a span instance name, it shows statistics for all the filesystems on the span.</p>
+<p>This command can answer the following questions:</p>
+<ul>
+<li>How effective is scalability being optimized at present?</li>
+<li>How far might a given filesystem expand?</li>
+<li>Should the span's run bias be increased to meet scalability goals?</li>
+<li>Can we improve balance across stripesets by reducing the run bias without sacrificing scalability?</li>
+</ul>
+<p>If you have run 'span-hdp-preallocation no' and an HDP-resident span (or one tier of one such tiered span) resides on two or more HDP pools, auto-expansion will be disabled, and you will be obliged to expand the filesystems on the span by running 'filesystem-expand --on-stripeset'.  In that case, the span's run bias and other allocator tuning have little effect on filesystem scalability, which will depend mainly on how many chunks you allocate on each stripeset before moving to the next.  The output of 'filesystem-scalability' is likely to be less accurate than usual for that span.</p>
+<h1>Examples</h1>
+<pre>server:$ filesystem-scalability accounts
+----------- Current ---------- | ------------- Expected ---------------|
+                               | -- Pessimistic -- | -- Optimistic --- |
+Chunks  Runs  Ratio  Capac/GiB | Chunks  Capac/GiB | Chunks  Capac/GiB | Name
+============================== | ================= | ================= | ====
+</pre>
+<p></p>
+<pre>   696   688  1.012        899 |   1031       1344 |  22136      28862 | Alpha
+   714   308  2.318        922 |   1429       1863 |  46474      60595 | Bravo
+   669     9  74.33        865 |   1683       2194 |  60000      78231 | Charlie
+   696     4    174        898 |   1715       2236 |  60000      78231 | Delta
+server:$
+</pre>
+<p></p>
+<p>This table tells us the following about filesystem Charlie: it occupies 669 chunks, which have been optimized into just 9 runs, a ratio of 74.33 chunks per run.  It current capacity is 865GiB.  In the worst case, provided that space is available on the span, Charlie will be expandable to 2194GiB, occupying 1683 chunks.  In the optimistic case, given the span's current run bias, and again assuming that space is made available, Charlie will be expandable to the hard maximum of 60,000 chunks, which, on this particular span, will stretch to 78,231GiB.</p>
+<p>We can surmise more from this table:</p>
+<p>Alpha was probably created and expanded on a release older than 11.2.  These older releases did not optimize filesystem scalability, despite a few specific situations in which they happened to do well.  This filesystem shows the worst possible case, in which every chunk has used a table entry and most of the 1,023 available table entries have already been used up.</p>
+<p>Bravo was probably created and expanded on a release older than 11.2, but then further expanded on 11.2 or later.</p>
+<p>Charlie was probably created and expanded on 11.2 or later, and has benefited from scalability optimization.</p>
+<p>Delta was probably created on 11.2 or later and, in addition, has been expanded in large increments.  Large expansions improve scalability because they enable the server to allocate large runs of consecutive chunks without causing imbalance.</p>
+<p>Suppose that we need to scale filesystem Alpha to 60,000GiB.  How far must we increase the run bias?</p>
+<pre>server:$ span-tune-allocator accounts
+Span weight:       10
+Filesystem weight: 10
+Run bias:          64
+server:$ span-tune-allocator --run-bias 96 accounts
+Success
+</pre>
+<p></p>
+<pre>New settings:
+Span weight:       10
+Filesystem weight: 10
+Run bias:          96
+server:$ file
+Display all 82 possibilities? (y or n)
+server:$ filesystem-scalability accounts
+----------- Current ---------- | ------------- Expected ---------------|
+                               | -- Pessimistic -- | -- Optimistic --- |
+Chunks  Runs  Ratio  Capac/GiB | Chunks  Capac/GiB | Chunks  Capac/GiB | Name
+============================== | ================= | ================= | ====
+</pre>
+<p></p>
+<pre>   696   688  1.012        899 |   1031       1344 |  32856      42839 | Alpha
+   714   308  2.318        922 |   1429       1863 |  60000      78231 | Bravo
+   669     9  74.33        865 |   1683       2194 |  60000      78231 | Charlie
+   696     4    174        898 |   1715       2236 |  60000      78231 | Delta
+server:$ span-tune-allocator --run-bias 128 accounts
+Success
+</pre>
+<p></p>
+<pre>New settings:
+Span weight:       10
+Filesystem weight: 10
+Run bias:          128
+server:$ filesystem-scalability accounts
+----------- Current ---------- | ------------- Expected ---------------|
+                               | -- Pessimistic -- | -- Optimistic --- |
+Chunks  Runs  Ratio  Capac/GiB | Chunks  Capac/GiB | Chunks  Capac/GiB | Name
+============================== | ================= | ================= | ====
+</pre>
+<p></p>
+<pre>   696   688  1.012        899 |   1031       1344 |  43576      56817 | Alpha
+   714   308  2.318        922 |   1429       1863 |  60000      78231 | Bravo
+   669     9  74.33        865 |   1683       2194 |  60000      78231 | Charlie
+   696     4    174        898 |   1715       2236 |  60000      78231 | Delta
+server:$
+</pre>
+<p></p>
+<p>In this case, it seems prudent to choose a run bias of at least 128 and always to expand the span while a few per cent of its chunks are still free.  This measure prevents the list of free chunks from fragmenting, which would defeat scalability-optimization.</p>
+<p>Note that the maximum number of chunks on a span is 60,000.  Expanding Alpha to 50,000GiB will use so many chunks that there will be limited space to expand the other three filesystems.  If some of the other filesystems need to expand substantially, it will be necessary to move some of them on to other spans by copying the data across.  The earlier this is done, the easier it will be.</p>
+<p>Conversely, suppose we wish to improve the balance of I/O load across stripesets for future allocations by reducing the run bias.  How will this change affect scalability?</p>
+<pre>server:$ span-tune-allocator --run-bias 32 accounts
+Success
+</pre>
+<p></p>
+<pre>New settings:
+Span weight:       10
+Filesystem weight: 10
+Run bias:          32
+server:$ filesystem-scalability accounts
+------------ Current ----------- | ------------- Expected ---------------|
+                                 | -- Pessimistic -- | -- Optimistic --- |
+Chunks  Runs    Ratio  Capac/GiB | Chunks  Capac/GiB | Chunks  Capac/GiB | Name
+================================ | ================= | ================= | ====
+</pre>
+<p></p>
+<pre>   696   688   1.01116       899 |   1031       1344 |  11416      14885 | Alpha
+   714   308   2.31818       922 |   1429       1863 |  23594      30763 | Bravo
+   669     9   74.3333       865 |   1683       2194 |  33117      43180 | Charlie
+   696     4       174       898 |   1715       2236 |  33304      43423 | Delta
+server:$ span-tune-allocator --run-bias 16 accounts
+Success
+</pre>
+<p></p>
+<pre>New settings:
+Span weight:       10
+Filesystem weight: 10
+Run bias:          16
+server:$ filesystem-scalability accounts
+------------ Current ----------- | ------------- Expected ---------------|
+                                 | -- Pessimistic -- | -- Optimistic --- |
+Chunks  Runs    Ratio  Capac/GiB | Chunks  Capac/GiB | Chunks  Capac/GiB | Name
+================================ | ================= | ================= | ====
+</pre>
+<p></p>
+<pre>   696   688   1.01116       899 |   1031       1344 |   6056       7896 | Alpha
+   714   308   2.31818       922 |   1429       1863 |  12154      15847 | Bravo
+   669     9   74.3333       865 |   1683       2194 |  16893      22026 | Charlie
+   696     4       174       898 |   1715       2236 |  17000      22165 | Delta
+server:$
+</pre>
+<p></p>
+<p>If we need more scalability later, we can always increase the run bias later, but the more expansions took place while the run bias was small, and hence the more table entries have been used up, the less scalability an increased run bias will achieve.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-tune-allocator.html">span-tune-allocator</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

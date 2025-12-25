@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>lockd-state</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>lockd-state</h1>
+<p>Displays information on NLM locks for the specified file</p>
+<h1>Syntax</h1>
+<pre>lockd-state [-u] &lt;path&gt; [&lt;client IP address&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The lockd-state command is used to view or remove network lock manager (NLM) locks and other state.</p>
+<p>Usage:</p>
+<pre>lockd-state [OPTION] &lt;path&gt; [&lt;client IP address&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>&lt;path&gt;</strong></dt>
+<dd><p>The file whose locks and other state are to be displayed (or removed if the -u option is present).</p></dd>
+<dt><strong>&lt;client IP address&gt;</strong></dt>
+<dd><p>Only display (or remove if the -u option is present) locks and other state belonging to given client. This must be supplied if the -u option is present.</p></dd>
+<dt><strong>--unlock, -u</strong></dt>
+<dd><p>Remove all NLM locks and other state held by the client specified by &lt;client IP address&gt; for the file identified by &lt;path&gt;.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-disks</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-disks</h1>
+<p>Display information about SCSI disk devices</p>
+<h1>Syntax</h1>
+<pre>scsi-disks [[device id][-c, --clear]] |
+[&lt;-v, --verb&gt; [-c, --clear][-i, --ignore][-p, --port id][-o, --order]][&lt;system-drives, see &#39;man sd-spec&#39;&gt;]] | 
+[&lt;-e, --ext&gt;  [-c, --clear][-i, --ignore][-p, --port id][-o, --order][&lt;system-drives, see &#39;man sd-spec&#39;&gt;]] | 
+[[-a, --all]  [-c, --clear][-l, --luns][-m, --mirror][-o, --order][-p, --port id][-r, --paddr][&lt;system-drives, see &#39;man sd-spec&#39;&gt;]]
+Alias:       disks
+</pre>
+
+<h1>Description</h1>
+<p>Display information about all disk devices the server has discovered.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Show all LUNs/disk devices, including those that are disconnected/removed.</p></dd>
+<dt><strong>-c, --clear</strong></dt>
+<dd><p>Clear device error information before displaying.</p></dd>
+<dt><strong>-e, --ext</strong></dt>
+<dd><p>Show extended information (verbose format without error information).</p></dd>
+<dt><strong>-l, --luns</strong></dt>
+<dd><p>For summary information, show all connected LUNs if device has multiple LUNs.</p></dd>
+<dt><strong>-o, --order</strong></dt>
+<dd><p>List devices in ascending Device ID order (default is vendor/(system id)/revision/device id order).</p></dd>
+<dt><strong>-p, --port &lt;id&gt;</strong></dt>
+<dd><p>Show verbose information about all devices that have a nexus with the given SCSI port id.</p></dd>
+<dt><strong>-r, --paddr</strong></dt>
+<dd><p>For summary information, show Host port number, port id and online status of the devices' ports, as Hport:Port:Addrs.</p></dd>
+<dt><strong>-s, --pstat</strong></dt>
+<dd><p>For summary information, show port id and online status for each of the devices' ports.</p></dd>
+<dt><strong>-v, --verb</strong></dt>
+<dd><p>Show verbose information about all devices.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To show extended disk device information:</p>
+<pre>scsi-disks -e
+</pre>
+<p></p>
+<p>Show verbose information about all disk devices:</p>
+<pre>scsi-disks -v
+</pre>
+<p></p>
+<p>Show verbose information about disks on SCSI port 2:</p>
+<pre>scsi-disks -p 2
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-tapes.html">scsi-tapes</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

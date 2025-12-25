@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-free-space-measure-fragmentation</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fs-free-space-measure-fragmentation</h1>
+<p>Gauge the degree of fragmentation of the remaining free space on a given file system</p>
+<h1>Syntax</h1>
+<pre>fs-free-space-measure-fragmentation [--abort] -f &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>fs-free-space-measure-fragmentation provides details and an analysis of the remaining free space on the supplied file system. Specifically, it shows the total number of free blocks, the total number of free block runs (e.g. if five freed blocks have contiguous disk addresses, then that would count as one free block run). The higher the number of runs in proportion to the number of free blocks, the more fragmented the free space is. In the resulting output this proportion is expressed as a percentage.</p>
+<p>An ascii graph is also displayed as part of the results. This shows the frequency of various sizes of contiguous free space on disk.</p>
+<p>Users may run fs-free-space-measure-fragmentation on file systems that are either mounted or unmounted. If it is run on a file system that is mounted read/write, then results will vary slightly between invocations as the utility does not take out any locks, and it is trying to analyze what is essentially a moving target. However, results should always be accurate enough to provide a reasonable analysis of the state of the free space.</p>
+<p>fs-free-space-measure-fragmentation runs synchronously, and it's findings are sent to both the dynamic log and the fsm dblog.</p>
+<p>Example output:</p>
+<p>Free Allocations: 3445824. Free Allocation Runs: 165987 (4.81% fragmentation)</p>
+<p>------------------------------</p>
+<p>Contiguous Free Space Profile:</p>
+<p>------------------------------</p>
+<p>Samples=  165987  Total=13.1 GB (14114095104 B)  Min=4 KB (4096 B)  Av=83.0 KB (85031 B)  Max=134 MB (140582912 B) Last reset 1.44 s ago</p>
+<pre>      59005|    #
+      29502|    ##
+      14751|   ####
+       7375|  ######
+       3687|  ########
+       1843|  ########
+        921|  ########
+        460|  #########
+        230|  ##########
+        115|  ##########
+         57|  ##########
+         28|  ##########
+         14|  ###########
+          7|  ###########
+          3|  ##############
+          1|  ################
+           +--------------------------------
+            |   |   |   |   |   |   |   |
+           1KB 16 256  4MB 64  1GB 16 256
+</pre>
+<p></p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a</strong></dt>
+<dd><p>Abort the currently running instance of this utility.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/show-superflush-potential.html">show-superflush-potential</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

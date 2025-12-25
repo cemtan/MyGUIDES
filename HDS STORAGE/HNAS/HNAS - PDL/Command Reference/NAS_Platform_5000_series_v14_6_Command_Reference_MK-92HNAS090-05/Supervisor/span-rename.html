@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-rename</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-rename</h1>
+<p>Rename a span</p>
+<h1>Syntax</h1>
+<pre>span-rename &lt;from-base-or-instance-name&gt; &lt;to-base-name&gt;
+Alias:       mvspan
+</pre>
+
+<h1>Description</h1>
+<p>Changes the base name of a span.  If the span is a storage-based snapshot, all related snapshots' base names are changed; snapshot names stay unchanged; and new instance names are calculated.</p>
+<p>The filesystems resident on the span are not affected and need not be unmounted.  Nevertheless, the span's new name must be different from those of all other spans and all filesystems.  The uniqueness rules are set out in the 'storage-based-snapshot-label' page.</p>
+<p>If the server encounters two spans with the same name, it will refuse to load the second one, and will log an event giving the span name that's causing the problem.  Rename the span that's already loaded, and then run 'sd-rescan-cod' to load the second span.</p>
+<h1>Examples</h1>
+<pre>span-rename Accounts Finance
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-rename.html">filesystem-rename</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-rename-snapshot.html">span-rename-snapshot</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

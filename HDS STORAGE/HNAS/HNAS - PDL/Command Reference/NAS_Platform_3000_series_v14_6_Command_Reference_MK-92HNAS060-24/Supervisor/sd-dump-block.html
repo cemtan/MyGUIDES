@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-dump-block</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sd-dump-block</h1>
+<p>Read and hexdump one block from a system drive</p>
+<h1>Syntax</h1>
+<pre>sd-dump-block [--denied] [--raw] &lt;sd-device-sd&gt; (byte|block) &lt;number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Reads a block of data from a system drive (SD).  Prints a hex dump of the data.</p>
+<p>This command reads data directly from the storage, bypassing the fast path and all the caches in the server.</p>
+<p>You can specify the offset either as a block number or as a byte offset; so, assuming 512-byte blocks, 'sd-dump-block 0 block 64' and 'sd-dump-block 0 byte 32768' are exactly equivalent.  You can also (as with many commands) specify numbers in hex by using a '0x' prefix; so 'sd-dump-block 0 byte 0x8000' is a third way to write the same command.</p>
+<p>The --denied or -d switch enables the command to read from unlicensed system drives (those to which you have not enabled access).  Without this switch, the command will reject unlicensed SDs.  Never use this switch to dump data from an SD that is being used by another cluster, because some storage does not support concurrent access from multiple clusters.</p>
+<p>The --raw switch bypasses the Slie emulation layer, using the SD's real status to determine whether it is possible to read from disk.  Since Slie is not normally used in production systems, this switch rarely has any effect.</p>
+<h1>Examples</h1>
+<pre>cluster1:$ sd-dump-block 0 block 64
+0x00000000 : 00 C0 0B E5 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+0x00000010 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+0x00000020 : 00 C0 0B E5 00 00 00 04 00 00 00 00 00 00 00 00 : ................
+0x00000030 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... same (for 28 more lines, 448 more bytes) .....
+0x00000200 :                                                 :
+cluster1:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-translate-offset.html">filesystem-translate-offset</a> <a href="../Dev/sd-read-block.html">sd-read-block</a> <a href="../Supervisor/sd-translate-offset.html">sd-translate-offset</a> <a href="../Dev/sd-write-block.html">sd-write-block</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

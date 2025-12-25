@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nsorder</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>nsorder</h1>
+<p>Report/configure name service ordering</p>
+<h1>Syntax</h1>
+<pre>nsorder [-o [&lt;d|n|w&gt;][&lt;d|n|w&gt;][&lt;d|n|w&gt;]] [-r]
+</pre>
+
+<h1>Description</h1>
+<p>The host name lookup service needs to be configured to work correctly in local environment. nsorder provides a way of using DNS (recommended), NIS or WINS to do that lookup. More than one service can be specified and host name lookup code uses each service in turn until a name is successfully resolved. This functionality is similar to that provided by /etc/nsswitch.conf in other OSs.</p>
+<p>Without any options, the nsorder command displays the currently configured list of name services.</p>
+<p>To configure the name service order:</p>
+<p>nsorder [-o [&lt;d|n|w&gt;][&lt;d|n|w&gt;][&lt;d|n|w&gt;]] [-r]</p>
+<dl>
+<dt><strong>-o</strong></dt>
+<dd><p>Specifies the host name order. Use d for DNS, n for NIS (formerly known as yp) or w for WINS.</p></dd>
+<dt><strong>-r</strong></dt>
+<dd><p>Removes all name services.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To specify names should be looked up using DNS followed by NIS:</p>
+<pre>nsorder -o dn
+</pre>
+<p></p>
+<p>To specify names should be looked up using DNS followed by WINS:</p>
+<pre>nsorder -o dw
+</pre>
+<p></p>
+<p>To display the current name service ordering:</p>
+<pre>nsorder
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/host.html">host</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

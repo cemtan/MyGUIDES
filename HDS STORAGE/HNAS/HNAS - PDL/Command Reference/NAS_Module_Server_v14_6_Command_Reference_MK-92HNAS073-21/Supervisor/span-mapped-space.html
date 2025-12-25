@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-mapped-space</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-mapped-space</h1>
+<p>See how much disk space is mapped and how much is expected</p>
+<h1>Syntax</h1>
+<pre>span-mapped-space [--bytes] [--no-commentary] &lt;span&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command is useful with thinly provisioned HDP pools.  An HDP pool is thinly provisioned if the total capacity of its DP-Vols exceeds the total capacity of its pool volumes.</p>
+<p>Every DP-Vol is divided into <strong>pages</strong> of 42MiB or, on older storage, 32MiB.  When you first create a DP-Vol, none of these HDP pages is mapped to real disk storage.  The first time the server writes to each HDP page, the storage subsystem <strong>maps</strong> it to real disk space -- allocates space to store the data that the server writes to that HDP page.</p>
+<p>In normal operation, the server can accurately estimate how much space is mapped to each DP-Vol.  However, it can also obtain an accurate figure from the storage array.  Discrepancies of more than a few gibibytes per SD require attention:</p>
+<ul>
+<li>If the measured value is much smaller than the estimate, the most likely cause is that 'span-hdp-preallocation no' has been in force at some point and the server has not yet written to chunks that have recently been allocated to filesystem.  When the server writes to these chunks, the storage array will map new disk space to the underlying HDP pages.  It is essential for the administrator to ensure that enough disk space is available when this takes place, or the HDP pool and every span that uses it will fail.  The difference between measured and estimated values is a good guide to the amount of space that will be needed.  It may be necessary to run 'span-unmap-vacated-chunks' (if 'span-vacated-chunks' indicates that some vacated chunks exist) or to add physical storage to the HDP pool.</li>
+<p>Another possible cause for the discrepancy is that zero-page reclaim (ZPR) has been used on the DP-Vols.  ZPR must never be used with this server.</p>
+<li>If the measured value is much larger than the estimate value, some space is being wasted.  The most likely causes are:</li>
+<ul>
+<li>The DP-Vols were, at some time, used with a software release older than 12.1 or with a foreign server;</li>
+<li>The DP-Vols were formerly used in a different span that has now been deleted.</li>
+</ul>
+<p>In either case, the server will automatically reclaim the leaked space by launching an unmapper, as if you had run 'span-unmap-vacated-chunks --unused-chunks'.  Read the man pages for that command and for 'span-throttle-unmapping'.</p>
+</ul>
+<p>Discrepancies of only a few gibibytes per SD can safely be ignored.</p>
+<h1>Examples</h1>
+<p>If the expected and measured values are equal, or close to equal:</p>
+<pre>server:$ span-mapped-space foo
+Set 0:
+  Expected:          482GiB =  4 x          120GiB
+  Measured:          482GiB
+</pre>
+<p></p>
+<pre>Set 1:
+  Expected:          488GiB =  4 x          122GiB
+  Measured:          488GiB
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The --bytes or -b switch requests more precision:</p>
+<pre>server$ span-mapped-space --bytes foo
+Set 0:
+  Expected:         517031854080 bytes =  4 x         129257963520 bytes
+  Measured:         517031854080 bytes
+</pre>
+<p></p>
+<pre>Set 1:
+  Expected:         524430606336 bytes =  4 x         131107651584 bytes
+  Measured:         524430606336 bytes
+</pre>
+<p></p>
+<pre>wrapped:$
+</pre>
+<p></p>
+<p>If the expected and measured values differ substantially, 'span-mapped-space' shows the amount of space mapped to each SD in turn:</p>
+<pre>hm800afa1-1:$ span-mapped-space foo
+Set 0:
+  Expected:          482GiB =  4 x          120GiB
+  Measured:          334GiB
+    SD     0:         83GiB
+    SD     1:         83GiB
+    SD     2:         83GiB
+    SD     3:         83GiB
+</pre>
+<p></p>
+<pre>Set 1:
+  Expected:          488GiB =  4 x          122GiB
+  Measured:          341GiB
+    SD     4:         85GiB
+    SD     5:         85GiB
+    SD     6:         85GiB
+    SD     7:         85GiB
+[...]
+server:$
+</pre>
+<p></p>
+<p>As in this case (482GiB = 4 x 120GiB), rounding to the nearest gibibyte will sometimes cause a certain loss of arithmetic precision.</p>
+<p>In the event of a discrepancy, 'span-mapped-space' will display instructions for the administrator.  The --no-commentary or -C switch disables these messages.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/span-delete.html">span-delete</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-throttle-unmapping.html">span-throttle-unmapping</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Supervisor/span-vacated-chunks.html">span-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

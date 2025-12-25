@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>macro-support</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>macro-support</h1>
+
+<h1>Description</h1>
+<p>This command configures support for macros in BALI.</p>
+<h2>What is a macro?</h2>
+<p>When the BALI shell processes input characters from the console, it always recognizes as special any token that begins with a dollar sign ($) followed by the name of an environment variable. Such a token will be replaced with the value of the environment variable. The replacement process is known as variable substitution, or variable expansion, or variable interpolation.</p>
+<p>If a token begins with a percent sign (%) followed by the name of an environment variable, it is hereafter defined as a macro token and the percent sign the macro symbol. The process of replacing a macro token with the value of the environment variable following the macro symbol is called macro substitution, or macro expansion, or macro interpolation. Note that the variable itself is sometimes referred to as a macro when it is used in the context of a macro token.</p>
+<p>To avoid confusion between the two types of substitutions, we will adhere to the following convention:</p>
+<pre>   - variable substitution, variable expansion, or variable interpolation:
+     This applies to tokens that begin with a dollar sign.
+</pre>
+<p></p>
+<pre>   - macro substitution, macro expansion, or macro interpolation:
+     This applies to tokens that begin with a macro symbol (percent sign by default)
+</pre>
+<p></p>
+<p>It should be emphasized that the BALI shell, by default, does not support the macro symbol, and hence, does not perform macro substitution.</p>
+<p>The following examples clarify the behavior of macros:</p>
+<pre>     $ env-set -v MYFILE  file1.txt               # Line 1
+     MYFILE=file1.txt                             # Line 2
+</pre>
+<p></p>
+<pre>     $ echo "Will delete $MYFILE in 3 minutes"    # Line 3
+     Will delete file1.txt in 3 minutes           # Line 4
+</pre>
+<p></p>
+<pre>     $ echo "Will delete %MYFILE in 3 minutes"    # Line 5
+     Will delete %MYFILE in 3 minutes             # Line 6
+</pre>
+<p></p>
+<p>It can be seen that when the shell processed line 5, it did not recognize % as a special symbol that signified variable substitution. Hence, all characters on line 5 are normal to the shell. As a result, the echo command displays them literally as is as shown on line 6.</p>
+<p>As will be seen later, this turns out to be the main advantage of macros because the entire token is not modified by the shell, and hence, can reach the command (e.g. echo in examples). This is especially useful in cases where the command wants to process the original token by itself.</p>
+<p>In general, the environment variable substitution process is not aware of macros by default. The following example illustrates the point:</p>
+<pre>     $ env-set -v PROMISE  "Will delete %MYFILE in 3 minutes" # Line 7
+     PROMISE=Will delete %MYFILE in 3 minutes                 # Line 8
+</pre>
+<p></p>
+<pre>     $ echo "He says: $PROMISE"                   # Line 9
+     He says: Will delete %MYFILE in 3 minutes    # Line 10
+</pre>
+<p></p>
+<p>Line 10 is not useful. What we really want is the following:</p>
+<pre>     He says: Will delete file1.txt in 3 minutes  # Line 11
+</pre>
+<p></p>
+<p>This can be accomplished if the BALI shell can recognize macro tokens in the environment variable values and then perform macro substitution appropriately. That is the goal of the env-config command. This command can configure the support for macros as follows:</p>
+<pre>   - enable/disable support for macro tokens
+   - enable/disable support for macro chaining
+   - enable/disable support for rescanning the text for macro substitution
+</pre>
+<p></p>
+<p>When macro support is enabled, all macros that appear in the value of an environment variable will be processed and substituted.</p>
+<h2>Macro Support</h2>
+<p>By default, macro support is disabled; i.e., the percent sign is no longer a special character and all macro tokens in the value of an environment variable become normal text to the shell. To enable/disable macro support, run 'env-config --enable|--disable'.</p>
+<p>If macro support is enabled, the shell recognizes the percent sign as special if and only if it appears in the value of an environment variable.</p>
+<p>What this means is that all macro tokens that appear on a command line will be left as is.  To be resolved, they need to be part of the value of an environment variable that appears on the command line. This is best illustrated with an example (assuming macro support is enabled).</p>
+<pre>      $ env-set -v COUNT 7
+      COUNT=7
+</pre>
+<p></p>
+<pre>      $ echo "I need file$COUNT.txt"   # BALI understands variable tokens on a command line
+      I need file7.txt
+</pre>
+<p></p>
+<pre>      $ env-set -v MYFILE  file%COUNT.txt
+      MYFILE=file%COUNT.txt
+</pre>
+<p></p>
+<pre>      $ echo "I need file%COUNT.txt"  # BALI see % as a normal character on a command line
+      I need file%COUNT.txt           # As a result, macro tokens are left intact
+</pre>
+<p></p>
+<pre>      $ echo "I need $MYFILE"   # MYFILE is processed and hence all macro tokens
+      I need file7.txt          # in the value of MYFILE will be resolved
+</pre>
+<p></p>
+<p>Macro support is a global feature. Once enabled on a physical node, it  stays enabled until system restart or until changed by another env-config command. Once enabled, it affects the behavior of all environment variables. Thus, macro support must be used with caution because it will break the behavior of legacy scripts.</p>
+<p>The safest way is to use macros in a minishell environment, a.k.a. MSE (see 'mse' man page). This environment maintains its own list of variables, which is different from the BALI environment variables.  However, only an MSE-aware command can understand and support MSE.  All variables in the MSE list can be configured, set, unset, and listed using the MSE-specific commands mse-config, mse-set, mse-unset, and mse-list. The following table compares the two types of macros.</p>
+<pre>             Table 1. Comparison between BALI and MSE macros
+    +--------------------------------------------------------------------------+
+    | Description                          BALI macros         MSE macros      |
+    |--------------------------------------------------------------------------|
+    | Default macro support:               disabled            enabled         |
+    | Default macro symbol:                %                   %               |
+    | Default escape character:            (none)              @               |
+    | Variables are kept in:               BALI environment    MSE environment |
+    |                                                                          |
+    | Commands:                                                                |
+    |    To configure macro support:       env-config          mse-config      |
+    |    To set a variable:                env-set             mse-set         |
+    |    To unset a variable:              env-unset           mse-unset       |
+    |    To list variables:                env                 mse-env         |
+    +--------------------------------------------------------------------------+
+</pre>
+<p></p>
+<p>Note:</p>
+<p>1. All "$&lt;variables&gt;" tokens on a command line will be expanded if and only if the text containing them is quoted with double quotes. This is the behavior of the BALI shell before macro support is introduced. This behavior is still honored after macro support is introduced.</p>
+<p>Macro support tells what to do once a $&lt;variable&gt; token is expanded and the resulting string contains one or more % tokens. These % tokens are called macros. If macro support is enabled, the new % tokens will be expanded again.</p>
+<p>2. All % tokens (or macros) on a command line are ignored unless the command supports MSE. Only MSE-aware commands can understand macro tokens that appear on the command lines. However, they will not expand them unless MSE macro support is enabled (see mse-config).</p>
+<h2>Macro Chaining Support</h2>
+<p>Recall that a macro token is nothing but an environment variable name prepended with a macro symbol, which is the percent sign by default. Resolving a macro token means replacing each macro token occurrence with the value of the variable. But if the macro value, in turn, contains one or more macro tokens, it is possible to resolve them, too, if macro chaining support is enabled. By default, macro tokens that appear in the value of a macro are not resolved.</p>
+<p>Macro chaining refers to the capability of resolving the value of a macro one or more times. This happens when the value of a macro contains other macro tokens. To resolve this kind of macro completely requires walking the entire chain of macros.</p>
+<p>For example, suppose the following three variables are defined:</p>
+<pre>       env-set COMMAND 'cat %FILE'
+       env-set FILE     file%INDEX.txt
+       env-set INDEX    1
+</pre>
+<p></p>
+<p>What will be displayed if the following command is run?</p>
+<pre>   (a) $ echo "I run $COMMAND"
+</pre>
+<p></p>
+<p>The answer depends on how macro support is configured for BALI environment. For instance, there are 3 different answers:</p>
+<pre>   (b) I run cat %FILE           # Default, macro support disabled
+   (c) I run cat file%INDEX.txt  # macro support enabled, macro chaining disabled
+   (d) I run cat file1.txt       # macro support enabled, macro chaining enabled
+</pre>
+<p></p>
+<p>Let's check what operation is needed to transform the result from one answer to another:</p>
+<pre>   - (a) =&gt; (b) : one variable substitution for $COMMAND, not a macro
+   - (b) =&gt; (c) : one macro substitution for %FILE
+   - (c) =&gt; (d) : one macro substitution for %INDEX
+</pre>
+<p></p>
+<p>Thus,</p>
+<pre>   - (a) =&gt; (c) : needs one variable substitution, one macro substitution
+   - (a) =&gt; (d) : needs one variable substitution, two macro substitutions
+</pre>
+<p></p>
+<p>Macro chaining support is needed only when we want to have more than one macro substitutions in the chain (variable substitution excluded).</p>
+<p>Macro chaining should be used with caution to avoid circular dependency. For instance,</p>
+<pre>      COMMAND=cat %FILE
+      FILE=file%INDEX.txt
+      INDEX=%FILE
+</pre>
+<p></p>
+<pre>      $ echo "I run $COMMAND"
+      I run cat filefilefilefilefilefile....    # indefinitely long
+</pre>
+<p></p>
+<p>The macro that causes circular dependency is called a recursive macro. Because resolving a recursive macro would result in indefinitely long text, recursive macro is forbidden.  The substitution process will stop as soon as circular dependency is detected and an error message will be displayed. The recursive macro token that appears in the text to be resolved will be left intact.  For the example above we will see the following result:</p>
+<pre>      $ echo "I run $COMMAND"
+      ERROR: macro FILE is recursively defined in terms of itself
+      I run cat %FILE
+</pre>
+<p></p>
+<p>In general, if macro chaining support is enabled, all macros in the chain will be resolved until the final text is free of macro tokens, if possible. In the process if any macro in the chain fails to resolve, it will be left as is in the final result.</p>
+<h2>Macro Substitution Rules</h2>
+<p>If the text contains more than one macro token, macro substitution is performed from left to right.  Macro substitution is similar to variable substitution except the following differences:</p>
+<p>1. Macro scanning and matching is not subject to quoting rules</p>
+<p>All characters in the text that is scanned for macro substitution are treated as normal, including single and double quotes, backslash, dollar signs. If there is a match, macro substitution will be performed blindly even if the text containing the macro token is enclosed in single quotes.</p>
+<p>2. Macro substitution is error tolerant.</p>
+<p>When a variable is not found (i.e., has never been defined before), the entire macro token is left unchanged in the text and scanning skips to the next token. This behavior is different for environment variable substitution, which always fails if a variable is undefined.</p>
+<p>3. Macro substitution can be dynamic</p>
+<p>Environment variable substitution always results in static text replacement.  But macro substitution can be dynamic, i.e., the substitution can result in different text if desired.</p>
+<p>To this end, macro substitution supports the replacing text to be the result of an arithmetic expression or the standard output of BALI commands. Therefore, macro substitution requires special syntax to indicate the operation to be performed.</p>
+<h2>Macro Token Syntax</h2>
+<p>Currently three types of substitution formats are supported.</p>
+<p>1) Simple Text Substitution</p>
+<p>This format requires the macro token to begin with a percent sign followed by a variable name or by a pair of curly brackets that encloses the variable name.</p>
+<p>The variable name in a macro token is a string that meets the following requirements:</p>
+<pre>   - the name must begin with an underscore or an alphabetical letter
+   - subsequent characters can be underscores, alphabetical letters, or digits.
+</pre>
+<p></p>
+<p>Macro substitution is performed when the variable has a value. The entire token is then replaced with the value of the variable. For instance,</p>
+<pre>     file%INDEX.txt    =&gt; file1.txt   (assuming INDEX=1)
+     file%{INDEX}.txt  =&gt; file1.txt
+</pre>
+<p></p>
+<p>2) Command Output Substitution</p>
+<p>If a token begins with a percent sign and is followed by a pair of parentheses or square brackets, the enclosed text is interpreted as a BALI command:</p>
+<pre>     %(BALI command)
+</pre>
+<p></p>
+<p>The output of the command is substituted in place of the entire token.</p>
+<p>3) Arithmetic Expansion</p>
+<p>If a token begins with a percent sign and is followed by a double pair of parentheses, the enclosed text is interpreted as an arithmetic expression.</p>
+<pre>     %((expression))
+     %((name=expression))
+</pre>
+<p></p>
+<p>The enclosed expression is evaluated arithmetically or logically and the numeric result is substituted in place of the entire token. If the expression is logical, the result is converted to a number (1 for true, 0 for false) before substitution. Note that the expression can be tertiary; e.g., %((a ? b : c)).</p>
+<p>The expression can contain environment variables without the leading dollar sign or percent sign. Their values are used when the expression is evaluated. If the variable does not exist, the evaluation will fail.</p>
+<p>An assignment can also be specified. The string on the left hand side of the equal sign is treated as the name of an environment variable. In this case, the numerical value of the right hand side is assigned to the variable in addition to being used to replace the token. If the name of the variable is invalid, the evaluation process fails.</p>
+<p>backquote echo env env-config env-set env-unset mse-config</p>
+
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

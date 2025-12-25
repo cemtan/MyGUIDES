@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-snapshot-options</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ndmp-snapshot-options</h1>
+<p>Display and/or set NDMP snapshot options</p>
+<h1>Syntax</h1>
+<pre>ndmp-snapshot-options [-s {on|off}] [-d {immediate|last|obsolete}] [-m &lt;maximum_retention_in_days&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Display and optionally set options that control when NDMP will automatically create snapshots and when it will delete those snapshots.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>{-s|--auto_snapshot} {on|off}</strong></dt>
+<dd><p>If set "on", NDMP will automatically create a snapshot to use when backing up a file system to tape or copying a directory using adc. (No snapshot will be created if the backup path already explicitly refers to a snapshot or if a snapshot rule is to be used.)</p></dd>
+<dt><strong>{-d|--snapshot_delete} {immediate|last|obsolete}</strong></dt>
+<dd><p>Indicates when NDMP will delete snapshots that it has automatically created. The "immediate" option means that the snapshot will be deleted immediately after the backup or adc copy in question has completed. This setting is useful for one-off full backups/copies. Where differential/incremental backups are used it is best to retain the snapshot as a more accurate incremental backup can be completed if the snapshot associated with the base backup is still available. The "obsolete" setting indicates that the snapshot is to be deleted when the associated backup or adc copy can no longer be used as the basis of an incremental backup. This is usually when a backup/copy with the same or lower LEVEL is run. The "last" option is useful where a sequence of incremental backups are to be run. Each backup is based on the immediately previous backup and when a backup is complete the snapshot associated with the previous backup is deleted. The snapshot associated with the current backup is deleted after the next backup in the sequence.</p></dd>
+<dt><strong>{-m|--max_retention} &lt;max_retention_in_days&gt;</strong></dt>
+<dd><p>Where a sequence of backups is discontinued, snapshots associated with these backups may remain on the system. In order to avoid snapshots created by NDMP being retained for long periods causing unnecessary disk usage, NDMP will delete any automatically created snapshot after the period specified here is completed. You must be careful not to set this option to a value smaller than is required by your incremental backup or replication schedules. Otherwise, those backup or replication sequences may be disrupted.</p></dd>
+</dl>
+<p>The values set for use of automatic snapshots and deletion policy are defaults that may be overridden by parameters explicitly specified on the transfer. The maximum retention period applies to _all_ snapshots automatically created by NDMP. The following are the NDMP operations and the effects they have:</p>
+<dl>
+<dt><strong>NDMP backup to tape</strong></dt>
+<dd><p>All the above options apply to backups. If the backup application allows the setting of NDMP environment variables, then the auto_snapshot and snapshot_delete parameters may be overridden. NDMP environment variable NDMP_BLUEARC_TAKE_SNAPSHOT can be set to "on" or "off" (alternatively "y" or "n") to override the auto_snapshot option. NDMP_BLUEARC_SNAPSHOT_DELETE can be set to IMMEDIATELY or OBSOLETE or LAST to override the snapshot_delete option. NDMP recovery from tape does not use snapshots.</p></dd>
+<dt><strong>adc data copying and tape backup</strong></dt>
+<dd><p>The adc action is similar to ordinary NDMP backup. However, it should be noted that, by default, adc will not request that the copy/backup is recorded via the UPDATE environment variable. If a backup/copy is not recorded any associated automatically created snapshot will be deleted immediately after use as it cannot be used as the basis of an incremental backup.</p></dd>
+<dt><strong>File system or directory replication set up via the SMU</strong></dt>
+<dd><p>The replication function uses NDMP as part of its control mechanism. It will always override the auto_snapshot and snapshot_delete options. The max_retention option, however, is applicable to replications and must be long enough such that snapshots from the previous incremental replication copy are not deleted too early.</p></dd>
+<dt><strong>Data migration set up via the SMU</strong></dt>
+<dd><p>The data migration function uses NDMP as part of its control mechanism. Data migration always works from the "live" file system and does not use snapshots, so these options do not apply.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display the current NDMP snapshot options use the following:</p>
+<pre>ndmp-snapshot-options
+</pre>
+<p></p>
+<p>To set the delete option to delete the last snapshot and to increase the retention period to 2 weeks:</p>
+<pre>ndmp-snapshot-options -d last -m 14
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-option.html">ndmp-option</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

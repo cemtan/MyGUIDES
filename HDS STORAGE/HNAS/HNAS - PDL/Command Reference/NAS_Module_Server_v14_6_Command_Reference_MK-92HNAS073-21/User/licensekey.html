@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>licensekey</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>licensekey</h1>
+<p>Manipulate software license keys</p>
+<h1>Syntax</h1>
+<pre>licensekey operation
+Where operation is:
+list   [-v] [service]
+add    &lt;key&gt;
+delete &lt;key&gt;
+delall [--confirm]
+</pre>
+
+<h1>Description</h1>
+<p>View, add or delete software license keys</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Display all of the license keys on the server, indicating what service(s) each license relates to and when it will expire. Select -v if you want to view the services vertically (down the side as opposed to across the top). Specify a service if you only want to view what is licensed on all keys for one service.</p></dd>
+<dd><p>Note: As of version 13.1 the storage capacity license has been deprecated. The TB values in the licenses are not enforced by the license management system and the system will honour the maximum value supported for the specific platform.</p></dd>
+<dt><strong>add &lt;key&gt;</strong></dt>
+<dd><p>Add the specified license key.  Contact your support provider for more information on obtaining license keys.</p></dd>
+<dt><strong>delete &lt;key&gt;</strong></dt>
+<dd><p>Delete the specified license key.</p></dd>
+<dt><strong>delall [--confirm]</strong></dt>
+<dd><p>Delete all the license keys.  -C or --confirm must be specified to delete all license keys.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ licensekey list
+</pre>
+<p></p>
+<pre>Encoded license strings:
+#1 1D17-7D7D-9DBC-582D-DFBA-FF87-E9A1-6F8A-D667-8030-6047-2159-0359-B150-2D9E-58E7-9BBA-10BF-D3
+#2 1D17-7D7D-D1BC-582D-DFB1-FF87-E4A1-6F87-D667-9A30-604D-2159-185A-B047-0DBE
+</pre>
+<p></p>
+<pre>License Key  CIFS  NFS  ISCSI   DM  WORM  FSR  QSR  Read Cache  EVS Security  FSRS   Cluster  EVS  Storage Types   Expires
+-----------  ----  ---  -----  ---  ----  ---  ---  ----------  ------------  ----  --------  ---  -------------    -------
+         #1   Yes  Yes    Yes  Yes   Yes   No   No          No           Yes    No   Yes (2)    0
+         #2    No   No     No   No    No  Yes  Yes         Yes            No   Yes        No    0            HDS
+     Total:   Yes  Yes    Yes  Yes   Yes  Yes  Yes         Yes           Yes   Yes   Yes (2)    1            HDS
+</pre>
+<p></p>
+<pre>server:$ licensekey list -v
+</pre>
+<p></p>
+<pre>Encoded license strings:
+#1 1D17-7D7D-9DBC-582D-DFBA-FF87-E9A1-6F8A-D667-8030-6047-2159-0359-B150-2D9E-58E7-9BBA-10BF-D3
+#2 1D17-7D7D-D1BC-582D-DFB1-FF87-E4A1-6F87-D667-9A30-604D-2159-185A-B047-0DBE
+</pre>
+<p></p>
+<pre>Licensed Feature       #1      #2    Total
+----------------  -------  ------  -------
+            CIFS      Yes      No      Yes
+             NFS      Yes      No      Yes
+           ISCSI      Yes      No      Yes
+              DM      Yes      No      Yes
+            WORM      Yes      No      Yes
+             FSR       No     Yes      Yes
+             QSR       No     Yes      Yes
+      Read Cache       No     Yes      Yes
+    EVS Security      Yes      No      Yes
+            FSRS       No     Yes      Yes
+         Cluster  Yes (2)      No  Yes (2)
+             EVS        0       0        1
+   Storage Types              HDS      HDS
+         Expires
+</pre>
+<p></p>
+<pre>server:$ licensekey list cifs
+</pre>
+<p></p>
+<pre>Encoded license strings:
+#1 1D17-7D7D-9DBC-582D-DFBA-FF87-E9A1-6F8A-D667-8030-6047-2159-0359-B150-2D9E-58E7-9BBA-10BF-D3
+#2 1D17-7D7D-D1BC-582D-DFB1-FF87-E4A1-6F87-D667-9A30-604D-2159-185A-B047-0DBE
+</pre>
+<p></p>
+<pre>License Key  CIFS
+-----------  ----
+         #1   Yes
+         #2    No
+     Total:   Yes
+</pre>
+<p></p>
+<pre>server:$ licensekey add 5a00-a356-2037-2b
+Successfully installed key
+</pre>
+<p></p>
+<pre>server:$ licensekey delete 5a00-a356-2037-2b
+Successfully deleted key
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/serviceconfig.html">serviceconfig</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

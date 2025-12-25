@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>site</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>site</h1>
+
+<h1>Description</h1>
+<p>This man page does not refer to a specific command.  It explains system drive sites, which are used with storage-based mirrors.  If you do not have mirrored storage, you need not read this page.</p>
+<p>Consider a span on four pairs of system drives (SDs) mirrored by a synchronous product such as TrueCopy:</p>
+<pre>   0 (Pri)  = 10 (Sec)
+   1 (Pri)  = 11 (Sec)
+   2 (Pri)  = 12 (Sec)
+   3 (Pri)  = 13 (Sec)
+</pre>
+<p></p>
+<p>SDs marked 'Pri' are primaries: the server writes to them and reads back from them.  SDs marked 'Sec' are secondaries: the storage arranges for all data written to the primary SDs to be copied to the secondaries before the write is acknowledged to the server.  In most cases, primary SDs are P-Vols and secondary SDs are S-Vols; the 'storage-based-mirror' man page explains the exceptions.  As a result of the server's copying of all writes from P-Vols to S-Vols, the contents of each pair of SDs are always identical.</p>
+<p>If SD 2 should fail --</p>
+<pre>   0 (Pri)  = 10 (Sec)
+   1 (Pri)  = 11 (Sec)
+   2 (Dead) = 12 (Sec)
+   3 (Pri)  = 13 (Sec)
+</pre>
+<p></p>
+<p>-- the span and its filesystems will fail.  You can respond by manually promoting SD 12 to primary, using a storage configurator such as Storage Navigator or Hitachi Command Suite:</p>
+<pre>   0 (Pri)  = 10 (Sec)
+   1 (Pri)  = 11 (Sec)
+   2 (Dead) = 12 (Pri)
+   3 (Pri)  = 13 (Sec)
+</pre>
+<p></p>
+<p>The server will see that it has a full set of primary SDs -- 0, 1, 12 and 3 -- and will automatically bring the span and filesystems back up.</p>
+<p>Now imagine that the mirrors are asynchronous or near-synchronous and that, for example, TrueCopy Extended Distance or Hitachi Universal Replicator (HUR) is in use.  Rather than being kept constantly updated, mirrors are only synchronized every few minutes or hours.  The secondary side of each mirror may therefore be several hours behind the primary side.  If the server were to try to bring up the span on SDs 0, 1, 12 and 3, it would see an unusable mishmash of two snapshots: one from the last time the span was used, one from the last time the SDs were synchronized.</p>
+<p>You can avoid this problem by assigning the production and backup SDs to different <strong>sites</strong>.  A site is simply a group of SDs which make up a coherent copy of the span -- for example, all your production SDs or all your backup SDs.</p>
+<p>To assign unspanned SDs to a site, use 'sd-set --site'.  For spanned SDs, use 'span-set-site-id'.</p>
+<p>The most common use for sites is to assign all your production SDs to site 1 and all your backup SDs to site 2.  Whenever the server sees that all the primary, licensed SDs are at the same site (either 1 or 2), it will mount file systems as normal.  If some primaries are at site 1 and others at site 2, the server will assume that the storage is in the middle of a failover, and it will refuse to mount file systems.  This will protect the server from mounting on an incoherent mixture of fresh and stale SDs.</p>
+<p>A site ID is a number between 0 and 250, inclusive.  However, most clusters won't need more than two sites: one for all their production SDs and one for all their backup SDs.  It is safe to assign several spans' production or backup SDs to the same site.</p>
+<p>Any SDs not manually assigned to sites will default to site 0.  If any span's primary and secondary SDs are at the same site (whether site 0 or otherwise), the server will assume that each mirrored pair holds two identical copies of the data, and it will use whichever SD happens to be primary.</p>
+<p>Site IDs are independent of geographical location.  They can be used even if your production and backup SDs reside in the same server room.</p>
+<p>Although sites are designed for use with asynchronous mirrors, they should also be used with synchronous mirrors if there is a chance that mirror relationships will be suspended and later resumed.  A suspended synchronous mirror is similar to an asynchronous mirror, in that the secondary SD contains stale data.</p>
+<p>Sites can also be useful with SD-level point-in-time snapshots, such as those made by ShadowImage: place the production SDs in one site and the snapshots in another, and the server will refuse to mount file systems on an invalid mixture of fresh data and snapshots.</p>
+<p>Because sites are stored in the registry and not in Cod, it is not necessary for SDs to be healthy and visible to the server when sites are assigned and listed.  However, in advanced configurations, where different clusters mount different copies of the data, it is necessary to configure sites into every cluster that can see more than one copy of the data.  SD sites persist even after you delete a span; to remove them, use 'sd-set --site' to assign SDs to site 0.</p>
+<p>To list site IDs, use 'sd-list --show-site' or 'sd-list --scsi'.  The 'span-list --sds' command will also list site IDs unless every SD in a span is at site 0.</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-set-site-id.html">span-set-site-id</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

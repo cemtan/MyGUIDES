@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>async-lock-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>async-lock-perf</h1>
+<p>Display asynchronous file region lock statistics</p>
+<h1>Syntax</h1>
+<pre>async-lock-perf [-r] [-s]
+</pre>
+
+<h1>Description</h1>
+<p>When a Windows client requests a byte-range lock on a file, it specifies a timeout. If the lock can't be granted immediately, the server queues the request until either the lock can be granted or the timeout expires. Each time a queued lock is granted, the server logs the length of time that it has been queued for. The async-lock-perf command displays the aggregate of these times, therefore giving a guide to how long it generally takes for queued byte-range locks to be granted.</p>
+<p>Usage:</p>
+<pre>async-lock-perf [OPTION...]
+</pre>
+<p></p>
+<dl>
+<dt><strong>--reset, -r</strong></dt>
+<dd><p>Resets the statistics.</p></dd>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>Only displays a summary.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

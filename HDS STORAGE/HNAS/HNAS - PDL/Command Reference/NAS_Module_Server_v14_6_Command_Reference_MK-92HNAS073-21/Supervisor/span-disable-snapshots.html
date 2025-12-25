@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-disable-snapshots</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-disable-snapshots</h1>
+<p>Take a span out of copy-on-write snapshot mode</p>
+<h1>Syntax</h1>
+<pre>span-disable-snapshots &lt;span-base-or-instance-name&gt;
+Alias:       snapoff
+</pre>
+
+<h1>Description</h1>
+<p>Storage-based products such as the Hitachi Thin Image (HTI) and Copy-On-Write (CoW) Snapshot features enable you to take multiple read--write snapshots of a span.  Support for these products is described in the 'storage-based-snapshot' and 'storage-based-snapshot-label' man pages.</p>
+<p>Before a span can be used with storage-based snapshots, you must place it into snapshot mode by running 'span-enable-snapshots'.  In this mode, some operations are impossible and the behavior of others is changed, and the names of the span and its filesystems are modified.</p>
+<p>You can take a span out of snapshot mode by running 'span-disable-snapshots'.  The span can no longer be used with storage-based snapshots, but operations that were impossible in snapshot mode become possible again.</p>
+<p>When this command is run, the span must be in snapshot mode, but it must not have any snapshots.  File systems may be either mounted or unmounted.</p>
+<p>This command removes the span's snapshot name.  In doing so, it changes the instances names of the span and all its filesystems.</p>
+<h1>Examples</h1>
+<p>Suppose a span with base name 'Departments' is in snapshot mode; its snap name is 'Master'.  Its instance name is 'Departments-Master', and the instance names of its filesystems are 'Accounts-Master', 'Engineering-Master' and 'Sales-Master'.</p>
+<p>To disable snapshot mode, use either of the following commands:</p>
+<pre>span-disable-snapshots Departments-Master
+</pre>
+<p></p>
+<pre>span-disable-snapshots Departments
+</pre>
+<p></p>
+<p>This operation renames the span as 'Departments' and its filesystems as 'Accounts', 'Engineering' and 'Sales'.</p>
+<p>You can now perform operations such as expanding the span:</p>
+<pre>span-expand Departments 60-79
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/span-enable-snapshots.html">span-enable-snapshots</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

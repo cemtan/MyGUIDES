@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-link-reset</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fc-link-reset</h1>
+<p>Reset one or all of the FC interfaces</p>
+<h1>Syntax</h1>
+<pre>fc-link-reset [-i &lt;1|...|N&gt;] [-t &lt;time in ms&gt;]
+Alias:       fclinkreset
+</pre>
+
+<h1>Description</h1>
+<p>The fc-link-reset command allows you to reset one or all of the Fibre Channel interfaces. Command options are:</p>
+<dl>
+<dt><strong>-i &lt;interface_number&gt;</strong></dt>
+<dd><p>Specify the FC interface to reset. If this option isn't set then the command applies to all available interfaces. Interfaces are numbered from 1.</p></dd>
+<dt><strong>-t &lt;time_in_ms&gt;</strong></dt>
+<dd><p>If this option is passed then the specified interface (see -i option) or all interfaces will be reset for the specified period. This option is not normally required and the period defaults to one second.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Reset all interfaces:</p>
+<pre>fc-link-reset
+</pre>
+<p></p>
+<p>Reset interface 1:</p>
+<pre>fc-link-reset -i 1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

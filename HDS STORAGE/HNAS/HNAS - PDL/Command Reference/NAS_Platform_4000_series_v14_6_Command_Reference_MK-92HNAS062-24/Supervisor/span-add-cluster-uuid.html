@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-add-cluster-uuid</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-add-cluster-uuid</h1>
+<p>Permit a further cluster to manage a span and mount its filesystems</p>
+<h1>Syntax</h1>
+<pre>span-add-cluster-uuid  [--danger-ignore-sd-sites] [--danger-ignore-stale-cod] &lt;span-instance-name&gt; [&lt;cluster-uuid&gt; &lt;cluster-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>A span is normally assigned to one cluster.  That one cluster has permission to mount its file systems and to manage the span by, for example, creating, expanding and deleting file systems.</p>
+<p>In exceptional configurations that use a storage-based replication product such as TrueCopy or HUR and further replication via Thin Image or CoW, it can be useful for the file systems on two copies of a span to be mounted by different clusters.  Since all copies of the span have the same Cod and are therefore have the same cluster assignments, it is necessary to assign both copies of the span to both clusters.  The 'span-add-cluster-uuid' command enables this assignment.</p>
+<h2>SAFE USE OF THIS COMMAND</h2>
+<p>Never use 'span-add-cluster-uuid' on a span that does not use a storage-based replication product such as TrueCopy or HUR.  If you do, data will be at risk.</p>
+<p>Never use 'span-add-cluster-uuid' to enable two or more clusters to manage or mount file systems on the same copy of a span.  If you do, data will be at risk.</p>
+<p>Never use 'span-add-cluster-uuid' on a given cluster to add that cluster's UUID to the span.  If you do, either the setting will be lost next time the Cod is updated by a storage-based replication product or, if you are not using storage-based replication, data will be at risk.</p>
+<p>The only safe use of 'span-add-cluster-uuid' involves one cluster, at most, being connected to each copy of the span.  Use Lun security, switch-zoning or physical methods to insulate each copy of the span from all clusters except the one (if there is one) that is intended to mount its file systems.</p>
+<h2>HOW TO USE THIS COMMAND</h2>
+<p>Suppose that Cluster A has a span (not connected to any other cluster) whose SDs are replicated to a second span that is connected (only) to Cluster B.  Every time replication takes place, the latest copy of the Cod on Cluster A's span will replace the Cod on Cluster B's span.  It is therefore necessary to run 'span-add-cluster-uuid' on Cluster A and then make Cluster B aware of the change.</p>
+<ul>
+<li>On Cluster B, run 'cluster-show' to determine Cluster B's UUID and name.</li>
+<li>On Cluster A, run 'span-add-cluster-uuid', specifying the span instance name and Cluster B's UUID and name.</li>
+<li>Carry out whatever storage-based activities are required to bring Cluster B's SDs up-to-date with Cluster A's.  The exact technique will depend on the replication products being used.</li>
+<li>If the local SDs are not yet licensed on Cluster B, use 'sd-allow-access' to license them.  Cluster B will load the latest version of the Cod.</li>
+<p>Otherwise, on Cluster B, run 'sd-rescan-cod &lt;span-instance-name&gt;' to make Cluster B rescan the Cod and become aware that its local copy of the span is now assigned to it.</p>
+<li>On Cluster B, use 'evsfs' to bind each file system to an EVS.</li>
+</ul>
+<p>If you omit the cluster UUID and name when running 'span-add-cluster-uuid', the local cluster's own UUID and name are added to the span.  However, there are no safe uses for this facility; it is provided only for historical reasons.  Never use it.</p>
+<p>'span-add-cluster-uuid' cannot be used with storage-based snapshots.</p>
+<p>Everything said here about clusters applies also to stand-alone servers.</p>
+<p>When each cluster boots and loads the span, it determines whether the span is bound to the local cluster or not.  It considers only the UUIDs stored in the Cod; it ignores cluster names.  Names are provided only for administrative convenience.  Should you wish to update a cluster name stored in Cod (perhaps after a cluster has been renamed), run 'span-add-cluster-uuid', specifying the existing UUID and the new cluster name.  There is no urgency: the system will work even in the event of a name discrepancy.</p>
+<h2>SWITCHES</h2>
+<p>The following switches enable the command to run when it would normally fail.  Think three times before using any of these switches: it is almost always better to fix the condition causing the command to fail than to use an override.</p>
+<dl>
+<dt><strong>--danger-ignore-sd-sites</strong></dt>
+<dd><p>Runs even if the primary SDs in the span are not all at the same site.</p></dd>
+<dt><strong>--danger-ignore-stale-cod</strong></dt>
+<dd><p>Runs even if the span's Cod is stale and no longer reflects the state of the span in memory.  (See the 'cod' man page.)</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>span-add-cluster-uuid Accounts 779342a0-67f0-11c7-346d-4a35dbc9c1e8 Office
+</pre>
+<p></p>
+<p>Assigns the Accounts span to the cluster with the specified UUID and name, preserving any existing cluster assignment.</p>
+<pre>span-add-cluster-uuid Accounts 779342a0-67f0-11c7-346d-4a35dbc9c1e8 HeadOffice
+</pre>
+<p></p>
+<p>Updates the stored cluster name for the specified UUID from 'Office' to 'HeadOffice'.  (Note that the UUID is the same in this command as in the previous command.)</p>
+<p>See the 'span-list-cluster-uuids' man page for more examples.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/cluster-show.html">cluster-show</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-allow-access.html">span-allow-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-cluster-uuids.html">span-list-cluster-uuids</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

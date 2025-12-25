@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>audit-mgmt-log-server-connections</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>audit-mgmt-log-server-connections</h1>
+<p>Show management audit log server connection status</p>
+<h1>Syntax</h1>
+<pre>audit-mgmt-log-server-connections (no options)
+</pre>
+
+<h1>Description</h1>
+<p>This command displays the connection status, on the present cluster node, for currently configured CEF-aware syslog servers to which management audit events are sent.</p>
+<p>Note that while there is a single cluster-wide configured list of these servers, each cluster node maintains its own network connection to each CEF-aware syslog server.</p>
+<h1>Examples</h1>
+<p>To show connection status on the current cluster node:</p>
+<pre>audit-mgmt-log-server-connections
+Configuration: logserver:612
+       Status: Success
+Using address: 172.20.180.4
+</pre>
+<p></p>
+<p>To show connection status on cluster node 2:</p>
+<pre>cn 2 audit-mgmt-log-server-connections
+Configuration: logserver:612
+       Status: Success
+Using address: 172.20.180.4
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/audit-mgmt-log.html">audit-mgmt-log</a> <a href="../Supervisor/audit-mgmt-log-server-add.html">audit-mgmt-log-server-add</a> <a href="../Supervisor/audit-mgmt-log-server-delete.html">audit-mgmt-log-server-delete</a> <a href="../Supervisor/audit-mgmt-log-server-list.html">audit-mgmt-log-server-list</a> <a href="../Supervisor/audit-mgmt-log-stats.html">audit-mgmt-log-stats</a> <a href="../Supervisor/audit-syslog.html">audit-syslog</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

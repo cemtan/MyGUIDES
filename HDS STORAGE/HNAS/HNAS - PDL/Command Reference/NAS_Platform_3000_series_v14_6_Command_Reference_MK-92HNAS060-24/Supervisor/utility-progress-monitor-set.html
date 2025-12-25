@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>utility-progress-monitor-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>utility-progress-monitor-set</h1>
+<p>Set up email monitoring of file system utilities</p>
+<h1>Syntax</h1>
+<pre>utility-progress-monitor-set --email &lt;email address list&gt; [--period &lt;minutes&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Sets up email monitoring of file system utilities running on a cluster.  The monitor wakes up after the specified period and checks to see if any utilities are running and emails the output of the utility-progress command. If any utilities have completed running since the last time, the dynamic log is attached to the email.</p>
+<p>When no utilities are running, the monitor is stopped to ensure stale data about monitoring requirements isn't held between instances.</p>
+<dl>
+<dt><strong>--email</strong></dt>
+<dd><p>The full email address of the user(s) to mail output to.  Multiple users can be specified, in quotes, in the form "user1;user2".</p></dd>
+<dt><strong>--period</strong></dt>
+<dd><p>Amount of time in minutes between polling.  The default is 30 minutes if this is not specified.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>utility-progress-monitor-set --email "info@example.com;admin@example.com" --period 60
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/utility-progress.html">utility-progress</a> <a href="../Supervisor/utility-progress-monitor-clear.html">utility-progress-monitor-clear</a> <a href="../Supervisor/utility-progress-monitor-show.html">utility-progress-monitor-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

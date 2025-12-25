@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-gefn-configure</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cluster-gefn-configure</h1>
+<p>Configure GEfN cluster</p>
+<h1>Syntax</h1>
+<pre>cluster-gefn-configure --port-config full|reduced
+</pre>
+
+<h1>Description</h1>
+<p>Converts a standard 4 node HNAS 5000 series or above cluster to a GAD Enhanced for NAS (GEfN) cluster for disaster recovery resiliency across sites.  A GEfN license is required.</p>
+<p>This command is intended for 4 node stretched clusters spread across two geographically separate areas with the underlying storage replicated using Global Active Device (GAD) technology, where nodes 1 and 2 are in one site and nodes 3 and 4 are in another site. In order for this command to provide resiliency, the cluster must be preconfigured with nodes joined in the correct order. No other combination or distribution of nodes across sites is supported.</p>
+<p>By default, the nodes in a cluster configured in such a fashion do not replicate nvram contents in a resilient fashion.  The mirroring pattern would be: 1-&gt;2-&gt;3-&gt;4-&gt;1.  The cluster-gefn-configure command changes the nvram mirroring pattern to (1-&gt;3-&gt;2-&gt;4-&gt;1) so that it is site resilient even in the event of a complete site outage and the cluster becomes a GAD Enhanced for NAS (GEfN) cluster.  This solution achieves a recovery point objective (RPO) of 0.</p>
+<p>A cluster is considered to have a "full" port configuration if all the InterCluster Connect (ICC) ports are used.  If only the mandatory ports c1 and c3 are used, it is considered to have a "reduced" port configuration.  Note that a "reduced" ICC port configuration is not less resilient than a "full" GEfN.  In fact, "reduced" GEfN is recommended in all but the most write-intensive deployments.  A "full" deployment with inadequate cross-site bandwidth could result in lower performance than the same "reduced" deployment with the same cross-site bandwidth.</p>
+<p>This command can also be used in an existing GEfN to modify the configuration.  For example, you might want to change a "reduced" ICC port GEfN to a "full" ICC port GEfN.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--port-config full|reduced</strong></dt>
+<dd><p>Specifies the deployment of intercluster connect (ICC) ports</p></dd>
+<dl>
+<dt><strong>full</strong></dt>
+<dd><p>The cluster uses all available ICC ports (c1 to c4)</p></dd>
+<dt><strong>reduced</strong></dt>
+<dd><p>The cluster uses only the minimally required ICC ports (c1 and c3).</p></dd>
+</dl>
+<dt><strong>--force, -f</strong></dt>
+<dd><p>Forcibly convert the existing 4 node cluster to a GEfN, regardless of any warnings.  This option is only available to the DEV user.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. Convert a 4 node HNAS 5000 cluster to a site resilient GEfN using only c1 and c3 ports (reduced):</p>
+<pre>server-1:$ cluster-gefn-configure --port-config reduced
+</pre>
+<p></p>
+<p>2. Convert a 4 node HNAS 5000 cluster to a site resilient GEfN using all four ICC ports (full):</p>
+<pre>server-1:$ cluster-gefn-configure --port-config full
+</pre>
+<p></p>
+<p>3. Modify an existing GEfN cluster with reduced (c1,c3) ICC port configuration to use all ICC ports:</p>
+<pre>server-1:$ cluster-gefn-configure --port-config full
+Cluster is already in extended cluster configuration
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-gefn-status.html">cluster-gefn-status</a> <a href="../Supervisor/cluster-gefn-unconfigure.html">cluster-gefn-unconfigure</a> <a href="../Supervisor/cluster-icc-show.html">cluster-icc-show</a> <a href="../User/nvmirroring.html">nvmirroring</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

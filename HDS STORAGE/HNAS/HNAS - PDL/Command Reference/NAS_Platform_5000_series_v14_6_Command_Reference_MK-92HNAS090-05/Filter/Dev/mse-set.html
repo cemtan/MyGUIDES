@@ -1,0 +1,229 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mse-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>mse-set</h1>
+<p>Set a minishell environment variable</p>
+<h1>Syntax</h1>
+<pre>... | mse-set [options] [--eof &lt;eof-marker&gt;] &lt;name&gt; &lt;value&gt;
+	where
+	options ::= [--verbose|--terse] [--init-only] [--update-only] [--escape-char &lt;char&gt;] [--macro-symbol &lt;char&gt;] [--newline-replacement &lt;string&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command assigns a value to a variable in the global minishell environment. It can also be run as a filter.</p>
+<p>For a brief overview of the minishell environment, see the mse-env man page. For detailed information, see the mse man page.</p>
+<p>The syntax of a minishell environment variable name is identical to that of a BALI environment variable. In other words, it is a string of characters where the first character in the name must be an alphabetic letter or an underscore, and the subsequent characters can be alphanumeric or underscores.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display the name and the value of the variable in the form: &lt;name&gt;=&lt;value&gt;.</p></dd>
+<dt><strong>--terse, -t</strong></dt>
+<dd><p>Display only the value of the variable.</p></dd>
+<dd><p>Options --verbose and --terse are mutually exclusive. If none of them is specified, the output will be suppressed.</p></dd>
+<dt><strong>--init-only, -i</strong></dt>
+<dd><p>Set the variable if and only if it is undefined (not set yet). If the variable already exists, the command does not change its value and does not fail, either. This is because the user has requested that no action be taken if the variable already exists.</p></dd>
+<dt><strong>--update-only, -u</strong></dt>
+<dd><p>Set the variable if and only if it is already defined (already set). If the variable does not exist, the command does not create a new variable and does not fail, either. This is because the user has requested that no action be taken if the variable does not exist.</p></dd>
+<dt><strong>--escape-char, -e &lt;character&gt;</strong></dt>
+<dd><p>Specify the escape character. By default, the command does not support escape sequences in the &lt;value&gt;.</p></dd>
+<dd><p>If the escape character is specified, all occurrences of the escape character in the &lt;value&gt; will be decoded based on the escape sequences defined in the quoted-text man page.</p></dd>
+<dt><strong>--macro-symbol, -m &lt;character&gt;</strong></dt>
+<dd><p>Specify the macro symbol. By default, the command does not support macros in the &lt;value&gt;.</p></dd>
+<dd><p>If the macro symbol is specified, all occurrences of the macro symbol in the &lt;value&gt; will be interpreted as described in the macro-support man page. Specifically, the macro symbol can trigger variable substitution, command output substitution, or arithmetic expansion.</p></dd>
+<dd><p>If both the escape character and the macro symbol are specified, their appearances in the &lt;value&gt; are usually resolved by scanning &lt;value&gt; from left to right in one pass.</p></dd>
+<dt><strong>--newline-replacement, -n &lt;string&gt;</strong></dt>
+<dd><p>Replace all the newlines in &lt;value&gt; with &lt;string&gt;. Note that this step is performed after resolving all escapes and macros.</p></dd>
+<dt><strong>--eof &lt;end-of-file-marker&gt;</strong></dt>
+<dd><p>This option must appear after all other options and before the variable name. It specifies that the value of the variable begins at the line immediately following the command line and can span over multiple lines. This option is usually used when the value of a variable contains newline characters or characters that are special to the shell.</p></dd>
+<dd><p>The command will read the subsequent lines of the value from the standard input, line by line, until it sees the specified &lt;end-of-file-marker&gt; string on a separate line by itself. The &lt;end-of-file-marker&gt; line and the newline character before it will be discarded because they are not part of the value.</p></dd>
+<dd><p>Because the subsequent lines are read by the command, not the shell, all characters therein are not interpreted by the shell. Thus, there is no need to escape dollar signs, single and double quotes, etc.</p></dd>
+<dd><p>Note that the former name of this option is --value-follows-until|-V &lt;end-marker&gt;. It is still supported but will be phased out.</p></dd>
+<dd><p>Note that if mse-set is used in an mse script, this option has different behavior depending on how the option name is specified (see Section C8.3.6 of the mse man page for explanation and examples).</p></dd>
+<dd><p>If the full spelling "--eof" is specified, the option will be processed in the context of the mse command, and hence, all the data must be specified below the mse-set command line.</p></dd>
+<dd><p>If the partial spelling "--eo" is specified, the option will be processed in the context of the mse-set command. Thus, the user has to enter the data interactively everytime the mse script is run.</p></dd>
+<dt><strong>&lt;variable name&gt;</strong></dt>
+<dd><p>Specify the name of the environment variable.</p></dd>
+<dt><strong>&lt;value&gt;</strong></dt>
+<dd><p>Specify the value of the environment variable. This argument must be specified after the &lt;name&gt; argument.</p></dd>
+<dd><p>If --eof is specified, then &lt;value&gt; can span over multiple lines as described above.</p></dd>
+</dl>
+<h2>Run as a filter</h2>
+<p>Syntax:</p>
+<pre>      &lt;command...&gt; | mse-set [options] &lt;name&gt;
+</pre>
+<p></p>
+<p>where options are the same as those described in the mse-set command except --escape-char, --macro-symbol, and --eof.</p>
+<p>When mse-set is run as a filter, the value of the environment variable is the entire standard output of the preceding command in the chain with the following exception. If the entire output ends with a sequence of one or more consecutive newline characters, the sequence will be removed from the output. The remaining newlines in the output are preserved but can be replaced with another string if the --newline-replacement option is specified.</p>
+<p>Notes:</p>
+<p>1) The --terse option can be specified to pass the standard input of mse-set as is to the next filter in the chain.</p>
+<p>2) Earlier versions of the filter support option '--use-line-separator &lt;string&gt;'.  This option is still available but is now superseded by --newline-replacement &lt;string&gt;.</p>
+<p>3) There are other ways to assign a value to a variable in the BALI environment. See the man page for 'backquote' and 'calculate' commands for more information.</p>
+<h1>Examples</h1>
+<p>1. Define a new environment variable name COUNT and set its value to 4:</p>
+<pre>   $ mse-set -v COUNT 4
+   COUNT=4
+</pre>
+<p></p>
+<p>Assignment to the global minishell variable can be done with the 'calculate --minishell' or mse commands. For arithmetic computation assignments:</p>
+<pre>   $ calculate --minishell val=8/2
+   $ mse-env --name val
+   4
+</pre>
+<p></p>
+<pre>   $ mse 'value = 3+2'
+   $ mse-env --name value
+   value=5
+</pre>
+<p></p>
+<p>For string assignments:</p>
+<pre>   $ calculate --minishell 'msg = "Hello world"'
+   $ mse-env --name msg
+   Hello world
+</pre>
+<p></p>
+<pre>   $ mse 'message := "Hello world"'
+   $ mse-env --name message
+   Hello world
+</pre>
+<p></p>
+<p>2. Use as a filter</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken %2 | mse-set -v COUNT
+   COUNT=3
+</pre>
+<p></p>
+<p>Let the standard input of env-set pass through:</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken %2 | mse-set -t COUNT
+   3
+</pre>
+<p></p>
+<pre>   # Find out the standard input of env-set:
+   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken %2
+   3
+</pre>
+<p></p>
+<p>3. Change COUNT to 6</p>
+<pre>   $ mse-set -v COUNT 6
+   COUNT=6
+</pre>
+<p></p>
+<p>4. Initialize COUNT if and only if it has not been defined:</p>
+<pre>   $ mse-set -i -v COUNT 10
+   COUNT=6
+</pre>
+<p></p>
+<p>5. Update XCOUNT if and only if XCOUNT exists:</p>
+<pre>   $ mse-set -u XCOUNT 3
+   $ mse-set -u -v XCOUNT 3  # -v to show output
+   XCOUNT=
+   $ env -n XCOUNT
+   Undefined variable name: XCOUNT
+</pre>
+<p></p>
+<p>6. Define value that contains escape sequences</p>
+<pre>   $ mse-set -v -e \ message "John's book entitled \QGood Programming Practice\Q"
+   message=John's book entitled "Good Programming Practice"
+</pre>
+<p></p>
+<p>7. Value spanning over multiple lines</p>
+<p>Suppose we want to store 3 lines into a global minishell variable called 'cmds':</p>
+<pre>       touch file
+       wrfile file -n 1MB
+       file-clone-create file clone
+</pre>
+<p></p>
+<p>If we run mse-set interactively, we can type the command as follows:</p>
+<pre>       $ mse-set --eof END  cmds
+       touch file
+       wrfile file -n 1MB
+       file-clone-create file clone
+       END
+</pre>
+<p></p>
+<p>Note that the BALI shell processes the command line starting with 'mse-set' but does not know the subsequent lines. All lines below the command line are read and processed by the mse-set command alone.</p>
+<p>8. Avoid BALI shell interpretation of special characters in the value</p>
+<p>Simply specify --eof and enter the value below the command line. For example,</p>
+<pre>       $ mse-set --eof END  cmds
+       touch file
+       wrfile file -n 1MB
+       file-clone-create file clone
+       echo "It's good."
+       END
+</pre>
+<p></p>
+<p>Note that the newlines and the single quote are retained as is in the value of the 'cmds' variable.</p>
+<p>9. Does 'mse-set --eof' work in an mse script?</p>
+<p>Yes, the mse interpreter now supports the mse-set command that spans over multiple lines.</p>
+<p>Note that 'mse-set --eof' does not work in an ssrun script.</p>
+<p>10. Use the built-in myenv-set in an mse script</p>
+<p>The mse interpreter supports a built-in command called 'myenv-set', which has the same syntax and functionality as mse-set. The 'myenv-set' built-in command sets variables in the minishell environment currently in effect in the running instance of mse. For more information, see section D8.6 of the mse man page.</p>
+<pre>   $ mse 'myenv-set x 6; myenv --name x'
+   x=6
+</pre>
+<p></p>
+<p>Actually, myenv-set is an overkill for a simple assignment. Using direct assignment is preferred:</p>
+<pre>   $ mse 'x = 6; echo %x'
+   x=6
+</pre>
+<p></p>
+<p>However, myenv-set is useful when it is used with other options, such as -i or -u.</p>
+<p>11. How does 'mse-set --eof' work in an mse script?</p>
+<p>Note that when "mse-set --eof" is used in an mse script, the --eof option must be the last option before the variable name. This option behaves differently as follows.</p>
+<p>11.1 Specify full option name, --eof, to avoid interactive data entry</p>
+<pre>     server:$ sscat test.scr
+     mse-set --eof END username
+     hoc
+     END
+</pre>
+<p></p>
+<pre>     server:$ mse -f test.scr
+     server:$ mse-env --terse --name username
+     hoc
+</pre>
+<p></p>
+<p>11.2 Specify partial option name, --eo, to allow interactive data entry</p>
+<pre>     server:$ sscat test1.scr
+     echo -n "Enter username followed by END marker to stop: "
+     mse-set --eo END username
+     echo Done
+</pre>
+<p></p>
+<pre>     server:$ mse -f test1.scr
+     Enter username followed by END marker to stop: hoc
+     END
+     Done
+</pre>
+<p></p>
+<pre>     server:$ mse-env --terse --name username
+     hoc
+</pre>
+<p></p>
+<p>12. How does 'mse-set --eof' work in an ssrun script?</p>
+<p>The ssrun command does not process the --eof option to any commands, including mse-set. Thus, the --eof option is always processed by the mse-set command and the user has to enter data interactively when running an ssrun script.</p>
+<h1>See Also</h1>
+<p><a href="../../Dev/backquote.html">backquote</a> <a href="../../Filter/Dev/calculate.html">calculate</a> <a href="../../User/echo.html">echo</a> <a href="../../Dev/env.html">env</a> <a href="../../Filter/Dev/env-unset.html">env-unset</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/mse-env.html">mse-env</a> <a href="../../Dev/mse-set.html">mse-set</a> <a href="../../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../../Topic/quoted-text.html">quoted-text</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

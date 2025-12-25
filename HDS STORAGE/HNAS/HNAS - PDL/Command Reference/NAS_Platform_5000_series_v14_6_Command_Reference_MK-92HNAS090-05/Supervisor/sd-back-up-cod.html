@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-back-up-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-back-up-cod</h1>
+<p>Read a single system drive&#39;s span and filesystem config into a file</p>
+<h1>Syntax</h1>
+<pre>sd-back-up-cod [-F | --ssfs] [-d | --denied] &lt;system-drives-see-&#39;man sd-spec&#39;&gt; [&lt;filename&gt;]
+Alias:       sd-backup-cod
+</pre>
+
+<h1>Description</h1>
+<p>Takes single-SD Cod backups (SDCs) from one or more system drives (SDs).  Cod and Cod backups are described in the 'cod' man page.</p>
+<p>If you don't specify a filename and you're using the ssc filesystem, the server will construct a default name based on the SD device ID, a timestamp, and the filename extension '.sdc'.  If you're using the SSFS filesystem (even if you're running the ssc client), specifying a filename is mandatory.</p>
+<p>If you're using ssc, the new file is created on the ssc file system (i.e. on the computer running the ssc client); you can choose to create the file in the server's SSFS file system instead by providing the --ssfs or -F switch.  In all other environments the file is always created in the SSFS file system.</p>
+<p>If the file is created on SSFS, it is, by default, created on the cluster node where the command is run.  To create it on another server's SSFS file system, use the syntax detailed in the 'ssfs' man page.</p>
+<p>If you're using ssc, you can specify multiple SD device IDs.  See the 'sd-spec' man page for more details.  You must rely on the default filename if you do this.  If you need to specify your own filenames, back up one SD's Cod at a time by running multiple 'sd-back-up-cod' commands.</p>
+<p>Specifying the --denied switch lets you back up the Cod from an SD to which access has been denied.  In combination with 'sd-restore-cod' and the Cod converter, this lets you modify the Cod on an SD before allowing access to the SD and loading the Cod into memory.</p>
+<h1>Examples</h1>
+<pre>server:$ sd-back-up-cod 0
+Creating sd0000--2007-08-07--17-45-55.sdc
+Wrote 58.0 KB (59435 B) in 124 ms at 468 KB/s (479314 B/s)
+server:$ sd-back-up-cod 0 Zero.sdc
+Wrote 58.0 KB (59435 B) in 145 ms at 400 KB/s (409896 B/s)
+server:$ sd-back-up-cod --ssfs 0 Zero.sdc
+server:$ sd-back-up-cod 0-3
+Creating sd0000--2007-08-07--17-46-17.sdc
+Wrote 58.0 KB (59435 B) in 142 ms at 409 KB/s (418556 B/s)
+Creating sd0001--2007-08-07--17-46-17.sdc
+Wrote 58.0 KB (59435 B) in 110 ms at 528 KB/s (540318 B/s)
+Creating sd0002--2007-08-07--17-46-17.sdc
+Wrote 58.0 KB (59435 B) in 105 ms at 553 KB/s (566047 B/s)
+Creating sd0003--2007-08-07--17-46-17.sdc
+Wrote 58.0 KB (59435 B) in 140 ms at 415 KB/s (424535 B/s)
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/cod-backup-dump.html">cod-backup-dump</a> <a href="../Supervisor/cod-backup-list.html">cod-backup-list</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-restore-cod.html">sd-restore-cod</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-list-filesystem-cod.html">span-list-filesystem-cod</a> <a href="../Supervisor/span-propagate-filesystem-cod.html">span-propagate-filesystem-cod</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a> <a href="../Topic/ssfs.html">ssfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

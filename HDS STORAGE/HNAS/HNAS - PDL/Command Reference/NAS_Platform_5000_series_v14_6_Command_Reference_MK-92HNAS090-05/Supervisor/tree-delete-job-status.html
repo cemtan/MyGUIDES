@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tree-delete-job-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>tree-delete-job-status</h1>
+<p>Get the status of a tree delete job specified by its job id.</p>
+<h1>Syntax</h1>
+<pre>tree-delete-job-status &lt;job-id&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Gets the status report of a directory tree deleting job by its job id.</p>
+<dl>
+<dt><strong>&lt;job-id&gt;</strong></dt>
+<dd><p>The id of the job to retrieve the status.</p></dd>
+</dl>
+<h2>Output</h2>
+<p>The job status output is divided into three groups: Job request, Job state, and Job info. Each group contains one or more parameters as described below.</p>
+<h3>Job Request</h3>
+<p>A job request consists of file system id and source path to the directory tree to be deleted. Other parameters are supplied by the tree deleting server. Most are self-explanatory except the following:</p>
+<dl>
+<dt><strong>Creation time</strong></dt>
+<dd><p>The time when a job is created based on the request. After a job is created, it is immediately placed into the job waiting queue. The tree deleting server will pick it up and execute later; the timing depends on its workload.</p></dd>
+</dl>
+<h3>Job state</h3>
+<p>The state of the job at the time the tree-delete-job-status command is run. It can be one of the following six states:</p>
+<pre>    Job is queued
+    Job is running
+    Job was completed
+    Job is aborting
+    Job was aborted
+    Job failed
+</pre>
+<p></p>
+<h3>Job info</h3>
+<dl>
+<dt><strong>Job retry count</strong></dt>
+<dd><p>The count is normally zero if the job was successful. Otherwise, this count indicates the number of times the job was subsequently resubmitted by the deleting server after the first failure.</p></dd>
+<dt><strong>Started</strong></dt>
+<dd><p>The time when the tree deleting server picks up the job from the waiting queue to execute it.</p></dd>
+<dt><strong>Ended</strong></dt>
+<dd><p>The time when the deleting job is completed.</p></dd>
+<dt><strong>Status</strong></dt>
+<dd><p>The error status of the job. It is an error code but is translated into an error message.</p></dd>
+<dt><strong>Error details</strong></dt>
+<dd><p>Detailed info on the error. It may contain specific info or context of the error.</p></dd>
+<dt><strong>Directories processed</strong></dt>
+<dd><p>The count of directories that the tree deleting server has read so far. If the value is 1, it means the server has read only the top-level directory of the source tree.</p></dd>
+<dt><strong>Files processed</strong></dt>
+<dd><p>The count of files that were successfully deleted.</p></dd>
+<dt><strong>Data bytes processed</strong></dt>
+<dd><p>The sum of data lengths of all files that were successfully deleted.</p></dd>
+<dt><strong>Source directories/files missing</strong></dt>
+<dd><p>The count of all missing source directories/files. (Each missing source directory is counted as one even though it may have contained a lot of files and subdirectories.)</p></dd>
+<dd><p>During the deleting process a source file/directory, hereafter referred to as a directory entry, is accessed many times, possibly by more than one thread. If it is found in the first access and later becomes inaccessible, it is considered missing. The entry is missing because another thread might have deleted it, or deleted it and recreated a new one with the same name. In both cases the original source entry is gone. But all the directory entries in the source path are supposed to be gone (deleted) when the job runs to successful completion. Thus, the missing info is for tracking purposes rather than error. In fact, the user can run the "logtrace dump tree-delete" command to see the history of all processed entries. The missing entries can be traced back to those deleted earlier in the list by other tree deleting fibers.</p></dd>
+<dt><strong>Source files skipped</strong></dt>
+<dd><p>Total count of files that are undeletable. When the tree deleting server encounters a source file for which deleting cannot be performed (e.g., file with inconsistent on-disk metadata) it will skip the file and continue to process the remaining files unless the file system fails or is unmounted. In the end the job will fail because the source directory is not empty. But this occurs only after the deleting server has been trying to release as much disk space as possible. The user can run the "logtrace dump tree-delete" command to see a list of all skipped files.</p></dd>
+<dt><strong>Skipping details</strong></dt>
+<dd><p>A breakdown of the skipped file counts based on the reasons for which the files were skipped.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To delete the directory tree "/foo":</p>
+<pre>   $ tree-delete-job-submit -f fs1 /foo --confirm
+   Information: Tree-delete: Scheduled job 4169aa94-ae9b-11cf-9002-13ad0cc2fa41 (vnode: 1, file system: "fs1", tree path: "/foo").
+   Information: Tree-delete: Started job 4169aa94-ae9b-11cf-9002-13ad0cc2fa41.
+   . . . .
+</pre>
+<p></p>
+<p>To retrieve the status report of this job, run:</p>
+<pre>   $ tree-delete-job-status 4169aa94-ae9b-11cf-9002-13ad0cc2fa41
+    JOB ID : 4169aa94-ae9b-11cf-9002-13ad0cc2fa41
+       Job request
+         Physical node                  : 1
+         EVS                            : 1
+         Volume number                  : 5
+         File system id                 : c2fa411458ec38f20000000000000000
+         File system name               : fs1
+         Source path                    : "/foo"
+         Creation time                  : 2014-08-02 14:46:45-07:00
+</pre>
+<p></p>
+<pre>       Job state                        : Job was completed
+       Job info
+         Job retry count                : 0
+         Started                        : 2014-08-02 14:46:45-07:00
+         Ended                          : 2014-08-02 14:48:35-07:00
+         Status                         : Success
+         Error details                  :
+         Directories processed          : 303
+         Files processed                : 1801
+         Data bytes processed           : 0 B
+         Source directories missing     : 0
+         Source files missing           : 0
+         Source files skipped           : 0
+         Skipping details               :
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/logtrace.html">logtrace</a> <a href="../Topic/tree-delete.html">tree-delete</a> <a href="../Supervisor/tree-delete-job-abort.html">tree-delete-job-abort</a> <a href="../Supervisor/tree-delete-job-list.html">tree-delete-job-list</a> <a href="../Supervisor/tree-delete-job-reschedule.html">tree-delete-job-reschedule</a> <a href="../Supervisor/tree-delete-job-submit.html">tree-delete-job-submit</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

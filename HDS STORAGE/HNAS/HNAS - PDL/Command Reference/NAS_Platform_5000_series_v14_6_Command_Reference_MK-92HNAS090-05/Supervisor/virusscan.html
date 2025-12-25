@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>virusscan</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>virusscan</h1>
+<p>Get/set virus scanning settings</p>
+<h1>Syntax</h1>
+<pre>virusscan [--on|--off] [-a] [-b &lt;ip address&gt;] [-d &lt;ip address&gt;] [-e &lt;file types&gt;] [-f] [-i &lt;file types&gt;] [-l] [-r] [-s] [-B | -N] [-I]
+</pre>
+
+<h1>Description</h1>
+<p>The virusscan command is used to manage virus scanning settings. It can be used to manage virus scan servers, view statistics, set the file types that are scanned and to request a full system scan.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Toggle functionality between scanning all files and scanning just those based on their extensions (see -I option for list of currently included file types).</p></dd>
+<dt><strong>-b, --enable &lt;ip address|host&gt;</strong></dt>
+<dd><p>Enable a virus scan server that isn't currently in use.  Host names can only be used for ICAP scanners.</p></dd>
+<dt><strong>-d, --deregister &lt;ip address|host&gt;</strong></dt>
+<dd><p>Deregister a virus scan server that's currently registered. Host names can only be used for ICAP scanners. Note that in the case of RPC scanners, the virus scan server may simply re-register itself immediately.  In this case, if you don't want the virus scan server to be used again, you should remove the current EVS's IP address(es) from the virus scan server's list of RPC clients.</p></dd>
+<dt><strong>-e, --delete &lt;file types&gt;</strong></dt>
+<dd><p>Delete the given file types from the list of file types to scan. Takes a comma-separated list.</p></dd>
+<dt><strong>-f, --default</strong></dt>
+<dd><p>Reset the list of file types to the default list.</p></dd>
+<dt><strong>-i, --include &lt;file types&gt;</strong></dt>
+<dd><p>Add the given file types to the list of file types to scan. Takes a comma-separated list. There can be a maximum of 250 entries in the list including the default types.</p></dd>
+<dd><p>A wildcard '?' can be used to mean any single character. The matching is done per-character so the extension must match the length of the wildcarded extension. The wildcarded string "XL?" in the list will match .XLS and .XLX file extensions but will not match .XLSX extensions. To match .XLSX and .XLS files, for example, you would need to add both strings to the inclusion list (either with or without the wildcards - "XLS, XLSX", "XL?,XLS?" or ""XL?,XL??").</p></dd>
+<dd><p>Multiple wildcards are acceptable - for example "A?C?" would match any four letter extension with "A" as its first character and "C" as its third (AACA, ..., ABCD, ..., AZCZ).</p></dd>
+<dt><strong>-l, --deleteall</strong></dt>
+<dd><p>Delete all file types from the list of file types to scan.</p></dd>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Reset the statistics.</p></dd>
+<dt><strong>-s, --fullscan</strong></dt>
+<dd><p>Request a full system scan - i.e. scan all files in the list of file types to scan, regardless of whether they've been scanned already. Files won't be scanned immediately, but when they're next opened.</p></dd>
+<dt><strong>-I, --list-inclusion</strong></dt>
+<dd><p>Display a list of file types to scan, useful when virus-scanning is disabled (when the virus-scanning is enabled the list is displayed anyway).</p></dd>
+<dt><strong>-B, --enable-best-effort-scanning</strong></dt>
+<dd><p>Enable "best-effort" scanning. With this mode enabled CIFS access to files is not denied if there are no valid servers available. If no scan-engine is available, access will be granted to the user to open the file with no scan being performed. If a scan-engine reports a non-virus-related error during a scan, access will also be granted (see NOTE). The file is not marked in the file-system as "clean" so future accesses will prompt another attempted scan.</p></dd>
+<dd><p>NOTE: Access is also enabled for files that cause a scan-engine to refuse to scan. For example, scan-engines usually have a maximum depth of zip file they will scan into before giving up. In best-effort mode these files will be available to be read. The intention of this is that access will be allowed unless a scan-engine specifically marks a file as infected.</p></dd>
+<dt><strong>-N, --disable-best-effort-scanning</strong></dt>
+<dd><p>Disable "best-effort" scanning. The normal operating mode where CIFS access is denied if the system cannot perform a scan due to lack of scan-engines.</p></dd>
+<dt><strong>-v, --verbose-stats</strong></dt>
+<dd><p>Show verbose server statistics. Each server keeps track of a number of extra statistics which can be used to diagnose virusscan scan-engine problems.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To add the file types .bat, .com, .doc, .exe and .ppt to the list of file types to scan:</p>
+<pre>virusscan -i BAT,COM,DOC,EXE,PPT
+</pre>
+<p></p>
+<p>To deregister a virus scan server:</p>
+<pre>Via IP Address
+ virusscan -d 10.1.7.50
+</pre>
+<p></p>
+<pre>Via host name (ICAP only)
+ virusscan -d icapengine.example.com
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../Supervisor/virusscan-failures.html">virusscan-failures</a> <a href="../Supervisor/virusscan-icap-engine-add.html">virusscan-icap-engine-add</a> <a href="../Supervisor/virusscan-icap-engine-delete.html">virusscan-icap-engine-delete</a> <a href="../Supervisor/virusscan-icap-engine-delete-all.html">virusscan-icap-engine-delete-all</a> <a href="../Supervisor/virusscan-icap-engine-list.html">virusscan-icap-engine-list</a> <a href="../Supervisor/virusscan-icap-engine-modify.html">virusscan-icap-engine-modify</a> <a href="../Supervisor/virusscan-mode-get.html">virusscan-mode-get</a> <a href="../Supervisor/virusscan-mode-set.html">virusscan-mode-set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

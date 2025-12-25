@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-spec</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>sd-spec</h1>
+
+<h1>Description</h1>
+<p>This man page does not describe a particular command.  It explains how to specify multiple system drives (SDs) to a number of other commands, which are listed under 'See also'.</p>
+<p>Most of the examples below use 'sd-allow-access'.</p>
+<h1>Examples</h1>
+<h2>Simple selections</h2>
+<pre>sd-allow-access 0
+</pre>
+<p></p>
+<p>Allows access to SD 0.</p>
+<pre>sd-allow-access 0-3
+</pre>
+<p></p>
+<p>Allows access to SDs 0, 1, 2 and 3 (if they exist).</p>
+<pre>sd-allow-access SomeSpan
+</pre>
+<p></p>
+<p>Allows access to all SDs used in the span called 'SomeSpan'.</p>
+<pre>sd-allow-access SomeFs
+</pre>
+<p></p>
+<p>Allows access to all SDs used in the span that contains filesystem 'SomeFs'.</p>
+<p>Should you wish, you can specify numbers in hexadecimal by prefixing them with '0x':</p>
+<pre>sd-allow-access 0x10-0x1F
+</pre>
+<p></p>
+<p>Allows access to SDs hex 10 to hex 1F -- in other words, decimal 16 to decimal 31.  Hexadecimal numbers can be specified in upper or lower case, and can be freely mixed with decimal numbers.</p>
+<h2>Inverting the selection</h2>
+<p>You can place '!' in front of any SD or group of SDs to invert it -- to select all SDs <strong>except</strong> those that would normally be selected.  Hence:</p>
+<pre>sd-allow-access !Accounts
+</pre>
+<p></p>
+<p>Allows access to all SDs <strong>not</strong> used in span 'Accounts' or, if 'Accounts' is a filesystem, its host span.</p>
+<h2>Selecting all system drives</h2>
+<pre>sd-allow-access all
+</pre>
+<p></p>
+<p>Allows access to all SDs known to the server.</p>
+<h2>Several selections within a single command</h2>
+<p>Each item such as '0-3' or '!Accounts' is called a 'term'.  You can add multiple terms together by separating them with commas (with no intervening spaces).  For example:</p>
+<pre>sd-allow-access 0-3,12-15,42,SomeSpan
+</pre>
+<p></p>
+<p>Allows access to SDs 0 to 3, SDs 12 to 15, SD 42, and all SDs used in span 'SomeSpan'.</p>
+<p>But beware: '!' applies only to a single term.  So</p>
+<pre>sd-allow-access !0-7,!16-23
+</pre>
+<p></p>
+<p>allows access to all SDs except 0-7 <strong>and</strong> all SDs except 16-23 -- in other words, all SDs in the system.  There is no syntax that allows access to all SDs except 0-7 and 16-23.</p>
+<h2>Qualifiers</h2>
+<p>Each term can take one or more qualifiers, separated from the term by colons (and no spaces).  All selection criteria used by the 'sd-list' command are available here with the same long and short names (although the syntax is different); run 'help sd-list' or see the 'sd-list' man page for a complete list.</p>
+<pre>sd-allow-access Accounts:denied
+sd-allow-access Accounts:A
+</pre>
+<p></p>
+<p>Licenses (allows access to) all unlicensed SDs in span Accounts.  Note that 'sd-list' has two equivalent switches, -A and --denied, but that we don't use the dashes when specifying qualifiers.</p>
+<pre>sd-peg --primary Accounts:is-secondary
+sd-peg --primary Accounts:2
+</pre>
+<p></p>
+<p>Finds all mirrored secondary SDs in span Accounts and tells the server to treat them as primaries (and vice versa, because of the action of 'sd-peg').</p>
+<p>To use multiple qualifiers on a single term, separate them with colons (and no spaces).</p>
+<pre>sd-deny-access all:allowed:not-in-a-span
+sd-deny-access all:a:I
+</pre>
+<p></p>
+<p>Unlicenses all licensed SDs that aren't used in spans.</p>
+<p>You can abbreviate qualifier names (as long as they remain long enough to be unambiguous), and so that command could also be written like this:</p>
+<pre>sd-deny-access all:allo:not-i
+</pre>
+<p></p>
+<p>The first (and only the first) term is allowed to start with a colon; the word 'all' will be understood.  So two more ways to write the same command are:</p>
+<pre>sd-deny-access :allowed:not-in-a-span
+sd-deny-access :a:I
+</pre>
+<p></p>
+<p>The second and subsequent terms must specify 'all' if they want it.  This rule protects users who accidentally type</p>
+<pre>sd-allow-access Accounts :denied
+</pre>
+<p></p>
+<p>when they mean</p>
+<pre>sd-allow-access Accounts:denied
+</pre>
+<p></p>
+<p>The second command licenses all unlicensed SDs in span Accounts; the first, if it were permitted, would license all SDs in span Accounts and then all unlicensed SDs known to the cluster.</p>
+<p>Some qualifiers take arguments (extra information that tells them what to select).  Separate the argument from the qualifier with an equals sign (and no spaces), like this:</p>
+<pre>sd-allow-access all:vendor=FOO:denied
+sd-allow-access all:r=FOO:A
+sd-allow-access :r=FOO:A
+</pre>
+<p></p>
+<p>These equivalent commands license all unlicensed storage from vendor FOO.</p>
+<pre>sd-allow-access all:raid-rack-name=75022014
+sd-allow-access all:k=75022014
+sd-allow-access :k=75022014
+</pre>
+<p></p>
+<p>Licenses all SDs on a specified Raid rack, without the need to look up their device IDs.</p>
+<pre>sd-dump-cod span all:raid-rack-name=75022014:raid-sd-name=0003
+sd-dump-cod span all:k=75022014:d=0003
+sd-dump-cod span :k=75022014:d=0003
+</pre>
+<p></p>
+<p>Dumps the span Cod on an SD, but specifies IDs used by the storage rather than a normal device ID.</p>
+<h2>Devices other than system drives</h2>
+<p>Some commands use this facility for specifying tape drives, tape changers or filesystems.  For example:</p>
+<pre>backup-device-set-evs 8-10 any
+</pre>
+<p></p>
+<p>Many qualifiers do not make sense in this context, but some do:</p>
+<pre>backup-device-allow-access all:denied
+</pre>
+<p></p>
+<p>The same applies to filesystems.  The following rather destructive command removes all unloaded filesystems from the registry, removes their EVS bindings and deletes their NV data:</p>
+<pre>filesystem-forget-and-delete-nv-data all:unhealthy
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/backup-device-allow-access.html">backup-device-allow-access</a> <a href="../Supervisor/backup-device-deny-access.html">backup-device-deny-access</a> <a href="../Supervisor/backup-device-forget.html">backup-device-forget</a> <a href="../Supervisor/backup-device-port.html">backup-device-port</a> <a href="../Supervisor/backup-device-set-evs.html">backup-device-set-evs</a> <a href="../Supervisor/filesystem-forget-and-delete-nv-data.html">filesystem-forget-and-delete-nv-data</a> <a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-dslog.html">scsi-dslog</a> <a href="../Supervisor/scsi-racks.html">scsi-racks</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-back-up-cod.html">sd-back-up-cod</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../Supervisor/sd-dump-encroachment-area.html">sd-dump-encroachment-area</a> <a href="../Supervisor/sd-enumerate.html">sd-enumerate</a> <a href="../Supervisor/sd-forget.html">sd-forget</a> <a href="../Supervisor/sd-group-add.html">sd-group-add</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../Supervisor/sd-group-delete.html">sd-group-delete</a> <a href="../Supervisor/sd-group-export.html">sd-group-export</a> <a href="../User/sd-group-list.html">sd-group-list</a> <a href="../Supervisor/sd-group-remove.html">sd-group-remove</a> <a href="../Supervisor/sd-identify-encroachment.html">sd-identify-encroachment</a> <a href="../Topic/sd-ids.html">sd-ids</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-peg.html">sd-peg</a> <a href="../Supervisor/sd-restore-cod-signature.html">sd-restore-cod-signature</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../Supervisor/sdpath.html">sdpath</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-expand.html">span-expand</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

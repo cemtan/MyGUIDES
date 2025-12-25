@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mount-point-access-configuration</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>mount-point-access-configuration</h1>
+
+<h1>Description</h1>
+<p>This man page describes the common syntax that can be used to specify the access configuration for the several different sorts of "mount point". Mount points, for the purposes of this man page, include NFS exports, CIFS shares and iSCSI targets. The access configuration described here lets the administrator control access to mount points on a per-client basis.</p>
+<h2>Identifying clients</h2>
+<p>Use the IP addresses of the clients who are allowed to access the mount point (up to 2,000 characters). If name services have been configured, then you may instead use each client's computer name rather than its IP address. The connecting client's IP address will be looked up using the name service, and then a case-insensitive comparison is performed between the returned name and any access configuration.</p>
+<h2>Address Specifiers</h2>
+<dl>
+<dt><strong>Blank or *.</strong></dt>
+<dd><p>All clients are allowed access.</p></dd>
+<dt><strong>A specific address or name.</strong></dt>
+<dd><p>Only clients with the specified names or addresses can access the mount point.</p></dd>
+<dd><p>Examples: 10.168.20.2, 2001:db8:2020:edcb:a169:97a9:16aa:84a2, client.dept.example.com</p></dd>
+<dt><strong>A range of addresses using Classless Inter-Domain Routing (CIDR) notation.</strong></dt>
+<dd><p>Clients with addresses within the range can access the mount point; this also applies in the case of a specific address combined with a prefix length. Note that for IPv4 addresses, you must provide a full "dotted quad" even if the trailing octets are zero.</p></dd>
+<dd><p>Examples: 10.168.1.0/24, 172.16.1.100/16, 2001:db8:2020:edcb:a169:97a9::/96, 2001:db8:220a:a00:250:56ff:fe06:d3b6/64</p></dd>
+<dt><strong>A partial address using wildcards.</strong></dt>
+<dd><p>Clients with matching addresses can access the mount point.</p></dd>
+<dd><p>Example: 10.168.*.*</p></dd>
+<dt><strong>A netgroup.</strong></dt>
+<dd><p>Clients which are members of the given netgroup can access the mount point. If a local netgroup and an NIS netgroup exist with the same name, the local netgroup is checked first.</p></dd>
+<dd><p>Example: yourcompanydept</p></dd>
+</dl>
+<h2>Specifying Clients by Name</h2>
+<dl>
+<dt><strong>Fully Qualified Domain Name Required.</strong></dt>
+<dd><p>Be sure to specify the fully qualified domain name of the client. For example, use aclient.dept.example.com rather than simply aclient.</p></dd>
+<dt><strong>Leading Wildcard Allowed.</strong></dt>
+<dd><p>To specify a partial name, a single wildcard, located at the start of the name, may be used.</p></dd>
+<dt><strong>Export Options Change Requires Remount.</strong></dt>
+<dd><p>When a client mounts the NFS export, the server determines which export option to apply to the client. Subsequent changes to DNS, WINS, or NIS that would resolve the client's IP address to a different computer name are only applied to a mounted export when the client unmounts the export and then remounts it.</p></dd>
+<dt><strong>Name Service Order is Significant.</strong></dt>
+<dd><p>Application of mount-point options to a client's mount request may be affected by the order in which the system applies DNS, WINS, and NIS information to resolve IP addresses. The first name service in nsorder sequence that can resolve the client name supplies the name and searches configuration options for the mount point.</p></dd>
+</dl>
+<h2>The order in which the entries are specified is important.</h2>
+<p>Access is only granted by the line containing the first matching address specifier. Consider the following example (of what not to do):</p>
+<pre>*(ro)
+10.1.2.38(rw)
+</pre>
+<p></p>
+<p>The first grants read-only access to all clients, whereas the second grants read/write access to the specified client. The second line is, however, ineffectual as the first line matches all clients. These lines must be transposed to grant write access to 10.1.2.38.</p>
+<h2>Access Qualifiers</h2>
+<p>The following qualifiers may be appended, in parentheses, to an address specifier, as defined above. When multiple qualifiers are used, they should be comma-separated. Spaces are ignored.</p>
+<h3>Applicable to all mount points</h3>
+<dl>
+<dt><strong>read_write, readwrite, rw</strong></dt>
+<dd><p>Grants read/write access. Read/write access is granted by default.</p></dd>
+<dt><strong>read_only, readonly, ro</strong></dt>
+<dd><p>Grants read-only access.</p></dd>
+<dt><strong>noaccess, no_access</strong></dt>
+<dd><p>Denies the specified clients access to the mount point.</p></dd>
+</dl>
+<h3>NFS exports and CIFS shares only</h3>
+<dl>
+<dt><strong>all_squash, allsquash</strong></dt>
+<dd><p>Maps all user IDs and group IDs to the anonymous user or group.</p></dd>
+<dt><strong>no_all_squash, noallsquash</strong></dt>
+<dd><p>Turns off all-squashing. All-squashing is not enabled by default.</p></dd>
+<dt><strong>anon_uid=&lt;uid&gt;, anonuid=&lt;uid&gt;</strong></dt>
+<dd><p>Explicitly sets an anonymous user ID. The default anonymous user ID is that of the "nobody" user which, by default, is 65534.</p></dd>
+<dt><strong>anon_gid=&lt;gid&gt;, anongid=&lt;gid&gt;</strong></dt>
+<dd><p>Explicitly sets an anonymous group ID. The default anonymous group ID is that of the "nogroup" group which, by default, is 65534.</p></dd>
+</dl>
+<h3>NFS exports only</h3>
+<dl>
+<dt><strong>root_squash, rootsquash</strong></dt>
+<dd><p>Maps user and group IDs of 0 (zero) to the anonymous user or group. Root squashing is enabled by default.</p></dd>
+<dt><strong>no_root_squash, norootsquash</strong></dt>
+<dd><p>Turns off root squashing.</p></dd>
+<dt><strong>enable_sparse_block_counts, enablesparseblockcounts</strong></dt>
+<dd><p>Enabling this option causes the server to report the true size that sparse files occupy on disk, which enables client-side commands such as 'du' and 'stat' to report accurate file system usage. Only use on clients where it is needed as enabling this option has a significant effect on performance.</p></dd>
+<dt><strong>secure</strong></dt>
+<dd><p>Requires requests to originate from an IP port less than 1024. Some client operating systems restrict such ports to "root" (the administrator of the client machine). The "secure" restriction is not enabled by default.</p></dd>
+<dt><strong>insecure</strong></dt>
+<dd><p>Negates the restriction enabled by the "secure" option.</p></dd>
+<dt><strong>sec=&lt;list&gt;</strong></dt>
+<dd><p>Restricts the RPC security flavors NFS clients can use to access the mount point, specified as a colon delimited list.</p></dd>
+<dd><p>The available security flavors are:</p></dd>
+<dl>
+<dt><strong>sys</strong></dt>
+<dd><p>The traditional security flavor used by NFS, users are not authenticated by the server.</p></dd>
+<dt><strong>krb5</strong></dt>
+<dd><p>Kerberos authentication.</p></dd>
+<dt><strong>krb5i</strong></dt>
+<dd><p>Kerberos authentication, with per-message integrity (each request/response is protected with a cryptographic checksum).</p></dd>
+<dt><strong>krb5p</strong></dt>
+<dd><p>Kerberos authentication with per-message privacy (each request/response is encrypted).</p></dd>
+</dl>
+<dd><p>N.B. Each security flavor has an impact on performance.  The "sys" flavor has the least overhead, followed by krb5, krb5i and krb5p.</p></dd>
+</dl>
+<h3>CIFS shares only</h3>
+<dl>
+<dt><strong>nobrowse, no_browse</strong></dt>
+<dd><p>When a matching client requests enumeration of the shares on the server, this share will not appear in the response. Any client not listed, as well as any listed clients without this qualifier, will still be able to enumerate this share.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Here are some examples:</p>
+<dl>
+<dt><strong>10.1.2.38(ro)</strong></dt>
+<dd><p>Grants read-only access to the client whose IP address is 10.1.2.38.</p></dd>
+<dt><strong>2001:db8:fde3:8640:5a80:b530:8e3c:f5b2(ro)</strong></dt>
+<dd><p>Grants read-only access to the client whose IP address is 2001:db8:fde3:8640:5a80:b530:8e3c:f5b2.</p></dd>
+<dt><strong>10.1.2.0/24(ro)</strong></dt>
+<dd><p>Grants read-only access to all clients whose IP address is within the range 10.1.2.0 to 10.1.2.255.</p></dd>
+<dt><strong>172.16.1.100/16(ro)</strong></dt>
+<dd><p>Grants read-only access to all clients whose IP address is within the range 172.16.0.0 to 172.16.255.255.</p></dd>
+<dt><strong>2001:db8:b570:f6d7:e98e:e384::/96(ro)</strong></dt>
+<dd><p>Grants read-only access to all clients whose IP address is within the range 2001:db8:b570:f6d7:e98e:e384:0000:0000 to 2001:db8:b570:f6d7:e98e:e384:ffff:ffff.</p></dd>
+<dt><strong>2001:db8:220a:a00:250:56ff:fe06:d3b6/64(ro)</strong></dt>
+<dd><p>Grants read-only access to all clients whose IP address is within the range 2001:db8:220a:a00:0000:0000:0000:0000 to 2001:db8:220a:a00:ffff:ffff:ffff:ffff.</p></dd>
+<dt><strong>yourcompanydept(ro)</strong></dt>
+<dd><p>Grants read-only access to all hosts in the netgroup yourcompanydept.</p></dd>
+<dt><strong>*.example.com(ro, anonuid=20)</strong></dt>
+<dd><p>Grants read-only access to all clients whose computer name ends with .example.com. All squashed requests are to be treated as if they originated from user ID 20.</p></dd>
+<dt><strong>10.1.*.* (readonly, allsquash, anonuid=10, anongid=10)</strong></dt>
+<dd><p>Grants read-only access to all the matching clients. All requests are squashed to the anonymous user, which is explicitly set as user ID 10 and group ID 10.</p></dd>
+<dt><strong>10.1.*.*(sec=krb5:krb5i:krb5p)</strong></dt>
+<dd><p>Matching clients must use one of the Kerberos RPC security flavors with this NFS export.</p></dd>
+<dt><strong>10.1.1.*(rw),*(ro)</strong></dt>
+<dd><p>One subnet has read-write access; everyone else can only read.</p></dd>
+<dt><strong>*(nobrowse)</strong></dt>
+<dd><p>All clients are unable to enumerate this CIFS share, however they still have read-write access if they access the share directly.</p></dd>
+<dt><strong>10.1.*.*(rw),*(nobrowse, noaccess)</strong></dt>
+<dd><p>Clients in the 10.1.*.* subnet will be allowed read-write access and will be able to enumerate the share. No other clients will be able to enumerate or access this CIFS share.</p></dd>
+</dl>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../User/iscsi-target.html">iscsi-target</a> <a href="../Supervisor/localnetgroup.html">localnetgroup</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/nsorder.html">nsorder</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

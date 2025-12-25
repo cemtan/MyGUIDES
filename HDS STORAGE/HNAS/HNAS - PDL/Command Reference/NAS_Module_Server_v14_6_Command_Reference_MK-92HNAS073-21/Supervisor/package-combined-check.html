@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>package-combined-check</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>package-combined-check</h1>
+<p>Check a combined package for compatibility with the currently running package.</p>
+<h1>Syntax</h1>
+<pre>package-combined-check  --hm-micro &lt;HM MICRO VERSION&gt; [ --downgrade-allowed ] &lt;COMPATIBILITY FILE&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The package-combined-check command is used to check whether a combined package is compatible with the versions of HNAS and SMU software currently running.</p>
+<p>The full path to the compatibility file must be specified.  Other options:</p>
+<dl>
+<dt><strong>--hm-micro HM_MICRO_VERSION, -h HM_MICRO_VERSION</strong></dt>
+<dd><p>This is a mandatory option. HM_MICRO_VERSION is the version number of the HM micro code that is to be running with the specified HNAS combined package software versions. This should be in the same format as supplied in the compatibility_check_hm_micro_versions field of the compatibility file or one of two special strings: <strong>none</strong> - perform no check of the HM micro code or <strong>current</strong> - use the current HM micro code version of the system.</p></dd>
+<dt><strong>--downgrade-allowed, -d</strong></dt>
+<dd><p>If not specified then the check will assume that downgrades from the currently running software are not permissible, no matter what the compatibility file contents.</p></dd>
+</dl>
+<p>The package-combined-check command only runs on ssc connections. Once the file transfer over the ssc connection has completed successfully the copy of the file on the client file system will be deleted automatically by the command.</p>
+<h1>Examples</h1>
+<p>Check a package:</p>
+<pre>ssc 192.168.0.1 package-combined-check -h 83-01-00-00/00-01 hnas-compatibilty.txt
+</pre>
+<p></p>
+<p>Check a package when downgrades are allowed:</p>
+<pre>ssc 192.168.0.1 package-combined-check -d -h 83-01-00-00/00-01 hnas-compatibilty.txt
+</pre>
+<p></p>
+<p>Check a package ignoring the HM micro code version:</p>
+<pre>ssc 192.168.0.1 package-combined-check -h none hnas-compatibilty.txt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/package-combined-install.html">package-combined-install</a> <a href="../Supervisor/package-combined-install-progress.html">package-combined-install-progress</a> <a href="../Supervisor/package-list.html">package-list</a> <a href="../Supervisor/package-remove.html">package-remove</a> <a href="../Supervisor/package-set-default.html">package-set-default</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

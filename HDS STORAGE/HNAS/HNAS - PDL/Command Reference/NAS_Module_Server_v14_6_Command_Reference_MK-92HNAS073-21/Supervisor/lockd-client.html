@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>lockd-client</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>lockd-client</h1>
+<p>Indicates whether the specified client may have NLM state and allows state to be removed</p>
+<h1>Syntax</h1>
+<pre>lockd-client [-u] &lt;client IP addr&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command provides the ability to query the Network Lock Manager on the server to find out if a specified client may have byte-range locks, and additionally allows these locks to be removed. This is only applicable to NFS v2/v3, not NFSv4 as per protocol definition.</p>
+<p>This command should only be used to repair the case where network client crashes and fails to clear its Network Lock Manager state on reboot. Clearing Network Lock Manager state held by an active client may cause applications to fail in an unexpected manner.</p>
+<p>This command is only available at the support level.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>[-u]</strong></dt>
+<dd><p>The -u switch specifies that the Network Lock Manager state for the specified client should be removed.</p></dd>
+<dt><strong>&lt;client IP addr&gt;</strong></dt>
+<dd><p>The client is specified by an IP address in dot notation.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To find out whether the server may have Network Lock Manager state for client 10.1.1.17:</p>
+<pre>lockd-client 10.1.1.17
+Specified client is known by NLM, and therefore may have lock state.
+</pre>
+<p></p>
+<p>To remove the state:</p>
+<pre>lockd-client -u 10.1.1.17
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

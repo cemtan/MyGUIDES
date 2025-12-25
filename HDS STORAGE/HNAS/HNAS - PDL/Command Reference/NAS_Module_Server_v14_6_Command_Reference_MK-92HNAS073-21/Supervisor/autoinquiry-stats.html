@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>autoinquiry-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>autoinquiry-stats</h1>
+<p>Display statistics for autoinquiry</p>
+<h1>Syntax</h1>
+<pre>autoinquiry-stats [--boot] [--reset] [--type (all|nfs|smb1|smb2|smb2.1|smb3)]
+</pre>
+
+<h1>Description</h1>
+<p>The autoinquiry-stats command reports the number of requests that have attempted to be, have been or have failed to be autoinquired by the server.</p>
+<p>Usage:</p>
+<pre>autoinquiry-stats [--boot] [--reset] [--type &lt;protocol_type&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-t, --type &lt;protocol_type&gt;</strong></dt>
+<dd><p>Selects a set of protocol stats.  Valid choices are (<strong>all</strong>|<strong>nfs</strong>|<strong>smb1</strong>|<strong>smb2</strong>|<strong>smb2.1</strong>|<strong>smb3</strong>). Defaults to <strong>all</strong>.</p></dd>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Resets the statistic counters back to 0</p></dd>
+<dt><strong>-b, --boot</strong></dt>
+<dd><p>Displays the statistics since the server boot rather than since the previous use of --reset</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>autoinquiry-stats
+</pre>
+<p></p>
+<p>Displays the number of autoinquired operations for every protocol since the last use of the --reset option.</p>
+<pre>autoinquiry-stats --type smb1 --reset
+</pre>
+<p></p>
+<p>Resets the count of SMB1 operations that have been autoinquired.</p>
+<pre>autoinquiry-stats --type smb1 --boot
+</pre>
+<p></p>
+<p>Displays the count of SMB1 operations that have been autoinquired since the system was booted.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/autoinquiry-config.html">autoinquiry-config</a> <a href="../Supervisor/autoresponse-config.html">autoresponse-config</a> <a href="../Supervisor/autoresponse-stats.html">autoresponse-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

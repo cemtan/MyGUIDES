@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-accessed-time</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>fs-accessed-time</h1>
+<p>Get/Set accessed time maintenance</p>
+<h1>Syntax</h1>
+<pre>fs-accessed-time 
+	get [--file-system &lt;label&gt;]
+	set [--file-system &lt;label&gt;] [--update-interval &lt;seconds&gt;] &lt;on|off&gt;
+	clear &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Configures file system accessed-time maintenance</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>get [--file-system &lt;label&gt;]</strong></dt>
+<dd><p>Displays the setting that applies to the cluster, or a specific file system if --file-system is specified.</p></dd>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>Specifies file system</p></dd>
+</dl>
+<dt><strong>set [--file-system &lt;label&gt;] [--update-interval &lt;seconds&gt;] &lt;on|off&gt;</strong></dt>
+<dd><p>Configures the setting that applies to the cluster, or a specific file system if --file-system is specified. File systems 'inherit' the cluster-wide setting, unless explicitly overridden.</p></dd>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>Specifies file system</p></dd>
+<dt><strong>-u, --update-interval</strong></dt>
+<dd><p>This specifies the minimum time in seconds between updates to a file's accessed time. By default, a file's accessed time will not be changed unless it is 4 hours or more since the last update of the accessed time (not the last access to the file).</p></dd>
+<dt><strong>on|off</strong></dt>
+<dd><p>The "on" option enables access time maintenance. The "off" option disables access time maintenance - the access time of files will not be updated when clients read from them.</p></dd>
+</dl>
+<dt><strong>clear &lt;file-system&gt;</strong></dt>
+<dd><p>Clears a file system's explicit setting, causing it to inherit the cluster-wide setting.</p></dd>
+</dl>
+<p>Consideration needs to be taken of the access protocol's caching strategy when enabling accessed time maintenance. A client that caches read requests will not issue a read to the server to update the access time whatever the accessed time maintenance value. This maybe significant when trying to control migrations, replications and changed file notifications using the file access time.</p>
+<p>WARNING: Disabling accessed time maintenance, even briefly, will impact data migrations using rules based on accessed time for the file system(s) affected by the change.  Subsequent runs of data migration policies that have a migration rule using last accessed time as a criteria will fail if the rule's interval is greater than the time that has elapsed since last accessed time maintenance was enabled.</p>
+<h1>Examples</h1>
+<p>Display the cluster-wide setting:</p>
+<pre>fs-accessed-time get
+</pre>
+<p></p>
+<p>Enable accessed time maintenance, with an update interval of 1 hour (affects all file systems inheriting the cluster-wide setting):</p>
+<pre>fs-accessed-time set -u 3600 on
+</pre>
+<p></p>
+<p>Disable accessed time maintenance on the file system 'fs0' only:</p>
+<pre>fs-accessed-time set -f fs0 off
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

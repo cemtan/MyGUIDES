@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>route</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>route</h1>
+<p>Display/Configure Route Table</p>
+<h1>Syntax</h1>
+<pre>route [operation]
+where &#39;operation&#39; is one of:
+[show] [-v]
+flush [--confirm]
+add gateway -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+add host &lt;addr&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+add net &lt;addr&gt;/&lt;prefix-length&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+add net &lt;addr&gt; [-n &lt;mask&gt;] -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+del gateway -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+del host &lt;addr&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+del net &lt;addr&gt;/&lt;prefix-length&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+del net &lt;addr&gt; [-n &lt;mask&gt;] -g &lt;addr&gt; [-s &lt;mtu&gt;] 
+delall [--confirm]
+</pre>
+
+<h1>Description</h1>
+<p>The route command manipulates the IP routing tables. It can be used to set up static routes to specific hosts or networks. It can also be used to set up multiple default gateways to minimize the administration of host and network routes. A gateway route is used to route traffic where no host or network route is given and the destination is not directly reachable via an interface. In this case, the routing code looks at the source IP address to see what interface the packet would go out of and chooses the appropriate gateway on the same subnet. You can minimize the number of host and network routes (or even eliminate them) by specifying one gateway route for each subnet that the server is on.</p>
+<p>Without any options, the route command displays the contents of the routing tables. To manipulate the routing tables, you use the add, del or delall options.</p>
+<p>The maximum number of routing entries is 127. Note that each MTU entry also takes up a routing entry and counts towards the limit.</p>
+<h2>To configure routes:</h2>
+<p>route flush [-c | --confirm]</p>
+<p>route add gateway -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route del gateway -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route add host &lt;addr&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route del host &lt;addr&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route add net &lt;addr&gt; [-n &lt;mask&gt;] -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route add net &lt;addr&gt;/&lt;prefix-length&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route del net &lt;addr&gt; [-n &lt;mask&gt;] -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route del net &lt;addr&gt;/&lt;prefix-length&gt; -g &lt;addr&gt; [-s &lt;mtu&gt;]</p>
+<p>route delall [-c | --confirm]</p>
+<h2>To display routes:</h2>
+<p>route [show] [-v]</p>
+<p>defaults: dynamic host routes not shown.</p>
+<dl>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Displays all routes including dynamic host routes.</p></dd>
+</dl>
+<p>Note: Dynamic routes are only displayed for the cluster node on which the command is executed.</p>
+<h2>Route flags</h2>
+<p>The following flags indicated various route properties:</p>
+
+<p>H - A host route</p>
+<p>G - A gateway route</p>
+<p>D - A dynamic route</p>
+<p>C - A cluster-node-route</p>
+<p>Any route that is not marked H or G is a network route.</p>
+
+<h2>Operations</h2>
+<dl>
+<dt><strong>add/del</strong></dt>
+<dd><p>Add or delete a static route (a single host, a network or a gateway). The type of route and the route details are mandatory.</p></dd>
+<dt><strong>delall</strong></dt>
+<dd><p>Delete all static routes in the routing table. Only takes one option, which is "-c" or "--confirm", to avoid the user being prompted for confirmation at the command line.</p></dd>
+<dt><strong>flush</strong></dt>
+<dd><p>Remove all dynamic host routes from the routing table. Takes one option, which is "-c" or "--confirm", to avoid the user being prompted for confirmation at the command line.</p></dd>
+<dd><p>Note: This operation only applies to the cluster node on which the command is executed.</p></dd>
+<dd><p>Note: To flush other dynamic routes from the routing table use the 'irdp flush', 'ndp-flush' and 'rip flush' commands.</p></dd>
+<dt><strong>show</strong></dt>
+<dd><p>Display routes. Only takes one option which is "--verbose" which controls the display of dynamic host routes.</p></dd>
+<dt><strong>host|net|gateway</strong></dt>
+<dd><p>Specify the type of route, i.e a single host, a network or a gateway. If a network is specified, then you must include either an address prefix length (eg 10.2.3.0/24) or a Subnet mask ( -n &lt;addr&gt; ). For a host, this value will default to 255.255.255.255.</p></dd>
+<dt><strong>&lt;addr&gt;[/&lt;prefix-length&gt;]</strong></dt>
+<dd><p>Means an IP address format such as 10.1.2.3. There is some checking for invalid addresses. Invalid addresses are: Numbers &gt; 255, Broadcast Addresses, Unreachable gateways.  A prefix length can be given to specify how many top bits of the address are significant to the network rather than specifying a netmask.</p></dd>
+<dt><strong>-n &lt;addr&gt;</strong></dt>
+<dd><p>Netmask. Only necessary for "net" type routes if an address prefix length is not supplied. An &lt;addr&gt; must be supplied.</p></dd>
+<dt><strong>-g &lt;addr&gt;</strong></dt>
+<dd><p>Gateway. Must be supplied for any route. An &lt;addr&gt; must be supplied.</p></dd>
+<dt><strong>-s &lt;mtu&gt;</strong></dt>
+<dd><p>The MTU to be used for this route. This value must lie between 68 and 9600 inclusive for IPv4 routes and between 1280 and 9600 inclusive for IPv6 routes. If the MTU is not specified a default of 1500 will be applied.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To add a gateway route:</p>
+<pre>route add gateway -g 10.1.254.50
+</pre>
+<p></p>
+<p>To delete a gateway route:</p>
+<pre>route del gateway -g 10.1.254.50
+</pre>
+<p></p>
+<p>To add a host route to get to 10.1.2.3 via 10.1.3.4:</p>
+<pre>route add host 10.1.2.3 -g 10.1.3.4
+</pre>
+<p></p>
+<p>To add a network route for the 10.1.2.0 network via 10.1.3.4:</p>
+<pre>route add net 10.1.2.0/24 -g 10.1.3.4
+</pre>
+<p></p>
+<p>or alternatively the same configuration but with an explicit netmask given instead of an address prefix length:</p>
+<pre>route add net 10.1.2.0 -n 255.255.255.0 -g 10.1.3.4
+</pre>
+<p></p>
+<p>To delete the host route to get to 10.1.2.3 via 10.1.3.4:</p>
+<pre>route del host 10.1.2.3 -g 10.1.3.4
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-node-route-add.html">cluster-node-route-add</a> <a href="../Supervisor/cluster-node-route-delete.html">cluster-node-route-delete</a> <a href="../Supervisor/cluster-node-route-delete-all.html">cluster-node-route-delete-all</a> <a href="../Supervisor/cluster-node-route-disable.html">cluster-node-route-disable</a> <a href="../Supervisor/cluster-node-route-enable.html">cluster-node-route-enable</a> <a href="../User/cluster-node-route-list.html">cluster-node-route-list</a> <a href="../User/cluster-node-route-status.html">cluster-node-route-status</a> <a href="../Supervisor/irdp.html">irdp</a> <a href="../User/mtu.html">mtu</a> <a href="../Supervisor/ndp-dump.html">ndp-dump</a> <a href="../Supervisor/ndp-flush.html">ndp-flush</a> <a href="../Supervisor/rip.html">rip</a> <a href="../Topic/routing.html">routing</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>vss-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>vss-perf</h1>
+<p>Display Volume Shadow Copy Services (VSS) performance statistics</p>
+<h1>Syntax</h1>
+<pre>vss-perf [[--reset] | [--summary] [--verbose] [--access-type (all|local|localcvl|remotecvl|legacynas)] [--type (elapsed|cpu|nvramreservation|lock|block|wfstime|wfscalls|remotetime|remotecalls|fscontext|security|accessandregionlock|readoplock|writeoplock|handleoplock|gns|renamelock|inq|requestsignatureverification|throughputcontrol|quotacheck|quotarecord|legacynastime|legacynascalls|sharedvirtualdisk|decrypt|encrypt|all)] [--file-system &lt;label&gt; | --all-file-systems]] [&lt;request-pattern&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The vss-perf command reports Volume Shadow Copy Service (VSS) performance statistics.</p>
+<p>Usage:</p>
+<pre>vss-perf [OPTION...] [&lt;request-pattern&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>--access-type, -T all | local | localcvl | remotecvl | legacynas</strong></dt>
+<dd><p>Only displays statistics for accesses to objects of the given type.</p></dd>
+<dt><strong>--all-file-systems, -a</strong></dt>
+<dd><p>Show per file system stats for all file systems.</p></dd>
+<dt><strong>--file-system, -f</strong></dt>
+<dd><p>Show per file system stats for the specified file system.</p></dd>
+<dt><strong>--reset, -r</strong></dt>
+<dd><p>Reset the statistics.</p></dd>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>Only display a summary.</p></dd>
+<dt><strong>--type, -t elapsed | cpu | nvramreservation | lock | block | wfstime | wfscalls | remotetime | remotecalls | fscontext | security | accessandregionlock | readoplock | writeoplock | handleoplock | gns | renamelock | inq | requestsignatureverification | throughputcontrol | quotacheck | quotarecord | legacynastime | legacynascalls | sharedvirtualdisk | decrypt| encrypt | all</strong></dt>
+<dd><p>Only display statistics of the given type.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display verbose information.</p></dd>
+<dt><strong>&lt;request-pattern&gt;</strong></dt>
+<dd><p>Only show statistics for requests with names that contain the given string.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/vss-account.html">vss-account</a> <a href="../Supervisor/vss-rpc-log.html">vss-rpc-log</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

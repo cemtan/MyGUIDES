@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nop</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>nop</h1>
+<p>Copy input unchanged</p>
+<h1>Syntax</h1>
+<pre>... | nop 
+</pre>
+
+<h1>Description</h1>
+<p>grep's output may be piped through nop to prevent it from coloring matches. This may be useful in scripts, where the escape sequences used for coloring make parsing harder.</p>
+<p>Coloring also occurs in the output of many hex dumping commands or filters. Their output may be piped through nop to remove ANSI coloring escape sequences.</p>
+<h1>Examples</h1>
+<p>1. To look for connections which have serviced hundreds of requests:</p>
+<pre>      connection all | grep "[0-9][0-9][0-9] requests" | nop
+</pre>
+<p></p>
+<p>2. Disable hex dump coloring:</p>
+<pre>      disk-read 100BLK --nbytes 1024 -f fs | nop
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/cat.html">cat</a> <a href="../../Dev/disk-read.html">disk-read</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Filter/User/hexdump.html">hexdump</a> <a href="../../Filter/Dev/hexdump-set.html">hexdump-set</a> <a href="../../Supervisor/obj-read.html">obj-read</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

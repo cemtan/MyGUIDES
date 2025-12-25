@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ndmp-status</h1>
+<p>Display or change NDMP status</p>
+<h1>Syntax</h1>
+<pre>ndmp-status [--start | --abort] [--boot-enable | --boot-disable]
+</pre>
+
+<h1>Description</h1>
+<p>Display or change NDMP status.</p>
+<p>If issued with no parameters it displays the current NDMP status.</p>
+<p>The following options can be used to control the current running state:</p>
+<dl>
+<dt><strong>--start</strong></dt>
+<dd><p>If NDMP is not running, request that it starts.</p></dd>
+<dt><strong>--abort</strong></dt>
+<dd><p>Request that NDMP processing is terminated immediately. This will disrupt any ongoing replication, backup, recovery, or adc copy so should only be used when the system is idle.</p></dd>
+</dl>
+<p>The following options can be used to control the NDMP action at boot time:</p>
+<dl>
+<dt><strong>--boot-enable</strong></dt>
+<dd><p>If set, NDMP will start as usual at boot time.</p></dd>
+<dt><strong>--boot-disable</strong></dt>
+<dd><p>NDMP will not be started at boot time.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>ndmp-status
+</pre>
+<p></p>
+<p>Displays the current status of NDMP.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-user.html">ndmp-user</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

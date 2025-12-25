@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-reload-protection</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-reload-protection</h1>
+<p>Reloads encroachment; makes filesystems (un)available</p>
+<h1>Syntax</h1>
+<pre>span-reload-protection &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Reloads a span's protection structures from disk.  In this release, the only protection structure is encroachment, which the server writes to disk and then periodically reads back.  Encroachment is used to check that foreign servers have not written to this server's or cluster's storage, and is described in the 'encroachment' man page.</p>
+<p>If the protection structures were good but have become bad, file systems will be forcibly unmounted at once.</p>
+<p>Conversely, if protection structures were bad and have become good, 'span-reload-protection' makes the file systems on the span available for mounting.  However, it returns control without waiting for them to mount; a script that uses this command may need to run 'span-wait-for-loading --mount' before running its next command.</p>
+<p>Note that this command does not fix protection structures on disk: it just reloads them into memory.  If a protection structure is bad before 'span-reload-protection' is run, it will still be bad afterwards.</p>
+<h1>Examples</h1>
+<pre>server:$ span-list accounts
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Accounts               Yes  100%     4104  11,12,13,14                      90%
+</pre>
+<p></p>
+<pre>   On HDP pool 1 with 309GiB free
+   Set 0: 4 x 1026GiB = 4104GiB, of which 4104GiB is free, 0GiB is vacated
+      SD 11 (rack '93050290', SD '0008')
+      SD 12 (rack '93050290', SD '0009')
+      SD 13 (rack '93050290', SD '0010')
+        *SD 13 has suffered an encroachment*
+      SD 14 (rack '93050290', SD '0011')
+</pre>
+<p></p>
+<pre>   ** At least one SD in this span has a bad encroachment area.
+      Depending on its configuration, the server either forced the span's
+      filesystems offline as soon as the problem was detected or will do
+      immediately after you unmount them.
+</pre>
+<p></p>
+<pre>Run 'trouble storage' to start troubleshooting.
+</pre>
+<p></p>
+<pre>server:$ span-reload-protection accounts
+Before rescanning:
+Encroachment: Bad
+</pre>
+<p></p>
+<pre>Rescanning now...
+</pre>
+<p></p>
+<pre>After rescanning:
+Encroachment: Good
+p34-1:$ span-list accounts
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Accounts               Yes  100%     4104  11,12,13,14                      90%
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/encroachment.html">encroachment</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

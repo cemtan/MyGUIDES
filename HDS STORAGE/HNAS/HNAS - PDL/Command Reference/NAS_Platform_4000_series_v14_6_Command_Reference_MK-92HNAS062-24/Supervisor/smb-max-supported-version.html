@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>smb-max-supported-version</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>smb-max-supported-version</h1>
+<p>Set or display the maximum supported version of SMB</p>
+<h1>Syntax</h1>
+<pre>smb-max-supported-version [ --default | 1 | 2 | 2.1 | 3 ]
+</pre>
+
+<h1>Description</h1>
+<p>The smb-max-supported-version command is used to set or display the maximum supported version of SMB for the current EVS.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>smb-max-supported-version [ --default | 1 | 2 | 2.1 | 3 ]</strong></dt>
+<dd><p>Set the maximum supported version of SMB to 1, 2, 2.1, 3 or to its default value of 2.</p></dd>
+<dd><p>If no argument is specified, the current maximum supported version is shown.</p></dd>
+</dl>
+<p>The maximum version specified must be greater than or equal to the minimum supported version.</p>
+<p>For example, if smb-minimum-supported-version is SMB2, then it is acceptable to specify an smb-maximum-supported-version of SMB2, SMB2.1 or SMB3, but not SMB1.</p>
+<p>This command affects SMB connections to the HNAS (ie normal file-serving connections) and SMB connections from the HNAS, for example to Domain Controllers or RPC-based virus scanners.</p>
+<h1>Examples</h1>
+<p>Display the current maximum supported version of SMB.</p>
+<pre>  smb-max-supported-version
+</pre>
+<p></p>
+<p>Set the maximum supported version of SMB to its default of SMB2.</p>
+<pre>  smb-max-supported-version --default
+</pre>
+<p></p>
+<p>Set the maximum supported version of SMB to SMB3.</p>
+<pre>  smb-max-supported-version 3
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/evs-select.html">evs-select</a> <a href="../Supervisor/smb-min-supported-version.html">smb-min-supported-version</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

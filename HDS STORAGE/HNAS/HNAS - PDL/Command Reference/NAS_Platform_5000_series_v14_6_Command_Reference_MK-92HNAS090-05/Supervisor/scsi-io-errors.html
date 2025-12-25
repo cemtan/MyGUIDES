@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-io-errors</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-io-errors</h1>
+<p>Display error stats for SCSI ports &amp; devices</p>
+<h1>Syntax</h1>
+<pre>scsi-io-errors [-p [&lt;port-id&gt;] | [-p] -d [&lt;device-id&gt;] | [-p] [-d] {-s &lt;span name&gt; | -f &lt;fs name/num&gt;} | -r [-p &lt;port-id&gt; | -d &lt;device-id&gt;]]
+</pre>
+
+<h1>Description</h1>
+<p>Displays error statistics by SCSI port or device. (The ports are those reported by the scsi-ports command, i.e. FC channels.) If no options are given, it will display counts for all ports with errors and all devices with errors, as if -d -p had been given. If the counts displayed include FCP or SCSI errors, further details will automatically be displayed.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-r</strong></dt>
+<dd><p>Reset counts. Use with -p to reset counts for a specific port, -d for a specific device, or by itself to reset all counts. Resetting error counts also resets any fault status associated with a port or device. Description of other options assumes no -r.</p></dd>
+<dt><strong>-p</strong></dt>
+<dd><p>Display by port. If &lt;port-id&gt; is given, display error counts for that port only.</p></dd>
+<dt><strong>-d</strong></dt>
+<dd><p>Display by system drive. If &lt;device-id&gt; is given, display error counts for that device only; with -p, error counts for each port serving that device (including errors relating to other devices on the same ports).</p></dd>
+<dt><strong>-s</strong></dt>
+<dd><p>Display by span - show error counts for the SDs in the specified span and/or the ports serving those devices. (-p -d implied if neither set.)</p></dd>
+<dt><strong>-f</strong></dt>
+<dd><p>Display by file system - show error counts for the SDs in the span containing the specified file system and/or the ports serving those devices. (-p -d implied if neither set.)</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display counts for all ports with errors and all devices with errors: scsi-io-errors</p>
+<pre>scsi-io-errors -p -d
+</pre>
+<p></p>
+<p>Display counts for all ports with errors:</p>
+<pre>scsi-io-errors -p
+</pre>
+<p></p>
+<p>Display counts for port 5:</p>
+<pre>scsi-io-errors -p 5
+</pre>
+<p></p>
+<p>Display counts for all devices with errors:</p>
+<pre>scsi-io-errors -d
+</pre>
+<p></p>
+<p>Display counts for system drive 8:</p>
+<pre>scsi-io-errors -d 8
+</pre>
+<p></p>
+<p>Display counts for all ports serving system drive 8:</p>
+<pre>scsi-io-errors -p -d 8
+</pre>
+<p></p>
+<p>Display counts for all SDs in span "BigSpan" and their ports:</p>
+<pre>scsi-io-errors -s BigSpan
+</pre>
+<p></p>
+<p>Display counts for all devices in the filesystem "Home":</p>
+<pre>scsi-io-errors -d -f Home
+</pre>
+<p></p>
+<p>Reset all counts and fault statuses:</p>
+<pre>scsi-io-errors -r
+</pre>
+<p></p>
+<p>Reset counts (and fault status if any) for port 5:</p>
+<pre>scsi-io-errors -r -p 5
+</pre>
+<p></p>
+<p>Reset counts (and fault status) for system drive 8:</p>
+<pre>scsi-io-errors -r -d 8
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/fc-link-errors.html">fc-link-errors</a> <a href="../Supervisor/scsi-ports.html">scsi-ports</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

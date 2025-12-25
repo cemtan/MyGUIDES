@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-list-snapshots</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-list-snapshots</h1>
+<p>List all the snapshots of a specified span</p>
+<h1>Syntax</h1>
+<pre>span-list-snapshots &lt;base-or-instance-name&gt;
+Alias:       snaps
+</pre>
+
+<h1>Description</h1>
+<p>Your storage supports read--write snapshots via its Hitachi Thin Image (HTI) or Copy-On-Write (CoW) Snapshot feature.  To understand the server's support for this feature, see the 'storage-based-snapshot' and 'storage-based-snapshot-label' man pages.</p>
+<p>The server represents storage-based snapshots as individual spans.  It is often necessary to know which snapshots are versions of the same data.  The 'span-list-snapshots' command accepts the base name or instance name of any span that's in snapshot mode, and prints a list of all the snapshots that belong with it.</p>
+<p>'span-list' shows each snapshot as a separate span and shows more detail than 'span-list-snapshots', but can't display snapshots that haven't been loaded from Cod.  'span-list-snapshots', in contrast, can display unloaded snapshots so that you can delete them retrospectively.  As soon as any one SD in a snapshot is healthy, primary and licensed, the server will load the snapshot from Cod and be able to display that one snapshot in 'span-list', but it will also load enough information to display all the other snapshots of the same span in 'span-list-snapshots'.</p>
+<h1>Examples</h1>
+<pre>server:$ span-list-snapshots accounts
+Unloaded   . . . .    Accounts-DataMine
+. . . .    Original   Accounts-Main
+. . . .    . . . .    Accounts-WhatIf
+server:$
+</pre>
+<p></p>
+<p>The first column shows 'Unloaded' if the snapshot has not been loaded into memory (that is, if it wouldn't appear in the output of 'span-list').  In most circumstances, all snapshots will be loaded; one reason a snapshot might not be loaded is that an administrator has deleted the underlying snapshot system drives and then rebooted the cluster without telling the server to delete the snapshot.</p>
+<p>The second column shows the word 'Original' if this is the original copy of the data -- the copy on which 'span-enable-snapshots' was run, rather than a copy that was added by 'span-add-snapshot'.  Only snapshots that don't show the word 'Original' can be deleted by 'span-delete-snapshot'.</p>
+<p>The third column shows the instance name of the snapshot.  Snapshots are listed in alphabetical order.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/span-add-snapshot.html">span-add-snapshot</a> <a href="../Supervisor/span-delete-snapshot.html">span-delete-snapshot</a> <a href="../Supervisor/span-enable-snapshots.html">span-enable-snapshots</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

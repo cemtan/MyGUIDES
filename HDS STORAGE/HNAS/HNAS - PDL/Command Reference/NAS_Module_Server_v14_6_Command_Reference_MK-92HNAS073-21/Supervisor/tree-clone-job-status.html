@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tree-clone-job-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>tree-clone-job-status</h1>
+<p>Get the status of a tree cloning job specified by its job id</p>
+<h1>Syntax</h1>
+<pre>tree-clone-job-status &lt;job-id&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Gets the status report of a directory tree cloning job by its job id.</p>
+<dl>
+<dt><strong>&lt;job-id&gt;</strong></dt>
+<dd><p>The id of the job to retrieve the status.</p></dd>
+</dl>
+<h2>Output</h2>
+<p>The job status output is divided into three groups: Job request, Job state, and Job info. Each group contains one or more parameters as described below.</p>
+<h3>Job Request</h3>
+<p>A job request consists of four parameters: file system id, source path, destination path, and whether or not to ensure the existence of the destination path. Other parameters are supplied by the tree cloning server. Most are self-explanatory except the following:</p>
+<dl>
+<dt><strong>Creation time</strong></dt>
+<dd><p>The time when a job is created based on the request. After a job is created, it is immediately placed into the job waiting queue. The tree cloning server will pick it up and execute later; the timing depends on its workload.</p></dd>
+</dl>
+<h3>Job state</h3>
+<p>The state of the job at the time the tree-clone-job-status command is run. It can be one of the following six states:</p>
+<pre>    Job is queued
+    Job is running
+    Job was completed
+    Job is aborting
+    Job was aborted
+    Job failed
+</pre>
+<p></p>
+<h3>Job info</h3>
+<dl>
+<dt><strong>Started</strong></dt>
+<dd><p>The time when the tree cloning server picks up the job from the waiting queue to execute it.</p></dd>
+<dt><strong>Ended</strong></dt>
+<dd><p>The time when the cloning job is completed.</p></dd>
+<dt><strong>Status</strong></dt>
+<dd><p>The error status of the job. It is an error code but is translated into an error message.</p></dd>
+<dt><strong>Error details</strong></dt>
+<dd><p>Detailed info on the error. It may contain specific info or context of the error.</p></dd>
+<dt><strong>Directories processed</strong></dt>
+<dd><p>The count of directories that the tree cloning server has read so far. If the value is 1, it means the server has read only the top-level directory of the source tree.</p></dd>
+<dt><strong>Files processed</strong></dt>
+<dd><p>The count of files that were successfully cloned.</p></dd>
+<dt><strong>Data bytes processed</strong></dt>
+<dd><p>The sum of data lengths of all files that were successfully cloned.</p></dd>
+<dt><strong>Source directories/files missing</strong></dt>
+<dd><p>The count of all missing source directories/files. (Each missing source directory is counted as one even though it may have contained a lot of files and subdirectories.) See the man page of tree-clone-job-submit for explanation on missing directories/files. A missing source directory/file is not treated as an error. The tree clone server simply ignores it and continues to process the rest of the tree. But the user must investigate the root cause and takes appropriate action. The first step is to run the "logtrace dump tree-clone" command to see the detailed info on these missing directories/files.</p></dd>
+<dt><strong>Source files skipped</strong></dt>
+<dd><p>Total count of files that are uncloneable. When the tree cloning server encounters a source file for which cloning is not supported, it does not treat this as an error.  It simply skips the file and continues to process the remaining files. The user can run the "logtrace dump tree-clone" command to see a list of all skipped files.</p></dd>
+<dt><strong>Skipping details</strong></dt>
+<dd><p>A breakdown of the skipped files count based on the reasons for which the files were skipped. Each skipped file will be cited for one reason only. Suppose a source file is a hard link and a cross volume link. It is sufficient for the tree clone server to skip this file by citing just one reason, say, hard link. In this case only the hard links count is incremented and not the count of cross volume links. The advantage of this accounting style is that the sum of all the sub-counts is equal to the total skipped source files.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To clone the directory tree "/foo" into "/clone/bar":</p>
+<pre>   $ tree-clone-job-submit -e /foo  /clone/bar
+   Destination path: Cannot access "/clone".
+   Will create all necessary directories in the destination path as requested...
+   tree-clone: New job created, job id: ab4211b8-aac8-11ce-91af-39e0822ea368
+   tree-clone-job-submit: Request submitted successfully.
+   tree-clone-job-submit: Job id = ab4211b8-aac8-11ce-91af-39e0822ea368
+</pre>
+<p></p>
+<p>To retrieve the status report of this job, run:</p>
+<pre>   $ tree-clone-job-status ab4211b8-aac8-11ce-91af-39e0822ea368
+   tree-clone-job-status: Job id = ab4211b8-aac8-11ce-91af-39e0822ea368
+   JOB ID : ab4211b8-aac8-11ce-91af-39e0822ea368
+      Job request
+        Physical node                  : 1
+        EVS                            : 1
+        Volume number                  : 1
+        File system id                 : 2ea361c20ed0f80d0000000000000000
+        File system name               : fs1
+        Source path                    : "/foo"
+        Creation time                  : 2013-09-05 23:16:48-07:00
+        Destination path               : "/clone/bar"
+        Ensure destination path exists : true
+</pre>
+<p></p>
+<pre>      Job state                        : Job was completed
+</pre>
+<p></p>
+<pre>      Job info
+        Started                        : 2013-09-05 23:16:48-07:00
+        Ended                          : 2013-09-05 23:17:02-07:00
+        Status                         : Success
+        Error details                  :
+        Directories processed          : 220
+        Files processed                : 910
+        Data bytes processed           : 34.5 MB (36174754 B)
+        Source directories missing     : 0
+        Source files missing           : 0
+        Source files skipped           : 801
+        Skipping details               : 452 hard links, 47 block special devices, 25 character devices
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/logtrace.html">logtrace</a> <a href="../Supervisor/tree-clone-job-abort.html">tree-clone-job-abort</a> <a href="../Supervisor/tree-clone-job-list.html">tree-clone-job-list</a> <a href="../Supervisor/tree-clone-job-submit.html">tree-clone-job-submit</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

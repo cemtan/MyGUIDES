@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>test-route-by-evs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>test-route-by-evs</h1>
+<p>tests the router</p>
+<h1>Syntax</h1>
+<pre>test-route-by-evs -e &lt;evs&gt; dst
+test-route-by-evs -e &lt;evs&gt; src dst
+</pre>
+
+<h1>Description</h1>
+<p>The test-route-by-evs command provides similar access to the routing decision making process on the server as the test-route command except that its decisions are influenced by specifying an EVS.</p>
+<p>As well as specifying an EVS, the test-route-by-evs command takes one or two IP addresses.  If you supply two IP addresses, the first IP address is the source IP address that'll be used in the routing decision and the second IP address is the destination address.  If you supply a single IP address, test-route-by-evs works out the route that'll be used to get to that IP address. NB if you supply two IP addresses, then test-route-by-evs behaves like test-route and ignores the EVS setting.</p>
+<p>Like the test-route command, the test-route-by-evs command is board specific as different routing decisions are made on the different boards as the available interfaces are different.</p>
+<h2>Usage:</h2>
+<pre>test-route-by-evs -e &lt;evs&gt; dst
+</pre>
+<p></p>
+<pre>test-route-by-evs -e &lt;evs&gt; src dst
+</pre>
+<p></p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>-e, --evs &lt;evs-id&gt;</strong></dt>
+<dd><p>Specifies the EVS to use to influence the routing choice.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display how a packet would go to 10.1.1.7 from any IP address for evs 1 (ie the source IP address is free to be chosen):</p>
+<pre>server:$ test-route-by-evs -e 1 10.1.1.7
+route from 172.18.0.102-&gt;10.1.1.7 via 172.18.254.254 i/f ag1
+</pre>
+<p></p>
+<p>To display how a packet would go to 10.1.1.7 from any IP address for evs 2 (ie the source IP address is free to be chosen):</p>
+<pre>server:$ test-route-by-evs -e 2 10.1.1.7
+route from 172.18.0.103-&gt;10.1.1.7 via 172.18.254.254 i/f ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/router-dump.html">router-dump</a> <a href="../Supervisor/router-dump-by-evs.html">router-dump-by-evs</a> <a href="../Topic/routing.html">routing</a> <a href="../Supervisor/test-route.html">test-route</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

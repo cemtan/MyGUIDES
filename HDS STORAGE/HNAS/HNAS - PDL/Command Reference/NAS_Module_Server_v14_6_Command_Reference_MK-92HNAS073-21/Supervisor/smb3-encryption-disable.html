@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>smb3-encryption-disable</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>smb3-encryption-disable</h1>
+<p>Disable SMB3 encryption on the current EVS</p>
+<h1>Syntax</h1>
+<pre>smb3-encryption-disable 
+</pre>
+
+<h1>Description</h1>
+<p>The smb3-encryption-* commands determine whether SMB encryption is enabled on an EVS. These commands are only available on an EVS if it has the maximum supported version set to SMB3.</p>
+<dl>
+<dt><strong>Effect on clients using SMB3:</strong></dt>
+<dd><p>When enabled, the use of encryption is enforced on the current EVS. Any unencrypted clients will be rejected.</p></dd>
+<dt><strong>Effect on clients using SMB2:</strong></dt>
+<dd><p>Works in combination with the smb3-reject-unencrypted-access-* commands. If SMB3 'reject unencrypted access' is disabled on this EVS then enabling or disabling EVS encryption has no effect. If SMB3 'reject unencrypted access' is enabled on this EVS then EVS encryption when enabled causes SMB2 clients to be rejected from this EVS.</p></dd>
+<dt><strong>Effect on clients using SMB1:</strong></dt>
+<dd><p>Has no effect. Access by SMB1 clients can only be prevented by turning off the SMB1 server. The SMB1 server can be turned off by using the smb-min-supported-version command to set the minimum supported version to SMB2</p></dd>
+<dt><strong>smb3-encryption-status</strong></dt>
+<dd><p>Display the encryption status of the current EVS.</p></dd>
+<dt><strong>smb3-encryption-enable</strong></dt>
+<dd><p>Enable encryption on the current EVS.</p></dd>
+<dt><strong>smb3-encryption-disable</strong></dt>
+<dd><p>Disable encryption on the current EVS.</p></dd>
+<dt><strong>smb3-encryption-default</strong></dt>
+<dd><p>Set the encryption status of the current EVS to the default state of disabled.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../Supervisor/smb-max-supported-version.html">smb-max-supported-version</a> <a href="../Supervisor/smb-min-supported-version.html">smb-min-supported-version</a> <a href="../Supervisor/smb3-encryption-default.html">smb3-encryption-default</a> <a href="../Supervisor/smb3-encryption-enable.html">smb3-encryption-enable</a> <a href="../User/smb3-encryption-status.html">smb3-encryption-status</a> <a href="../Supervisor/smb3-reject-unencrypted-access-default.html">smb3-reject-unencrypted-access-default</a> <a href="../Supervisor/smb3-reject-unencrypted-access-disable.html">smb3-reject-unencrypted-access-disable</a> <a href="../Supervisor/smb3-reject-unencrypted-access-enable.html">smb3-reject-unencrypted-access-enable</a> <a href="../User/smb3-reject-unencrypted-access-status.html">smb3-reject-unencrypted-access-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

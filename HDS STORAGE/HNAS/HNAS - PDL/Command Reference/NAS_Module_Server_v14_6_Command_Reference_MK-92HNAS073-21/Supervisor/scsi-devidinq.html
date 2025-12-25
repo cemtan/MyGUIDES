@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-devidinq</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>scsi-devidinq</h1>
+<p>Send a SCSI Device ID Page Inquiry command to the target device</p>
+<h1>Syntax</h1>
+<pre>scsi-devidinq &lt; [&lt;[sd-spec device specifier] | [-D]&gt;[-p]] | &lt;[-p] [-l]&gt;&gt; [-a] [-r] [-q] [-d]
+Alias:       devidinq
+</pre>
+
+<h1>Description</h1>
+<p>Sends a SCSI VPD (vital product data device ID, code 0x83) inquiry command to the target device on the given SCSI port and LUN.</p>
+<p>The scsi-devices command can be used to determine which SCSI ports are available for each device.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>[system-drives list]</strong></dt>
+<dd><p>See the 'sd-spec' man page for an explanation of how to specify a list of system drives using sd-spec syntax. If no SCSI port is specified, the command will be sent to the first on-line port of the device. If the -a option is specified, the command will be sent to all on-line ports.</p></dd>
+<dt><strong>-D, --Dev &lt;Device id&gt;</strong></dt>
+<dd><p>device ID of target device. If no SCSI port is specified, the command will be sent to the first on-line port of the device. If the -a option is specified, the command will be sent to all on-line ports.</p></dd>
+<dt><strong>-p --port &lt;port&gt;</strong></dt>
+<dd><p>SCSI port id of target device.</p></dd>
+<dt><strong>-l --lun  &lt;LUN&gt;</strong></dt>
+<dd><p>LUN of the target device.</p></dd>
+<dt><strong>-a, --all-ports</strong></dt>
+<dd><p>Attempt to send the SCSI command to all on-line ports of the target device.</p></dd>
+<dt><strong>-d --dump</strong></dt>
+<dd><p>Hex dump the returned data.</p></dd>
+<dt><strong>-r --raw</strong></dt>
+<dd><p>Attempt to send the command even if the server has not discovered a device on this SCSI port and LUN.</p></dd>
+<dt><strong>-q --qtag &lt;tag&gt;</strong></dt>
+<dd><p>Use this queue tag value, which must be one of:</p></dd>
+
+<p>Simple    = 0 (default)</p>
+<p>Head of q = 1</p>
+<p>Ordered q = 2</p>
+<p>ACA q     = 3</p>
+<p>Untagged  = 4</p>
+
+</dl>
+<h1>Examples</h1>
+<p>Send a SCSI device ID inquiry to SCSI port 2, LUN 1 and hex dump the result :</p>
+<pre>scsi-devidinq -p 2 -l 1 -d
+</pre>
+<p></p>
+<p>Send a SCSI device ID inquiry command to device 0 using SCSI port 2 :</p>
+<pre>scsi-devidinq -D 0 -p 2
+</pre>
+<p></p>
+<p>Send a SCSI device ID inquiry command to devices 10 to 15 using the first on-line SCSI port of each device :</p>
+<pre>scsi-devidinq 10-15
+</pre>
+<p></p>
+<p>Send SCSI device ID inquiry commands to device 10 using all on-line SCSI ports :</p>
+<pre>scsi-devidinq 10 -a
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-inq.html">scsi-inq</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

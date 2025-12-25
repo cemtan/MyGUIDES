@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>arp</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>arp</h1>
+<p>ARP table manipulation</p>
+<h1>Syntax</h1>
+<pre>arp [-a &lt;addr&gt;] [-d &lt;addr&gt;] [-f] [-i &lt;interface&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The 'arp' command displays and manipulates the Address Resolution Protocol (ARP) table.</p>
+<p>Without any options, the 'arp' command displays the contents of the ARP table.</p>
+<dl>
+<dt><strong>-f, --flush</strong></dt>
+<dd><p>Empties the ARP table.</p></dd>
+<dt><strong>-d, --delete &lt;addr&gt;</strong></dt>
+<dd><p>Deletes the ARP table entry for address &lt;addr&gt;.</p></dd>
+<dt><strong>-a, --address &lt;addr&gt;</strong></dt>
+<dd><p>Displays the ARP table entry for address &lt;addr&gt;.</p></dd>
+<dt><strong>-i, --interface &lt;name&gt;</strong></dt>
+<dd><p>Limits an operation to ARP entries associated with a specific interface.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To clear the ARP table of all entries:</p>
+<pre>    arp --flush
+</pre>
+<p></p>
+<p>To delete an ARP entry:</p>
+<pre>    arp --delete 192.168.1.2
+</pre>
+<p></p>
+<p>To display an entry for a specific IP address and interface:</p>
+<pre>   arp --address 192.168.1.2 --interface ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

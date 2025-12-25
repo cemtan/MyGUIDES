@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ssmv</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ssmv</h1>
+<p>Rename ssfs file</p>
+<h1>Syntax</h1>
+<pre>ssmv &lt;oldname&gt; &lt;newname&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Move a file in server flash.</p>
+<p>The command takes two parameters - the source and destination filenames, both of which may include the flash name. The source and destination files must be in the same flash, i.e. you cannot move files between flashes.</p>
+<h1>Examples</h1>
+<pre>ssmv test1 test2
+</pre>
+<p></p>
+<p>Moves file test1 to test2 in local flash on the current board.</p>
+<pre>ssmv //fsm/test1 //fsm/test2
+</pre>
+<p></p>
+<p>Moves file test1 in flash on FSM board to test2 in flash on FSM board.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/sscp.html">sscp</a> <a href="../Topic/ssfs.html">ssfs</a> <a href="../Supervisor/ssls.html">ssls</a> <a href="../Supervisor/ssrm.html">ssrm</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

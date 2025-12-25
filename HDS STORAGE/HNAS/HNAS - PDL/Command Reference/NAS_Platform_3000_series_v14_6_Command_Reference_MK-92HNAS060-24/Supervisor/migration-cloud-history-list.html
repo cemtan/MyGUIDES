@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud-history-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>migration-cloud-history-list</h1>
+<p>Lists cloud migration history for a specified policy.</p>
+<h1>Syntax</h1>
+<pre>migration-cloud-history-list [--verbose] [[--running] | [--all] | [--recent]] [--source-fs-label &lt;source-fs-label&gt;] [--policy-name-or-id &lt;policy-name-or-id&gt; [--history-record-id &lt;history-record-id&gt;]]
+</pre>
+
+<h1>Description</h1>
+<p>Lists the cloud migration job history.</p>
+<dl>
+<dt><strong>--source-fs-label, -s &lt;source-fs-label&gt;</strong></dt>
+<dd><p>Name or id of the file system for which to list the history jobs.</p></dd>
+<dt><strong>--policy-name-or-id, -n &lt;policy-name-or-id&gt;</strong></dt>
+<dd><p>Name or id of the policy for which to list the history jobs.</p></dd>
+<dt><strong>--history-record-id, -i &lt;history-record-id&gt;</strong></dt>
+<dd><p>Id of the history job to display. Requires policy-name-or-id to be also specified.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>List history jobs in a verbose mode</p></dd>
+<dt><strong>--all, -a</strong></dt>
+<dd><p>List all history jobs.</p></dd>
+<dt><strong>--recent, -r</strong></dt>
+<dd><p>List only recent history jobs.</p></dd>
+<dt><strong>--running, -R</strong></dt>
+<dd><p>List only active history jobs.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-cloud-history-list --policy-name-or-id DefaultPolicy --recent
+</pre>
+<p></p>
+<p>Lists recent history for policy 'DefaultPolicy'.</p>
+<pre>migration-cloud-history-list --source-fs-label FileSystemName --running --verbose
+</pre>
+<p></p>
+<p>Lists running history jobs in a verbose mode for the file system 'FileSystemName'.</p>
+<pre>migration-cloud-history-list
+</pre>
+<p></p>
+<p>Lists 2 recent history jobs for each policy on this EVS.</p>
+<pre>set ext-migration-policy-history-records 40
+</pre>
+<p></p>
+<p>A set variable can be applied to extend the default limit from 20 to 40.</p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-cloud-history-clear.html">migration-cloud-history-clear</a> <a href="../Supervisor/migration-cloud-policy-create.html">migration-cloud-policy-create</a> <a href="../Supervisor/migration-cloud-schedule-run-now.html">migration-cloud-schedule-run-now</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

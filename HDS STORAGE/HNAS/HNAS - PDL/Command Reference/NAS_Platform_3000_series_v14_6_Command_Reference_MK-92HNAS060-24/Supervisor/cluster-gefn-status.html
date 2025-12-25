@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-gefn-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>cluster-gefn-status</h1>
+<p>Status of GEfN cluster</p>
+<h1>Syntax</h1>
+<pre>cluster-gefn-status 
+</pre>
+
+<h1>Description</h1>
+<p>Reports whether a 4 node cluster has been configured as a GAD Enhanced for NAS (GEfN).</p>
+<h2>GEfN Cluster</h2>
+<p>The GEfN Cluster status will have one of the following states:</p>
+<dl>
+<dt><strong>Configured</strong></dt>
+<dd><p>If the cluster has been configured as a GEfN</p></dd>
+<dt><strong>Not Configured</strong></dt>
+<dd><p>If the cluster is a standard, non-site resilient cluster. This is the default state of a 4 node cluster if the cluster-gefn-configure command has never been run. The following additional contents will not display if the cluster has not been configured as a GEfN.</p></dd>
+</dl>
+<h2>Mirror Type</h2>
+<p>The Mirror Type status will have one of the following states:</p>
+<dl>
+<dt><strong>Remote</strong></dt>
+<dd><p>A standard GEfN with nvram mirroring that makes it resilient across 2 sites. This assumes that nodes 1 and 2 are in the first site and nodes 3 and 4 are in the second site.</p></dd>
+</dl>
+<p>Note that "Remote" is the only mirror type that is available at this time.  Other configurations may be introduced in the future.</p>
+<h2>Port Config</h2>
+<p>The Port Config status describes the configuration of the InterCluster Connect (ICC) ports and will have one of the following states:</p>
+<dl>
+<dt><strong>Full</strong></dt>
+<dd><p>The GEfN uses all the available ICC ports (c1 to c4)</p></dd>
+<dt><strong>Reduced</strong></dt>
+<dd><p>The GEfN uses only the minimally required ICC ports (c1 and c3).</p></dd>
+</dl>
+<p>For more information about these options, see the cluster-gefn-configure man page.</p>
+<h1>Examples</h1>
+<p>1. A 4 node HNAS 5000 cluster GEfN using only c1 and c3 ports (reduced):</p>
+<pre>server-1:$ cluster-gefn-status
+GEfN cluster: Configured
+Mirror Type : Remote
+Port Config : Reduced
+</pre>
+<p></p>
+<p>2. A default HNAS 5000 cluster that has not been configured as a GEfN:</p>
+<pre>server-1:$ cluster-gefn-status
+GEfN cluster: Not configured
+</pre>
+<p></p>
+<p>3. A 4 node HNAS 5000 cluster GEfN using all available ICC ports (full):</p>
+<pre>server-1:$ cluster-gefn-status
+GEfN cluster: Configured
+Mirror Type : Remote
+Port Config : Full
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-gefn-configure.html">cluster-gefn-configure</a> <a href="../Supervisor/cluster-gefn-unconfigure.html">cluster-gefn-unconfigure</a> <a href="../Supervisor/cluster-icc-show.html">cluster-icc-show</a> <a href="../User/nvmirroring.html">nvmirroring</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

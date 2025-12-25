@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-convert-to-support-dedupe</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>fs-convert-to-support-dedupe</h1>
+<p>Convert a WFS-2 file system to support dedupe</p>
+<h1>Syntax</h1>
+<pre>fs-convert-to-support-dedupe -f &lt;file system&gt; [-a|--abort] [--disable-dedupe] [--dont-mount-on-success]
+Dev-level options: [--sync|-s]
+</pre>
+
+<h1>Description</h1>
+<p>This command converts an existing WFS-2 file system to support dedupe.</p>
+<p>If the conversion was aborted, it is recommended that checkfs be run immediately after abort to check the file system integrity before attempting to run any of these commands: fs-convert-to-support-dedupe, fs-convert-to-standard-bitmap-resiliency, or fs-convert-to-enhanced-bitmap-resiliency.</p>
+<ul>
+<li>As part of the conversion process, key data structures of the file system are modified, so once a WFS-2 file system is converted to support dedupe the change cannot be reversed, i.e. WFS-2 file systems with dedupe support cannot be converted to WFS-2 file system without dedupe support. However, after a file system is converted to support dedupe, it is still possible to roll back to a snapshot that was created <strong>before</strong> the conversion. This can be treated as a way to restore the file system's data structures to pre-dedupe format, i.e. a way to reverse the conversion process. <strong>But note that rolling back to such a snapshot would mean that any user data written after its creation would be lost.</strong></li>
+<li>Up to 5 file systems can be converted in parallel per physical node, any additional conversion requests beyond this limit will be queued. Depending on the size of the file system the conversion process can take a few minutes to a few hours. Use 'utility-progress' to view the status of in-progress conversions and 'fs-show-queued-tasks' to view queued conversions.</li>
+</ul>
+<h3>The following restrictions apply for a conversion to succeed:</h3>
+<dl>
+<dt><strong>The file system should be in unmounted state.</strong></dt>
+<dd><p>Use 'filesystem-list' command to check the state of file system.</p></dd>
+<dd><p>To fix: unmount the file system. (See 'unmount' command.)</p></dd>
+<dt><strong>The file system must have sufficient space.</strong></dt>
+<dd><p>The conversion of a file system will fail if there isn't sufficient free space or scratch space in the file system, both of which are required for the changes that need to be applied. In such cases, the space required for the conversion will be reported in the dblog and dynamic log. Note that the 'scratch space' of a file system is a region reserved in the underlying partition outside of the file system's formatted space.</p></dd>
+<dd><p>To fix: Expand the file system size to create more scratch space before re-submitting the conversion.</p></dd>
+<dd><p>To fix: Create more free space, e.g. by deleting snapshots or by expanding the file system size, before re-submitting the conversion.</p></dd>
+<dt><strong>The file system should not have any object-based snapshots.</strong></dt>
+<dd><p>Use 'snapshot-list' to check whether the file system has any object-based snapshots.</p></dd>
+<dd><p>To fix: Delete any existing object-based snapshots (see 'snapshot-delete-all' or 'kill-snapshots'), and wait for the snapshot deletion to complete before re-submitting the conversion.</p></dd>
+<dt><strong>The 'user-data-write-policy' of the file system must be 'never-overwrite'.</strong></dt>
+<dd><p>To fix: Run 'wfs-user-data-write-policy' to change the file system's policy to 'never-overwrite' before re-submitting the conversion.</p></dd>
+<dt><strong>No snapshot operation can be pending on the file system.</strong></dt>
+<dd><p>This can happen if the file system is rolled back to a snapshot and then a conversion is requested immediately after the rollback.</p></dd>
+<dd><p>To fix: Mount the file system in read-write mode in order to complete the snapshot operation before re-submitting the conversion.</p></dd>
+<dt><strong>The file system must not be set to delay remaking tiers until the next mount.</strong></dt>
+<dd><p>This delay feature is incompatible with dedupe support.</p></dd>
+<dd><p>To fix: Rerun 'filesystem-remake-tiers' without the '--remake-on-next-mount' option before re-submitting the conversion.</p></dd>
+<dt><strong>The file system must have at least 16 dynamic super-blocks (DSBs)</strong></dt>
+<dd><p>Check with the "FS Type" column in the output of 'df'.</p></dd>
+<dd><p>To fix: Increase the number of DSBs using 'fs-set-dsb-count' before re-submitting the conversion.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong>-a,--abort</strong></dt>
+<dd><p>This option aborts the conversion of a file system if it's in progress or queued.</p></dd>
+<dt><strong>--disable-dedupe</strong></dt>
+<dd><p>Dedupe is automatically enabled for a file system as part of the conversion process. Use this option to convert the file system to have dedupe support only, but prevent it from being scheduled for dedupe. 'fs-dedupe-status-set' can be used to allow/disallow a file system from being processed for dedupe (by the dedupe scheduler).</p></dd>
+<dd><p>Note that, if the --disable-dedupe option is not specified, then the file system will be automatically scheduled for a full dedupe processing at the first mount after a successful conversion.</p></dd>
+<dt><strong>--dont-mount-on-success</strong></dt>
+<dd><p>By default, the file system will be automatically mounted after a successful conversion to support dedupe. Use this option to prevent the file system from being mounted automatically after a successful conversion.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. Convert a WFS-2 file system to a WFS-2 file system that supports dedupe, but prevent the file system from being scheduled for dedupe for the time being</p>
+<pre>      server:$  fs-convert-to-support-dedupe -f fs4 --disable-dedupe
+</pre>
+<p></p>
+<p>2. Convert a WFS-2 file system to a WFS-2 file system that supports dedupe and has dedupe enabled on it.</p>
+<pre>      server:$  fs-convert-to-support-dedupe -f fs4
+</pre>
+<p></p>
+<pre>      By default --disable-dedupe flag is off.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-remake-tiers.html">filesystem-remake-tiers</a> <a href="../Supervisor/format.html">format</a> <a href="../Supervisor/fs-convert-to-enhanced-bitmap-resiliency.html">fs-convert-to-enhanced-bitmap-resiliency</a> <a href="../Supervisor/fs-convert-to-standard-bitmap-resiliency.html">fs-convert-to-standard-bitmap-resiliency</a> <a href="../Supervisor/fs-dedupe-status-get.html">fs-dedupe-status-get</a> <a href="../Supervisor/fs-dedupe-status-set.html">fs-dedupe-status-set</a> <a href="../Supervisor/fs-show-queued-tasks.html">fs-show-queued-tasks</a> <a href="../Supervisor/kill-snapshots.html">kill-snapshots</a> <a href="../Supervisor/snapshot-delete-all.html">snapshot-delete-all</a> <a href="../User/snapshot-list.html">snapshot-list</a> <a href="../Supervisor/unmount.html">unmount</a> <a href="../Supervisor/utility-progress.html">utility-progress</a> <a href="../Supervisor/wfs-user-data-write-policy.html">wfs-user-data-write-policy</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

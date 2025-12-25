@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-forget</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sd-forget</h1>
+<p>Remove one or more system drives from the ID Manager database</p>
+<h1>Syntax</h1>
+<pre>sd-forget &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The server's registry maintains a database of every system drive (SD), filesystem and backup device it has ever encountered.  It uses this database to ensure that the SD has the same device ID every time the server or cluster is booted.  A device ID is a small integer that is unique within the server or cluster.  For system drives and tape drives, device IDs are between 0 and 1023.  ('backup-device-forget' should be used to forget backup devices.)</p>
+<p>If you delete an SD using a storage configurator such as Storage Navigator or Hitachi Command Suite, or if you remove its host Lun so that the server can no longer access it, the SD will still be listed in the server's registry; it will appear on SMU screens and in the output of commands such as 'sd-list'.  The 'sd-forget' command cleans up the registry by removing one or more SDs.</p>
+<p>If you wish to tear down a set of filesystems, a span and their host SDs -- and not merely move them to another server or cluster -- then use this procedure:</p>
+<ul>
+<li>Use 'unmount' and 'filesystem-delete' to delete the filesystems.</li>
+<li>Use 'span-delete' to remove the spans.</li>
+<li>Use your storage configurator to delete the SDs.</li>
+<li>Finally, use 'sd-forget' to remove the SDs from the registry.</li>
+</ul>
+<p>Beginning with Hitachi Command Suite 7.6.1, a span and all its underlying SDs can be deleted at one time, automating the process described here.</p>
+<p>If you don't follow this procedure (using either console commands or Hitachi Command Suite) and you delete SDs that are still used in a span, the span will stay loaded in the server's memory and will be visible to commands such as 'span-list'.  Because the deleted SDs are span-members, you'll be unable to forget them.  First, use 'span-deny-access' to unload the span, and then use 'sd-forget' to forget the SDs.</p>
+<p>If you try to forget a system drive that is still healthy, the command will fail.  Before forgetting an SD, ensure that it has been deleted or made invisible to the server.  You can make an SD invisible to the server by, for example, switching off the storage, disconnecting it from the server, or using Lun-mapping features built into the storage.</p>
+<p>There is no need to use 'sd-deny-access' to unlicense SDs before forgetting them.  If you forget a licensed SD, the server automatically adjusts the amount of licensed space.</p>
+<p>If you forget an SD that's used in an SD group, the SD group is truncated, as if you had used 'sd-group-remove'.  If you forget the last SD in an SD group, the SD group is deleted, as if you had used 'sd-group-delete'.</p>
+<p>See the 'sd-spec' man page for an explanation of how to forget multiple SDs with a single command.</p>
+<h1>Examples</h1>
+<pre>sd-forget 0,2,16-23
+</pre>
+<p></p>
+<p>Forgets SDs 0, 2, and 16 to 23.</p>
+<pre>sd-forget all:unhealthy:not-in-a-span
+</pre>
+<p></p>
+<p>Forgets all unhealthy SDs that are not used in spans.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/backup-device-forget.html">backup-device-forget</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/sd-group-delete.html">sd-group-delete</a> <a href="../Supervisor/sd-group-remove.html">sd-group-remove</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-delete.html">span-delete</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/unmount.html">unmount</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

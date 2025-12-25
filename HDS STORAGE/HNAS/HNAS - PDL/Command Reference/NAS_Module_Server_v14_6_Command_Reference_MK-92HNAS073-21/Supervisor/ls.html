@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ls</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ls</h1>
+<p>Lists directory entries</p>
+<h1>Syntax</h1>
+<pre>ls [-a] [-d] [--full-time] [-h] [-l] [-r] [-i] [-s &lt;sort option&gt;] [--show-cookies] [--show-handles] [--show-name-flags] [--show-shortnames] [--utc] [-C &lt;resume cookie&gt;] [&lt;path&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The ls command is used to list files/directories. By default it lists the current directory, as set with the cd command. However, you can also provide it with the path of a directory to list.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Do not hide entries starting with the '.' character</p></dd>
+<dt><strong>-C, --resume</strong></dt>
+<dd><p>Resume on the entry with the specified cookie</p></dd>
+<dt><strong>-d, --directory</strong></dt>
+<dd><p>Show the directory itself, instead of its contents</p></dd>
+<dt><strong>--full-time</strong></dt>
+<dd><p>Show nanosecond resolution in file times</p></dd>
+<dt><strong>-h, --human-readable</strong></dt>
+<dd><p>Show human-readable file lengths</p></dd>
+<dt><strong>-i, --case-insensitive-sort</strong></dt>
+<dd><p>Sort names case insensitively</p></dd>
+<dt><strong>-l, --long</strong></dt>
+<dd><p>Use a long listing format. The second column in the listing represents file type. Supported file types are C=file-clone, X=CVL/XVL, I=ingested and -=regular/others.</p></dd>
+<dt><strong>-r, --reverse-sort</strong></dt>
+<dd><p>Reverse the sort direction</p></dd>
+<dt><strong>-s, --sort &lt;sort option&gt;</strong></dt>
+<dd><p>Sort the list. Options are none, name, time, atime and size. The default is to sort by name.</p></dd>
+<dt><strong>--show-cookies</strong></dt>
+<dd><p>Show cookies</p></dd>
+<dt><strong>--show-handles</strong></dt>
+<dd><p>Show file handles</p></dd>
+<dt><strong>--show-name-flags</strong></dt>
+<dd><p>Show name flags</p></dd>
+<dt><strong>--show-shortnames</strong></dt>
+<dd><p>Show DOS short file names</p></dd>
+<dt><strong>--utc</strong></dt>
+<dd><p>Show file times in UTC (Universal Time Coordinated)</p></dd>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Verbose listing format</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cd.html">cd</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

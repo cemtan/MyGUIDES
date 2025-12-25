@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-hide</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-hide</h1>
+<p>Hide a span&#39;s filesystems to prevent unwanted I/O</p>
+<h1>Syntax</h1>
+<pre>span-hide &lt;span-or-filesystem-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command prepares a span for maintenance by making all its file systems unavailable for mounting on all servers throughout the cluster.  This guarantees that the server will perform no I/O to the file systems, but makes it impossible to check, fix, format or mount the file systems.  'span-hide' will fail if any of the span's file systems are in use in any of these ways.</p>
+<p>Some operations, such as copying a system drive that's a member of a span, require the span to be hidden.  If you don't do so manually, these commands will automatically hide the span themselves.</p>
+<p>When maintenance is complete, run 'span-reveal &lt;span-instance name&gt;' to allow I/O to take place.</p>
+<p>If a filesystem or its host span is hidden, 'filesystem-list -a' shows the filesystem as 'Hiddn', and 'trouble' prints a warning.</p>
+<p>'span-hide' does not update the registry or the Cod.  A span will automatically be revealed if you simultaneously reboot all servers in the cluster.</p>
+<p>'span-hide' queues messages for the Filesystem, instructing it not to mount the span's file systems, but it does not wait for those messages to be processed.  A script using this command should follow it with 'span-wait-for-loading --mount' in order to ensure that all messages have been processed before the next command is run.  If you are working interactively, you can use 'sd-list-queues' and 'filesystem-list-queues' to watch the progress of these background processes without waiting for them to complete, but they normally run fast enough to make monitoring unnecessary.</p>
+<p>There is currently no automated way to wait for processing to complete, but you can tell whether there is still work in progress by running 'filesystem-list-queues' and checking for filesystems from the affected span in the 'Unavailability' or 'Removal' queues.  Typically, when you are working interactively, messages are processed fast enough to render a manual check unnecessary.</p>
+<p>It is also possible to hide an individual filesystem.  If you hide both a filesystem and its host span, you'll need to reveal them both (in either order) before any Filesystem I/O is possible.</p>
+<h1>Examples</h1>
+<pre>span-hide Admin
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-hide.html">filesystem-hide</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/filesystem-reveal.html">filesystem-reveal</a> <a href="../Supervisor/sd-list-queues.html">sd-list-queues</a> <a href="../Supervisor/span-reveal.html">span-reveal</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

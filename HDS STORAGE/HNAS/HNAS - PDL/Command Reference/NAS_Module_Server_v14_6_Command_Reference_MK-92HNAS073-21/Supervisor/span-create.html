@@ -1,0 +1,299 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-create</h1>
+<p>Create a span of up to 32 system drives</p>
+<h1>Syntax</h1>
+<pre>span-create [--mirror] [--tier &lt;tier&gt;] [--allow-access [--ignore-foreign]] [--chunksize &lt;chunksize&gt; [--bytes]] &lt;new-base-name&gt; &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+Alias:       mkspan
+</pre>
+
+<h1>Description</h1>
+<p>Combines a set of system drives (SDs) into a span.</p>
+<h2>WHAT IS A SPAN?</h2>
+<p>A span is a region of storage, comprising multiple SDs, on which one or more filesystems can be created.  Each of these filesystems has an independent name, capacity and pair of IDs.  All the filesystems on a span share the space in that span; they can be automatically expanded when they become full, or manually expanded in anticipation of increased demand.</p>
+<p>Spans bring the following advantages:</p>
+<ul>
+<li>They allow filesystem capacities to be independent of, and potentially larger than, SD capacities;</li>
+<li>They boost performance by allowing small filesystems to use more storage resources than they otherwise would;</li>
+<li>They remove the requirement to guess at the outset how large a filesystem will eventually grow;</li>
+<li>They allow load-balancing among the nodes in a cluster, because the file systems on a single span can be mounted on multiple cluster nodes.</li>
+</ul>
+<p>When you initially create a span, the server treats the SDs in the span as a stripeset.  This means that a long, sequential I/O to one of the span's file systems will use several SDs, rather than just one.  This increases performance by widening the storage bottleneck.</p>
+<p>As soon as a span has been created, you can create, format and mount file systems on it.</p>
+<p>You can use the 'span-expand' command to add further stripesets to a span.  The existing filesystems on the span will be able to expand into the new space, and new filesystems can also be created on the span.  The use of HDP thin provisioning will enable expansion in smaller increments without loss of performance.  See below.</p>
+<p>The complete configuration of a span and its filesystems is stored on every SD used in the span, in a structure known as 'Cod' (configuration on disk), rather than on the server.  This makes it possible to move a span and its filesystems between servers or clusters.  Cod is described in the 'cod' man page.</p>
+<h2>CREATING A SPAN</h2>
+<p>When you create or expand a span, you specify a set of up to 32 healthy, primary SDs.  (Broadly speaking, a primary SD is either a stand-alone SD or a mirrored P-Vol and secondary SD is a mirrored S-Vol; see 'storage-based-mirror' for the exceptions.)</p>
+<p>'sd-list --hdp' will display a table that relates storage array serial numbers and the internal Luns used by the storage to the device IDs used by the server.</p>
+<p>If you are using HDP, SDs correspond to DP-Vols.  The parity groups or pool volumes that make up an HDP pool are never exposed to the server, and so they do not have server device IDs.</p>
+<p>The SDs you specify should have similar capacities, because the amount of space that will be used on each SD is determined by the capacity of the smallest.  If some SDs are larger than others, the extra space on the larger SDs will be wasted.  If your SDs are of widely differing capacities, consider creating multiple stripesets, with small SDs in one and large SDs in another.</p>
+<h2>SHORTCUTS AND LICENSING</h2>
+<p>You can specify ranges of SDs at the 'span-create' command line, rather than having to list them individually.  See the 'sd-spec' man page.</p>
+<p>The --allow-access (or -a) switch will license (allow access to) any unlicensed SDs specified on the command line.  If you don't provide this switch, all the SDs you specify must already be licensed.  (The 'sd-allow-access' command licenses an SD; the 'sd-list' command tells you whether SDs are healthy, licensed and primary.)</p>
+<p>The --ignore-foreign switch tells the server to ignore any partitions created by other operating systems when licensing system drives.  Without this switch, if the server detects a foreign partition, it will refuse to license the system drive, and the command will abort.</p>
+<p>Beginning with Hitachi Command Suite 7.6.1, a span and all the underlying SDs can be created in a single operation, thus automating the process described here.</p>
+<h2>ADDING SPACE TO A SPAN</h2>
+<p>Do not expand system drives or DP-Vols.  The server will not use the extra space.  To add capacity to a span, follow the guidelines in the 'span-expand' man page.</p>
+<h2>BEST PRACTICES FOR HDP</h2>
+<p>HDP enables you to decouple the number of SDs seen by the server (DP-Vols) from the physical Raid arrays (pool volumes).  This provides more scope for optimization.</p>
+<p>Do not create SD groups.</p>
+<p>We recommend the modest use of HDP thin provisioning, perhaps by a factor of two or three to one.  In other words, the total capacity of the DP-Vols on a new HDP pool should be two or three times the total capacity of the pool volumes.  Thin provisioning enables frequent expansion in smaller increments, delaying disk purchases until the space is really needed; see the 'span-expand' man page.  (HDP thin provisioning, described in the 'hdp' man page, is different from the file system-level thin provisining described in 'filesystem-thin'.)</p>
+<p>Thin provisioning by an excessive factor will use up too much memory in the storage, reducing its scalability, and is not recommended.  Do not make the DP-Vols larger than the maximum size to which the span could foreseeably expand.  Do use thin provisioning, but be conservative: more DP-Vols can be added to the span if more space is needed later on.</p>
+<p>The number of DP-Vols should provide enough queue depth (even after the pool has been back-filled by future expansions, so that the total capacity of the pool volumes matches that of the DP-Vols), while not making DP-Vols so small as to reduce the server's scalability by using up too many SD device IDs.</p>
+<p>To help avoid poor performance, the server requires at least four DP-Vols  when a span is created (which was partly selected to correspond to 4 PGs based on HDDs  and the associated IOPS that such a configuration would provide). Any subsequent expansion  must add at least as many DP-Vols as were provided when the span was created, and never  fewer than four. This rule does not necessitate expansion in large increments,  because the new DP-Vols need not be backed up by large amounts of new disk storage: DP-Vols  can be much larger than the amount of real disk space being added, which can be  back-filled later if and when necessary. See the 'span-expand' man page for best practices.</p>
+<p>For example, if the span originally contained four DP-Vols, any expansion must add at least four; if it originally contained eight, any expansion must add at least eight more.  If the span originally contained only two DP-Vols (in which case, it was presumably created by an older software release), any expansion must add at least four.</p>
+<p>On a tiered span, separate minima apply to each tier.  You can create a tiered span with 16 SDs in Tier 1 and four in Tier 0, even if you set up Tier 1 first.</p>
+<p>The DP-Vols should be placed into a single stripeset: in other words, they should all be mentioned in a single 'span-create' command or GUI equivalent.  Do not artificially divide a new HDP-resident span into multiple stripesets by specifying a few DP-Vols in a 'span-create' command and the rest in one or more 'span-expand' commands: this would reduce performance without bringing any benefit during later expansions.  The exception is a tiered span: use one stripeset per tier.</p>
+<p>The number of pool volumes is immaterial to the server.  Be guided by pure storage considerations, such as the required Raid level, rebuild times, physical space, performance and cost.</p>
+<p>No HDP pool should be shared between two or more clusters, or between this server and a foreign server. With the advent of flash media products, HDP Pools may be shared between two or more spans, however the administrator should consider future implications associated with un-mapping that may be required should free space need to be de-allocated/re-allocated across spans. Additionally while hosting multiple spans on a singular HDP Pool is supported,  it may invite creation of many file systems that could place additional IO overhead on the underlying disk. No stripeset can contain SDs from two or more HDP pools. No span can contain a mixture of HDP DP-Vols and plain SDs. No pool volume or parity group should be shared between two or more HDP pools. Using one HDP pool per span is best practice: it simplifies configuration and management and optimizes I/O performance by making it unnecessary to use Scsi UNMAP to move free space from one span to another.</p>
+<p>The --multiple-spans-per-hdp-pool switch enables the command to create more than one span on a single HDP pool, violating best practice.  We do not recommend its use.</p>
+<p>If the DP-Vols in the new span were previously used in a different span, it is likely that some of the HDP pages they contain are mapped to real space.  If the server detects significant leakage of space, it will launch a background process to return the leaked space to the HDP pool, as if you had run 'span-unmap-vacated-chunks --unused-chunks' against the span.  The 'span-unmap-vacated-chunks' man page details the characteristics of this background process and explains how to view and manage it.</p>
+<h3>HDP and formatting</h3>
+<p>Once a few percent of the space on the new pool has been formatted, it is safe to license the DP-Vols with 'sd-allow-access' and create a span on them.  However, do not create filesystems on the span until formatting is complete.  If, at any point, filesystems use more space than has been formatted, I/O will become extremely slow and may fail.  It is safest to avoid this race condition by waiting for formatting to finish before using the span.</p>
+<h2>BEST PRACTICES FOR NON-HDP STORAGE</h2>
+<p>For best performance and scalability, each parity group should contain exactly one SD.  In this configuration, from release 12.3 onwards, SD groups are optional.</p>
+<p>If it is necessary to break this rule and place multiple SDs on each parity group, and if that parity group contains magnetic disks rather than flash, then set up SD groups before creating the span; the 'sd-group' man page explains how and why.  The 'sd-group-auto' command will automate the process.</p>
+<p>Never create a stripeset with fewer than four SDs.  Such a span would not perform optimally, because it would provide too little queue depth and too little disk bandwidth, and it would not use all back-end paths.  A span consisting of three stripesets of two SDs each does not perform as well as a span with one stripeset of six SDs.</p>
+<p>If possible, using more than four SDs per stripeset will improve performance.</p>
+<p>However, bear in mind the limit on the number of SDs supported by one cluster.  Using too many small SDs will prevent the cluster from reaching its scalability potential.</p>
+<p>Before choosing the number of SDs in the stripeset, see the best practices in the 'span-expand' man page.  In the absence of HDP, no span should be expanded by an increment smaller than its first stripeset, and so the first stripeset sets the minimum cost of future expansions.</p>
+<p>To help ensure adequate performance, the server imposes the following minimum SD counts:</p>
+<dl>
+<dt><strong>On most systems</strong></dt>
+<dd><p>At least four SDs must be provided when the span is created.  Any subsequent expansion must add at least four SDs and least half as many as were provided when the span was created, whichever is larger.</p></dd>
+<dd><p>For example, if the span originally contains between four and eight SDs, any expansion must add at least four more; if it originally contains nine or ten SDs, any expansion must add at least five; and so on.</p></dd>
+<dt><strong>Plain storage on very small systems</strong></dt>
+<dd><p>If only two or three SDs are available on the entire system, they can be built into a span, but all the healthy SDs in the system must be composed into a single span in a single operation.  Any subsequent expansion must add at least as many SDs as were provided when the span was created.</p></dd>
+<dd><p>For example, if the span originally contains two SDs, any expansion must add at least two more; if it originally contains three, any expansion must add at least three more.</p></dd>
+<dd><p>Even after expansion, a span created in this way will not perform as well as a span containing four or more SDs per stripeset.</p></dd>
+</dl>
+<p>It is not possible to create a span on just one SD (other than in Ramdisk mode, which is used during factory test).</p>
+<p>On a tiered span, separate minima apply to each tier.  You can create a tiered span with 16 SDs in Tier 1 and four in Tier 0, even if you set up Tier 1 first.</p>
+<h2>BEST PRACTICES FOR UVM STORAGE</h2>
+<p>If you have used a DDM pool, all the SDs in each server stripeset must be drawn from the same DDM pool.  (A new span contains one stripeset; a further stripeset is added each time you expand the span.)  It is permissible to place SDs from different DDM pools in different stripesets.  You can also expand a UVM-based span on to local HDP DP-Vols.</p>
+<p>You can also use SDs from a DDM pool in some stripesets and UVM SDs without a DDM pool in other stripesets.</p>
+<p>If you have not used a DDM pool at all, the server imposes no restrictions on the combination of UVM internal SDs you can use when creating or expanding a span.</p>
+<p>Nevertheless, regardless of whether you have used a DDM pool or not, we strongly recommend applying the same rules that the server would apply if it were directly connected to the external LUs: if the external LUs are HDP DP-Vols, each server stripeset should use external LUs from only one HDP pool.  If two HDP pools with different amounts of free space contributed space to a single stripeset, it might be impossible to use some of the space on one HDP pool because it was impossible to allocate any further chunks on the other; the server always uses the same amount of space from all the SDs in a stripeset.  However, the server has no visibility of external LUs and cannot enforce this restriction.</p>
+<p>When you create or expand a span, minimum SD counts are the same for UVM as for plain storage.</p>
+<h2>CHUNK SIZES</h2>
+<p>When you create a span, you can specify a chunk size, which determines the ultimate scalability of the span and its filesystems, but also controls the size of the increments in which space can be added to filesystems.  Read the 'chunk' man page before creating the span, because chunk sizes cannot be changed once the span has been created.  If you do not specify a chunk size, the server will choose a reasonable value that is adequate in most cases: it will default to 1/3750 of the capacity of the new span, but no smaller than 1GiB and no larger than 18GiB.  This value allows the span and its filesystem to expand to 16 times the span's original size (subject to absolute maxima), while minimizing the increments in which space is added to filesystems.</p>
+<p>If the span resides on an HDP pool, the server calculates the chunk size using the total capacity of the DP-Vols in the span, rather than that of the pool volumes, which is typically smaller.  This choice leaves more headroom for future expansion.</p>
+<p>If you create a tiered span (whether on an HDT pool or otherwise), the server estimates the total initial size of both tiers on the assumption that Tier 0 will occupy 1/8 of the space and Tier 1 will occupy the rest.  So, whether you create a span on 1TiB of Tier-0 SDs or on 7TiB of Tier-1 storage, the server will choose the same default chunk size as if you had provided 'span-create' with 8TiB of untiered SDs, enabling you to expand the span to 16 * 8TiB = 128TiB over time.  This is a change from releases before 12.5, in which it was necessary to create the span on Tier 1 and expand it on to Tier 0 in order to get a sufficiently large default chunk size.</p>
+<p>If you wish to override the default chunk size, use the --chunksize (or -c) switch.  The chunk size is normally specified in gibibytes, and should be between 0.5 and 18.  It will automatically be adjusted if it falls outside that range or if the requested chunk size is too small for the capacity of the new span.  If you prefer to specify the chunk size in bytes, follow it with the --bytes switch.  The permissible range is unchanged.</p>
+<p>For spans created in the GUI, the chunk size is always 18GiB and cannot be changed.</p>
+<h2>SETTING UP A TIERED SPAN</h2>
+<p>The --tier (or -t) switch assigns the SDs to a tier, replacing any tiers that may have been assigned by 'sd-set --tier' or 'sd-group-create --tier'.  As a result, the span will be in that same tier.  No filesystem can be created on a tiered span containing a single tier; it will be necessary to use 'span-expand' to add SDs on a different tier before filesystems can be created.</p>
+<p>Alternatively, you can use a command such as</p>
+<pre>sd-set --tier 1 0-15
+</pre>
+<p></p>
+<p>to assign SDs to a tier: any span created on those spans will then automatically be tiered.</p>
+<p>If SDs have already been assigned to a tier but you wish to create an untiered span, run a command such as</p>
+<pre>sd-set --tier -1 0-15
+</pre>
+<p></p>
+<p>and then create the span in the usual way.</p>
+<h2>CHOOSING A GOOD SPAN LABEL</h2>
+<p>A span label should reflect the contents of the span.  A reasonably short, distinctive label will help to guard against mistakes.</p>
+<p>A span label must be unique.  The 'storage-based-snapshot-label' page explains the uniqueness rules as well as the various name types and the interactions between them.</p>
+<p>We recommend that span and filesystem labels be unique across the entire site, and not just on the local cluster.  Should you ever need to move storage between servers or clusters, duplicate names will cause needless difficulty.</p>
+<p>Generic labels such as 'SAS_POOL_0' are best avoided, because they are not mnemonic and they are more likely to be duplicated among the clusters at a site.</p>
+<h2>SETTING UP MIRROR RELATIONSHIPS</h2>
+<p>'span-create' can detect synchronous mirror relationships that have already been set up on the storage by products such as TrueCopy, and it can configure them into the server automatically.</p>
+<p>The method that offers the most control is to specify any number of synchronous mirrored secondary SDs on the command line, provided that they are healthy, licensed and not already used in spans.  There is no need to mark secondary SDs in any way: just mention all primary and secondary SDs on the command line, and the server will use them appropriately.  After creating the new span, the server will scan the secondary system drives for mirror relationships with the primary SDs in the span, and automatically configure these relationships into the server.</p>
+<p>As an alternative to specifying secondary SDs, you can use the --mirror (or -m) switch.  This instructs the server to scan <strong>all</strong> eligible secondary SDs for mirror relationships with the new span.  If you specify any secondary SDs alongside --mirror, they are ignored: they are scanned for mirror relationships, just like all other eligible secondary SDs.  (The command will, however, fail if any secondary SD that you explicitly specify is ineligible, and it will warn you if any of these SDs doesn't end up in the span after the command finishes.)</p>
+<p>If the primary SDs have been assigned to a tier, 'span-create' will assign secondary SDs to the same tier when it brings them into the span.  If this assignment is impossible, the span will be created but no mirror relationships will be set up.</p>
+<p>This command can detect only synchronous mirror relationships (in which data written to a primary SD is copied immediately to its secondary).  If the mirror relationships on your span are asynchronous (so that data doesn't appear on secondaries until some time after the server writes it to the primaries), or if you wish to retrofit mirrors to an existing span, use 'sd-mirror-prepare' and 'sd-mirror-detect'.</p>
+<p>If mirroring is performed by GAD, rather than by other products such as TrueCopy or HUR, then it is impossible to mix GAD and non-GAD SDs in the same span.</p>
+<h1>Examples</h1>
+<pre>server:$ span-create Accounts 0-3
+The span has been created
+</pre>
+<p></p>
+<pre>Permanent ID:          0xa9f7c549a8320327
+Capacity:              10715GiB (10TiB)
+Span expandable to:    171433GiB (167TiB)
+Each fs expandable to: 171433GiB (167TiB)
+Chunksize:             2926MiB
+server:$
+</pre>
+<p></p>
+<p>Creates a span called 'Accounts' on SDs 0 to 3.  If any of these SDs are secondaries, the command configures mirror relationships into the server:</p>
+<pre>server:$ span-create Accounts 0-7
+The span has been created
+</pre>
+<p></p>
+<pre>Permanent ID:          0xa9f7c5608958e68e
+Capacity:              10718GiB (10TiB)
+Span expandable to:    171433GiB (168TiB)
+Each fs expandable to: 171433GiB (168TiB)
+Chunksize:             2926MiB
+server:$ span-list -s Accounts
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Accounts               Yes  100%    10718   3750 x    3067913034  90%
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 2679GiB = 10718GiB, of which 10718GiB is free, 10718GiB is available
+      SD 0 (on rack '91250490') = SD 4 (on rack '91250490')
+      SD 1 (on rack '91250490') = SD 5 (on rack '91250490')
+      SD 2 (on rack '91250490') = SD 6 (on rack '91250490')
+      SD 3 (on rack '91250490') = SD 7 (on rack '91250490')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The SD list can be more complex:</p>
+<pre>span-create --chunksize 1.5 Engineering 8-11,20-23
+</pre>
+<p></p>
+<p>Creates a span called 'Engineering' with a guideline chunk size of 1.5GiB on system drives 8 to 11 and 20 to 23.  Despite the way they are specified on the command line, all eight SDs become members of the same stripeset.</p>
+<pre>span-create --chunksize 1610612736 --bytes Engineering 8-11,20-23
+</pre>
+<p></p>
+<p>Has the same effect as the previous command, but specifies the chunk size in bytes.</p>
+<pre>server:$ sd-list 0-3
+Device  Status  Alw  GiByte  Mirror   In span                       Span Cap
+------  ------  ---  ------  -------  ----------------------------  --------
+   0    OK      No     2679   Pri
+   1    OK      No     2679   Pri
+   2    OK      No     2679   Pri
+   3    OK      No     2679   Pri
+server:$ span-create --allow-access Marketing 0-3
+Allowing access to system drives:
+SD 0: OK
+SD 1: OK
+SD 2: OK
+SD 3: OK
+Done
+The span has been created
+</pre>
+<p></p>
+<pre>Permanent ID:          0xa9f7c5d14860e410
+Capacity:              10715GiB (10TiB)
+Span expandable to:    171433GiB (167TiB)
+Each fs expandable to: 171433GiB (167TiB)
+Chunksize:             2926MiB
+server:$
+</pre>
+<p></p>
+<p>Creates span Marketing, containing SDs 0-3.  Licenses any of these SDs that are not already licensed.</p>
+<pre>server:$ sd-list 0-3
+Device  Status  Alw  GiByte  Mirror   In span                       Span Cap
+------  ------  ---  ------  -------  ----------------------------  --------
+   0    OK      Yes    2679   Pri
+   1    OK      Yes    2679   Pri
+   2    OK      Yes    2679   Pri
+   3    OK      Yes    2679   Pri
+   0    OK      Yes    2679   Sec
+   1    OK      Yes    2679   Sec
+   2    OK      Yes    2679   Sec
+   3    OK      Yes    2679   Sec
+server:$ span-create --mirror Transactions 0-3
+The span has been created
+</pre>
+<p></p>
+<pre>Permanent ID:          0xa9f7c5cb1cb47f95
+Capacity:              10718GiB (10TiB)
+Span expandable to:    171433GiB (168TiB)
+Each fs expandable to: 171433GiB (168TiB)
+Chunksize:             2926MiB
+server:$ span-list -s transactions
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Transactions           Yes  100%    10718   3750 x    3067913034  90%
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 2679GiB = 10718GiB, of which 10718GiB is free, 10718GiB is available
+      SD 0 (on rack '91250490') = SD 4 (on rack '91250490')
+      SD 1 (on rack '91250490') = SD 5 (on rack '91250490')
+      SD 2 (on rack '91250490') = SD 6 (on rack '91250490')
+      SD 3 (on rack '91250490') = SD 7 (on rack '91250490')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>Creates span Transactions, and then scans all eligible secondary SDs for mirror relationships with the new span.</p>
+<pre>server:$ sd-list --show-tier 0-3
+Device  Site  Tier  GiByte  Mirror   In span                       Span Cap
+------  ----  ----  ------  -------  ----------------------------  --------
+   0       0  None     200   Pri
+   1       0  None     200   Pri
+   2       0  None     200   Pri
+   3       0  None     200   Pri
+   4       0  None    2679   Pri
+   5       0  None    2679   Pri
+   6       0  None    2679   Pri
+   7       0  None    2679   Pri
+server:$ span-create --tier 1 Projects 4-7
+The SDs have been assigned to tier 1
+The span has been created
+</pre>
+<p></p>
+<pre>Permanent ID:          0xa9f7c5e49e2a1712
+Capacity:              10718GiB (10TiB)
+Span expandable to:    171433GiB (168TiB)
+Each fs expandable to: 171433GiB (168TiB)
+Chunksize:             3344MiB
+server:$ span-expand --tier 0 projects 0-3
+The SDs have been assigned to tier 0
+Success
+server:$ span-list -s projects
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Projects               Yes  100%    11515  10715 x    1073741824  90%
+   Tier 0: capacity     800GiB; free:     800GiB (100%)
+   Tier 1: capacity   10718GiB; free:   10718GiB (100%)
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 2679GiB = 10718GiB (tier 1), of which 10718GiB is free, 10718GiB is available
+      SD 4 (on rack '91250490')
+      SD 5 (on rack '91250490')
+      SD 6 (on rack '91250490')
+      SD 7 (on rack '91250490')
+</pre>
+<p></p>
+<pre>   Set 1: 4 x 200GiB = 800GiB (tier 0), of which 800GiB is free, 800GiB is available
+      SD 0 (on rack '91250490')
+      SD 1 (on rack '91250490')
+      SD 2 (on rack '91250490')
+      SD 3 (on rack '91250490')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>Creates span Projects, with SDs 0-3 in Tier 0 and SDs 4-7 in Tier 1.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/format.html">format</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

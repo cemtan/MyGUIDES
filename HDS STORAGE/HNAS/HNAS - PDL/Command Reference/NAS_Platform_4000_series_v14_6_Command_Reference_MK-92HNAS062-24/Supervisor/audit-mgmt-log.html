@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>audit-mgmt-log</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>audit-mgmt-log</h1>
+<p>View management audit log</p>
+<h1>Syntax</h1>
+<pre>audit-mgmt-log [--since YYYY-MM-DD{T| }HH:MM[:SS][{+|-}hh:mm]]
+</pre>
+
+<h1>Description</h1>
+<p>Displays the content of the management audit log on the present cluster node.  Each cluster node maintains a log of management change operations performed on EVSes and other resources presently residing on that node.  This is the same data which is forwarded to a CEF server when configured, but the local log is written even when no CEF server is configured or reachable.</p>
+<p>This command displays only the most recent 1MB of audit log content. If the log contains more data than that then older entries must be accessed by other means.</p>
+<p>Options</p>
+<dl>
+<dt><strong>since</strong></dt>
+<dd><p>Shows audit log entries added since the specified time.  If this would result in more than 1MB of log data being returned, then only the most recent 1MB is displayed. If this option is omitted, the most recent 1MB of entries in the current log are displayed.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display all entries in the current cluster node's management audit log:</p>
+<pre>audit-mgmt-log
+</pre>
+<p></p>
+<p>To display all entries in cluster node 2's management audit log:</p>
+<pre>cn 2 audit-mgmt-log
+</pre>
+<p></p>
+<p>To display audit log entries added since a specified local time:</p>
+<pre>audit-mgmt-log --since "2016-01-29 17:34:56"
+</pre>
+<p></p>
+<p>To display audit log entries added since a specified absolute time:</p>
+<pre>audit-mgmt-log --since "2016-04-14 15:32:45-07:00"
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/audit-mgmt-log-server-add.html">audit-mgmt-log-server-add</a> <a href="../Supervisor/audit-mgmt-log-server-list.html">audit-mgmt-log-server-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

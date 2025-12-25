@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-unmap-vacated-chunks</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-unmap-vacated-chunks</h1>
+<p>Return a span&#39;s previously-used chunks to the underlying HDP pool</p>
+<h1>Syntax</h1>
+<pre>span-unmap-vacated-chunks [--exhaustive | --unused-chunks] [--min-chunk-number &lt;min-chunk-number&gt;] [--max-chunk-number &lt;max-chunk-number&gt;] &lt;span-instance-name&gt;
+Alias:       unmap
+</pre>
+
+<h1>Description</h1>
+<p>This man page applies to spans that reside on HDP pools.  See the 'hdp' man page.</p>
+<p>When a filesystem is deleted and recycled, the server keeps track of which chunks (fragments of space) it occupied, and it reallocates those chunks when other filesystems are created or expanded.  In this way, it avoids writing to more DP-Vol offsets than necessary, wasting space on thinly provisioned HDP pools.  This system has no performance impact and ensures that space freed when one filesystem is recycled is instantly available for reuse in other filesystems.  It also avoids the need for any manual management: chunks freed up by recycled filesystems, known as <strong>vacated chunks,</strong> are automatically reused in preference to other chunks when new space is needed.</p>
+<p>Occasionally, it is necessary to unmap vacated chunks -- to free up the underlying space for reuse elsewhere.</p>
+<p>The thin provisioning (TP) discussed here is the storage-level TP discussed in the 'hdp' man page, rather than the file system-level TP discussed in 'filesystem-thin'.</p>
+<h2>WHAT THIS COMMAND DOES</h2>
+<p>Every DP-Vol is divided into <strong>HDP pages</strong> of 42MiB or, on HUS and AMS storage, 32MiB.  'span-unmap-vacated-chunks' launches a background process that locates vacated chunks, one after another, and returns their underlying HDP pages to the HDP pool.  The process, called <strong>unmapping,</strong> can complete in a few minutes, or it may take weeks to run, depending on the number and size of the span's vacated chunks, the I/O workload on the system, and the type and configuration of the storage.</p>
+<p>An HDP page that has just been unmapped is not yet ready for reuse.  Instead, it is added to a queue inside the storage array.  The array progressively zero-initializes the HDP pages on the queue.  As it does so, the free space on the HDP pool gradually increases.  Zero-initialization usually takes longer than the process of unmapping and continues after unmapping has finished.  Its speed is usually measured in terabytes per day.</p>
+<p>The server cannot detect whether any storage is waiting to be zero-initialized and, if so, how much.  You can detect zero-initialization by running 'span-list -s' twice, a few minutes apart.  If the free space on the HDP pool has increased, zero-initialization is in progress.</p>
+<p>Because the storage zero-initializes recovered space, this command makes it impossible to undelete recycled filesystems, even if you have a Cod backup.</p>
+<h2>PERFORMANCE IMPACT</h2>
+<p>On HUS and AMS storage, zero-initialization will substantially reduce the performance of the storage array.  On Enterprise storage, including Unified, the performance impact is much smaller.</p>
+<p>On HUS and AMS storage, you can balance client performance against the speed of zero-initialization by using your storage configurator to adjust the format priority.  In addition, the 'span-throttle-unmapping' man page explains how to slow down unmapping enough to prevent a long queue of unmapped space from building up; canceling the unmapper at times of peak load will then restore full performance almost immediately.</p>
+<h2>WHICH CHUNKS THIS COMMAND CAN UNMAP</h2>
+<p>For present purposes, chunks can be divided into three categories:</p>
+<ul>
+<li>A <strong>used chunk</strong> forms part of a live or recently-deleted file system.  It is mapped to real space and contains file system data.</li>
+<li>A <strong>vacated chunk</strong> was once part of a file system that has now been deleted and recycled.  It is still mapped to real space, but the data it contains became unusable when the file system was recycled.</li>
+<li>An <strong>unused chunk</strong> is neither used in a file system nor vacated.  It may have arrived in this state in one of two ways:</li>
+<ul>
+<li>It may once have been a vacated chunk that has since been unmapped by 'span-unmap-vacated-chunks' and has reverted to the Unused state.  It will not be mapped to any real space.</li>
+<li>The chunk may never have been used since the span was created.  Nevertheless, some or all of its HDP pages may be mapped to real space if the underlying DP-Vols were previously used in a different span and the chunk has never been unmapped.  We refer to this as 'leaked space'.</li>
+</ul>
+<p>There is no way to distinguish between these two histories or to determine whether an unused chunk contains any leaked space.  However, 'span-mapped-space' can report whether any leaked space is present in each stripeset as a whole.</p>
+</ul>
+<p>'span-unmap-vacated-chunks' never unmaps used chunks, because that would destroy data.  Which chunks the command unmaps depends on whether you supply the --unused-chunks or --exhaustive options.</p>
+<dl>
+<dt><strong>With --unused-chunks or -u</strong></dt>
+<dd><p>The command unmaps only unused chunks.  It does not update Cod.</p></dd>
+<dt><strong>With --exhaustive or -x</strong></dt>
+<dd><p>The command unmaps both unused chunks and vacated chunks.  It updates Cod only if it unmaps vacated chunks (which then become unused chunks).</p></dd>
+<dt><strong>With neither option</strong></dt>
+<dd><p>The command unmaps only vacated chunks.  It updates Cod to reflect the chunks it has unmapped.</p></dd>
+</dl>
+<p>If 'span-unmap-vacated-chunks --unused-chunks' or 'span-unmap-vacated-chunks --vacated' is canceled and re-run, it must start again at the beginning.  Without these two options, 'span-unmap-vacated-chunks' can be canceled and can later resume where it left off.</p>
+<p>The three forms of the command are useful for different purposes.</p>
+<h2>WHEN TO USE THIS COMMAND</h2>
+<p>'span-unmap-vacated-chunks' is useful in four circumstances:</p>
+<ol>
+<li>The vacated-chunks list is stored in Cod.  It is not compatible with releases 12.0 and earlier.  If you need to downgrade to such a release, you will first need to empty the vacated-chunks list by running this command and waiting for the resulting background process to finish.  It is not necessary to wait for freed HDP pages to be zero-initialized.  Do not use either --unused-chunks or --exhaustive.</li>
+<li>It is possible to shrink an HDP pool by removing pool volumes.  However, HDP is not aware that the contents of vacated chunks need not be preserved; these chunks inflate the amount of data that HDP needs to preserve and they reduce the number of pool volumes that can be removed from the HDP pool.  First, use 'span-unmap-vacated-chunks' to return space to the HDP pool; then wait for the background process to finish; then shrink the HDP pool.  Use --exhaustive if 'span-mapped-space' indicates that a significant amount of space has leaked; otherwise, use neither --exhaustive nor --unused-chunks.</li>
+<li>If, in violation of best practices, a single HDP pool contains two or more spans, it will be necessary to return one span's vacated chunks to the HDP pool before the space can be reused in a different span.  Note: even if an HDP pool contains multiple spans, there is no need to unmap vacated chunks before these chunks can be reused in the same span.  Unmapping is necessary only when space on a single HDP pool must be transferred from one span to another.  Freed space will become available only as fast as the storage can zero-initialize it.  Do not use either --unused-chunks or --exhaustive.</li>
+<li>If DP-Vols were originally used with a release older than 12.1, or with a foreign server, or if a span was deleted in a way that does not conform to the guidelines in the 'span-delete' man page, some space may have leaked.  'span-mapped-space' will then advise you to run 'span-unmap-vacated-chunks --unused-chunks', and the server will normally do so automatically within a few hours.</li>
+<p>There is no significant performance penalty for unmapping an unused chunk that it not mapped to real space.  Therefore, if you have 20TiB of unused chunks but only 200GiB of leaked space, you can be confident that any loss of performance will be short-lived.</p>
+</ol>
+<p>For optimal performance, especially on HUS and AMS storage, do not routinely unmap vacated chunks every time a filesystem has been deleted and recycled.</p>
+<h2>AUTOMATIC UNMAPPING</h2>
+<p>The server will launch an unmapper automatically, as if you had run 'span-unmap-vacated-chunks', in two circumstances:</p>
+<ul>
+<li>If you delete a span and reuse its DP-Vols in a new span, some unused chunks will normally be mapped to disk space.  The server will launch an unmapper to reclaim this leaked space.</li>
+<li>On compressed HDP pools that are very short of physical space, the server will launch an unmapper if the span has vacated chunks, or if the server can create vacated chunks by recycling recently deleted filesystems.</li>
+</ul>
+<p>If you launch an unmapper by hand, using 'span-unmap-vacated-chunks', any automatically launched unmapper on the same span will be canceled.  The server will restart it later if it is still necessary.</p>
+<p>See the 'span-set-cap-warn-thresh' and 'span-expedite-compression-space-check' man pages.</p>
+<h2>MANAGING UNMAP PROCESSES</h2>
+<p>When an unmapper starts, it logs an event, saying how many chunks it expects to unmap and how much space they occupy.  When it terminates, it logs a second event, saying how many chunks it actually logged and how much space they occupied.  The unmapper will log more space than it predicts if a filesystem is recycled while the unmapper is running; it will unmap less space than it predicts if a filesystem is created or expanded while the unmapper is running.</p>
+<p>Even after zero-initialization has finished, the amount of space returned to the HDP pool may not exactly equal the total size of the chunks that have been unmapped.  Chunks do not usually contain whole numbers of HDP pages, and therefore some HDP pages are shared between two chunks.  It is not possible to unmap a fraction of an HDP page.  Where adjacent chunks are unused, the unmapper will unmap slightly beyond the boundaries of each chunk, and will therefore unmap slightly more space than would be expected.  Where adjacent chunks are used in live or recently deleted filesystems, the unmapper will unmap only those HDP pages that are contained entirely inside vacated chunks, leaving shared HDP pages untouched, and will unmap slightly less space than expected.</p>
+<p>If the unmapping process takes many hours (or longer) to run, it will periodically log events about its progress.  It will also update Cod -- specifically, the span's chunk table -- to reflect the removal of chunks from the vacated-chunks list, so that the work need not be repeated if the unmapping process stops.</p>
+<p>You can see how much work has been done and how much remains to do by running 'span-vacated-chunks'.</p>
+<p>You can use 'span-stop-unmapping' to stop unmapping a span's vacated chunks.  However, this command does not prevent space that has already been unmapped from needing to be zero-initialized.</p>
+<p>The unmapping process always runs on the Admin Service.  If the Admin Service migrates, the unmapping process terminates and does not update Cod (although any Cod-updates already made by a long-running unmapper are preserved, and so at most a few hours' work will be lost).  You may wish to use 'span-rewrite-cod' to preserve the most recent work.</p>
+<p>For safety's sake, an unmapping process is not restarted if the Admin Service migrates or the cluster reboots.  You may wish to restart it manually.  If you do so without first rebooting the cluster, little or no unmapping work will be lost.</p>
+<p>You can unmap space on several spans in parallel.  But exercise restraint: especially on HUS and AMS storage, once space has been unmapped, the performance of the system will be reduced until the storage has zero-initialized it.</p>
+<h2>UNMAPPING A RESTRICTED RANGE OF CHUNKS</h2>
+<p>You can limit the range of chunks that the unmapper works on.  This facility is useful in two circumstances:</p>
+<ul>
+<li>When you specifically want to free up space on only one of the HDP pools on which the span resides (especially if the span is tiered);</li>
+<li>When you want to limit the time for which the performance of the storage will be reduced after unmapping finishes.  For example, on a span with 25TiB of vacated chunks, you may need to free up only 5TiB of space, or you may wish to free up 5TiB per night, outside peak hours, enabling performance to return to normal by the next morning.</li>
+</ul>
+<p>Use 'span-list -s' to determine which stripesets reside on each HDP pool and how much free and vacated space is available on each.  Use 'span-list-chunks --terse' to find the vacated and unused chunks on the span and see which chunks are in each stripeset.</p>
+<p>Next, use the 'span-unmap-vacated-chunks' command's --min-chunk-number and --max-chunk-number (or -i and -a) options to limit the range of chunks that the unmapper will work on.  It is safe to specify a  range of chunks that includes some chunks used in live or dead filesystems: the unmapper will skip over those used chunks without damaging the data they contain.  Omitting --min-chunk-number will unmap all the way down to Chunk 0; omitting --max-chunk-number will unmap all the way up to the last chunk in the span.</p>
+<p>Unmapping vacated chunks on one stripeset will free up HDP space on all stripesets that reside on the same HDP pool, even on different spans.  However, if some file systems on other spans are over-full and need to auto-expand, but have been unable to do so for lack of space on the HDP pool, they may auto-expand as soon as space becomes available, soaking up the new space on the HDP pool.  You may wish to confine other spans if this behavior is undesirable.  (This condition cannot arise for filesystems on any span that has vacated chunks, because filesystems can auto-expand on to vacated chunks even if the free space on the HDP pool is exhausted.  Vacated chunks are those that are still mapped to real space after their earlier use in a filesystem that has since been recycled.)</p>
+<p>If a span or tier resides on multiple HDP pools, try to ensure that all HDP pools contain at least some free space.  Otherwise, all filesystem-expansion will take place on stripesets whose HDP pools do have free space.  This phenomenon will impair load-balancing across DP-Vols and will reduce filesystem scalability by forcing all filesystems to compete for the same restricted range of chunks, thus increasing fragmentation.</p>
+<h3>Choosing a range of chunks with --unused-chunks</h3>
+<p>If 'span-mapped-space' says that space has leaked and indicates that 'span-unmap-vacated-chunks --unused-chunks' is needed, you can use the --min-chunk-number and --max-chunk-number options to direct the unmapper's attention to the stripesets where it is most urgently needed.  However, you can go further and use these options to limit the amount of space that needs to be unmapped.</p>
+<p>Imagine that a thinly provisioned span contains four stripesets of 10,000 chunks and 95TiB each; each stripeset resides on a different HDP pool.  'span-mapped-space' reports that 20TiB of space has leaked on Stripeset 2, which occupies Chunks 20,000 to 29,999.  You could unmap all unused chunks on that stripeset, but that would incur a performance penalty while the storage array zero-initialized 20TiB of space.  A less disruptive approach would be to unmap only 1TiB of space, thus informing the server that space was available on the HDP pool and allowing filesystems to expand; you would then rely on the server to reuse HDP pages that it had used before, thus, over time, reclaiming the remainder of the leaked space without ever having to unmap it.</p>
+<p>But which chunks should you unmap in order to optimize this strategy?  The chunk allocator prefers low-numbered chunks within each stripeset, and it also looks for long runs of contiguous unused chunks.  If 'span-list-chunks --terse' shows long, contiguous runs of low-numbered chunks, it is reasonable to guess that the chunk allocator will use them soon, and so it is unnecessary to unmap them.  Instead, unmap a range of chunks somewhat further up the stripeset, but not so far up that there is little chance that those chunks have ever been used.  Keep a written record of which ranges of chunks you have unmapped.  If, an hour after unmapping has terminated, no new space has been freed up and no filesystems have auto-expanded, it means that the chunks you chose were not mapped to space, but also that no performance penalty has been incurred.  Repeat the exercise with another range of chunks.</p>
+<h1>Examples</h1>
+<pre>span-unmap-vacated-chunks Accounts
+</pre>
+<p></p>
+<pre>span-unmap-vacated-chunks --exhaustive Projects
+</pre>
+<p></p>
+<pre>span-unmap-vacated-chunks --min-chunk-number 2300 --max-chunk-number 4500 Departments
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-expedite-compression-space-check.html">span-expedite-compression-space-check</a> <a href="../Supervisor/span-expedite-hdp-space-check.html">span-expedite-hdp-space-check</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../Supervisor/span-mapped-space.html">span-mapped-space</a> <a href="../Supervisor/span-set-cap-warn-thresh.html">span-set-cap-warn-thresh</a> <a href="../Supervisor/span-stop-unmapping.html">span-stop-unmapping</a> <a href="../Supervisor/span-throttle-unmapping.html">span-throttle-unmapping</a> <a href="../Supervisor/span-vacated-chunks.html">span-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-wait-for-loading</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-wait-for-loading</h1>
+<p>Wait for all spans that are currently loading to finish loading</p>
+<h1>Syntax</h1>
+<pre>span-wait-for-loading [--global | -g] [--mount | -m] [&lt;timeout-in-seconds&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>At boot time, all servers in a cluster detect system drives (SDs) by sending Scsi commands to the storage.  They bring those SDs online by issuing further commands that detect SDs' statuses.  The Admin Service prepares SDs for I/O, loads spans and filesystems from Cod and broadcasts them around the cluster.  All servers then mount file systems that are bound to EVSs running locally.</p>
+<p>The same processes run when an SD becomes healthy, primary and licensed for the first time, often in response to the 'sd-allow-access' command.  Some of them run again when an SD changes its mirror role from secondary to primary or recovers from temporary failure, or when you run 'sd-rescan-cod'.</p>
+<p>'span-wait-for-loading' is useful when some SDs have recently become healthy, primary and licensed, and the resulting background processes are still running.  It waits until the Admin Service has prepared the SDs for I/O, loaded their Cod and broadcast the resulting spans and filesystems around the cluster.  At this point, all cluster nodes are aware of all the spans and file systems on the SDs that came up on the Admin Service, but some cluster nodes may still be in the process of detecting and bringing up SDs.  If so, it will not yet be possible to mount file systems on those cluster nodes.</p>
+<p>If further SDs come up on the Admin Service while 'span-wait-for-loading' is running, the command waits for those new SDs to be processed in the same way as the SDs that had already come up when the command was run.</p>
+<p>If given the --global switch, the command also waits until <strong>all</strong> cluster nodes have finished preparing healthy SDs for I/O (including any SDs that come up while the command is running) and as many spans and filesystems as possible have become healthy on all cluster nodes.</p>
+<p>If given the --mount switch, the command waits longer still: it waits until the Filesystem has been presented with all file systems found in the Cod and has had a chance to automount them if configured to do so.  At this point, it is possible to mount file systems after, if necessary, first binding them to EVSs with 'evsfs add'.</p>
+<p>You can optionally specify a timeout in seconds.  It is applied (approximately) to the command as a whole, rather than to any one stage or cluster node.  If you specify zero, the command will never time out.  The default timeout is 300 seconds, which is five minutes.</p>
+<h2>WHEN TO USE THIS COMMAND</h2>
+<p>This command is rarely needed during interactive use.</p>
+<p>Use 'span-wait-for-loading' in scripts, after running certain commands that implicitly launch background processes, if you need these background processes to have completed before issuing the next command.  Commands that can benefit from 'span-wait-for-loading' will say so in their man pages; use 'apropos span-wait-for-loading' to find them.</p>
+<p>'span-wait-for-loading' can also be used in scripts to ensure that all Cod has loaded after the server has detected that one or more SDs have changed statuses or mirror roles.  However, in the absence of a command to wait until the server has detected such a change, it is necessary to wait for a fixed time (to be sure that the status- or role-change has been detected) and then run 'span-wait-for-loading' (to ensure that Cod has loaded).</p>
+<p>The command is also useful if you are specifying a series of steps that a remote user must follow exactly.  Instructing the user to run 'span-wait-for-loading' is simpler and less open to mistakes than asking the user to wait until Cod has loaded and file systems are ready to mount.</p>
+<h2>WHAT THIS COMMAND DOES NOT DO</h2>
+<p>This command waits for background processing of SDs whose status, mirror role or licensing is already known to have changed.  It does not wait until the server has detected recent changes in SDs' statuses or mirror roles.  (It is not clear how such a command could be written, since SDs can change their statuses and mirror roles at any time; how would the command know when to stop waiting?)  Therefore, a script cannot issue a Horcm command to fail over a set of mirror relationships (for example), run 'span-wait-for-loading' and be certain that all processing has taken place.</p>
+<p>Instead, it is necessary to use a fixed delay to ensure that the server has detected changes on the storage, like this:</p>
+<pre># Horcm failover command, and then:
+sleep <em>N</em>                         # <em>N</em>=10 for a failover; <em>N</em>=50 for a status-change
+span-wait-for-loading --mount   # Wait for Cod to load, etc.
+# And then:
+mount ProjectX
+mount ProjectY
+</pre>
+<p></p>
+<p>Some storage operations require the use of 'scsi-refresh' on the server.  'scsi-refresh' detects new SDs, but may not wait for them to come online.  The sequence therefore becomes:</p>
+<pre># Horcm command, and then:
+scsi-refresh                    # Wait until new SDs have been detected
+sleep 45                        # Wait for the new SDs to come online
+span-wait-for-loading --mount   # Wait for Cod to load, etc.
+# And then:
+evsfs add ...                   # Bind newly detected file systems to EVSs if necessary
+mount ProjectX
+mount ProjectY
+</pre>
+<p></p>
+<h1>Examples</h1>
+<pre>span-wait-for-loading
+</pre>
+<p></p>
+<pre>span-wait-for-loading --mount 180
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Any/apropos.html">apropos</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../Supervisor/sd-dump-unloadable-cod.html">sd-dump-unloadable-cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-list-queues.html">sd-list-queues</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../User/span-list.html">span-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

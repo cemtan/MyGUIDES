@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>at</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>at</h1>
+<p>Manipulate at job table</p>
+<h1>Syntax</h1>
+<pre>at &lt;operation&gt; [&lt;options&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Queues a job for later execution by cron. A job is a command or a series of commands.</p>
+<p>Operation is one of:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Lists jobs.</p></dd>
+<dt><strong>add [-m &lt;mailList&gt;] &lt;date-time-spec&gt; &lt;command-list&gt;</strong></dt>
+<dl>
+<dt><strong>mail-list</strong></dt>
+<dd><p>The full email address of the user(s) to mail output to. Multiple users can be specified, in quotes, in the form "user1;user2".</p></dd>
+<dd><p><strong>Note:</strong> If no email addresses are specified, the output will be displayed in the console.</p></dd>
+</dl>
+<dl>
+<dt><strong>date-time-spec</strong></dt>
+<dd><p>The date/time at which to run the command(s). The date/time should be enclosed in double quotes. eg "23:50 12/16/2002".</p></dd>
+<dd><p>For further information, see 'DATE AND TIME SPECIFICATION', below.</p></dd>
+</dl>
+<dl>
+<dt><strong>command-list</strong></dt>
+<dd><p>The command(s) to run. Multiple commands must be specified, in quotes, in the form:</p></dd>
+<dd><p>"command1;command2"</p></dd>
+</dl>
+<dt><strong>del ID</strong></dt>
+<dd><p>Deletes a job.  ID is that displayed by the list command.</p></dd>
+<dt><strong>delall</strong></dt>
+<dd><p>delete all at entries.</p></dd>
+</dl>
+<h2>Date and time specification</h2>
+<p>at accepts an argument of the form HH:MM (always enclosed in double quotes) to run a job at a specific time of day. If that time is already past, the next day is assumed. It is also possible to specify "midnight", "noon", or "teatime" (4pm), and time-of-day can be suffixed with AM or PM for running in the morning or the evening. The day the job will be run can be controlled by giving a date in the form "month-name day" with an optional year, or giving a date of the form MMDDYY or MM/DD/YY or DD.MM.YY. If the time of day is also to be specified, it must precede the date.</p>
+<p>Times of the form "now + count time-units", where the time-units can be minutes, hours, days, or weeks, can be given, and at can be told to run the job today or tomorrow by suffixing the time with "today" or "tomorrow" respectively. e.g "now + 2 minutes" means 2 minutes from now.</p>
+<h1>Examples</h1>
+<h3>Adding a job</h3>
+<p>at add -m support@example.com "08:00" ver</p>
+<h3>Date and time examples</h3>
+<dl>
+<dt><strong>"4pm + 3 days"</strong></dt>
+<dd><p>4pm three days from now</p></dd>
+<dt><strong>"10am Jul 31"</strong></dt>
+<dd><p> </p></dd>
+<dt><strong>"1am tomorrow"</strong></dt>
+<dd><p> </p></dd>
+<dt><strong>"now + 4 hours"</strong></dt>
+<dd><p> </p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/crontab.html">crontab</a> <a href="../Supervisor/run.html">run</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-resiliency-level</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>fs-resiliency-level</h1>
+<p>Sets a file system&#39;s resiliency level.</p>
+<h1>Syntax</h1>
+<pre>fs-resiliency-level --filesystem &lt;file system label&gt; [--read|--write|--always-fail|--use-default] [--never-fail|--error-count &lt;num_errors&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Changes the resiliency level of the specified file system.</p>
+<p>File systems have configurable resiliency levels that determine the reaction to inconsistency errors. This feature is best-effort, there are some errors that will not be tolerated and will result in the file system being taken offline. All inconsistency errors will be logged regardless of a file system's resiliency level.</p>
+<p>A file system's errors will be recorded and viewable through the supervisor-level command fs-error-log.  The number of unique (see fs-error-log) errors in the log determine if a file system will be taken offline.</p>
+<h2>****WARNING****</h2>
+<p>Tolerating read or write errors does not imply fixing of such errors. This feature is intended to allow heavily-read, mission critical file systems to remain online in the face of a few inconsistencies on disk.  The resiliency mechanism DOES NOT DETECT ERRORS WITHIN USER DATA.  All recorded errors are inconsistencies in the file system's internal structures and should be addressed immediately by the system administrator.</p>
+<p>Performance is degraded in read/write-resiliency mode, see the --write option.  This mode is intended almost exclusively to complement the online fixfs command (see fixfs), and is not intended for normal use.</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>-f, --filesystem</strong></dt>
+<dd><p>The label of the file system to operate on.</p></dd>
+<dt><strong>-d, --use-default</strong></dt>
+<dd><p>Set the file system to use the default resiliency settings (see default-resiliency-level).  May not be used with any option except --filesystem.</p></dd>
+<dt><strong>-r, --read</strong></dt>
+<dd><p>Set the file system to read-resiliency.  Read actions which encounter inconsistencies will return an IO error.  Must provide --error-count or --never-fail; may not be used with --always-fail.</p></dd>
+<dt><strong>-w, --write</strong></dt>
+<dd><p>Set the file system to read/write-resiliency.  Performance will be degraded in this mode as all metadata is pre-read and verified before any modifications are written to disk.  Actions which encounter inconsistencies will return an IO error.  Must provide --error-count or --never-fail; may not be used with --always-fail.</p></dd>
+<dt><strong>-e, --error-count &lt;count&gt;</strong></dt>
+<dd><p>Set the file system to tolerate &lt;count&gt; errors before taking the file system offline.  Must provide --read or --write; may not be used with --never-fail or --always-fail.</p></dd>
+<dt><strong>-n, --never-fail</strong></dt>
+<dd><p>Do not take the file system offline after a certain number of errors.  Must provide --read or --write; may not be used with --error-count or --always-fail.</p></dd>
+<dt><strong>-a, --always-fail</strong></dt>
+<dd><p>Take the file system offline on the first error encountered.  May not be used with --read, --write, --error-count, or --never-fail.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display the resiliency configuration for a file system:</p>
+<pre>fs-resiliency-level -f fs1
+</pre>
+<p></p>
+<p>To set file system fs1 to be taken offline after 5 read errors:</p>
+<pre>fs-resiliency-level -f fs1 --read --error-count 5
+</pre>
+<p></p>
+<p>To set file system fs1 to be taken offline after 10 read/write errors:</p>
+<pre>fs-resiliency-level -f fs1 -w -e 10
+</pre>
+<p></p>
+<p>To set file system fs1 to tolerate all possible errors indefinitely:</p>
+<pre>fs-resiliency-level -f fs1 -w -n
+</pre>
+<p></p>
+<p>To set file system fs1 to fail on the first error:</p>
+<pre>fs-resiliency-level -f fs1 -a
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<pre>    File system
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/checkfs.html">checkfs</a> <a href="../Supervisor/default-resiliency-level.html">default-resiliency-level</a> <a href="../Dev/fixfs.html">fixfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

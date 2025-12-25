@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>localnetgroup</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>localnetgroup</h1>
+<p>Add/remove local netgroup membership</p>
+<h1>Syntax</h1>
+<pre>localnetgroup [ -l | -R | [ -v | -e | -a | -s | -r netgroup [member ...] ] ]
+</pre>
+
+<h1>Description</h1>
+<p>Manipulates a local set of netgroup maps that are maintained on the server independently of any NIS or LDAP server.</p>
+<p>These maps are used for permission checking when performing remote mounts.</p>
+<dl>
+<dt><strong>-a, --add &lt;netgroup&gt; &lt;member&gt;</strong></dt>
+<dd><p>Adds &lt;member&gt; to localnetgroup &lt;netgroup&gt;.</p></dd>
+<dt><strong>-s, --set &lt;netgroup&gt; &lt;member(s)&gt;</strong></dt>
+<dd><p>Creates/resets localnetgroup &lt;netgroup&gt; so it contains (only) &lt;member(s)&gt;.</p></dd>
+<dt><strong>-r, --remove &lt;netgroup&gt; &lt;member&gt;</strong></dt>
+<dd><p>Removes &lt;member&gt; from localnetgroup &lt;netgroup&gt;.</p></dd>
+<dt><strong>-R, --removeall</strong></dt>
+<dd><p>Removes all localnetgroups.</p></dd>
+<dt><strong>-v, --view &lt;netgroup&gt;</strong></dt>
+<dd><p>Displays the definition of &lt;netgroup&gt;.</p></dd>
+<dt><strong>-e, --expanded &lt;netgroup&gt;</strong></dt>
+<dd><p>Displays the expanded definition of &lt;netgroup&gt;. A &lt;netgroup&gt; consists of a set of &lt;members&gt;, any of which may have further definitions. An expanded definition is one in which all members have been replaced by their definitions. The --expanded option lists a localnetgroup's definition with all members replaced by their definitions (recursively if necessary).</p></dd>
+<dt><strong>-l, --list</strong></dt>
+<dd><p>Displays the definitions of all localnetgroups.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Add member1 and member2 to localnetgroup netgroup1:</p>
+<pre>localnetgroup -a netgroup1 member1 member2
+</pre>
+<p></p>
+<p>Update (overwrite) localnetgroup netgroup1 to leave it with just the members member1 and member2</p>
+<pre>localnetgroup -s netgroup1 member1 member2
+</pre>
+<p></p>
+<p>Remove member1 from localnetgroup netgroup1:</p>
+<pre>localnetgroup -r netgroup1 member1
+</pre>
+<p></p>
+<p>Remove all localnetgroups completely:</p>
+<pre>localnetgroup -R
+</pre>
+<p></p>
+<p>View a localnetgroup's definition:</p>
+<pre>localnetgroup -v netgroup1
+</pre>
+<p></p>
+<p>View a localnetgroup's expanded definition:</p>
+<pre>localnetgroup -e netgroup1
+</pre>
+<p></p>
+<p>View all localnetgroups:</p>
+<pre>localnetgroup -l
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/mount-point-access-configuration.html">mount-point-access-configuration</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

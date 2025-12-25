@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sd-set</h1>
+<p>Set system drives&#39; width, stripesize, site ID, comment, queue depth and/or tier</p>
+<h1>Syntax</h1>
+<pre>sd-set [--queue-depth &lt;queue-depth&gt;] [--tier &lt;tier-number&gt;] [--comment &quot;&lt;comment&gt;&quot;] [--site &lt;site-ID&gt;] [--stripesize &lt;stripesize-in-KiB&gt;] [--width &lt;number-of-data-disks&gt;] [--add-group] [--add-stripeset] &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Configures details about one or more system drives (SDs) into the server's registry.</p>
+<p>Provide at least one of the following switches:</p>
+<dl>
+<dt><strong>--width, -w</strong></dt>
+<dd><p>Tells the server how many data (non-parity) disks the SD has.</p></dd>
+<dd><p>The server uses this information to improve write performance.  For optimal settings, see --stripesize just below.</p></dd>
+<dt><strong>--stripesize, -s</strong></dt>
+<dd><p>Tells the server the SD's stripesize, in kibibytes, where one KiB is 1,024 bytes.  The stripesize is the amount of data that the Raid controller writes to a single disk before moving on to the next disk.</p></dd>
+<dd><p>Leaving --width and --stripesize at zero, which is the default value, will cause the server to use the following values, which are always recommended, regardless of RAID level, media type, or the use of HDP or HDT:</p></dd>
+<dl>
+<dt><strong>Hitachi Modular storage</strong></dt>
+<dd><p>sd-set --width 1 --stripesize 256 ...</p></dd>
+<dt><strong>Hitachi Enterprise storage and Unified systems</strong></dt>
+<dd><p>sd-set --width 1 --stripesize 384 ...</p></dd>
+</dl>
+<dd><p>Setting one of the parameters to zero and the other to a non-zero value will disable this write optimization.</p></dd>
+<dd><p>The --width and --stripesize settings can be changed at any time, even when file systems are mounted.</p></dd>
+<dt><strong>--comment, -c</strong></dt>
+<dd><p>Applies a comment to the SD.  Comments are displayed by 'sd-list --comment' and by storage configurators, but have no special meaning to the server.  Several SDs can have the same comment if you wish.  If your comment contains spaces or certain punctuation, it must be quoted; see the 'console' man page.</p></dd>
+<dd><p>This setting can be changed at any time.</p></dd>
+<dt><strong>--site, -t</strong></dt>
+<dd><p>Assigns the SD to a site.  Sites are a protection mechanism for mirrored storage; see the 'site' and 'storage-based-mirror' man pages.  If an SD is in a loaded span, it cannot be assigned to a site individually: use 'span-set-site-id' instead.  This restriction helps to keep a span's SD sites consistent.</p></dd>
+<dt><strong>--tier, -T</strong></dt>
+<dd><p>Assigns the SD to a tier.  Specify tier -1 if you wish to mark the SD as untiered.  Tiers are a performance-optimization mechanism; see the 'tier' man page.</p></dd>
+<dd><p>Subject to the restrictions set out below, 'sd-set' can be used to change the tier of SDs in a tiered span, but it cannot be used to turn a tiered span into an untiered span or vice versa; for that, use 'span-tier'.  These restrictions help to keep a span's tiers consistent.</p></dd>
+<dt><strong>--queue-depth, -q</strong></dt>
+<dd><p>Sets the maximum number of I/O commands that the cluster as a whole will queue for this SD.  The storage can execute multiple commands in parallel, making optimal use of duplicated components such as the disks in a parity group or a DP pool, and it can reorder commands to reduce head-movement and improve throughput when using magnetic disks.</p></dd>
+<dd><p>'sd-list --scsi' shows the minimum allowable, default and maximum allowable queue depth for each SD.</p></dd>
+<dd><p>'sd-set --queue -1 &lt;SDs&gt;' returns to the default queue depth, as if the queue depth had never been overridden.  The difference between this and specifying the current default is that, if the default value should change in the future, after a firmware upgrade, then -1 will apply the new default to the SDs, whereas a literal value of, say, 64 will stick with the value 64, even if a different value is later found to perform better.</p></dd>
+<dd><p>SD queue depths can be changed at any time, even for SDs in spans that have mounted file systems.</p></dd>
+<dd><p>The default queue depths are 64 for all-flash arrays (AFAs) and 32 for other storage.  For flash storage that does not reside in an AFA, manually increasing the queue depth to 64 will usually improve performance.</p></dd>
+</dl>
+<p>You must also specify at least one SD device ID.  See the 'sd-spec' man page to find out how to manipulate several SDs with a single command.</p>
+<h2>SETTING UP TIERS</h2>
+<p>When you assign an SD to a tier, if the SD is used in a stripeset or an SD group, all other SDs in the same stripeset or group must be specified in the same command.  (A stripeset is created every time you create or expand a span; an SD group is created by 'sd-group-create' or 'sd-group-auto'.)  To avoid having to specify the SDs directly, you can use the following switches:</p>
+<dl>
+<dt><strong>--add-stripeset, -a</strong></dt>
+<dd><p>Adds all SDs in the same stripesets as the SDs you specify explicitly.</p></dd>
+<dt><strong>--add-group, -g</strong></dt>
+<dd><p>Adds all SDs in the same SD groups as the SDs you specify explicitly.</p></dd>
+</dl>
+<p>When used together, these two switches are not recursive: -a does not add SDs in the same stripesets as SDs added by -g, and -g does not add SDs in the same SD groups as SDs added by -a.</p>
+<p>The -a and -g switches can be used even if you are not configuring tiers.</p>
+<p>Each of the 'sd-group-create', 'span-create' and 'span-expand' commands has a --tier switch that sets up SD tiers at the same time as assembling an SD group or a span.  This switch provides an alternative to setting up SD tiers in a separate step.</p>
+<h2>PROPAGATION AND PERSISTENCE</h2>
+<p>All changes made by 'sd-set' take effect at once.</p>
+<p>Because these changes are stored in the registry, rather than in Cod, they survive a cluster reboot, can be applied to unspanned SDs, and will persist even if you delete and recreate spans.  To undo an 'sd-set' command, use another 'sd-set' command.  For the same reason, however, changes will not automatically move with the span if you migrate it to another cluster or if a mirrored copy of the span (provided by a product such as TrueCopy or HUR) is visible to another cluster.  In the case of storage-based mirroring, it will be necessary to run 'span-encode-tiers' and 'span-decode-tiers' to copy tiers between clusters or, for all other settings, to run 'sd-set' on each cluster in turn.  In the case of server farm migration orchestrated by the SMU, the SMU will automatically copy some settings from one cluster to the other.</p>
+<h1>Examples</h1>
+<pre>sd-set --comment 'Flash' --queue-depth 64 16-23
+</pre>
+<p></p>
+<p>Sets a comment to remind the administrator that SDs 16-23 are flash-based, and changes their queue depth to 64.</p>
+<pre>sd-set --tier 0 --add-group 30
+</pre>
+<p></p>
+<p>Assigns SD 30, and any other SDs in the same SD group, to Tier 0.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Topic/console.html">console</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-decode-tiers.html">span-decode-tiers</a> <a href="../Supervisor/span-encode-tiers.html">span-encode-tiers</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-set-site-id.html">span-set-site-id</a> <a href="../Supervisor/span-tier.html">span-tier</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

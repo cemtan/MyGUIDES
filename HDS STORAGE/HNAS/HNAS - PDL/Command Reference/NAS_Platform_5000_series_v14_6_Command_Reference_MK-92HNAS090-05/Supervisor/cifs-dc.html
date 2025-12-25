@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-dc</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cifs-dc</h1>
+<p>Manages the Domain Controller cache.</p>
+<h1>Syntax</h1>
+<pre>cifs-dc [command]
+Where command is one of:
+  list [--verbose|-v]
+  add &lt;server&gt;
+  del &lt;server&gt;
+  get
+  prod
+  disconnect
+  addfilter &lt;filter&gt;
+  delfilter &lt;filter&gt;
+  listfilter
+  clearfilter
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-dc command is used to manage CIFS domain controllers. Domain controllers are discovered automatically, depending on the CIFS domain that's configured, but can also be added manually if, for example, automatic discovery is not possible.</p>
+<p>The response time of each domain controller is measured regularly to each domain controller IP address from each local IP address, and a 'best' domain controller/local IP address pair is chosen based on these response times. The 'best' domain controller is re-evaluated regularly.</p>
+<p>The domain controllers are stored in a domain controller cache. It's possible to filter the domain controllers that can appear in the cache based either on IP address or DNS name. WINS and NIS names are not supported in this context. The DNS name must be fully qualified, though it may contain wildcards.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>list [--verbose | -v]</strong></dt>
+<dd><p>Displays all domain controllers currently in the cache. If the --verbose option is specified, extended information, such as response time history, will also be displayed. The response time history will show response times from each domain controller to requests sent from each local IP address.</p></dd>
+<dt><strong>add &lt;SERVER&gt;</strong></dt>
+<dd><p>Adds a new server to the domain controller cache. Use this command to add a domain controller that hasn't been discovered automatically. SERVER may be an IP address (IPv4 or IPv6), NetBIOS or DNS name. Domain controllers added using this command will be stored in flash, so will persist over reboots.</p></dd>
+<dd><p>If adding by IP address and the response to initial poll indicated that the hostname corresponds to another domain controller then the added address will be added to the existing DC.</p></dd>
+<dt><strong>del &lt;SERVER&gt;</strong></dt>
+<dd><p>Removes a server from the domain controller cache. Use this command to remove a domain controller that was added using the add command. SERVER may be an IP address (IPv4 or IPv6), NetBIOS or DNS name.</p></dd>
+<dd><p>This removes the entire server, even if only one IP address of a multi-address DC is specified.</p></dd>
+<dt><strong>get</strong></dt>
+<dd><p>Returns the 'best' domain controller in the cache. This will be the domain controller/local IP address combination that has the best response time, and will be the domain controller that's currently being used.</p></dd>
+<dt><strong>addfilter &lt;FILTER&gt;</strong></dt>
+<dd><p>Adds a filter describing which domain controllers may be used. Automatically discovered domain controllers that don't match the configured filters will not be added to the cache. Domain controllers that have been added manually, using the add command, will not be affected by the filters. FILTER may be a Variable-Length Subnet Mask (VLSM), IP address or DNS name and may contain wildcards.</p></dd>
+<dt><strong>delfilter &lt;FILTER&gt;</strong></dt>
+<dd><p>Removes a filter.</p></dd>
+<dt><strong>clearfilter</strong></dt>
+<dd><p>Removes all filters.</p></dd>
+<dt><strong>listfilter</strong></dt>
+<dd><p>Lists the filters that are configured currently.</p></dd>
+<dt><strong>prod</strong></dt>
+<dd><p>Prods the cache. This will update the cache by attempting to discover new domain controllers on the network. It will then measure the response time of each domain controller and, if necessary, select a new 'best' domain controller.</p></dd>
+<dt><strong>disconnect</strong></dt>
+<dd><p>Disconnect from the current domain controller. A new connection will be set up to the 'best' domain controller in the list.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>cifs-dc add 10.4.1.1
+cifs-dc add fdca:f995:220a:480:2::1
+cifs-dc add DEPTDC
+cifs-dc add deptdc.dept.example.com
+</pre>
+<p></p>
+<pre>cifs-dc addfilter 10.4.0.0/16
+cifs-dc addfilter fdca:f995:220a:480::/64
+cifs-dc addfilter *.dept.example.com
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-dc-broadcast.html">cifs-dc-broadcast</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

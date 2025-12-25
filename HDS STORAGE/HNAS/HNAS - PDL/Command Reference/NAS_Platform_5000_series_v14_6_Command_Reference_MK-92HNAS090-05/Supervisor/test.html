@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>test</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>test</h1>
+<p>test condition</p>
+<h1>Syntax</h1>
+<pre>test &lt;value&gt; &lt;condition&gt; &lt;value&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The test command compares values and exits with the appropriate return code.  Useful in conjunction with the &amp;&amp; and || operators.</p>
+<p>All tests are of the form</p>
+<pre>    value condition value
+</pre>
+<p></p>
+<p>where values can be strings or numbers and the conditions are listed below.</p>
+<p>Available comparisons are:</p>
+<dl>
+<dt><strong>string1 = string2</strong></dt>
+<dd><p>The strings are equal</p></dd>
+<dt><strong>string1 != string2</strong></dt>
+<dd><p>The strings are not equal</p></dd>
+<dt><strong>integer1 -eq integer2</strong></dt>
+<dd><p>integer1 is equal to integer2</p></dd>
+<dt><strong>integer1 -ge integer2</strong></dt>
+<dd><p>integer1 is greater than or equal to integer2</p></dd>
+<dt><strong>integer1 -gt integer2</strong></dt>
+<dd><p>integer1 is greater than integer2</p></dd>
+<dt><strong>integer1 -le integer2</strong></dt>
+<dd><p>integer1 is less than or equal to integer2</p></dd>
+<dt><strong>integer1 -lt integer2</strong></dt>
+<dd><p>integer1 is less than integer2</p></dd>
+<dt><strong>integer1 -ne integer2</strong></dt>
+<dd><p>integer1 is not equal to integer2</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Run the wfs_rs command, but only if the FSB board is rev 2 or greater:</p>
+<p>test "$fsb_rev" -ge 2 &amp;&amp; wfs_rs</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

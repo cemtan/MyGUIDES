@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-policy-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>replication-policy-create</h1>
+<p>Create an object replication policy</p>
+<h1>Syntax</h1>
+<pre>replication-policy-create [-s &lt;source ip address&gt;] [-p &lt;target port&gt;] [--no-target-check] &lt;policy name&gt; &lt;target&gt; &lt;source fs label&gt; &lt;target fs label&gt; [&lt;source-snapshot-option&gt; &lt;source-snapshot-rule&gt; [&lt;target-snapshot-option&gt; &lt;target-snapshot-rule&gt;]]
+</pre>
+
+<h1>Description</h1>
+<p>Create a policy for object replication.</p>
+<dl>
+<dt><strong>--no-target-check</strong></dt>
+<dd><p>By default a message is sent to the target server to check that the replication target with the given name is available.  If it is not available, the policy creation will fail. Providing this option will enable a policy to be created even if the replication target is not available.</p></dd>
+<dt><strong>--source-ip-address, -s &lt;source ip address&gt;</strong></dt>
+<dd><p>Specify source EVS host name or IP address. If this option is not provided, the server will select a source IP address automatically based on the target server's IP address. IP addresses on the same subnet as the target server will be chosen in preference to those on different subnets.</p></dd>
+<dd><p>An IP address can be specified as either an IPv4 address in dotted decimal notation (e.g. 203.0.113.0) or as an IPv6 address (e.g. 2001:db8:fe58:3efa:deca:212::c0a9)</p></dd>
+<dt><strong>--target-ip-port, -p &lt;target port&gt;</strong></dt>
+<dd><p>Specify object replication listening port of the target host. The default is 59550.</p></dd>
+<dt><strong>&lt;policy name&gt;</strong></dt>
+<dd><p>Name of the policy, which must be unique.</p></dd>
+<dt><strong>&lt;target&gt;</strong></dt>
+<dd><p>Target EVS host name or IP address.</p></dd>
+<dd><p>An IP address can be specified as either an IPv4 address in dotted decimal notation (e.g. 203.0.113.0) or as an IPv6 address (e.g. 2001:db8:fe58:3efa:deca:212::c0a9)</p></dd>
+<dt><strong>&lt;source fs label&gt;</strong></dt>
+<dd><p>Source file system label.</p></dd>
+<dt><strong>&lt;target fs label&gt;</strong></dt>
+<dd><p>Target file system label.</p></dd>
+<dt><strong>&lt;source snapshot option&gt;</strong></dt>
+<dd><p>Source snapshot option, allowed values are:</p></dd>
+<dl>
+<dt><strong>auto (default)</strong></dt>
+<dd><p>Take an automatic snapshot and replicate that snapshot. After the object replication completes, the previous snapshot is deleted.</p></dd>
+<dt><strong>use-named</strong></dt>
+<dd><p>Replicate the latest snapshot taken with the named snapshot rule.</p></dd>
+</dl>
+<dt><strong>&lt;source snapshot rule&gt;</strong></dt>
+<dd><p>Name of the snapshot rule when the source snapshot option is set to use-named.</p></dd>
+<dt><strong>&lt;target snapshot option&gt;</strong></dt>
+<dd><p>Target snapshot option, allowed values are:</p></dd>
+<dl>
+<dt><strong>auto (default)</strong></dt>
+<dd><p>When the object replication completes, take an automatic snapshot.</p></dd>
+<dt><strong>use-named</strong></dt>
+<dd><p>When the object replication completes, take a snapshot using the named snapshot rule.</p></dd>
+</dl>
+<dt><strong>&lt;target snapshot rule&gt;</strong></dt>
+<dd><p>Name of the snapshot rule when the target snapshot option is set to use-named.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>replication-policy-create DefaultPolicy FileServer2 fs0 fs0r use-named snap5
+</pre>
+<p></p>
+<p>Creates an object replication policy named 'DefaultPolicy' that replicates the latest snapshot in the snapshot rule named 'snap5' from file system fs0 to target file system fs0r on EVS hostname FileServer2.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../Supervisor/replication-listening-port.html">replication-listening-port</a> <a href="../Supervisor/replication-policy-delete.html">replication-policy-delete</a> <a href="../Supervisor/replication-policy-list.html">replication-policy-list</a> <a href="../Supervisor/replication-policy-modify.html">replication-policy-modify</a> <a href="../Supervisor/replication-start.html">replication-start</a> <a href="../User/snapshot-rule-list.html">snapshot-rule-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

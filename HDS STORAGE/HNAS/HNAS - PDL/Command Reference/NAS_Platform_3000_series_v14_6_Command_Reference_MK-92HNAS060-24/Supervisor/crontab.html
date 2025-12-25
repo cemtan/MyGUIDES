@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>crontab</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>crontab</h1>
+<p>Manipulate cron job table</p>
+<h1>Syntax</h1>
+<pre>crontab 
+list
+add [-m &lt;mail-list&gt;] &lt;date-time-spec&gt; &lt;command-list&gt;
+del &lt;ID&gt;
+delall
+</pre>
+
+<h1>Description</h1>
+<p>The crontab command allows you to manipulate the server's cron jobs. You can list, add and remove jobs.</p>
+<p>Cron runs on the cluster node hosting the Admin Service. Jobs are started on that cluster node but in the context of the Admin Service. So, for example, a job whose command is "df" will return the disk-free figures for file systems on all EVSs.</p>
+<p>It is recommended that you use the console-context command to specify an EVS where the command used (or desired effect) is EVS-specific rather than cluster-wide. For example, to display the disk-free figures for file systems on EVS 1, use: "console-context --evs 1 df".</p>
+<p>crontab's operation are:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Lists the crontab.</p></dd>
+<dt><strong>add [-m &lt;mailList&gt;] &lt;date-time-spec&gt; &lt;command-list&gt;</strong></dt>
+<dl>
+<dt><strong>mailList</strong></dt>
+<dd><p>The full email address of the user(s) to mail output to. Multiple users can be specified, in quotes, in the form "user1;user2".</p></dd>
+<dd><p><strong>Note:</strong> If no email addresses are specified, the output will be displayed in the console.</p></dd>
+<dt><strong>&lt;date-time-spec&gt;</strong></dt>
+<dd><p>Time specification as per Unix crontab. e.g. "* * * * *" to run the command every minute. Must be enclosed in quotes.</p></dd>
+<dd><p>For further information, see 'DATE AND TIME SPECIFICATION', below.</p></dd>
+<dt><strong>&lt;command-list&gt;</strong></dt>
+<dd><p>The command(s) that should be run.</p></dd>
+<dd><p>e.g. "command -option argument"</p></dd>
+<dd><p>Multiple commands can be specified, in quotes, in the form</p></dd>
+<dd><p>"command1; command2"</p></dd>
+</dl>
+<dt><strong>del ID</strong></dt>
+<dd><p>Deletes a job.  The ID is that displayed by the list command.</p></dd>
+<dt><strong>delall</strong></dt>
+<dd><p>Deletes all cron entries.</p></dd>
+</dl>
+<h2>Date and time specification</h2>
+<p>The date / time argument for adding cron jobs (always enclosed in double quotes), at the simplest level, provides five 'shortcut' strings: @hourly, @daily, @weekly, @monthly and @yearly. These allow a job to be run at the beginning of the specified time period. For example, @weekly will be run at 00:00:00 on a Sunday.</p>
+<p>To obtain more fine-grained control, the argument may consist of five fields, each separated by white space:</p>
+<pre>"minute hour dom month dow"
+</pre>
+<p></p>
+<p>the explanations for which are:</p>
+<dl>
+<dt><strong>minute</strong></dt>
+<dd><p>What minute of the hour the command will run, between 0 and 59.</p></dd>
+<dt><strong>hour</strong></dt>
+<dd><p>The hour the command will run, taking values between 0 and 23 (0 being midnight).</p></dd>
+<dt><strong>dom</strong></dt>
+<dd><p>The day of month on which the command is to run. e.g. for the 19th of each month, dom would be 19.</p></dd>
+<dt><strong>month</strong></dt>
+<dd><p>The month on which a command will run. This may be specified numerically (1-12), or as the name of the month (e.g. May).</p></dd>
+<dt><strong>dow</strong></dt>
+<dd><p>The day of week on which the command is to be run. Again, it can be numeric (0-7, where Sunday is either 0 or 7) or as the name of the day (e.g. sun).</p></dd>
+</dl>
+<p>If a specific value is not required for a particular field, a * should be entered, thus allowing every possible value for that field to be taken.</p>
+<h3>Notes:</h3>
+<p>If both dom and dow are specified, the command will be executed when either of the events happen. e.g.</p>
+<p>"* 12 16 * Mon"</p>
+<p>will run at midday every Monday and every 16th, and will produce the same result as both of these date specifications put together:</p>
+<p>"* 12 16 * *"</p>
+<p>"* 12 * * Mon"</p>
+<p>Lists are accepted in the fields. Lists can be in the form "1,2,3" (meaning 1 and 2 and 3) or "1-3" (also meaning 1 and 2 and 3). e.g. "59 11 * * 1,2,3,4,5" will run at 11:59 Monday, Tuesday, Wednesday, Thursday and Friday, as will "59 11 * * 1-5"</p>
+<p>A date / time specification can use 'step' values. A value of */2 in the dom field would mean the command runs every two days, when the day number is divisible by 2. Likewise, */5 in the hours field would mean the command runs every 5 hours, when the hour number is divisible by 5. e.g. "* */2 * * *" is the same as "* 0,2,4,6,8,10,12,14,16,18,20,22 * * *"</p>
+<p>"*/15 9-17 * * *" will run every 15 mins between the hours of 9am and 5pm, at 0, 15, 30 and 45 minutes past the hour.</p>
+<p>Lists can also be combined with each other, or with steps: "* 12 1-15,17,20-25 * *" will run every midday between the 1st and the 15th as well as the 20th and 25th (inclusive) and also on the 17th of every month. "* 12 10-16/2 * *" is the same as "* 12 10,12,14,16 * *"</p>
+<p>Names of weekdays or months are not case-sensitive, but only the first three letters should be used. e.g. Mon, sun or Mar, jul.</p>
+<h1>Examples</h1>
+<h3>Adding a job:</h3>
+<p>crontab add "0 0 * * Sun" "ps -r"</p>
+<p>crontab add -m support@example.com "30 21 * * 1-5" ver</p>
+<h3>Adding a job to run in the context of EVS 3:</h3>
+<p>crontab add @hourly "console-context --evs 3 user-mappings-list"</p>
+<h3>Date and time examples:</h3>
+<dl>
+<dt><strong>"01 * * * *"</strong></dt>
+<dd><p>Runs at one min past every hour.</p></dd>
+<dt><strong>"17 8 * * *"</strong></dt>
+<dd><p>Runs daily at 8:17 am.</p></dd>
+<dt><strong>"17 20 * * *"</strong></dt>
+<dd><p>Runs daily at 8:17 pm.</p></dd>
+<dt><strong>"00 4 * * 0"</strong></dt>
+<dd><p>Runs at 4 am every Sunday.</p></dd>
+<dt><strong>"* 4 * * Sun"</strong></dt>
+<dd><p>Runs every minute for an hour starting at 4 am every Sunday.</p></dd>
+<dt><strong>"42 4 1 * *"</strong></dt>
+<dd><p>Runs 4:42 am every 1st of the month.</p></dd>
+<dt><strong>"01 * 19 07 *"</strong></dt>
+<dd><p>Runs hourly on the 19th of July</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/at.html">at</a> <a href="../Supervisor/run.html">run</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

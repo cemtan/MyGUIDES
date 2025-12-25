@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-file-pointer-config</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cifs-file-pointer-config</h1>
+<p>Manages the maintenance of CIFS file pointers</p>
+<h1>Syntax</h1>
+<pre>cifs-file-pointer-config operation
+where &#39;operation&#39; is one of:
+list
+enable [--confirm]
+</pre>
+
+<h1>Description</h1>
+<p>When a file is opened over CIFSv1, a file server may associate a file pointer to it. Upon each read and write operation, this file pointer is advanced by the number of bytes that were read/written. The value of the file pointer can be inquired and repositioned by a client by using the SMB_COM_SEEK request.</p>
+<p>For performance reasons the server does not support file pointers by default. Clients will only have an issue if they send a seek request from the current file position rather than from the beginning or the end of the file as is normally the case.</p>
+<p>In the case that the client does issue a seek request from the current file pointer position, the server will raise a severe event and return status 'NotSupported' to the client.</p>
+<p>The cifs-file-pointer-config command enables support for file pointers. Performance will be reduced when this mode of operation is enabled as some file serving optimizations must be disabled in order to provide this service. This command should only be run if seek requests from the current file position are required.</p>
+<p>Once enabled, the server will begin maintaining file pointers, however clients must reconnect to the server and reopen the files so that valid pointers can be associated with the opened files. This can be done either,</p>
+<p>1) by using the 'connection' command's '--delete' option to disconnect a specific client, so that it is forced to reconnect, or,</p>
+<p>2) by restarting the EVS or the physical node (this step will cause a CIFS outage for all clients while the EVS or server restarts.)</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Displays whether file pointers are being maintained (by all the CIFS servers hosted on the physical node that the command was run on).</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable the maintenance of CIFSv1 file pointers (applies to all physical nodes in a cluster).</p></dd>
+<dl>
+<dt><strong>--confirm, -c Do not prompt for confirmation when enabling file pointer support.</strong></dt>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>To enable the maintenance of file pointers:</p>
+<p>1) cifs-file-pointer-config enable</p>
+<pre>Enabling CIFS file pointers will cause a performance drop, continue?(Y/N)[N]:
+y
+CIFSv1 autoinquiry is disabled persistently.
+CIFSv1 autoresponse is disabled persistently.
+CIFSv1 file pointers are now being maintained by the server.
+Disconnect the affected clients (for example, by using the 'connection' command's '--delete' option) and reconnect them to validate their file pointers.
+</pre>
+<p></p>
+<p>2) Disconnect the affected client:</p>
+<p>connection --delete -i 10.1.2.21</p>
+<p>3) Reconnect the client back to the server.</p>
+<p>4) Ensure that the file pointers for the client are now valid:</p>
+<p>connection -i 10.1.2.21</p>
+<pre>SMB Connection:443 (10.1.2.21:4747) win2k, nt 1, 64 requests, 1 files, 0 searches, file pointers are valid.
+  Client OS : Windows 2002 Service Pack 3 2600
+  Client LAN Manager : Windows 2002 5.1
+  UID: 1 - TERASTACK\nlal
+    TID: 1 - root
+    Rights: 0x31f01ff = FullControl | AccessSACL | MaximumAllowedRight
+    File umask: [not set]
+    Directory umask: [not set]
+ TDP(yes)      FID: 1 TDP(no)
+      Path: Couldn't get path, status BadParameter, has no data stream.
+</pre>
+<p></p>
+<pre>    TID: 2 - IPC$
+    Rights: 0x11f01ff = FullControl | AccessSACL
+    File umask: [not set]
+    Directory umask: [not set]
+ TDP(no)
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/connection.html">connection</a> <a href="../User/evs.html">evs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

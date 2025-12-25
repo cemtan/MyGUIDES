@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-group-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-group-list</h1>
+<p>List some or all system drive groups</p>
+<h1>Syntax</h1>
+<pre>sd-group-list [--show-count | -c] [--machine-readable | -m] [&lt;device-IDs-see-&#39;man sd-spec&#39;&gt;...]
+Alias:       lsdg
+</pre>
+
+<h1>Description</h1>
+<p>Lists some or all of the system drive (SD) groups in the server's registry.  It is not necessary for the SDs to be visible to the server or to have any particular status or mirror role when the command is run.  See the 'sd-group' man page for background.</p>
+<p>If you specify one or more SDs, only groups that use those SDs will be listed.  (Those groups, however, may include SDs that aren't specified on the command line, and those SDs will appear in the listing.)</p>
+<p>Otherwise, all groups will be listed.</p>
+<p>The --show-count or -c switch displays the number of groups listed.</p>
+<p>The --machine-readable or -m switch produces a listing designed for easy machine parsing.  By default, a more concise, human-readable listing is produced.</p>
+<p>In a machine-readable listing, the sort order is simple: the SD group containing the lowest SD device ID is shown first.  A human-readable listing shows single-SD groups separately for conciseness, leading to a more elaborate order.  Multi-SD groups are shown first, sorted in the same order as in a machine-readable listing.  After that come single-SD SD groups.  Tiered SD groups come before untiered groups; SD groups in the lowest-numbered tier are shown first.</p>
+<h1>Examples</h1>
+<p>The first example shows the difference between a human-readable listing and a machine-readable listing:</p>
+<pre>server:$ sd-group-list
+SDs 8-15
+</pre>
+<p></p>
+<pre>(In tier 0) SDs 16-19
+</pre>
+<p></p>
+<pre>(In tier 1) SDs 20 and 21
+</pre>
+<p></p>
+<pre>SDs 22 and 23
+</pre>
+<p></p>
+<pre>(In tier 0) Single-SD groups on SDs 0 and 1
+</pre>
+<p></p>
+<pre>(In tier 1) Single-SD groups on SDs 2-5
+</pre>
+<p></p>
+<pre>(In tier 1) Single-SD groups on SDs 24 and 25
+</pre>
+<p></p>
+<pre>Single-SD groups on SDs 6 and 7
+</pre>
+<p></p>
+<pre>server:$ sd-group-list -m
+(In tier 0) Serial: 0
+</pre>
+<p></p>
+<pre>(In tier 0) Serial: 1
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 2
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 3
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 4
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 5
+</pre>
+<p></p>
+<pre>Serial: 6
+</pre>
+<p></p>
+<pre>Serial: 7
+</pre>
+<p></p>
+<pre>Serial: 8 9 10 11 12 13 14 15
+</pre>
+<p></p>
+<pre>(In tier 0) Serial: 16 17 18 19
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 20 21
+</pre>
+<p></p>
+<pre>Serial: 22 23
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 24
+</pre>
+<p></p>
+<pre>(In tier 1) Serial: 25
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The remaining examples demonstrate how a listing can be flexibly restricted to certain system drives:</p>
+<pre>server:$ sd-group-list 8-18
+SDs 8-15
+</pre>
+<p></p>
+<pre>(In tier 0) SDs 16-19
+</pre>
+<p></p>
+<pre>server:$ sd-group-list all:in-tier=1
+(In tier 1) SDs 20 and 21
+</pre>
+<p></p>
+<pre>(In tier 1) Single-SD groups on SDs 2-5
+</pre>
+<p></p>
+<pre>(In tier 1) Single-SD groups on SDs 24 and 25
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../Supervisor/sd-group-add.html">sd-group-add</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../Supervisor/sd-group-delete.html">sd-group-delete</a> <a href="../Supervisor/sd-group-export.html">sd-group-export</a> <a href="../Supervisor/sd-group-import.html">sd-group-import</a> <a href="../Supervisor/sd-group-remove.html">sd-group-remove</a> <a href="../Topic/sd-spec.html">sd-spec</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

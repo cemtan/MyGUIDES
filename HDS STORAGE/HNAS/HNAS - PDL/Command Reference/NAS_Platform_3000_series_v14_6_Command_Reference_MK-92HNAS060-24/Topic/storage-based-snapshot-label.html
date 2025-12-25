@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>storage-based-snapshot-label</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>storage-based-snapshot-label</h1>
+
+<h1>Description</h1>
+<p>This man page does not describe a particular command.  It explains how the use of copy-on-write storage-based snapshots affects span and snapshot labels.  If you don't use the Hitachi Thin Image (HTI) or Copy-On-Write (CoW) Snapshot features, you needn't read this page.</p>
+<h2>THREE LABEL TYPES</h2>
+<p>Storage-based snapshots are multiple copies of the same span and filesystems.  Clearly, an administrator must be able to distinguish between these copies.  Each copy of the data is therefore given a unique suffix, which distinguishes it from all other copies.  This leads to three kinds of span and filesystem labels:</p>
+<ul>
+<li>The <strong>base name</strong> is the name that the span or filesystem was given when it was originally created.  All copies of a span have the same base name.  All copies of a filesystem have the same base name unless you decide to rename one or more copies on different snapshots.</li>
+<li>The <strong>snapshot name</strong> (or <strong>snap name</strong>) identifies a single copy of the data.  When you place a span into snapshot mode, and every time you add a new snapshot, you specify a new snap name.  Every copy of a given span must have a unique snap name, although snapshots of different spans may have the same snapshot name.  (For example, you might well use the name 'Main' or 'Master' for the master copy of the span.)  In addition, a snap name cannot contain a dash (-).  In all other respects, a snapshot name obeys the same rules as a span or filesystem base name.</li>
+<li>The <strong>instance name</strong> is constructed from the base name and the snap name.  It identifies a single copy of a span or filesystem.  It is constructed from the base name and the snap name: for example, if a span called 'Accounts' has a snapshot called 'Wednesday', the instance name of this snapshot is 'Accounts-Wednesday'.  If the span has a filesystem called 'External' then the instance name of this snapshot of the filesystem is 'External-Wednesday'.  Most span commands and nearly all filesystem commands expect instance names.</li>
+</ul>
+<p>The reason snap names cannot include dashes is to avoid ambiguity about how an instance name is made up.  For example, if "Acct-UK-2016-Main" is the instance name of a snapshot, the base name must be "Acct-UK-2016" and the snap name must be "Main".  The snap name always starts just after the last dash in the instance name; the base name ends just before it.</p>
+<p>If a span or filesystem is not snapshotted, its snap name is empty and its instance name is the same as its base name.  Thus customers who don't use storage-based snapshots need not be concerned with the three label types.</p>
+<h2>CONFLICTS</h2>
+<p>The server tests for conflicting labels.  If it finds them, it will refuse either to create a span, label or snapshot, or to load these structures from Cod.  The rules are as follows:</p>
+<ul>
+<li>No span may have the same base or instance name as the base or instance name of any other loaded span or filesystem.  Note that the server compares names of the same types: for instance, you can't have filesystems with the same base name on two different spans.  But it also compares names of different types: for example, if you have a snapshotted span with instance names 'Accounts-Main' and 'Accounts-DataMine', you can't then create a new unsnapshotted span called 'Accounts'.</li>
+<p>The server makes one exception: filesystems on different snapshots of the same span can have the same base name.  Because their snapshot names will always be unique, their instance names will be unique as well.</p>
+<li>No two snapshots of the same span can have the same snap name.  However, snapshots of two or more different snapshots <strong>can</strong> have the same snap name: 'Projects-Main' and 'Accounts-Main' can coexist on the same cluster.</li>
+<li>When the server creates a filesystem or loads it from Cod, it stores details of the filesystem in its registry, where they can be displayed by 'filesystem-list-stored'.  No loaded span or filesystem can have a base or instance names that matches the instance name of a different filesystem stored in the registry.</li>
+<li>Labels are compared case-insensitively: a span called 'AAA' cannot be loaded at the same time as a span or filesystem called 'aaa', and a span cannot have snapshots called 'BBB' and 'bbb' at the same time.</li>
+</ul>
+<h1>Examples</h1>
+<p>Imagine a span called 'Departments' with two filesystems, 'Engineering' and 'Services'.  The command</p>
+<pre>span-enable-snapshots Departments Master
+</pre>
+<p></p>
+<p>does not create a new copy of the data, but sets up the following name triplets:</p>
+<pre>              Base name      Snapshot name   Instance name
+            +--------------+---------------+--------------
+Span        | Departments  | Master        | Departments-Master
+Filesystem  | Engineering  | Master        | Engineering-Master
+Filesystem  | Services     | Master        | Services-Master
+</pre>
+<p></p>
+<p>Suppose that an administrator then adds a second copy of the data, like this:</p>
+<pre>span-add-snapshot Departments Monday 10-19
+</pre>
+<p></p>
+<p>The names now look like this:</p>
+<pre>              Base name      Snapshot name   Instance name
+            +--------------+---------------+--------------
+Span        | Departments  | Master        | Departments-Master
+Filesystem  | Engineering  | Master        | Engineering-Master
+Filesystem  | Services     | Master        | Services-Master
+            | . . . . . .  | . . . . . . . | . . . . . . . . . .
+Span        | Departments  | Monday        | Departments-Monday
+Filesystem  | Engineering  | Monday        | Engineering-Monday
+Filesystem  | Services     | Monday        | Services-Monday
+</pre>
+<p></p>
+<p>After this change has been made, almost all filesystem commands will use instance names -- for instance:</p>
+<pre>mount Engineering-Master
+mount Engineering-Monday
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-list-stored.html">filesystem-list-stored</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

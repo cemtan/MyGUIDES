@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>xvl</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>xvl</h1>
+<p>Create an external volume link</p>
+<h1>Syntax</h1>
+<pre>xvl [ --utc-value &lt;utc&gt; ] [ --file-length &lt;length&gt; ] &lt;ipaddr&gt; &lt;cifs:nfs&gt; &lt;export&gt; &lt;path&gt; [&lt;http_target&gt; &lt;target_path&gt; ]
+</pre>
+
+<h1>Description</h1>
+<p>This command checks if a file is an external volume link (XVL) or, if an appropriate remote HTTP target is specified, converts a file to an XVL.</p>
+<p>Usage:</p>
+<p>&lt;ipaddr&gt; IP address of the EVS containing the file system</p>
+<p>&lt;cifs:nfs&gt; Protocol in which the file system is exported to hosts</p>
+<p>&lt;export&gt; Name of the NFS export or CIFS share of the file system</p>
+<p>&lt;path&gt; Path to the file in the file system</p>
+<p>If only the above options are specified, the command returns a message indicating whether the specified file is an XVL or not.</p>
+<p>If the following two parameters are also specified, the command converts the file to an XVL, or changes the path of the XVL if it already one:</p>
+<p>&lt;http_target&gt; HTTP address of the archive server, which must have been previously specified using the migration-add-external-path command</p>
+<p>&lt;target_path&gt; Path to the file on the archive server, which will be postpended to the value of &lt;http_target&gt; in the GET request to the archive server if the XVL is accessed by a client</p>
+<p>The following two options may be specified if converting a file to an XVL, which can help protect against stubbing a file that has been changed while in the process of being copied to an archive server:</p>
+<p>--utc-value &lt;utc&gt; UTC modification time of the file; this must match the value of the modification time in the file system, otherwise the command will fail</p>
+<p>--file-length &lt;length&gt; Length in bytes of the file; this must match the length of the file in the file system, otherwise the command will fail</p>
+<h1>Examples</h1>
+<p>If file system testfs hosted on an EVS with IP address 10.3.22.5 and is exported via CIFS as share testshare and contains file dir01/file01.txt to be stubbed, and the file was archived to path archive/dir01/file01.txt on archive server 10.4.5.6, then run</p>
+<pre>xvl 10.3.22.5 cifs testshare dir01/file01.txt 10.4.5.6 archive/dir01/file01.txt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

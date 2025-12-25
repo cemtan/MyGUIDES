@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>router-dump-by-evs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>router-dump-by-evs</h1>
+<p>dumps the routes by EVS</p>
+<h1>Syntax</h1>
+<pre>router-dump-by-evs 
+Alias:       dump-interface-routes-by-evs
+</pre>
+
+<h1>Description</h1>
+<p>The router-dump-by-evs command displays the routes that the routing subsystem maintains for each EVS. Along with the test-route-by-evs command, it can be used to help diagnose networking problems.</p>
+<p>The command displays information for each of the EVSs currently hosted on the cluster node on which it is run. The command provides the interface routes, which define subnets that are directly connected via one of the interfaces configured on an EVS, and the configured routes that apply to the EVS.</p>
+<h1>Examples</h1>
+<p>To display the EVS routes:</p>
+<pre>server:$ router-dump-by-evs
+Operating in standard route mode.
+EVS 0
+enabled
+interface routes
+                          172.18.3.80/16       1500  via eth1
+static host routes
+mtu routes
+static net routes
+default gateways
+                     0.0.0.0/0             172.18.254.254         0
+EVS 1
+enabled
+interface routes
+                          172.18.3.82/16       1500  via ag1
+static host routes
+mtu routes
+static net routes
+default gateways
+                     0.0.0.0/0             172.18.254.254         0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/router-dump.html">router-dump</a> <a href="../Supervisor/router-dump-active.html">router-dump-active</a> <a href="../Supervisor/test-route-by-evs.html">test-route-by-evs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

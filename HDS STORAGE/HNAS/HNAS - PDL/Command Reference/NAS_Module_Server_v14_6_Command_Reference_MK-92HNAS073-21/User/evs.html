@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>evs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>evs</h1>
+<p>EVS management</p>
+<h1>Syntax</h1>
+<pre>evs 
+	create [-l &lt;label&gt;] -i [&lt;ipaddr/prefix&gt; | &lt;ipaddr&gt; -m &lt;mask&gt;] -p &lt;port&gt; [-n &lt;dst-nodeid&gt;][-w &lt;witness-for&gt;]
+	delete -e &lt;evs-specifier&gt; [-c | --confirm]
+	enable -e &lt;evs-specifier&gt; [-n &lt;dst-nodeid&gt;]
+	disable -e &lt;evs-specifier&gt; [-c | --confirm]
+	restart -e &lt;evs-specifier&gt; [-c | --confirm]
+	migrate ( -e &lt;evs-specifier&gt; | --all &lt;src-nodeid&gt; ) -n &lt;dst-nodeid&gt; [-c | --confirm]
+	relabel -e &lt;evs-specifier&gt; -l &lt;new-evs-label&gt;
+	list [-t &lt;admin | serv | witness&gt; | -e &lt;evs-specifier&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>List and manage EVS in a cluster.</p>
+<dl>
+<dt><strong>create</strong></dt>
+<dd><p>Creates a new EVS in the cluster. The IP address, netmask/address prefix, and port name are mandatory while the evs label and destination cluster node are optional and can be system generated.</p></dd>
+<dd><p>When the &lt;witness-for&gt; option is specified a Witness type EVS will be created. The created Witness EVS will be bound to the Service EVS specified as the argument and act as a Witness Interface for it.</p></dd>
+<dd><p>Creating a Witness EVS on the server has the following prerequisites:</p></dd>
+<dd><p>- Server must be configured in a cluster.</p></dd>
+<dd><p>- Target Service EVS must have 'smb-max-supported-version' set to &gt;= 3.</p></dd>
+<dd><p>- Target Service EVS must not currently have a Witness EVS bound to it.</p></dd>
+<dt><strong>delete</strong></dt>
+<dd><p>Removes an EVS from the cluster. Use this command to remove an EVS from the cluster permanently. The EVS must be disabled before deleting. All EVS specific configurations will be lost. The EVS is specified by the EVS id.</p></dd>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable an EVS in the cluster. Use this command to take an EVS offline. The EVS is specified by the EVS id.</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable an EVS in the cluster. Use this command to bring an EVS online. The EVS is specified by the EVS id and dst-nodeid is an optional destination cluster node.</p></dd>
+<dt><strong>list</strong></dt>
+<dd><p>Display EVS info. Use this command to find out EVS settings with optional filtering by EVS type and EVS id. An "(I)" following an IP address indicates an Inactive address.</p></dd>
+<dt><strong>migrate</strong></dt>
+<dd><p>Move EVSs from one cluster node to another. Use this command to relocate EVSs among cluster nodes for load balancing and system maintenance. The EVSs to be migrated can be specified by individual EVS id or cluster node id.</p></dd>
+<dd><p>The active embedded SMU follows the Admin Service on Unified systems. Any file replication or non-cloud data migration process running on the embedded SMU when the Admin Service is migrated will be stopped. Such a process will need to be restarted manually or left to run again at the next scheduled time.</p></dd>
+<dt><strong>relabel</strong></dt>
+<dd><p>Update an EVS label. Use this command to change an EVS label. The EVS is specified by the EVS id.</p></dd>
+<dt><strong>restart</strong></dt>
+<dd><p>Restart an EVS specified by the EVS id. There is no guarantee on which cluster node the EVS will come online.</p></dd>
+</dl>
+<p>NOTE: When an &lt;evs-specifier&gt; (-e option) is numeric it will be interpreted as an EVS ID number. Otherwise, it will be interpreted as an EVS Label. If an EVS is created whose label only contains numeric characters, e.g. EVS ID 4/EVS Label "2", then -e 4 must be used to specify this EVS.</p>
+<h1>Examples</h1>
+<pre>evs create -l myevs -i 10.2.1.1 -m 255.255.240.0 -p ag1
+evs create -i 10.2.1.1 -m 255.255.240.0 -p ag2 -n 1
+evs create -i 10.2.1.2/20 -p ag2 -n 1
+</pre>
+<p></p>
+<p>evs create -i fdca:f995:220a:480:1:1:2e:1/64 -p ag2 -n 1</p>
+<p>evs create -l WITNESSEVS01 -i 10.2.1.1/24 -p ag1 -w EVS01</p>
+<pre>evs delete -e 1
+evs enable -e 1
+evs disable -e 2
+evs relabel -e 1 -l newlabel
+evs restart -e 1
+evs list -t serv
+evs list -e 1
+evs list
+</pre>
+<p></p>
+<p>Migrate the Admin Service to cluster node 1:</p>
+<pre>    evs migrate -e 0 -n 1
+</pre>
+<p></p>
+<p>Migrate EVS 2 to cluster node 1:</p>
+<pre>    evs migrate -e 2 -n 1
+</pre>
+<p></p>
+<p>Migrate all EVSs from cluster node 1 to cluster node 2:</p>
+<pre>    evs migrate --all 1 -n 2
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/cluster-show.html">cluster-show</a> <a href="../Topic/evs-specifier.html">evs-specifier</a> <a href="../Supervisor/evsipaddr.html">evsipaddr</a> <a href="../Topic/unified-management-ip-address.html">unified-management-ip-address</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-release</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>filesystem-release</h1>
+<p>Allow unlimited auto-expansion of a filesystem if its span is unconfined</p>
+<h1>Syntax</h1>
+<pre>filesystem-release [--tier &lt;tier&gt;] &lt;filesystems-see-&#39;man fs-spec&#39;&gt;
+Alias:       relfs
+</pre>
+
+<h1>Description</h1>
+<p>The 'filesystem-confine' command limits how far the server can automatically expand a set of filesystem when they become full, or forbids auto-expansion altogether.  The 'filesystem-release' command removes all restrictions on auto-expansion for one or more filesystems that you have previously confined.</p>
+<p>You can simply specify one or more filesystem names after the command name, separated by spaces or slashes, or you can use the full syntax described in the 'fs-spec' man page to select filesystems without having to type out their names explicitly.</p>
+<p>If a file system is very full, it may auto-expand, perhaps several times, after the command is run.  The command returns control quickly, without waiting for any auto-expansion to take place.</p>
+<p>It is also possible to confine a span.  Confining a span and confining the filesystems that reside on it are independent actions: if you have also confined the span, you will need to release that before any filesystems on the span can be auto-expanded.</p>
+<p>There is no need to release a span or filesystem before expanding the filesystem manually with (for example) the 'filesystem-expand' command: only automatic expansion is affected by confinement.</p>
+<p>If a filesystem is tiered, each tier has a separate confining capacity, and each tier can be confined and released independently.  When confining or releasing tiered filesystems, use the --tier (or -t) switch to specify which tier you wish to confine or release.</p>
+<p>If 'span-hdp-preallocation no' is in force, no filesystem auto-expansion takes place on spans that reside on HDP storage.  In addition, no filesystems ever auto-expand on spans that reside on UVM storage.</p>
+<h1>Examples</h1>
+<p>To release untiered filesystems Accounts, Marketing and Engineering:</p>
+<pre>filesystem-release Accounts Marketing Engineering
+</pre>
+<p></p>
+<p>To release Tier 1 of tiered filesystems ProjectX and ProjectY:</p>
+<pre>filesystem-release --tier 1 ProjectX ProjectY
+</pre>
+<p></p>
+<p>Among filesystems whose names start with the word 'Project', the following sequence of commands releases the untiered filesystems and then both tiers of the tiered filesystems:</p>
+<pre>filesystem-release Project*:untiered
+filesystem-release --tier 0 Project*:tiered
+filesystem-release --tier 1 Project*:tiered
+</pre>
+<p></p>
+<p>This sequence satisfies the requirement to use the --tier switch for tiered filesystems and not for others.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/fs-spec.html">fs-spec</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>hti</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>hti</h1>
+
+<h1>Description</h1>
+<p>This man page does not describe a particular command.  It explains how the server works with storage-based copy-on-write snapshot products such as the Hitachi Thin Image (HTI) and Copy-On-Write (CoW) Snapshot features.</p>
+<h2>INTRODUCTION</h2>
+<p>If you have bought the necessary license, your storage supports copy-on-write (CoW) snapshots.  Using a storage configurator such as Storage Navigator or Hitachi Command Suite, you create virtual snapshot LUs called V-Vols.  You pair them to the original LUs and then split them at once.  The server sees a point-in-time snapshot of the original span, and can mount the file systems on this point-in-time snapshot for reading and writing, even if the file systems on the master copy are also mounted.</p>
+<p>At any time, you can unmount file systems and refresh the snapshot from the master copy, or you can update the master copy from the snapshot, and then remount file systems.</p>
+<p>This facility enables you to perform experimental database queries on a static copy of a production database, or to check the integrity of a snapshot of a production file system without affecting live data.  If all you need is to take backups of a live file system, Filesystem snapshots are cheaper, simpler and less disruptive.</p>
+<p>In this document, we refer to 'storage-based snapshots' to avoid confusion with the snapshots offered by the server's Filesystem.  Whereas Filesystem snapshots are taken at the level of individual file systems, storage-based snapshots exist at the level of system drives and spans.</p>
+<p>The server makes little distinction between the master copy of a span and its snapshots.  All filesystem commands work equally well on a master span and its snapshots: you can, if you wish, create, expand, delete or undelete a filesystem on a snapshot, and the action will be undone the next time you update the snapshot from the master copy (unless the same action has been carried out on the master copy as well).</p>
+<p>The server supports up to eight copies of the span: the original copy and up to seven snapshots.  A span and all its snapshots can occupy up to 256 SDs in total: so, the more SDs are in a span, the fewer snapshots can be taken.  The maximum number of file systems on a snapshot is the same as for any other span, but each snapshot's file systems count separately towards the total number of file systems supported on a cluster.</p>
+<h2>SNAPSHOT OPERATIONS</h2>
+<p>Here are the main operations that are carried out on storage-based snapshots.</p>
+<h3>Preparing a span for use with storage-based snapshots</h3>
+<p>Before it can be used with storage-based snapshots, a span must be placed into snapshot mode by 'span-enable-snapshots'.  Putting a span into snapshot mode automatically places all its filesystems into the same mode, along with any filesystems that you may create on it in the future.  When a span is in snapshot mode, some operations are impossible and others do not work in the same way as usual.  These operations are listed below.  In addition, the span and its filesystems are automatically renamed in ways explained in the 'storage-based-snapshot-label' man page.</p>
+<h3>Adding a new storage-based snapshot of a span</h3>
+<p>Once a span is in snapshot mode, you can use a storage configurator such as Storage Navigator or Hitachi Command Suite to create a snapshot of all the SDs in an existing span.  You can then use 'span-add-snapshot' to make the server detect the new snapshot.  Read the user guide for Thin Image or Copy-On-Write Snapshots to understand in detail how these features are configured and used.</p>
+<h3>Deleting a snapshot</h3>
+<p>If you wish to delete a snapshot, use 'span-delete-snapshot' before deleting the snapshot SDs in your storage configurator.</p>
+<h3>Displaying a list of snapshots</h3>
+<p>To list the snapshots of a span (whether or not they are loaded at the time), use 'span-list-snapshots'.  Storage-based snapshots are also shown as separate spans by 'span-list'.</p>
+<h3>Updating one snapshot from the contents of another</h3>
+<p>Follow this procedure:</p>
+<ul>
+<li>Unmount all the file systems on both snapshots.</li>
+<li>Thin Image and CoW Snapshots can copy in either direction: from the master to a snapshot or vice versa.  Use your storage configurator to check that the data will be copied in the direction you intend.</li>
+<li>Synchronize the paired LUs, and then immediately split them again.</li>
+<li>Run 'sd-rescan-cod &lt;span-instance-name&gt;' on the snapshot whose contents you have just updated.</li>
+<li>Optionally, mount file systems on one or both file snapshots.</li>
+<li>If the source snapshot contains a file system that was not present on the destination snapshot, you will need to bind it to an EVS using 'evsfs add' before it can be mounted.  Conversely, if the destination snapshot contained a file system that was not present on the source snapshot, an entry will have been left behind in the server's registry; use 'filesystem-forget-and-delete-nv-data' to remove it.</li>
+</ul>
+<p>To minimize downtime, customers often script these operations, rather than running them interactively.  Scripting also enables you to update snapshots on a regular schedule.</p>
+<h3>Renaming a snapshot</h3>
+<p>If you wish to rename an existing snapshot, use 'span-rename-snapshot'.</p>
+<h3>Taking a span out of snapshot mode</h3>
+<p>If you no longer wish to use snapshots with a span, or if you wish to carry out a command that is impossible in snapshot mode, you can delete all the span's snapshots and then use 'span-disable-snapshots' to take the span out of snapshot mode.  (Other spans' snapshots can safely remain in place.)</p>
+<h2>SPAN AND FILESYSTEM NAMES</h2>
+<p>Because of the need to distinguish between multiple copies of the same span and filesystems, snapshots cause span and filesystem labels to become more complicated.  See the 'storage-based-snapshot-label' man page for an explanation of the different types of name and how they are related.</p>
+<h2>OPERATIONS THAT CHANGE WHEN SNAPSHOTS ARE IN USE</h2>
+<p>The following changes apply to snapshotted spans and filesystems.  Other spans and filesystems on the same server or cluster aren't affected.</p>
+<ul>
+<li>A snapshotted span cannot be expanded.  (A snapshotted filesystem can be expanded in the usual way.)</li>
+<li>A span cannot be deleted if it has one or more snapshots.  However, it is not necessary to take a span out of snapshot mode before deleting it.</li>
+<li>The way in which spans and filesystems are renamed is modified to reflect the way labels are used with snapshots.</li>
+<li>'sd-mirror' and similar commands, used with TrueCopy and HUR, cannot be used with a span that is in snapshot mode.</li>
+<li>A span and all its snapshots must all be assigned to a single cluster, and it must be the same cluster in every case.</li>
+</ul>
+<h1>See Also</h1>
+<p><a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-forget-and-delete-nv-data.html">filesystem-forget-and-delete-nv-data</a> <a href="../Supervisor/span-add-snapshot.html">span-add-snapshot</a> <a href="../Supervisor/span-delete-snapshot.html">span-delete-snapshot</a> <a href="../Supervisor/span-disable-snapshots.html">span-disable-snapshots</a> <a href="../Supervisor/span-enable-snapshots.html">span-enable-snapshots</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-snapshots.html">span-list-snapshots</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

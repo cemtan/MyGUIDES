@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>user-mappings-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>user-mappings-list</h1>
+<p>Lists users mappings</p>
+<h1>Syntax</h1>
+<pre>user-mappings-list [--unix-name &lt;name&gt; | --unix-id &lt;id&gt; | --nt-name &lt;name&gt; | --nt-id &lt;id&gt; |
+ --nfsv4-name &lt;name&gt; | --kerberos-name &lt;name&gt;]
+[--fixed] [--invalid] [--fixed-unix] [--fixed-nt] [--fixed-nfsv4] [--fixed-kerberos] [--invalid-unix] [--invalid-nt] [--invalid-nfsv4] [--invalid-kerberos]
+</pre>
+
+<h1>Description</h1>
+<p>List entries in the user mapping table.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--fixed</strong></dt>
+<dd><p>List entries where any field is fixed (a fixed field will not be changed by the auto mapper)</p></dd>
+<dt><strong>--fixed-unix</strong></dt>
+<dd><p>List entries where the Unix name/Unix id fields are fixed</p></dd>
+<dt><strong>--fixed-nt</strong></dt>
+<dd><p>List entries where the NT name/NT id fields are fixed</p></dd>
+<dt><strong>--fixed-nfsv4</strong></dt>
+<dd><p>List entries where the NFSv4 name is fixed</p></dd>
+<dt><strong>--fixed-kerberos</strong></dt>
+<dd><p>List entries where the Kerberos principal is fixed</p></dd>
+<dt><strong>--invalid</strong></dt>
+<dd><p>List entries with invalid fields (an invalid field can not be resolved by the auto mapper)</p></dd>
+<dt><strong>--invalid-unix</strong></dt>
+<dd><p>List entries where the Unix name/Unix id fields are invalid</p></dd>
+<dt><strong>--invalid-nt</strong></dt>
+<dd><p>List entries where the NT name/NT id fields are invalid</p></dd>
+<dt><strong>--invalid-nfsv4</strong></dt>
+<dd><p>List entries where the NFSv4 name is invalid</p></dd>
+<dt><strong>--invalid-kerberos</strong></dt>
+<dd><p>List entries where the Kerberos principal is invalid</p></dd>
+<dt><strong>--unix-name</strong></dt>
+<dd><p>Lists an entry with the given Unix name</p></dd>
+<dt><strong>--unix-id</strong></dt>
+<dd><p>Lists an entry with the given Unix id</p></dd>
+<dt><strong>--nt-name</strong></dt>
+<dd><p>Lists an entry with the given NT name</p></dd>
+<dt><strong>--nt-id</strong></dt>
+<dd><p>Lists an entry with the given NT id</p></dd>
+<dt><strong>--nfsv4-name</strong></dt>
+<dd><p>Lists an entry with the given NFSv4 name</p></dd>
+<dt><strong>--kerberos-name</strong></dt>
+<dd><p>Lists an entry with the given Kerberos principal</p></dd>
+</dl>
+<p>The results are output in a table. The Unix column shows the Unix name with the associated user id in brackets. The NT column shows the NT name in the form DOMAIN\User along with its NT SID in brackets. The NFSv4 column shows NFSv4 names in the form user@domain. Finally, the Kerberos field shows the Kerberos id in the form user@realm.</p>
+<p>Any field with an asterisk (*) printed after it indicates the field has been marked fixed and will not be changed by the auto mapper. Any field that contains *unknown* indicates the auto mapper has been unable to resolve a value for that field. A field with a blank entry indicates the field has been flagged to say it will never contain a valid entry, and will not be changed by the auto mapper.</p>
+<p>Unless you specify you want to list a single entry (by supplying the Unix/NT/NFSv4/Kerberos name/id) the output may be thousands of lines long. You may wish to slice it with grep, page it with less or check the size first with wc.</p>
+<h1>Examples</h1>
+<pre>$: # List all mappings with fixed entries
+$: user-mappings-list --fixed | less
+</pre>
+<p></p>
+<pre>                  Unix                                                                   NT           NFSv4      Kerberos
+----------------------     ----------------------------------------------------------------     -----------     ---------
+      nobody* (65534*)                              NT AUTHORITY\Anonymous Logon (S-1-5-7*)     ANONYMOUS@*
+            root* (0*)
+      joe* (*unknown*)                                                *unknown* (*unknown*)       *unknown*     *unknown*
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/user-mappings-add.html">user-mappings-add</a> <a href="../Supervisor/user-mappings-delete.html">user-mappings-delete</a> <a href="../Supervisor/user-mappings-modify.html">user-mappings-modify</a> <a href="../Supervisor/user-mappings-refresh.html">user-mappings-refresh</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tcp-per-connection-statistics-start</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>tcp-per-connection-statistics-start</h1>
+<p>Start per-connection TCP statistics gathering</p>
+<h1>Syntax</h1>
+<pre>tcp-per-connection-statistics-start  [-r] &lt;duration | -f&gt;
+Alias:       tpcs-start
+</pre>
+
+<h1>Description</h1>
+<p>Starts collection of per-connection TCP statistics.</p>
+<dl>
+<dt><strong>-f, --free-run</strong></dt>
+<dd><p>Per-connection TCP statistics will be gathered until explicitly stopped with tcp-per-connection-statistics-stop or tcp-per-connection-statistics-cancel.</p></dd>
+<dt><strong>duration</strong></dt>
+<dd><p>A time specifying the period over which data should be gathered. The duration is taken to be in seconds unless modified with ms, s, m, h, d suffixes. Either duration or --free-run must be specified.</p></dd>
+<dt><strong>-r, --restart</strong></dt>
+<dd><p>Use this option when statistics are already being gathered to force the system to discard the currently gathering statistics, and start again with a new time specified.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>To start collecting statistics until asked to stop:
+    tcp-per-connection-statistics-start -f
+</pre>
+<p></p>
+<pre>Cancel statistics gathering currently in progress, and start gathering again for 10 minutes:
+    tcp-per-connection-statistics-start -r 10m
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster Node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/tcp-per-connection-statistics-cancel.html">tcp-per-connection-statistics-cancel</a> <a href="../Supervisor/tcp-per-connection-statistics-show.html">tcp-per-connection-statistics-show</a> <a href="../Supervisor/tcp-per-connection-statistics-status.html">tcp-per-connection-statistics-status</a> <a href="../Supervisor/tcp-per-connection-statistics-stop.html">tcp-per-connection-statistics-stop</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

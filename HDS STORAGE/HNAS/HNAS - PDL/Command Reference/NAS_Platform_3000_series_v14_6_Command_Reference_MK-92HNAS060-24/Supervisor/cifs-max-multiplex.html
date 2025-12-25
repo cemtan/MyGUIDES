@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-max-multiplex</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>cifs-max-multiplex</h1>
+<p>Manage the max number of concurrent CIFS requests allowed</p>
+<h1>Syntax</h1>
+<pre>cifs-max-multiplex [&lt;new value&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-max-multiplex command is used to control the maximum number of concurrent SMB1 requests that can be outstanding on a connection at any one time.</p>
+<p>When a SMB1 client connects to the server, the server's negotiate protocol (NEGPROT) response includes a MAXMPX, or max-multiplex, value. This value informs the client of the maximum number of concurrent requests that the server wishes to receive.</p>
+<p>Note, however, that increasing the max-multiplex value won't necessarily cause the client to send more concurrent requests. It remains up to the application to decide how many concurrent requests it will send, up to the server's max-multiplex value.</p>
+<p>The default max-multiplex value is 255.</p>
+<p>The maximum max-multiplex value is 65535.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

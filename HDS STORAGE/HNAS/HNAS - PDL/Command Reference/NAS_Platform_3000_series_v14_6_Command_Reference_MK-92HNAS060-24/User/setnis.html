@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>setnis</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>setnis</h1>
+<p>Configure NIS support.</p>
+<h1>Syntax</h1>
+<pre>setnis [ -d [domainname]] [-b 0|1] [-e 0|1] [-t [&lt;timeout&gt;]] [-T [&lt;ttl&gt;]] [-w [&lt;wait&gt;]] [-a &lt;addr&gt; [-p 1|2|3]] [-r &lt;addr&gt;] [-R] [-s] [-m] [-l] [-L]
+</pre>
+
+<h1>Description</h1>
+<p>setnis displays and modifies the NIS client configuration.</p>
+<p>setnis is deprecated and has been replaced by a series of simpler commands:</p>
+<p>setnis -d is replaced by domainname.</p>
+<p>setnis -b is replaced by nis-broadcast-mode.</p>
+<p>setnis -T is replaced by nis-cache-ttl.</p>
+<p>setnis -s is replaced by nis-rebind.</p>
+<p>setnis -a,-r,-R are replaced by nis-server.</p>
+<p>setnis -l,-L are replaced by nis-show.</p>
+<p>setnis -e is replaced by nis-state.</p>
+<p>setnis -t,-w are replaced by nis-set.</p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/domainname.html">domainname</a> <a href="../Supervisor/nis-broadcast-mode.html">nis-broadcast-mode</a> <a href="../Supervisor/nis-cache-ttl.html">nis-cache-ttl</a> <a href="../Supervisor/nis-rebind.html">nis-rebind</a> <a href="../User/nis-server.html">nis-server</a> <a href="../Supervisor/nis-set.html">nis-set</a> <a href="../User/nis-show.html">nis-show</a> <a href="../Supervisor/nis-state.html">nis-state</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>network-protocol-performance-monitor-set-defaults</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>network-protocol-performance-monitor-set-defaults</h1>
+<p>Set network protocol performance monitor statistics back to factory default settings.</p>
+<h1>Syntax</h1>
+<pre>network-protocol-performance-monitor-set-defaults [--confirm]
+</pre>
+
+<h1>Description</h1>
+<p>Wipes any network protocol performance monitor configuration settings back to their defaults. Any manually configured log sizes will be cleared and the auto logging feature will be enabled.</p>
+<p>With the configuration reset, some stored statistics may be lost depending on how the auto logging level compares to the previous manual configuration.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>An option to override the question on whether you really wish to wipe the configuration.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Reset network protocol performance monitor back to defaults, without asking for confirmation.</p>
+<pre>    network-protocol-performance-monitor-set-defaults -c
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/network-protocol-performance-monitor-auto-log-disable.html">network-protocol-performance-monitor-auto-log-disable</a> <a href="../Supervisor/network-protocol-performance-monitor-auto-log-enable.html">network-protocol-performance-monitor-auto-log-enable</a> <a href="../Supervisor/network-protocol-performance-monitor-clear.html">network-protocol-performance-monitor-clear</a> <a href="../Supervisor/network-protocol-performance-monitor-logsize.html">network-protocol-performance-monitor-logsize</a> <a href="../Supervisor/network-protocol-performance-monitor-report.html">network-protocol-performance-monitor-report</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

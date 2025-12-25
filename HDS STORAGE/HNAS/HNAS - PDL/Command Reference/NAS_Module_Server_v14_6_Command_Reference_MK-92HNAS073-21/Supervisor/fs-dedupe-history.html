@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-dedupe-history</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>fs-dedupe-history</h1>
+<p>Show the history of dedupe runs for a file system</p>
+<h1>Syntax</h1>
+<pre>fs-dedupe-history [-a|--all] &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command shows the history of dedupe runs for a mounted file system that supports dedupe. Note that the file system keeps records of only the five most recent runs in the registry.</p>
+<p>If the option -a or --all is specified, the command shows the current run and all recent runs in the registry, starting with the most recent run first. Otherwise, it shows only the current run and the most recent run.</p>
+<h1>Examples</h1>
+<p>1. Show current run and last run of dedupe for file system 'fs1':</p>
+<pre>    server:$ fs-dedupe-history fs1
+    Current run:
+      Dedupe job type         : incremental
+      Start time              : 2012-06-01 16:07:56-07:00
+      Current time            : 2012-06-01 16:07:56-07:00
+      Current job state       : Running
+      Data processed          : 2.42 MB
+      Data deduped            : 1.17 MB
+      Throughput              : 220 MB/s
+</pre>
+<p></p>
+<pre>    Last run:
+      Dedupe job type         : incremental
+      Start time              : 2012-05-23 18:02:20-07:00
+      End time                : 2012-05-23 18:02:20-07:00
+      End job state           : Finished
+      Data processed          : 50.7 MB
+      Data deduped            : 34.8 MB
+      Throughput              : 186 MB/s
+</pre>
+<p></p>
+<p>2. Show current run and all recorded history for file system 'fs1':</p>
+<pre>    server:$ fs-dedupe-history -a fs1
+    Current run:
+      Dedupe job type         : incremental
+      Start time              : 2012-06-01 16:07:56-07:00
+      Current time            : 2012-06-01 16:07:56-07:00
+      Current job state       : Running
+      Data processed          : 2.42 MB
+      Data deduped            : 1.17 MB
+      Throughput              : 220 MB/s
+</pre>
+<p></p>
+<pre>    Old runs:
+    ---------
+    Run 1:
+      Dedupe job type         : incremental
+      Start time              : 2012-05-23 18:02:20-07:00
+      End time                : 2012-05-23 18:02:20-07:00
+      End job state           : Finished
+      Data processed          : 50.7 MB
+      Data deduped            : 34.8 MB
+      Throughput              : 186 MB/s
+</pre>
+<p></p>
+<pre>    Run 2:
+      Dedupe job type         : incremental
+      Start time              : 2012-05-23 17:57:35-07:00
+      End time                : 2012-05-23 17:57:35-07:00
+      End job state           : Finished
+      Data processed          : 39.8 MB
+      Data deduped            : 29.0 MB
+      Throughput              : 200 MB/s
+</pre>
+<p></p>
+<pre>    Run 3:
+      Dedupe job type         : incremental
+      Start time              : 2012-05-23 17:54:58-07:00
+      End time                : 2012-05-23 17:54:59-07:00
+      End job state           : Finished
+      Data processed          : 24.3 MB
+      Data deduped            : 19.0 MB
+      Throughput              : 213 MB/s
+</pre>
+<p></p>
+<pre>    Run 4:
+      Dedupe job type         : incremental
+      Start time              : 2012-05-23 17:53:09-07:00
+      End time                : 2012-05-23 17:53:09-07:00
+      End job state           : Finished
+      Data processed          : 2.05 MB
+      Data deduped            : 1.19 MB
+      Throughput              : 169 MB/s
+</pre>
+<p></p>
+<pre>    Run 5:
+      Dedupe job type         : incremental
+      Start time              : 2012-05-23 17:52:20-07:00
+      End time                : 2012-05-23 17:52:20-07:00
+      End job state           : Finished
+      Data processed          : 4.16 MB
+      Data deduped            : 2.59 MB
+      Throughput              : 196 MB/s
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Dev/dedupe-job-stop.html">dedupe-job-stop</a> <a href="../Topic/deduplication.html">deduplication</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

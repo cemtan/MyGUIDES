@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud-service-disable</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>migration-cloud-service-disable</h1>
+<p>Disable the Data Migrator to Cloud service</p>
+<h1>Syntax</h1>
+<pre>migration-cloud-service-disable 
+</pre>
+
+<h1>Description</h1>
+<p>Disable the Data Migrator to Cloud service.</p>
+<p>The service can be disabled only when all cloud configuration is deleted and all cloud migrated files are recalled back to HNAS.</p>
+<p>To disable the service follow the next steps:</p>
+<pre>    1. delete cloud policies and schedules in order for new migrations not to take place (migration-cloud-policy-delete, migration-cloud-schedule-delete).
+    2. reverse-migrate all cloud migrated data back (reverse-migrate)
+    3. delete HNAS snapshots if needed on file systems that have external cloud path configured (snapshot-delete)
+    4. delete external cloud migration path (migration-delete-external-path)
+    5. delete cloud destinations (migration-cloud-destination-delete)
+    6. delete cloud accounts (migration-cloud-account-delete)
+    7. run migration-cloud-service-disable
+</pre>
+<p></p>
+<h1>Examples</h1>
+<pre>migration-cloud-service-disable
+Attempting to apply modifications...
+Cloud Gateway is not running.
+Data Migrator to Cloud service has been disabled
+Successfully applied configuration modifications.
+</pre>
+<p></p>
+<p>Disables the Data Migrator to Cloud service if no cloud configuration exists. Returns an error if cloud accounts or destinations are configured.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/migration-cloud.html">migration-cloud</a> <a href="../Supervisor/migration-cloud-service-enable.html">migration-cloud-service-enable</a> <a href="../Supervisor/migration-cloud-service-status.html">migration-cloud-service-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

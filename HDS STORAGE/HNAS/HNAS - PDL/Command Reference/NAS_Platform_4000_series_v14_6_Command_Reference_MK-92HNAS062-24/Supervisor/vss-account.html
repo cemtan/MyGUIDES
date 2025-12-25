@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>vss-account</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>vss-account</h1>
+<p>Manage currently registered VSS provider accounts</p>
+<h1>Syntax</h1>
+<pre>vss-account list | remove &lt;account id&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The vss-account command is used to display and (if necessary) remove credentials registered with the server on behalf of the server's hardware provider DLLs for the Microsoft Volume Shadow Copy Service (VSS). Credentials may not be created using this command, only the DLL registration process may do that.</p>
+<p>VSS credentials exist solely to support VSS hardware provider DLL access to the server via the server's dedicated VSS interface.  They may not be used to access any other server management or client interfaces. This is intended as a security measure, since the credential must be stored on the VSS host system.</p>
+<p>When listing credentials, they are grouped according to the VSS host system which performed the registration, and then sorted by date. This is meant to simplify the task of identifying obsolete credentials such as those orphaned when a VSS DLL is uninstalled in a disorderly manner.</p>
+<p>The remove option is provided for those cases where a VSS DLL was not uninstalled using the normal process, or where the VSS host system could not reach the server during the uninstall operation. When removing a credential, the argument given to remove is the "VSS id" of the credential as found in the first column of the list display.</p>
+<p>Removals performed with this command take effect immediately, but will not cause the disconnect of a VSS DLL whose current connection was authenticated using one of the removed credentials.</p>
+<h1>Examples</h1>
+<p>Display VSS credentials currently known to the server:</p>
+<pre>vss-account list
+</pre>
+<p></p>
+<p>Delete a credential whose id is "3":</p>
+<pre>vss-account remove 3
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

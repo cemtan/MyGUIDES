@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>cod</h1>
+
+<h1>Description</h1>
+<p>This man page explains Cod, a data structure used by the spanning system.  The information in this page is needed only for troubleshooting, and not for everyday use.</p>
+<h2>INTRODUCTION</h2>
+<p>If you create a span or a file system, you expect it still to exist after the server is rebooted.  If you move storage from one cluster to another, you expect the new cluster to know how the storage is configured and to be able to mount the file systems.</p>
+<p>So, when you create a span or file system, or when you later reconfigure the storage, the server builds a description of the span and file systems and stores it on each system drive (SD) in the span.  At boot time, it automatically finds all licensed, healthy, primary SDs, reads back the Cod, and loads spans and file systems.</p>
+<p>(Primary SDs are either unmirrored SDs or, normally, mirrored P-Vols.  The exceptions are explained in the 'storage-based-mirror' man page.)</p>
+<p>All these processes are automatic: in normal use, you never need to tell the server to update the Cod or to load it at boot time.  However, it is possible to work directly with the Cod for maintenance or troubleshooting purposes.</p>
+<h2>THE THREE TYPES OF COD</h2>
+<p>Each SD in a span has almost identical Cod.  (One exception: span Cod is lightly customised for the SD on which it resides, so that the server can identify the SD to which the Cod was originally written.)</p>
+<p>Cod is divided into three parts, which are stored in different parts of the SD:</p>
+<dl>
+<dt><strong>Span Cod</strong></dt>
+<dd><p>Span Cod specifies how SDs are combined into stripesets, and stripesets into spans.</p></dd>
+<dd><p>It also stores information about the span as a whole, such as its base and instance names and permanent ID and whether it is confined.</p></dd>
+<dd><p>In a mirrored span, it also specifies which SD is mirrored to which, although it does not say which SD in each pair is currently the primary.  Since SDs can change mirror roles at any time, information about roles is not saved permanently: Cod describes both halves of each mirrored pair, and the server determines which SD is primary by interrogating the Raid controllers.</p></dd>
+<dd><p>In a storage-based snapshot, span Cod contains a list of all snapshots and the SDs they use.</p></dd>
+<dt><strong>The filesystem catalogue</strong></dt>
+<dd><p>The filesystem catalogue contains information about the filesystems on the span, such as their base names and permanent IDs and the capacities to which they are confined.</p></dd>
+<dd><p>Filesystem device IDs are stored in the server's registry, rather than in Cod.  As a result, device IDs can change when you move a span between servers or clusters.</p></dd>
+<dt><strong>The chunk table</strong></dt>
+<dd><p>Each span is divided into chunks of space.  The chunk table specifies which chunks are allocated to each filesystem, and in which order.</p></dd>
+</dl>
+<p>The reason for dividing up the Cod is that the server can load partial Cod.  For example, if the filesystem catalogue is damaged, the server can nevertheless load span Cod  and use it (for example) to list the filesystem catalogue on each SD in the span.  Similarly, even if the chunk table is damaged, the server can still load the span Cod and filesystem catalogue.  It will then know which SDs are in the span and what the file systems are called, and it can offer span-based commands to help recover the chunk table and make file systems mountable.</p>
+<p>Cod and encroachment data are both stored in the first mebibyte (that is, 2**20 bytes) of each SD.  However, encroachment data is not considered part of the Cod because it does not store configuration data and can be recreated on demand.</p>
+<h2>AT BOOT TIME</h2>
+<h3>Summary</h3>
+<p>The Admin Service reads all three types of Cod from SDs as they become healthy.  From the Cod, it loads spans, filesystems and chunks.  All the SDs in a span must have the same Cod, or the Cod will be rejected.</p>
+<h3>Detail</h3>
+<p>As soon as an SD becomes primary, licensed and healthy, the server opens it (prepares it for I/O) and looks for a span Cod signature -- a recognisable sequence of bytes at the start of the Span Cod.  If the signature is present, the server loads span Cod from the SD.</p>
+<p>As soon as the first SD's span Cod has been read, the span will be visible in commands such as 'span-list'.</p>
+<p>If span Cod is inconsistent, the server unloads the span and logs a severe event.  Span Cod is inconsistent if, for example, SD 0's Cod claims that SD 0 is in a span including SDs 0-3 but SD 1's Cod claims to be in some other span -- or if SD 1 has no Cod signature at all.</p>
+<p>Once all SDs in a span have become healthy, the server loads the filesystem catalogue from each SD in the span.  If the filesystem catalogues are consistent, the file systems now appear in 'filesystem-list'.  Otherwise, the server unloads them and logs a severe event.</p>
+<p>Finally, the server loads the chunk table from each SD in the span.  If they are consistent, the server knows which pieces of disk space are in each file system, and the file systems become mountable.  Otherwise, it unloads the chunks and logs a severe event.</p>
+<p>Cod and encroachment are always read and written by the Admin Service.  In a cluster in which connectivity is impaired and one node cannot see the storage, migrate the Admin Service to another node in order to be able load and manage spans and filesystems.</p>
+<h2>COD SIGNATURES</h2>
+<p>Each SD's span Cod has a signature -- a sequence of bytes with specific values.  When you create or expand a span, the server writes a valid signature to each SD.  When you delete a span, the server writes an invalid signature (a different, but recognisable, sequence of bytes) to each SD.</p>
+<p>Span Cod signatures can be manipulated by the 'sd-wipe-cod-signature' and 'sd-restore-cod-signature' commands.  The most common reason to wipe a Cod signature is to make the server ignore unwanted Cod when building a system from storage previously used elsewhere.  The most common reason to restore a Cod signature is to undelete a span.  After wiping or restoring Cod signatures, use 'sd-rescan-cod' to make the server see the changes you have made.</p>
+<p>Wiping some, but not all, of the span Cod signatures in a span will make the span unloadable without actually deleting it.  The server will log severe events about inconsistent Cod, and will prevent any of the SDs in the span from being used in new spans.</p>
+<p>The file system catalogue and chunk table also have signatures.  However, these signatures are used only for integrity checking: they cannot be manipulated directly or used to delete or undelete file systems.</p>
+<h2>COD AND MEMORY</h2>
+<p>When you type 'span-list' or 'filesystem-list' to see a list of loaded spans or file systems, the server does not have to refer to Cod.  It has already read Cod into memory, and does not need to load it again to produce the list you have requested.</p>
+<p>This means that storage configuration lives both in the server's memory and in Cod, and is transferred between them.  Some commands (such as 'span-list' and 'span-dump-cod') work only on memory, without referring to Cod; some (such as 'sd-dump-cod') work only on Cod, without referring to spans and file systems loaded into memory; some (such as 'filesystem-expand') update both memory and Cod.  During troubleshooting, it is important to understand which copy or copies of the configuration you're working with.</p>
+<p>We have already noted that Cod is loaded into memory at boot time, and that Cod is created or updated when you modify a span or a file system.  In addition, it is possible to transfer configuration manually between Cod and memory: 'sd-rescan-cod' loads Cod into memory, exactly as it would at boot time, and 'span-rewrite-cod' builds new Cod for a currently loaded span and its file systems and writes it to disk, exactly as it would if you had just updated the span in some way.  Both commands transfer all three types of Cod at once.</p>
+<p>We now give examples of occasions when you might use these two commands.</p>
+<p>Suppose that you expand a span.  This updates the span Cod (which, as you may remember, specifies how SDs are combined into stripesets and stripesets into the span).  But suppose that an I/O error prevents the server from writing updated span Cod to one SD.  The Cod is now inconsistent, because most SDs have the new version of the span Cod but one still has the old.  To keep recovery as simple as possible, the server will now prohibit most operations that would update Cod, including further span-expansion.  Fortunately, the new version of the configuration is still in memory.  One easy way to recover is to run 'span-rewrite-cod'.  If it succeeds, it will ensure that all SDs have the most recent Cod, and it will remove the prohibition on further Cod-updates.</p>
+<p>'span-rewrite-cod' is also useful after you have run commands such as 'span-restore-cod' and 'sd-mirror --no-cod-write', which update the configuration in memory but do not update Cod.</p>
+<p>Now imagine that you expand a span and an I/O error prevents one SD's Cod from being updated, just as before, but that you do not notice the failure before rebooting the server.  At boot time, the server sees that Cod is inconsistent, and it cannot load the span.  After inspecting the event log to find the problem, you use 'sd-copy-span-cod' to copy the new version of the span Cod to the SD that still has the old version.  But this alone does not load the span into memory and make file systems mountable: you need to run 'sd-rescan-cod' to tell the server to load the newly repaired Cod into memory.</p>
+<p>'sd-rescan-cod' is also useful after you have run commands such as 'sd-wipe-cod-signature', which update Cod but do not load it into memory.</p>
+<p>There are also special-purpose commands such as 'span-load-filesystem-cod', which makes a span load its filesystem Cod from a single SD instead of loading it from all SDs and checking them for consistency.</p>
+<h2>COD BACKUPS</h2>
+<p>Cod is vitally important to the health of a span.  If the Cod is damaged, all the data on the span becomes inaccessible.  So the server provides mechanisms to back up and restore the Cod.</p>
+<p>There are two types of Cod backup: they have different strengths, and each is suited to a different set of uses.  Each kind of backup stores all three kinds of Cod, and a single backup of either type can be used to repair damaged Cod.</p>
+<p>A Cod backup contains only Cod.  Restoring from a Cod backup will not update other structures, such as encroachment data.</p>
+<h3>Single-SD Cod Backups (SDCs)</h3>
+<p>An SDC is a copy of the Cod on a single SD.  You can take an SDC from any SD that is physically healthy; it is not necessary for the SD's Cod to be loaded, or even for it to be loadable.  You can even take an SDC from an SD that is not in a span.  (This might be useful if you planned to undeleted a span that used the SD in question).</p>
+<p>A service engineer may take an SDC from each SD before attempting to repair damaged Cod and an unloadable span or file system.</p>
+<p>To take an SDC, run 'sd-back-up-cod'; to restore one, use 'sd-restore-cod'. 'sd-restore-cod' updates the Cod, but does not load it into memory.  Therefore, after one or more SDCs have been restored, use 'sd-rescan-cod' to load the restored Cod into memory.</p>
+<p>To back up the Cod on a span containing twenty SDs, you have to create twenty SDCs.  (The 'sd-spec' man page explains how to do this with a single command.)  To restore the Cod, you have to restore twenty SDCs.</p>
+<p>If you back up Cod from all the SDs in a loaded span, even if you use a single command to do so, it is possible that auto-expansion will occur between one Cod backup and the next.  In this case, the backups will be inconsistent with each other, and the Cod they contain will not be usable.  One way to prevent auto-expansion is to confine the span -- but this too will cause new Cod to be written, so do it before taking your first Cod backup.</p>
+<p>An SDC is a special-purpose tool; for most purposes, an ICB is safer and more convenient.</p>
+<h3>Integrated Cod Backups (ICBs)</h3>
+<p>An ICB is saved from memory and restored to memory.  In other words, when you take an ICB, the server does not take a copy of the Cod on any one SD: instead, it creates a backup that reflects the span and file systems that are currently loaded into memory.  Similarly, when you restore an ICB, the server loads it into memory but does not update the Cod on disk.</p>
+<p>As a result, you can take an ICB even after an SD has failed or suffered an I/O error, and you can restore an ICB without overwriting any existing Cod.</p>
+<p>To take an ICB, use 'span-back-up-cod'; you need take only one backup for the whole span, not one per SD, and it is guaranteed that filesystem expansion and other operations will not take place while the backup is being taken.</p>
+<p>To restore an ICB, use 'span-restore-cod'.  To make the change permanent, commit the Cod to disk by running 'span-rewrite-cod'; to revert to the Cod on disk, use 'sd-rescan-cod'.  You can attempt to mount file systems before deciding whether to commit or revert the operation.</p>
+<p>The SMU takes an ICB of each loaded span once an hour, and keeps it for several months (without ever keeping two identical backups).  Because an ICB is easier to restore than an SDC, and because taking an ICB imposes less overhead on the server than taking a series of SDCs, an ICB is the best choice for regular scripted backups.</p>
+<p>There is a second automated source of ICBs: a command called 'span-dump-cod' runs in showall.txt in every set of diagnostics, and its output can be converted into an ICB by the Cod Converter (see below).  A set of diags, therefore, contains a complete Cod backup for every span.</p>
+<h3>If you have to restore from a stale Cod backup</h3>
+<p>Every time a file system is expanded, the chunk table is updated.  If you have to restore a Cod backup that was taken before the most recent file system expansion, the chunk table stored in the Cod backup will not contain the chunks most recently added to the file system.  As a result, the file system will not be mountable.</p>
+<p>Use 'filesystem-list-expansions' and 'filesystem-replay-expansions' to recover.</p>
+<h3>The Cod Converter</h3>
+<p>An external program called the Cod Converter can translate in any direction between an ICB, an SDC, and the human-readable text format produced by the 'sd-dump-cod' and 'span-dump-cod' commands.  It can read an SDC taken from one SD and produce an SDC for any other SD in the same span.  It is also the standard downgrade path for spans: the Cod converter that ships with each operating system release can often read Cod produced by the following release, and can downgrade it for use with the current release if the conversion can be carried out without loss of data.  (That said, the Cod Converter is rarely needed: the server always writes Cod in a backwards-compatible format unless the latest features are in use.)</p>
+<p>Even if you do not have access to the Cod converter, you can list the contents of a Cod backup by using the server's 'cod-backup-list' and 'cod-backup-dump' commands.  Both commands work on both kinds of backups; '-dump' provides more detail than '-list'.</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/cod-backup-dump.html">cod-backup-dump</a> <a href="../Supervisor/cod-backup-list.html">cod-backup-list</a> <a href="../Topic/encroachment.html">encroachment</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-list-expansions.html">filesystem-list-expansions</a> <a href="../Supervisor/filesystem-replay-expansions.html">filesystem-replay-expansions</a> <a href="../Supervisor/sd-back-up-cod.html">sd-back-up-cod</a> <a href="../Supervisor/sd-cod-history.html">sd-cod-history</a> <a href="../Dev/sd-copy-span-cod.html">sd-copy-span-cod</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../Supervisor/sd-dump-unloadable-cod.html">sd-dump-unloadable-cod</a> <a href="../Topic/sd-ids.html">sd-ids</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-restore-cod.html">sd-restore-cod</a> <a href="../Supervisor/sd-restore-cod-signature.html">sd-restore-cod-signature</a> <a href="../Supervisor/sd-span-cod-reads.html">sd-span-cod-reads</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../Supervisor/span-dump-cod.html">span-dump-cod</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-filesystem-cod.html">span-list-filesystem-cod</a> <a href="../Supervisor/span-load-filesystem-cod.html">span-load-filesystem-cod</a> <a href="../Supervisor/span-propagate-filesystem-cod.html">span-propagate-filesystem-cod</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

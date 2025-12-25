@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>network-protocol-performance-monitor-dump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>network-protocol-performance-monitor-dump</h1>
+<p>Dump raw network protocol stats</p>
+<h1>Syntax</h1>
+<pre>network-protocol-performance-monitor-dump [&lt;filesystem name&gt;]...
+</pre>
+
+<h1>Description</h1>
+<p>This command exposes some performance statistics which are gathered on a per-filesystem basis.</p>
+<p>The values are totalled up over a ten second period. This command outputs the values for the previous ten second period, not the set of values currently being accumulated.</p>
+<p>Note that the output is intended for gathering data via a script, and hence is not all that friendly for humans to read.</p>
+<p>Parameters are a list of filesystem names to dump statistics for, or a numeric value giving a VLSI statistics buffer number from 0 to 127.</p>
+<p>If no parameter is given, all mounted filesystems are shown.</p>
+<h1>Examples</h1>
+<p>Show statistics for filesystem ExampleFS1:</p>
+<pre>    network-protocol-performance-monitor-dump ExampleFS1
+</pre>
+<p></p>
+<p>Show statistics for all mounted filesystems:</p>
+<pre>    network-protocol-performance-monitor-dump
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

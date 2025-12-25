@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-rls</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fc-rls</h1>
+<p>Read link status blocks</p>
+<h1>Syntax</h1>
+<pre>fc-rls [hport id]
+</pre>
+
+<h1>Description</h1>
+<p>The fc-rls command allows you to query the "Link Error Status Block" of remote ports. It uses the fibre channel command "Read Link Error Status Block" (RLS). With a fabric switch topology the command reports the statistics at both the Nx and Fx ports at each end of the link. The use of this command allows you to track down potentially faulty or intermittent connections. Note the counts always increase - there is no way in the fibre channel specification to reset the counts. The exception to this rule is the output of the statistics for the local host ports - these counts may be reset by using the fc-link-errors command. Note not all devices support RLS - in these cases fc-rls will indicate that it failed to recover the information. Command options are:</p>
+<dl>
+<dt><strong>[hport id]</strong></dt>
+<dd><p>If specified, only reports devices visible on the specified host port. By default all devices on all (enabled) host ports are queried.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Query the link statistics on all interfaces:</p>
+<pre>fc-rls
+</pre>
+<p></p>
+<p>Query the link statistics on host port 1:</p>
+<pre>fc-rls 1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/fc-link-errors.html">fc-link-errors</a> <a href="../Supervisor/fc-link-status.html">fc-link-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-recovery-task-log-events</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>replication-recovery-task-log-events</h1>
+
+<h1>Description</h1>
+<p>This man page describes the DR log events for the recovery of NFS export and CIFS share mount points, and CNS and EVS links.</p>
+<h2>Error events</h2>
+<dl>
+<dt><strong>Share failed to recover.</strong></dt>
+<dd><p>Failed to recover the share. See DR log for further details.</p></dd>
+<dt><strong>Export failed to recover.</strong></dt>
+<dd><p>Failed to recover the export. See DR log for further details.</p></dd>
+<dt><strong>Link failed to recover.</strong></dt>
+<dd><p>Failed to recover the link. See DR log for further details.</p></dd>
+<dt><strong>Share deletion failure.</strong></dt>
+<dd><p>Failed to delete the share. See DR log for further details.</p></dd>
+<dt><strong>Export deletion failure.</strong></dt>
+<dd><p>Failed to delete the export. See DR log for further details.</p></dd>
+</dl>
+<h2>Warning events</h2>
+<dl>
+<dt><strong>Failed to Log to DR log.</strong></dt>
+<dd><p>Failed to log an event to the recovery log.</p></dd>
+<dd><p>This can happen for example when the log size exceeds the limit set by the DR logging policy. A paced event containing the details is logged to the console and the system log.</p></dd>
+<dt><strong>Share failed to recover due to name clash.</strong></dt>
+<dd><p>Failed to resolve the name clash with a new name. See DR log for further details.</p></dd>
+<dt><strong>Share name clash fixed.</strong></dt>
+<dd><p>The share was successfully recovered with a new name.</p></dd>
+<dt><strong>Export failed to recover due to name clash.</strong></dt>
+<dd><p>Failed to resolve the name clash with a new name. See DR log for further details.</p></dd>
+<dt><strong>Export recovered with name clash fixed.</strong></dt>
+<dd><p>The export was successfully recovered with a new name.</p></dd>
+<dt><strong>Export Id clash.</strong></dt>
+<dd><p>Failed to resolve the name clash due to a failure to generate a unique export Id. See DR log for further details.</p></dd>
+</dl>
+<h2>Info events</h2>
+<dl>
+<dt><strong>Share recovered.</strong></dt>
+<dd><p>Successfully recovered the share.</p></dd>
+<dt><strong>Share skipped (name clash).</strong></dt>
+<dd><p>The share was not recovered due to a name clash. Use the --fix-name-clash option to recover it.</p></dd>
+<dt><strong>Share skipped (do-not-transfer).</strong></dt>
+<dd><p>The share was not recovered as its --disaster-recovery-setting field is set to 'do-not-transfer' setting.</p></dd>
+<dt><strong>Share skipped (use-fs-default).</strong></dt>
+<dd><p>The share was not recovered as its --disaster-recovery-setting field is set to 'use-fs-default', and either the file system's default DR transfer setting is disabled or the --override-fs-dr-default option is used with 'do-not-transfer' setting.</p></dd>
+<dt><strong>Share skipped (name clash with identical).</strong></dt>
+<dd><p>The share was not recovered due to a name clash with an identical share. Use the --do-not-skip-identical option to recover it.</p></dd>
+<dt><strong>Export recovered.</strong></dt>
+<dd><p>Successfully recovered the export.</p></dd>
+<dt><strong>Export skipped (name clash).</strong></dt>
+<dd><p>The export was not recovered due to a name clash. Use the --fix-name-clash option to recover it.</p></dd>
+<dt><strong>Export skipped (do-not-transfer).</strong></dt>
+<dd><p>The export was not recovered as its --disaster-recovery-setting field is set to 'do-not-transfer' setting.</p></dd>
+<dt><strong>Export skipped (use-fs-default).</strong></dt>
+<dd><p>The export was not recovered as its --disaster-recovery-setting field is set to 'use-fs-default', and either the file system's default DR transfer setting is disabled or the --override-fs-dr-default option is used with 'do-not-transfer' setting.</p></dd>
+<dt><strong>Export skipped (name clash with identical).</strong></dt>
+<dd><p>The export was not recovered due to a name clash with an identical share. Use the --do-not-skip-identical option to recover it.</p></dd>
+<dt><strong>Share deleted.</strong></dt>
+<dd><p>Successfully deleted the share.</p></dd>
+<dt><strong>Export deleted.</strong></dt>
+<dd><p>Successfully deleted the export.</p></dd>
+<dt><strong>Link recovered.</strong></dt>
+<dd><p>Successfully recovered the link. The --rebind-existing-export option was used and the link was rebound to the promoted file system.</p></dd>
+</dl>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/replication-recovery-default-transfer-setting-get.html">replication-recovery-default-transfer-setting-get</a> <a href="../Supervisor/replication-recovery-default-transfer-setting-set.html">replication-recovery-default-transfer-setting-set</a> <a href="../Supervisor/replication-recovery-task-list.html">replication-recovery-task-list</a> <a href="../Supervisor/replication-recovery-task-log-get.html">replication-recovery-task-log-get</a> <a href="../Supervisor/replication-recovery-task-submit.html">replication-recovery-task-submit</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

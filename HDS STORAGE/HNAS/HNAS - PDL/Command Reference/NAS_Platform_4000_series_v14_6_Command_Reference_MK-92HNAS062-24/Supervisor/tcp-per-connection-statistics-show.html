@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tcp-per-connection-statistics-show</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>tcp-per-connection-statistics-show</h1>
+<p>Display recently gathered per-connection TCP statistics </p>
+<h1>Syntax</h1>
+<pre>tcp-per-connection-statistics-show [-v] [-d &lt;N&gt;] [-s absolute|percentage|per-second] [-p]
+Alias:       tpcs-show
+</pre>
+
+<h1>Description</h1>
+<p>Displays the results of the most recently gathered per-connection TCP statistics, by default restricting each table of results to no more than 50 entries.</p>
+<dl>
+<dt><strong>-d, --display N</strong></dt>
+<dd><p>Restricts each table of results to no more than N entries.</p></dd>
+<dt><strong>-p, --show-peer</strong></dt>
+<dd><p>Display the client IP and port number for each reported connection.</p></dd>
+<dt><strong>-s, --style STYLE</strong></dt>
+<dd><p>Selects a display style. Permissible values are:</p></dd>
+<dl>
+<dt><strong>per-second</strong></dt>
+<dd><p>Values displayed are normalised to a per-second basis.</p></dd>
+<dt><strong>absolute</strong></dt>
+<dd><p>Values displayed are totals over the collection interval.</p></dd>
+<dt><strong>percentage</strong></dt>
+<dd><p>RX Duplicate Ack packets and RX Out of Order packets are displayed as a percentage of RX Data packets. TX RTO packets, TX Fast RETX packets and TX SACK RETX packets are displayed as a percentage of TX data packets. TX RTO ms is displayed as a percentage of the collection interval.</p></dd>
+</dl>
+<dd><p>The default style is per-second.</p></dd>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Displays information about how long it took to read statistics from the hardware.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>tcp-per-connection-statistics-show
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster Node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/tcp-per-connection-statistics-cancel.html">tcp-per-connection-statistics-cancel</a> <a href="../Supervisor/tcp-per-connection-statistics-start.html">tcp-per-connection-statistics-start</a> <a href="../Supervisor/tcp-per-connection-statistics-status.html">tcp-per-connection-statistics-status</a> <a href="../Supervisor/tcp-per-connection-statistics-stop.html">tcp-per-connection-statistics-stop</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

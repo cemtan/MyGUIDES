@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-log</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>scsi-log</h1>
+<p>dump/clear SCSI logs</p>
+<h1>Syntax</h1>
+<pre>scsi-log [-d, --dump][-c, --clear][-s, --size][-h, --help]
+Alias:       slog
+</pre>
+
+<h1>Description</h1>
+<p>Dump or clear the contents of the SCSI log. The server maintains a SCSI log for each logical unit and for each SCSI port. All processor initiated SCSI commands are logged in the appropriate log. In addition, a global SCSI log logs SCSI commands sent to all logical units and SCSI ports. An entry is made in the log when a SCSI command is transmitted and a separate entry is made when a response is received.</p>
+<p>By default, the last 20 entries are dumped if no range is specified.</p>
+<p>Console output may be stopped or aborted with a key press or by CTRL-C.</p>
+<p>The syntax of a log entry indicates the SCSI command that was sent to the target device as follows:</p>
+<dl>
+<dt><strong>Command Name</strong></dt>
+<dt><strong>H&lt;n&gt;</strong></dt>
+<dd><p>Host port that issued the command. If the Host Port is shown as a '?', the ScsiPort that logged this entry no longer exists so the Host Port number can no longer be determined.</p></dd>
+<dt><strong>P&lt;n&gt;</strong></dt>
+<dd><p>The SCSI port number of the target device the command was sent to or a response was received from.</p></dd>
+<dt><strong>[xxxxxx]</strong></dt>
+<dd><p>Fibre Channel address of the target port the command was sent to or a response was received from.</p></dd>
+<dt><strong>&lt;OXID&gt;</strong></dt>
+<dd><p>Fibre Channel OXID of this FC exchange.</p></dd>
+<dt><strong>LUN n</strong></dt>
+<dd><p>The LUN of the target device.</p></dd>
+<dt><strong>RESPONSE</strong></dt>
+<dd><p>If the entry is a response to a command, the result of the command is given.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong><strong>-d, --dump</strong></strong></dt>
+<dd><p>Display the contents of the specified SCSI logs. If no device id or port id is specified, the global log is output. The last 20 entries are output if no range is specified.</p></dd>
+<dl>
+<dt><strong>[[device-id] | [[[-D&lt;device-id&gt;] |    [-P&lt;port-id&gt;]] [[[,&lt;device-id&gt;][,&lt;port-id&gt;][,...]] | [[-D&lt;device-id&gt;][,P&lt;port-id&gt;][,...]]]]</strong></dt>
+<dd><p>Output the log for the given Device ID or specify a comma delimited list of device IDs and/or SCSI ports whose logs are to be displayed. If a list of devices and/or SCSI ports are specified, the log of each device or port is displayed as a single log.</p></dd>
+<dt><strong>-h | --hport &lt;1..n&gt;</strong></dt>
+<dd><p>Filter by the host port.</p></dd>
+<dt><strong>-p, --port &lt;port id&gt;</strong></dt>
+<dd><p>Filter using SCSI port id.</p></dd>
+<dt><strong>-l, --lun &lt;LUN&gt;</strong></dt>
+<dd><p>Filter using LUN.</p></dd>
+<dt><strong>-c, --com</strong></dt>
+<dd><p>Toggle combine flag. Combine displays command and response entries as 1 entry.</p></dd>
+<dt><strong>-r, --rev</strong></dt>
+<dd><p>Output entries in reverse order, oldest last.</p></dd>
+<dt><strong>-a, --all | -n &lt;[-]no of entries to dump&gt;</strong></dt>
+<dd><p>Output all entries, last n entries, or first n entries if n is negative. If n = 0, dump entire log; by default, dump last 20 entries.</p></dd>
+</dl>
+<dt><strong><strong>-c, --clear</strong></strong></dt>
+<dd><p>Clear the specified logs.</p></dd>
+<dl>
+<dt><strong>[[device-id] | [[[-D&lt;device-id&gt;] |    [-P&lt;port-id&gt;]] [[[,&lt;device-id&gt;][,&lt;port-id&gt;][,...]] | [[-D&lt;device-id&gt;][,P&lt;port-id&gt;][,...]]]]</strong></dt>
+<dd><p>Clear the log for the given Device ID or specify a comma delimited list of device IDs and/or SCSI ports whose logs are to be cleared.</p></dd>
+<dt><strong>-p, --port-id</strong></dt>
+<dd><p>Clear the SCSI log for this SCSI port.</p></dd>
+<dt><strong>-g, --global</strong></dt>
+<dd><p>Clear the global SCSI log.</p></dd>
+<dt><strong>-C, --Conf</strong></dt>
+<dd><p>Do not request confirmation.</p></dd>
+</dl>
+<dt><strong><strong>-s, --size</strong></strong></dt>
+<dd><p>Display the size of the specified SCSI logs. If no logs are specified, show the size of all logs.</p></dd>
+<dl>
+<dt><strong>[[device-id] | [[[-D&lt;device-id&gt;] | [-P&lt;port-id&gt;]] [[[,&lt;device-id&gt;][,&lt;port-id&gt;][,...]] | [[-D&lt;device-id&gt;][,P&lt;port-id&gt;][,...]]]]</strong></dt>
+<dd><p>Display the size of the given Device ID or specify a comma delimited list of device IDs and/or SCSI ports.</p></dd>
+<dt><strong>-p, --port &lt;port-id&gt;</strong></dt>
+<dd><p>Show the size of the SCSI log for this SCSI port.</p></dd>
+<dt><strong>-g, --global</strong></dt>
+<dd><p>Show the size of the global SCSI log.</p></dd>
+</dl>
+<dt><strong><strong>-h, --help</strong></strong></dt>
+<dd><p>Show help.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Dump the last 20 entries from the global SCSI log:</p>
+<pre>scsi-log -d -n 20
+</pre>
+<p></p>
+<p>Dump the first 50 entries from the SCSI logs for devices 0,1,2 and SCSI ports 0 and 2:</p>
+<pre>scsi-log -d -D0,1,2,p0,2 -n -50
+</pre>
+<p></p>
+<p>Dump the last 50 entries from the SCSI logs for devices 0,1,2 and SCSI ports 0, and filtering with host port 1:</p>
+<pre>scsi-log -d -D0,d1,d2,P0 -h 1 -n 50
+</pre>
+<p></p>
+<p>Dump the last 50 entries from the SCSI logs for devices 10,11,12, filtering with host port 1 and SCSI port 0:</p>
+<pre>scsi-log -d -D10,d11,d12 -h 1 -p 0 -n 50
+</pre>
+<p></p>
+<p>Dump all devices 10,11,12 logs:</p>
+<pre>scsi-log -d -D10,d11,d12 -a
+</pre>
+<p></p>
+<p>Clear all logs with no confirmation:</p>
+<pre>scsi-log -c -C
+</pre>
+<p></p>
+<p>Clear device ID 1 log only:</p>
+<pre>scsi-log -c 1
+</pre>
+<p></p>
+<p>Clear device ID 1,2,3 and the global log without confirmation:</p>
+<pre>scsi-log -c -d1,2,3 -g -C
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

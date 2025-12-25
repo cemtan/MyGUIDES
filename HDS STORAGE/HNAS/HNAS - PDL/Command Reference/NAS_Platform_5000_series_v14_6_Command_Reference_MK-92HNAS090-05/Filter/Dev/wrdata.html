@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>wrdata</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>wrdata</h1>
+<p>Write/Append data to a file</p>
+<h1>Syntax</h1>
+<pre>... | wrdata [--force|--append] [--overwrite-at-offset &lt;nbytes&gt;] &lt;pathname&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This filter reads data from the standard input and writes back to a file in the currently selected file system.</p>
+<p>Filter Syntax:</p>
+<pre>    ... | wrdata [--force|--append] [--overwrite-at-offset &lt;nbytes&gt;] &lt;pathname&gt;
+</pre>
+<p></p>
+<p>Options:</p>
+<dl>
+<dt><strong>&lt;pathname&gt;</strong></dt>
+<dd><p>Pathname of the file to write to. Note that the parent directory must exist.</p></dd>
+<dt><strong>--force, -f</strong></dt>
+<dd><p>By default, the command writes data to a new file if no options are specified and, hence, fails if the file already exists. If --offset is not specified, specifying --force will force the command to truncate the file to zero length before writing data. This option has no effect if the file does not exist.</p></dd>
+<dt><strong>--append, -a</strong></dt>
+<dd><p>Append data to the end of the specified file. If the file does not exist, create the new file and write data to it.</p></dd>
+<dt><strong>--overwrite-at-offset, -o &lt;nbytes&gt;  (64-bit signed integer)</strong></dt>
+<dd><p>Overwrite the file at an offset which is 'nbytes' from the start of the file if --append is not specified, or 'nbytes' from the end of the file otherwise. The offset can be specified as a number with unit, or as an algebraic expression as described in the 'offset-and-length' man page.</p></dd>
+<dd><p>When referenced from the end of the file, a negative offset can cause the actual offset to be beyond the start of the file. In that case, the actual offset will be reset to 0, i.e., overwriting from the start of the file.</p></dd>
+<dd><p>Note that the file will never be truncated to zero if this option is specified regardless of the value of 'nbytes'.  Thus, to overwrite only the first part of a file, specify -o 0.</p></dd>
+</dl>
+<p>Options --force and --append are mutually exclusive.</p>
+<p>If the target file is in flash, use the sswrdata filter instead.</p>
+<h2>Run as a command</h2>
+<p>Note that wrdata can also be run as a command as follows.</p>
+<p>Command Syntax:</p>
+<pre>    wrdata [--force|--append] [--overwrite-at-offset &lt;nbytes&gt;] [extra options] [--data &lt;text&gt;|--eof &lt;marker&gt;] &lt;pathname&gt;
+</pre>
+<p></p>
+<pre>    extra options ::= [--newline] [--escape-char &lt;char&gt;] [--macro-symbol &lt;char&gt;]
+</pre>
+<p></p>
+<p>The three options --force, --append, and --overwrite-at-offset have the same meaning as the filter counterpart. The other new arguments are as follows.</p>
+<dl>
+<dt><strong>--data, -d &lt;text&gt;</strong></dt>
+<dd><p>Specifies data to write to the file.</p></dd>
+<dt><strong>--eof &lt;marker&gt;</strong></dt>
+<dd><p>Specifies that the data to write to the file consists of all lines immediately following the command line until the line that contains one end-of-file marker, i.e., &lt;marker&gt;, alone. This line and the newline preceding it will be discarded.</p></dd>
+<dd><p>Note that if wrdata is used in an mse script, this option has different behavior depending on how the option name is specified (see Section C8.3.6 of the mse man page for explanation and examples).</p></dd>
+<dd><p>If the full spelling "--eof" is specified, the option will be processed in the context of the mse command, and hence, all the data must be specified below the wrdata command line.</p></dd>
+<dd><p>If the partial spelling "--eo" is specified, the option will be processed in the context of the wrdata command. Thus, the user has to enter the data interactively everytime the mse script is run.</p></dd>
+<dt><strong>--escape-char, -e &lt;char&gt;</strong></dt>
+<dd><p>Specifies the escape character for use to resolve escape sequences in the data to be written to the file. By default, there is no escape character defined.</p></dd>
+<dt><strong>--macro-symbol, -m &lt;char&gt;</strong></dt>
+<dd><p>Specifies the macro symbol character for use to resolve all macros in the data to be written to the file. By default, there is no macro symbol character defined.</p></dd>
+<dt><strong>--newline|-n</strong></dt>
+<dd><p>Append a newline to the input text before writing to the file.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. Save the list of files in the current working directory to a file:</p>
+<pre>   $ ls -l | wrdata filelist.txt
+</pre>
+<p></p>
+<p>2. Append the list of files in another directory</p>
+<pre>   $ cd subdir
+   $ ls -l | wrdata -a ../filelist.txt
+</pre>
+<p></p>
+<p>3. Note that the same file can be read (e.g. by cat) and written (e.g. by wrdata) at the same time. This behavior is different from the 'sswrdata' filter (see example 3 of the sswrdata man page):</p>
+<pre>   $ cat file1.txt | wrdata -f file1.txt
+</pre>
+<p></p>
+<p>4. Using wrdata with binary files</p>
+<pre>   $ sscat --binary mydata | wrdata --force mydata
+</pre>
+<p></p>
+<p>Option --binary is needed for sscat to flush the standard output frequently.</p>
+<p>5. Run wrdata as a command</p>
+<pre>   server:$ wrdata --newline --data "Hello there!" --force file.txt
+   server:$ wrdata --newline --data "How are you?" --append file.txt
+   server:$ cat file.txt
+   Hello there!
+   How are you?
+   server:$
+</pre>
+<p></p>
+<p>Alternatively, the same result can be obtained by:</p>
+<pre>   server:$ wrdata --force --eof END file.txt
+   Hello there!
+   How are you?
+</pre>
+<p></p>
+<pre>   END
+</pre>
+<p></p>
+<p>Recall that the "END" marker and the newline preceding it (i.e., the blank line) will be removed from the input text. If the last example is run Without the blank line, the result will be as follows:</p>
+<pre>   server:$ cat file.txt
+   Hello there!
+   How are you?server:$
+</pre>
+<p></p>
+<p>6. How does 'wrdata --eof' work in an mse script?</p>
+<p>Note that when "wrdata --eof" is used in an mse script, the --eof option must be the last option before the file name. This option behaves differently as follows.</p>
+<p>6.1 Specify full option name, --eof, to avoid interactive data entry</p>
+<pre>   server:$ sscat test.scr
+   wrdata --force --eof END file.txt
+   Hello there!
+   How are you?
+</pre>
+<p></p>
+<pre>   END
+</pre>
+<p></p>
+<pre>   server:$ mse -f test.scr
+   server:$ cat file.txt
+   Hello there!
+   How are you?
+   server:$
+</pre>
+<p></p>
+<p>6.2 Specify partial option name, --eo, to allow interactive data entry</p>
+<pre>   server:$ sscat test1.scr
+   echo Enter data followed by END marker to stop:
+   wrdata --force --eo END file1.txt
+   echo Done with writing data to file1.txt
+</pre>
+<p></p>
+<pre>   server:$ mse -f test1.scr
+   Enter data followed by END marker to stop:
+   Hello there!
+   How are you?
+</pre>
+<p></p>
+<pre>   END
+   Done with writing data to file1.txt
+</pre>
+<p></p>
+<pre>   server:$ cat file1.txt
+   Hello there!
+   How are you?
+   server:$
+</pre>
+<p></p>
+<p>7. How does 'wrdata --eof' work in an ssrun script?</p>
+<p>The ssrun command does not process the --eof option to any commands, including wrdata. Thus, the --eof option is always processed by the wrdata command and the user has to enter data interactively when running an ssrun script.</p>
+<p>8. Overwrite data</p>
+<p>8.1 To overwrite the start of a file with a 16-byte random string:</p>
+<pre>   server:$ calculate randomstr(16) | wrdata --overwrite-at-offset 0 myfile
+</pre>
+<p></p>
+<p>To dump the contents of the file:</p>
+<pre>   server:$ cat --hex --len 16 myfile
+   *** warning: only dumping 16 B of possible 17 B. Use --length 0 option to disable limit ***
+   Hexdumping the half-open range [0x00007FEDA8A09830, 0x00007FEDA8A09840).
+   0x0000000000000000 : 9D C4 A0 C2 97 4E 2F C6 77 96 87 B9 32 18 C3 23 : .....N/.w...2..#
+</pre>
+<p></p>
+<p>To display just the sequence of bytes in hex:    $ cat --len 16 myfile | hexdump -t    9D C4 A0 C2 97 4E 2F C6 77 96 87 B9 32 18 C3 23</p>
+<p>8.2 To copy the first 16 bytes of one file to another</p>
+<pre>   server:$ cat --offset 100 --len 16 myfile | wrdata --overwrite-at-offset 100 myfile1
+</pre>
+<p></p>
+<p>8.3 To overwrite multiple data blocks</p>
+<p>We will create an mse script to overwrite the start of each of the first 100 blocks with a different 16-byte random string.</p>
+<pre>   server:$ sswrdata --eof END -f overwrite.scr
+   count = 100;
+</pre>
+<p></p>
+<pre>   # Create a file and write 100 blocks of data with a default 256-byte data pattern
+   # (the default pattern has the first byte equal to 0 and subsequent bytes incremented by 1):
+   wrfile -c myfile2 -n %{count}BLK
+</pre>
+<p></p>
+<pre>   # Initialize random seed so that the script will produce the same result for all runs.
+   calculate srandom(5);
+   for (i=0; i &lt; %count; i=i+1) {
+      calculate randomstr(16) | wrdata -f --overwrite-at-offset %{i}BLK myfile2;
+   }
+</pre>
+<p></p>
+<pre>   END
+</pre>
+<p></p>
+<p>To run the mse script:</p>
+<pre>   server:$ mse -f overwrite.scr
+</pre>
+<p></p>
+<p>To trace the execution of the mse script:</p>
+<pre>   server:$ mse -T 1 -f overwrite.scr
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Filter/Dev/calculate.html">calculate</a> <a href="../../Supervisor/cat.html">cat</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/offset-and-length.html">offset-and-length</a> <a href="../../Supervisor/sscat.html">sscat</a> <a href="../../Filter/Dev/sswrdata.html">sswrdata</a> <a href="../../Filter/Dev/strtransform.html">strtransform</a> <a href="../../Dev/wrdata.html">wrdata</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

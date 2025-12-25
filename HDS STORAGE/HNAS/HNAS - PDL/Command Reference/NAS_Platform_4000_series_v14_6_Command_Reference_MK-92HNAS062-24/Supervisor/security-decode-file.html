@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>security-decode-file</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>security-decode-file</h1>
+<p>Displays a file&#39;s security information.</p>
+<h1>Syntax</h1>
+<pre>security-decode-file &lt;file name or handle&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The security-decode-file command is used to display information about a file's security attributes.</p>
+<p>When a security descriptor is reported to a network client the server attempts to map all principals in the SD to equivalent principals in the client's security model. When returning results to an SMB client, for example, "NFSv4 user\bob@example.com" or "Unix user\518" would be translated to something like "PROTOCOLS\bob", if such a mapping is available.</p>
+<p>This command reports a file's security descriptor in two forms, firstly how it appears on disk (or for files without an SD, how it would be derived from the file's Unix security) and secondly how it would appear to an SMB client.</p>
+<h1>Examples</h1>
+<p>To display information about the file 'file1':</p>
+<pre>  $ security-decode-file file1
+  Security Descriptor (on disk):
+    Handle                : TitanFileHandle[WfsHandle[objectNumber=16393,reuseCount=10625,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SECURITY_DESCRIPTOR,volumeNumber=27]]]
+    Number files using sd : 1
+    Revision              : 0x1
+    Control               : 0x9004 = DACLPresent | DACLProtected | SelfRelative
+    Owner                 : NFSv4 user\bob@example.com (S-1-78-19-1768841572-1081109605-1633906540-1836016748-7235937)
+    Group                 : NFSv4 group\software@example.com (S-1-79-20-1952870259-1701994871-1668246592-1868852321-1852399981)
+    DACL:
+      Revision            : 2
+      Size                : 120
+      ACE count           : 4
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 44
+        Mask              : 0x120089 = ReadControl | Synchronize | FileReadData/FileListDirectory | FileReadEA | FileReadAttributes
+        SID               : NFSv4 group\development@example.com (S-1-79-23-1702258020-1836085100-1081372261-1633906540-1836016748-7235937)
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 24
+        Mask              : 0x11201bf = ReadControl | Synchronize | AccessSACL | FileReadData/FileListDirectory | FileWriteData/FileAddFile | FileAppendData/FileAddSubdirectory/FileCreatePipeInstance | FileReadEA | FileWriteEA | FileExecute/FileTraverse | FileReadAttributes | FileWriteAttributes
+        SID               : OWNER@ (S-1-78-6-1162762063-16466)
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 24
+        Mask              : 0x11200a9 = ReadControl | Synchronize | AccessSACL | FileReadData/FileListDirectory | FileReadEA | FileExecute/FileTraverse | FileReadAttributes
+        SID               : GROUP@ (S-1-79-6-1431261767-16464)
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 20
+        Mask              : 0x1120080 = ReadControl | Synchronize | AccessSACL | FileReadAttributes
+        SID               : Everyone (S-1-1-0)
+</pre>
+<p></p>
+<pre>  Security Descriptor (as it would be returned to an SMB client):
+    Revision              : 0x1
+    Control               : 0x9004 = DACLPresent | DACLProtected | SelfRelative
+    Owner                 : PROTOCOLS\bob (S-1-5-21-335149670-2401898251-3250320373-1128)
+    Group                 : PROTOCOLS\software (S-1-5-21-335149670-2401898251-3250320373-1198)
+    DACL:
+      Revision            : 2
+      Size                : 144
+      ACE count           : 4
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 44
+        Mask              : 0x120089 = ReadControl | Synchronize | FileReadData/FileListDirectory | FileReadEA | FileReadAttributes
+        SID               : NFSv4 group\development@example.com (S-1-79-23-1702258020-1836085100-1081372261-1633906540-1836016748-7235937)
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 36
+        Mask              : 0x11201bf = ReadControl | Synchronize | AccessSACL | FileReadData/FileListDirectory | FileWriteData/FileAddFile | FileAppendData/FileAddSubdirectory/FileCreatePipeInstance | FileReadEA | FileWriteEA | FileExecute/FileTraverse | FileReadAttributes | FileWriteAttributes
+        SID               : BUILTIN\Current Owner (S-1-5-32-21061)
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 36
+        Mask              : 0x11200a9 = ReadControl | Synchronize | AccessSACL | FileReadData/FileListDirectory | FileReadEA | FileExecute/FileTraverse | FileReadAttributes
+        SID               : BUILTIN\Current Group (S-1-5-32-21062)
+      ACE:
+        Type              : AccessAllowedACEType
+        Flags             : 0x0
+        Size              : 20
+        Mask              : 0x1120080 = ReadControl | Synchronize | AccessSACL | FileReadAttributes
+        SID               : Everyone (S-1-1-0)
+</pre>
+<p></p>
+<pre>  Unix security:
+    UID : bob (1014)
+    GID : software (504)
+    Mode: rwxr-x---
+</pre>
+<p></p>
+<pre>  Security mode that applies to file is Mixed.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cd.html">cd</a> <a href="../Supervisor/security-mode.html">security-mode</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

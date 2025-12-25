@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ipeng-suspect-flags-mitigation-disable</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>ipeng-suspect-flags-mitigation-disable</h1>
+<p>Disable countermeasures for segments with suspect header flags (Obsolete).</p>
+<h1>Syntax</h1>
+<pre>ipeng-suspect-flags-mitigation-disable [-g &lt;interface&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The ipeng-suspect-flags-mitigation-enable and ipeng-suspect-flags-mitigation-disable commands are obsolete and will be removed in a future release.</p>
+<p>The ipeng-suspect-flags-mitigation-* commands previously controlled if the system applied the countermeasures detailed in RFC 5961 for the possible attacks described in CVE-2004-0230. The countermeasures are now permanently enabled; this was previously the default setting for this configuration item.</p>
+<p>The commands available are as follows.</p>
+<dl>
+<dt><strong>ipeng-suspect-flags-mitigation-enable [-g &lt;interface&gt;]</strong></dt>
+<dd><p>Deal with segments with suspect header flags as described in RFC 5961. This behaviour is permanently enabled.</p></dd>
+<dt><strong>ipeng-suspect-flags-mitigation-disable [-g &lt;interface&gt;]</strong></dt>
+<dd><p>This operation is no longer supported. Previously this command reverted to the pre-RFC 5961 TCP behaviour.</p></dd>
+<dt><strong>ipeng-suspect-flags-mitigation-show [-g &lt;interface&gt;]</strong></dt>
+<dd><p>Display the configuration setting.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong>-g, --aggportname &lt;interface&gt;</strong></dt>
+<dd><p>Name of the interface on which to act.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display the configuration setting:</p>
+<pre>    $ ipeng-suspect-flags-mitigation-show
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ipeng.html">ipeng</a> <a href="../Supervisor/ipeng-suspect-flags-mitigation-enable.html">ipeng-suspect-flags-mitigation-enable</a> <a href="../Supervisor/ipeng-suspect-flags-mitigation-show.html">ipeng-suspect-flags-mitigation-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

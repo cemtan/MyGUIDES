@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-wipe-cod-signature</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-wipe-cod-signature</h1>
+<p>Make the server ignore the span configuration on a system drive</p>
+<h1>Syntax</h1>
+<pre>sd-wipe-cod-signature [--danger-ignore-sd-licensing] &lt;System-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Erases the span Cod signature on a system drive (SD).  This makes the server ignore the SD's Cod, although it doesn't immediately unload the affected span.</p>
+<p>Cod signatures are explained in the 'cod' man page.</p>
+<p>The 'sd-wipe-cod-signature' command exists mainly for system administrators who want to break up an existing system and distribute its storage between other systems.  To delete a span in ordinary circumstances, use 'filesystem-delete' and 'span-delete' instead.</p>
+<p>Suppose that only some of the SDs in a span have been moved to a new server: the Cod on SDs 0 and 1 describes a span that includes SDs 0, 1 and 2, but SD 2's Cod is missing or describes some unrelated span.  The server will see the inconsistency; depending on the order in which SDs are discovered and spans loaded, it will take some or all of the following actions to prevent an inconsistent span from being loaded or accidentally deleted:</p>
+<ul>
+<li>It will prevent the span that includes SD 0 and SD 1 from being loaded (because the Cod is inconsistent)</li>
+<li>It will prevent SD 0 or SD 1 from being used in a new span (because they contain part of a valid span that the administrator may wish to repair)</li>
+<li>It will prevent SD 2 from being used in a new span (because SD 2, despite having lost its Cod, may still be part of the valid span described by SD 0's and SD 1's Cod)</li>
+<li>It will prevent any span that uses SD 2 from being loaded (because multiple spans are claiming the same space on SD 2 and it isn't clear which span really owns the space)</li>
+</ul>
+<p>Wiping an SD's span Cod signature tells the server to ignore the SD's Cod.  Wiping the signature of all SDs that are used in a span is a last-resort way of deleting a span that won't load because of an inconsistency.</p>
+<p>'sd-wipe-cod-signature' writes to disk but doesn't make the server load or unload any spans.  After running it on as many SDs as necessary, run 'sd-rescan-cod &lt;span-instance-name&gt;' to make the server unload the span whose Cod signatures you have wiped.  If you have used 'sd-wipe-cod-signature' to make the server forget unloadable span Cod, use 'sd-rescan-cod' without a span instance name.</p>
+<p>The --danger-ignore-sd-licensing switch enables the command to write to unlicensed system drives (those to which you have not enabled access).  Without this switch, the command will reject unlicensed SDs.  Never use this switch to do I/O to SDs that are being used by another cluster, because some storage does not support concurrent access from multiple clusters.</p>
+<p>You can specify more than one SD in a single command.  See the 'sd-spec' man page.</p>
+<p>To avoid inconsistencies and the need to run 'sd-wipe-cod-signature', delete filesystems and spans before removing the storage from the old server.</p>
+<p>It's also possible to move storage between servers or clusters and keep the data on it.  See 'span-assign-to-cluster' and 'span-deny-access'.</p>
+<h1>Examples</h1>
+<pre>sd-wipe-cod-signature 0,1
+sd-rescan-cod
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-restore-cod-signature.html">sd-restore-cod-signature</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

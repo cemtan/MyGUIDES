@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>event-log-definitions</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>event-log-definitions</h1>
+<p>Display event definitions</p>
+<h1>Syntax</h1>
+<pre>event-log-definitions operation
+where &#39;operation&#39; is one of:
+    display [-c] event_id
+    list [-g group_name] [-c]
+    groups
+</pre>
+
+<h1>Description</h1>
+<p>The event-log-definitions command displays event definitions.</p>
+<p>Options</p>
+<dl>
+<dt><strong>display [-c] event_id</strong></dt>
+<dd><p>display definition for specific event id</p></dd>
+<dl>
+<dt><strong>-c, --csv</strong></dt>
+<dd><p>list in comma-separated format</p></dd>
+</dl>
+<dt><strong>list [-g group_name] [-c]</strong></dt>
+<dd><p>list event definitions</p></dd>
+<dl>
+<dt><strong>-g, --group</strong></dt>
+<dd><p>show definitions for specific group</p></dd>
+<dt><strong>-c, --csv</strong></dt>
+<dd><p>list in comma-separated format</p></dd>
+</dl>
+<dt><strong>groups</strong></dt>
+<dd><p>list the names of event groups</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display definition of event 9995:</p>
+<pre>event-log-definitions display 9995
+</pre>
+<p></p>
+<p>To list definitions of events in system group:</p>
+<pre>event-log-definitions list -g System
+</pre>
+<p></p>
+<p>To list the event groups:</p>
+<pre>event-log-definitions groups
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/event-log-filter.html">event-log-filter</a> <a href="../Supervisor/event-log-generate.html">event-log-generate</a> <a href="../Supervisor/event-log-show.html">event-log-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

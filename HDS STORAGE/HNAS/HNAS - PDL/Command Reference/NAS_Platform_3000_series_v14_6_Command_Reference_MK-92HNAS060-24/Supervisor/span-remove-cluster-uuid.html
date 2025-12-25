@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-remove-cluster-uuid</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-remove-cluster-uuid</h1>
+<p>Stop a cluster from managing a span and mounting its filesystems</p>
+<h1>Syntax</h1>
+<pre>span-remove-cluster-uuid [--danger-ignore-sd-sites] [--danger-ignore-stale-cod] &lt;span-instance-name&gt; &lt;cluster-uuid-or-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>A span can be assigned to multiple server clusters.  The 'span-list-cluster-uuids' man page explains what happens when you assign a span to a cluster (or a stand-alone server); briefly, it allows the cluster to manage the span and to mount its file systems.</p>
+<p>The ability to assign a span to multiple clusters is provided for rare replicated configurations.  No span should be assigned to multiple clusters unless it is replicated.  Even then, no single copy of the span should be accessible by more than one cluster.  Otherwise, data is at risk.</p>
+<p>'span-remove-cluster-uuid' removes one cluster-assignment from a span.  Specify the cluster's UUID (its serial number) or its name (as shown by the 'span-list-cluster-uuids' command), but not both.</p>
+<p>If a cluster is running, you should normally use that cluster to remove its own assignment from a span.  Otherwise, the cluster in question won't know that the assignment has been removed, and it will act as if it still had permission to mount file systems and manage the span.  The exception to this rule is when the span is a mirrored copy of a span being managed elsewhere, as described in the 'storage-based-mirror' man page.  In that case, always update the primary copy of the data, and then unmount all file systems on the secondary cluster and run 'sd-rescan-cod &lt;span-instance-name&gt;' or 'span-reload-after-resync' to make the secondary cluster see the change.</p>
+<p>Before a cluster can remove an assignment to itself, it must unmount all file systems on the span in question.  (File systems on other spans can stay mounted.)</p>
+<p>Removing a cluster assignment for the local cluster will delete all the cluster's NV data for the span in question and will unbind filesystems from the local cluster's EVSs.  If necessary, you can later rebind filesystems to EVSs by running 'evsfs', but the discarded NV data can't be recovered.</p>
+<p>Typically, after unassigning a span from a cluster, you'll use 'span-deny-access' to unlicense all the span's SDs on that cluster.</p>
+<p>If Cluster C unassigns span Foo from Cluster D while Cluster D is running, you can make Cluster D notice the change by walking to it, unmounting all the file systems on the span, and typing</p>
+<pre>sd-rescan-cod Foo
+</pre>
+<p></p>
+<p>However, this procedure does not clean up resources such as file systems' EVS bindings, and it will then be necessary either to run 'span-deny-access' or to use 'filesystem-forget-and-delete-nv-data'.  To see which file systems need to be forgotten, run 'filesystem-list-stored -u'.</p>
+<p>'span-remove-cluster-uuid' cannot be used with storage-based snapshots.</p>
+<h2>Switches</h2>
+<p>The following switches enable the command to run when it would normally fail.  Think three times before using any of these switches: it is almost always better to fix the condition that's causing the command to fail than to use an override.</p>
+<dl>
+<dt><strong>--danger-ignore-sd-sites</strong></dt>
+<dd><p>Runs even if the primary SDs in the span aren't all at the same site.</p></dd>
+<dt><strong>--danger-ignore-stale-cod</strong></dt>
+<dd><p>Runs even if the span's Cod is stale and no longer reflects the state of the span in memory.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>span-remove-cluster-uuid Accounts Office
+span-deny-access Accounts
+</pre>
+<p></p>
+<p>Unassigns span Accounts from cluster Office, deletes any NV data for the span, unlicenses all the SDs in the span, removes all EVS bindings for the span's filesystems, and unloads the span and its filesystems from memory.</p>
+<p>See the 'span-list-cluster-uuids' man page for more examples.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-forget-and-delete-nv-data.html">filesystem-forget-and-delete-nv-data</a> <a href="../Supervisor/filesystem-list-stored.html">filesystem-list-stored</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-add-cluster-uuid.html">span-add-cluster-uuid</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../Supervisor/span-list-cluster-uuids.html">span-list-cluster-uuids</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

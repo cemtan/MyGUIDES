@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dump-disk</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>dump-disk</h1>
+<p>Attempts to interpret and dump disk contents to the console</p>
+<h1>Syntax</h1>
+<pre>dump-disk  [-f &lt;file-system&gt;] [-n &lt;number-of-bytes&gt;] [--dir | --tree | --root | --leaf | --ssb | --dsb | --dvcb | --sd] &lt;sector-number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>dump-disk dumps the contents of specified disk sector addresses in human readable format. Its main use is to display the server metadata structures, but may also be used to display hexadecimal dumps of random data.</p>
+<p>If the type of metadata is unknown, dump-disk will attempt to identify the type of metadata by the particular characteristics of the data at the specified location. However, if it is unable to identify the metadata type, dump-disk may be forced to display the data in a variety of different formats using one of several optional command line switches.</p>
+<p>This utility can identify and display the following types of metadata: Static Superblock; Dynamic Superblock; Dynamic Volume Config block; Root Onode; Leaf Onode; Directory Chunks; Directory Tree Nodes; Security Descriptor.</p>
+<p>Note: dump-disk may be run with the file system mounted or unmounted.</p>
+<p>Usage:</p>
+<p>-f &lt;file-system&gt;   The file system on which the data resides</p>
+<p>-n &lt;number-of-bytes&gt;   The number of bytes to read</p>
+<p>--dir   Force decode as a directory's WDIR metadata</p>
+<p>--tree   Force decode as a directory's WTREE metadata</p>
+<p>--root   Force decode as a root onode</p>
+<p>--leaf   Force decode as a leaf onode</p>
+<p>--ssb   Force decode as a static super block</p>
+<p>--dsb   Force decode as a dynamic super block</p>
+<p>--dvcb   Force decode as a dynamic volume config block</p>
+<p>--sd   Force decode as a security descriptor</p>
+<h1>Examples</h1>
+<p>To attempt to interpret and dump 2048 bytes of data resident at disk sector address 0x2c0 on file-system 2:</p>
+<pre>dump-disk -f 2 -n 2048 0x2c0
+</pre>
+<p></p>
+<p>To force dump-disk to display the disk contents at sector address 0x1800 as a Leaf Onode on file system testfs:</p>
+<pre>dump-disk -f testfs --leaf 0x1800
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>get-key-value</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>get-key-value</h1>
+<p>Get value by key and/or subkey name</p>
+<h1>Syntax</h1>
+<pre>... | get-key-value [--key|-k &lt;key name&gt;] [--subkey|-s &lt;subkey name&gt;] [--default-value|-D &lt;value&gt;]
+	[--after-line|-a &lt;pattern1&gt;] [--before-line|-b &lt;pattern2&gt;] [--has &lt;pattern3&gt;]
+	[--token-to-skip &lt;token&gt;] [--number-tokens-to-skip|-n &lt;count&gt;]
+	[--delimiter|-d &lt;string&gt;] [--occurrence-number|-o &lt;number&gt;]
+	[--case-sensitive-matching|-c] [--full-matching|-f]
+	[--first-word-in-result|-w | --first-value-in-result|-v | --dont-trim-result|-N]
+</pre>
+
+<h1>Description</h1>
+<p>Parse the standard input lines for key value pairs and display the values based on the specified key and/or subkey.</p>
+<p>This filter is designed to extract information from a file based on a key name and/or a subkey name. To this end each line is viewed as a row of a two- or three-column table. The columns are separated by a token called column delimiter, which is ":" by default, but can be changed to any string.  On each row,</p>
+<pre>   - the text in the first column contains optional tokens followed by the key name,
+   - the text in the middle column, if any, is the subkey name, and
+   - the text in the last column is the value associated with the key and/or subkey.
+</pre>
+<p></p>
+<p>Examples:</p>
+<pre>     a) Key-value pair:
+</pre>
+<p></p>
+<pre>            file system : fs1
+</pre>
+<p></p>
+<pre>        Key is "file system", value is "fs1", and delimiter is ":".
+</pre>
+<p></p>
+<pre>     b) Key-subkey-value:
+</pre>
+<p></p>
+<pre>            onode/fs1:   Checkpoint       : 0xb50ae
+</pre>
+<p></p>
+<pre>        Key is "onode/fs1", subkey is "Checkpoint", value is "0xb50ae", delimiter is ":".
+</pre>
+<p></p>
+<p>Note that if the leading token "onode/fs1:" is discarded, then "Checkpoint" becomes the key and "0xb50ae" becomes the value. There are two ways to discard the leading tokens on a line:</p>
+<pre>   - specify the number of leading tokens to ignore (e.g., ignore 1 leading token)
+   - specify where the key begins (e.g. parse for key name after "fs1:")
+</pre>
+<p></p>
+<p>The search for the key and/or subkey can be limited to a range of standard input lines that is below a certain line and above a certain line, both of which can be specified. If the key and/or subkey are found on a line, the filter will display the corresponding value. The first match is called the first occurrence. If multiple lines are matched, the filter will display all the corresponding values but this behavior can be changed by specifying a specific occurrence number to display.</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>--key, -k &lt;key name&gt;</strong></dt>
+<dd><p>Specify the key name. Note that all trailing and leading spaces in &lt;key name&gt; are removed before the key is used. By default, the key name is empty, i.e., it matches all lines.</p></dd>
+<dd><p>If there are multiple input lines that match the key name, it may be necessary to specify a subkey to reduce the number of matches. If the subkey is not available, one can limit the range of input lines to search by specify --after-line and --before-line options. Another solution is to specify the occurrence number of the match.</p></dd>
+<dt><strong>--subkey, -s &lt;subkey name&gt;</strong></dt>
+<dd><p>Specify the name of the subkey. The subkey, if any, must appear after the delimiter that follows the key name. Note that all trailing and leading spaces in &lt;subkey name&gt; are removed before the subkey is used. By default, the subkey name is empty, i.e., the line has no subkey.</p></dd>
+<dt><strong>--default-value, -D &lt;value&gt;</strong></dt>
+<dd><p>Specify a default value to display in case the standard input lines do not have the specified key and/or subkey. The default behavior is to display nothing if the specified key and/or subkey are not found.</p></dd>
+<dt><strong>--after-line, -a &lt;pattern1&gt;</strong></dt>
+<dd><p>Specify the line below which the search for the key and/or subkey begins. This line is the first standard input line that matches &lt;pattern1&gt;. The pattern matching is similar to grep.</p></dd>
+<dd><p>If this option is specified, the filter will skip (ignore) all input lines starting from the first standard input line to the first line that matches &lt;pattern1&gt;. If this option is not specified, searching begins with the first standard input line.</p></dd>
+<dt><strong>--before-line, -b &lt;pattern2&gt;</strong></dt>
+<dd><p>Specify the line to stop searching for the key and/or subkey. This line is always below the line that matches &lt;pattern1&gt; and is the first standard input line that matches &lt;pattern2&gt;. The pattern matching is similar to grep.</p></dd>
+<dd><p>If this option is not specified, the filter will search to the last standard input line.</p></dd>
+<dd><p>Thus, if both -a and -b are specified, the search for the key and/or subkey will be limited to the lines between the line matching &lt;pattern1&gt; and the line matching &lt;pattern2&gt; below it.</p></dd>
+<dt><strong>--has, -h &lt;pattern3&gt;</strong></dt>
+<dd><p>Select only those lines that match the specified pattern to process for key value pairs.  The pattern matching is similar to grep.</p></dd>
+<dt><strong>--token-to-skip, -t &lt;token&gt;</strong></dt>
+<dt><strong>--number-tokens-to-skip, -n &lt;count&gt;</strong></dt>
+<dd><p>Both options are used to tell where the key name begins on a line. Normally, the key name begins with the first token on a line. If this is not the case, the user has to identify some marker on the line and use options -t and -n to tell that the key name begins after &lt;count&gt; markers. Thus, option -t defines the marker value and option -n &lt;count&gt; tells the number of markers to skip to reach the start of the key.</p></dd>
+<dd><p>For example, if the key name begins after the 5th occurrence of the right parenthesis on a line, the user has to specify -t ")" -n 5.</p></dd>
+<dd><p>The default values are defined as follows.</p></dd>
+<dd><p>* If -t and -n are not specified, &lt;token&gt; is empty and &lt;count&gt; is 0, i.e., the key name begins with the first token on the line.</p></dd>
+<dd><p>* If -t is not specified but -n &lt;count&gt; is specified, it means skip &lt;count&gt; words on the line where a word is a string consisting of graphic characters only.</p></dd>
+<dd><p>* If -n is not specified but -t &lt;token&gt; is specified, it means skip one &lt;token&gt;.</p></dd>
+<dt><strong>--delimiter, -d &lt;string&gt;</strong></dt>
+<dd><p>Specify the string that is used as a column delimiter, which can be a single character such as "=", ",", " " (space), or more than one character such as " is ". By default, the column delimiter is a colon.</p></dd>
+<dt><strong>--occurrence-number, -o &lt; number&gt;</strong></dt>
+<dd><p>If there are multiple lines that match the key name and/or subkey, the matches will be numbered in ascending order starting with 1. These numbers are called occurrence numbers. If this option is specified, the filter will display the result of the specified occurrence only. Occurrence number 0 is special; it means display the results from all matches. By default, the occurrence number is 0.</p></dd>
+<dt><strong>--case-sensitive-matching, -c</strong></dt>
+<dd><p>By default, all matching are done using case-insensitive string comparison. If -c is specified, case-sensitive string comparison will be used.</p></dd>
+<dt><strong>--full-matching, -f</strong></dt>
+<dd><p>By default, users can specify just a substring of the key or subkey to match the line that contains the desired name-value pair. If this option is specified, users have to specify the full key name and/or subkey name.</p></dd>
+<dt><strong>--dont-trim-result, -N</strong></dt>
+<dd><p>By default, the value will be trimmed, i.e., all leading and trailing white spaces will be removed. Specifying this option to keep the value as is.</p></dd>
+<dt><strong>--first-word-in-result, -w</strong></dt>
+<dd><p>The filter normally displays the complete text for the result, which may contain more than one token separated by white spaces. If this option is specified, only the leading token in the result will be displayed.</p></dd>
+<dt><strong>--first-value-in-result, -v</strong></dt>
+<dd><p>The filter normally displays the complete text for the result, which may contain more than one token. If this option is specified, the result will be processed to display only the first value in the result. To this end, all characters in the result will be changed to a space except alphanumeric characters, plus sign, minus sign, underscores, and periods.  This change may result in multiple alphanumeric data separated by spaces and the filter will display only the leading data item (see Example 5).</p></dd>
+<dd><p>Note that options -N and -w and -v are mutually exclusive.</p></dd>
+</dl>
+<p>If the key and/or the subkey are not specified, all input lines that are not discarded are considered matched and will be displayed.</p>
+<h1>Examples</h1>
+<p>1. Get values of various keys from a two-column table.</p>
+<p>Suppose we want to find certain properties from the 'fs-stat' command output:</p>
+<pre>   $ fs-stat -f fs1
+   FSIFileSystem(0x00007F31B254B060)
+   State:
+     Id                : 34570f636070aca00000000000000000
+     Name              : fs1
+     Mounted           : yes
+     WORM              : no
+     Read cache        : no
+     Failed            : no
+     Thin provisioned  : no
+     Quota mode        : file size based quotas
+     Create time       : 2015-09-05 18:15:12-07:00
+     Size              : 12.79 GB (13732151296 B)
+     Free space        : 10.54 GB (11313119232 B)
+     Snapshot space    : 0 B
+     Max file count    : 3352576
+     Free file count   : 2761992
+     In use file count : 590584
+     File counts:
+       Regular         : 29
+       Directory       : 13
+       All Files       : 29
+   Stats:
+     Operations processed by software:
+       User read ops   : 1 (0/sec)
+       User read bytes : 16 B (0 B/sec)
+       User write ops  : 21 (0/sec)
+       User write bytes : 336 B (0 B/sec)
+       User Ops        : 445 (0/sec)
+       Shared locks    : 8164 (0/sec)
+       Exclusive locks : 1 (0/sec)
+     Operations processed by auto-inquiry:
+     Combined:
+       User read ops   : 1 (0/sec)
+       User read bytes : 16 B (0 B/sec)
+       User write ops  : 21 (0/sec)
+       User write bytes : 336 B (0 B/sec)
+       User Ops        : 445 (0/sec)
+       Shared locks    : 8164 (0/sec)
+       Exclusive locks : 1 (0/sec)
+</pre>
+<p></p>
+<pre>   $ fs-stat -f fs1 | get-key-value -k Mounted
+   yes
+</pre>
+<p></p>
+<pre>   $ fs-stat -f fs1 | get-key-value -k Size
+   12.79 GB (13732151296 B)
+</pre>
+<p></p>
+<pre>   $ fs-stat -f fs1 | get-key-value -k Size -w
+   12.79
+</pre>
+<p></p>
+<p>There are multiple occurrences of "User read ops". To display only the first occurrence, we can specify the occurrence number or limit the range of lines to search:</p>
+<pre>   $ fs-stat -f fs1 | get-key-value -k "User read ops" -w -o 1
+   1
+</pre>
+<p></p>
+<pre>   $ fs-stat -f fs1 | get-key-value -k "User read ops" -w --after Stats --before Combined
+   1
+</pre>
+<p></p>
+<p>Note that we can specify just a substring of the key or line pattern:</p>
+<pre>   $ fs-stat -f fs1 | get-key-value -k "read ops" -w --after Sta --before Comb
+   1
+</pre>
+<p></p>
+<p>2. Handle a key with optional leading tokens</p>
+<pre>   $ fs-show-bitmap-resiliency fs1
+   fs-show-bitmap-resiliency/fs1: File system has standard bitmap resiliency
+   fs-show-bitmap-resiliency/fs1: Data length           : 6.395 MB (6705152 B) or 1637 blocks
+   fs-show-bitmap-resiliency/fs1: Total blocks consumed : 1637
+</pre>
+<p></p>
+<p>To find out if the bitmap resiliency is standard or enhanced, we need to process the first output line. This line can be viewed as follows:</p>
+<pre>   - one leading token "fs-show-bitmap-resiliency/fs1:" must be ignored
+   - the full key is "File system" but we can specify just a substring like "system"
+   - the delimiter is "has"
+</pre>
+<p></p>
+<pre>   $ fs-show-bitmap-resiliency fs1 | get-key-value --number-tokens-to-skip 1 --key system --delimiter has
+   standard bitmap resiliency
+</pre>
+<p></p>
+<p>The first output line can also be viewed as follows:</p>
+<pre>   - two leading tokens "fs-show-bitmap-resiliency/fs1:" and "File" must be ignored
+   - the full key is "system"
+   - the delimiter is "has"
+</pre>
+<p></p>
+<pre>   $ fs-show-bitmap-resiliency fs1 | get-key-value -n 2 --key system --delimiter has
+   standard bitmap resiliency
+</pre>
+<p></p>
+<p>Another possibility:</p>
+<pre>   $ fs-show-bitmap-resiliency fs1 | get-key-value -n 3 --key has --delimiter " "
+   standard bitmap resiliency
+</pre>
+<p></p>
+<p>3. Get values of various keys from a three-column table:</p>
+<pre>   $ onode -o 2
+   onode/fs1: onode -o 2
+   onode/fs1: Read 4096 bytes from sector 0x6d9c8 ( Byte Offset 0xdb39000 )
+   onode/fs1:
+   onode/fs1: ActiveRootNode
+   onode/fs1:   AsciiDescriptor  : RONA
+   onode/fs1:   SanityDWord0     : WFS1 (valid)
+   onode/fs1:   ObjectNumber     : 0x2 (Type: OBJ_TYPE_FREE_SPACE)
+   onode/fs1:   Checkpoint       : 0xb50b4
+   onode/fs1:   ReuseCount       : 0x0
+   onode/fs1:   WriteCount       : 0x735
+   onode/fs1:   IndirectionCount : 2
+   onode/fs1:   ResiliencyMode   : None
+   onode/fs1:   DataLength       : 6.395 MB (6705152 B)
+   onode/fs1:   FreeRootOnodePtr : 0x0 (unused)
+   onode/fs1:   SavedRootOnodePtr: 0x0 (unused)
+   onode/fs1:   BlockPtr[00]     : 0x5b548 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[01]     : 0x5b550 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[02]     : 0x5b558 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[03]     : 0x5b560 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[04]     : 0x5b568 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[05]     : 0x5b570 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[06]     : 0x5b578 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[07]     : 0x5b580 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[08]     : 0x5b588 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[09]     : 0x5b590 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[10]     : 0x5b598 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[11]     : 0x5b5a0 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[12]     : 0x5b5a8 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[13]     : 0x5b5b0 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[14]     : 0x5b5b8 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[15]     : 0x5b5c0 (Checkpoint: 0xb5056)
+   onode/fs1:   LeafOnodePtr     : 0x6d9d0 (Checkpoint: 0xb50b4)
+   onode/fs1:   Format TimeStamp : 0x55eb93a0355b708f (2015-09-06 01:15:12.895185039+00:00)
+   onode/fs1:   Cloned Checkpoint: 0x0
+   onode/fs1:   Reserved[1]      : 0x0
+   onode/fs1:   Reserved[2]      : 0x0
+   onode/fs1:   BlockCount       : 1637 (used blocks)
+   onode/fs1:   CreationChkpoint : 0xb5056
+   onode/fs1:   Crc32            : 0xa0e71a (valid)
+   onode/fs1:   SanityDWord1     : WFS2 (valid)
+</pre>
+<p></p>
+<p>There are many ways to get the value of BlockPtr[04]:</p>
+<pre>   $ onode -o 2 | get-key-value --subkey BlockPtr[04]
+   0x5b568 (Checkpoint: 0xb5056)
+</pre>
+<p></p>
+<pre>   $ onode -o 2 | get-key-value --subkey 04
+   $ onode -o 2 | get-key-value --number-tokens-to-skip 1 --key BlockPtr[04]
+   $ onode -o 2 | get-key-value -n 1 --key 04
+</pre>
+<p></p>
+<p>To display just the leading word of the result:</p>
+<pre>   $ onode -o 2 | get-key-value --subkey BlockPtr[04] -w
+   0x5b568
+</pre>
+<p></p>
+<p>We can use strtoken to get the checkpoint number for BlockPtr[04] as follows.</p>
+<pre>   $ onode -o 2 | get-key-value --subkey BlockPtr[04] | strtoken -h %2
+   0xb5056
+</pre>
+<p></p>
+<p>4. The filter can be used to list a range of lines between two specific lines. For example, to list only lines between "BlockPtr[08]" and "LeafOnodePtr" exclusive:</p>
+<pre>   $ onode -o 2 | get-key-value --after BlockPtr\[08\] --before LeafOnodePtr -d ""
+   onode/fs1:   BlockPtr[09]     : 0x5b590 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[10]     : 0x5b598 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[11]     : 0x5b5a0 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[12]     : 0x5b5a8 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[13]     : 0x5b5b0 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[14]     : 0x5b5b8 (Checkpoint: 0xb5056)
+   onode/fs1:   BlockPtr[15]     : 0x5b5c0 (Checkpoint: 0xb5056)
+</pre>
+<p></p>
+<p>5. To get the checkpoint of BlockPtr[10]:</p>
+<pre>   $ onode -o 2 | get-key-value --has BlockPtr\[10\] --token-to-skip "(" -k Check
+   0xb5056)
+</pre>
+<p></p>
+<p>To show just the first value:</p>
+<pre>   $ onode -o 2 | get-key-value --has BlockPtr\[10\] --token-to-skip "(" -k Check -v
+   0xb5056
+</pre>
+<p></p>
+<p>6. Display a default value if the key and/or subkey are not found:</p>
+<pre>   $ echo Hello Joe | get-key-value --key name --default-value xyz
+   xyz
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Dev/fs-show-bitmap-resiliency.html">fs-show-bitmap-resiliency</a> <a href="../../Supervisor/fs-stat.html">fs-stat</a> <a href="../../Supervisor/onode.html">onode</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

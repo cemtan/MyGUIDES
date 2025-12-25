@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ftp-user</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ftp-user</h1>
+<p>Report, create, delete &amp; modify FTP user</p>
+<h1>Syntax</h1>
+<pre>ftp-user operation
+where &#39;operation&#39; is one of:
+list [&lt;username&gt;]
+add [-e] &lt;username&gt; &lt;file-system&gt; &lt;initdir&gt;
+del &lt;username&gt;
+delall [--confirm]
+mod [-e] [-f &lt;file-system&gt;] [-i &lt;dir&gt;] &lt;username&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The ftp-user command is used to configure a user's FTP access.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>list [&lt;username&gt;]</strong></dt>
+<dd><p>List all or single user.</p></dd>
+<dt><strong>add [-e] &lt;username&gt; &lt;file-system&gt; &lt;initdir&gt;</strong></dt>
+<dd><p>Add a new user, specifying file system and initial directory.</p></dd>
+<dd><p>&lt;username&gt; can be an NT/UNIX name, or a special name that designates anonymous access (either "anonymous" or "ftp").</p></dd>
+<dl>
+<dt><strong>-e, --ensure</strong></dt>
+<dd><p>Ensure 'initdir' exists.</p></dd>
+</dl>
+<dt><strong>del &lt;username&gt;</strong></dt>
+<dd><p>Delete a user.</p></dd>
+<dt><strong>delall [--confirm]</strong></dt>
+<dd><p>Delete all users.</p></dd>
+<dt><strong>mod [-e] [-f &lt;fs&gt;] [-i &lt;dir&gt;] &lt;username&gt;</strong></dt>
+<dd><p>Modify a user's configuration.</p></dd>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>Change file system to 'fs'.</p></dd>
+<dt><strong>-i, --initdir</strong></dt>
+<dd><p>Change initial directory to 'dir'.</p></dd>
+<dt><strong>-e, --ensure</strong></dt>
+<dd><p>Ensure 'dir' exists.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>Display all FTP users:</p>
+<pre>ftp-user list
+</pre>
+<p></p>
+<p>Add user 'john' on file system 'fs1' with initial directory '/johndir':</p>
+<pre>ftp-user add -e john fs1 /johndir
+</pre>
+<p></p>
+<p>Delete user 'rob':</p>
+<pre>ftp-user del rob
+</pre>
+<p></p>
+<p>Delete all users:</p>
+<pre>ftp-user delall --confirm
+</pre>
+<p></p>
+<p>Change file system to 'fs2' for user 'john':</p>
+<pre>ftp-user mod -f fs2 john
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ftp-cfg.html">ftp-cfg</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

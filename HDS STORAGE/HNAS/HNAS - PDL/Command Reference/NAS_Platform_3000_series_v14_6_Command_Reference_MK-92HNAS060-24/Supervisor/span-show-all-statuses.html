@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-show-all-statuses</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-show-all-statuses</h1>
+<p>Display the statuses of all spans</p>
+<h1>Syntax</h1>
+<pre>span-show-all-statuses [--verbose] [--separate]
+</pre>
+
+<h1>Description</h1>
+<p>'span-show-all-statuses' produces a list of all spans visible to the server, displaying the status of each span.</p>
+<p>The --verbose or -v option decodes the 'span status' field, showing any problems with the span.  Without --verbose, the status is shown only as a hexadecimal number.</p>
+<p>The --separate or -s option displays separate results for each cluster node.  Without --separate, each fault is displayed if it is present on any server.  Most faults are either present on all nodes or absent from all nodes, but a few can be present on one node and not on another.  For example, on a gateway server, if you disconnect all the Fibre Channel ports, all spans will fail on that server but not on its peers.</p>
+<p>Here are the fields displayed by this command:</p>
+<dl>
+<dt><strong>Span instance name</strong></dt>
+<dd><p>The 'storage-based-snapshot-label' man page explains the three kinds of span label.</p></dd>
+<dt><strong>Permanent ID</strong></dt>
+<dd><p>This long hexadecimal number uniquely identifies the span.</p></dd>
+<dt><strong>Span Status</strong></dt>
+<dd><p>This hexadecimal number is a bit-field showing all statuses of the span.</p></dd>
+<dd><p>The --verbose option displays the status more readably.</p></dd>
+<dt><strong>Color</strong></dt>
+<dd><p>This is the 'traffic light' color representation of the status: green = OK, amber = Warning, red = Severe.</p></dd>
+<dt><strong>Pnode</strong></dt>
+<dd><p>This field, which is shown only when you specify --separate, shows the physical node -- the server -- for which information is displayed on this line.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ span-show-all-statuses
+Span instance name             Permanent ID       Span status   Color
+------------------             ------------       -----------   -----
+Foo                            7BFCCF4E5E832C89   0000002000    Amber
+Run 'trouble storage' to start diagnosis
+server:$ span-show-all-statuses -v
+Span instance name             Permanent ID       Span status   Color
+------------------             ------------       -----------   -----
+Foo                            7BFCCF4E5E832C89   0000002000    Amber
+                                                  Path validation is in progress on some SDs
+</pre>
+<p></p>
+<pre>Run 'trouble storage' to start diagnosis
+server:$ span-show-all-statuses -s
+Span instance name             Permanent ID       Pnode   Span status   Color
+------------------             ------------       -----   -----------   -----
+Foo                            7BFCCF4E5E832C89
+                                                      1   0000000000    Green
+                                                      2   0000000000    Green
+                                                      3   0000002000    Amber
+Run 'trouble storage' to start diagnosis
+server:$ span-show-all-statuses -sv
+Span instance name             Permanent ID       Pnode   Span status   Color
+------------------             ------------       -----   -----------   -----
+Foo                            7BFCCF4E5E832C89
+                                                      1   0000000000    Green
+                                                          Status OK
+</pre>
+<p></p>
+<pre>                                                      2   0000000000    Green
+                                                          Status OK
+</pre>
+<p></p>
+<pre>                                                      3   0000002000    Amber
+                                                          Path validation is in progress on some SDs
+</pre>
+<p></p>
+<pre>Run 'trouble storage' to start diagnosis
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/span-list.html">span-list</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-add-path</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>migration-add-path</h1>
+<p>Adds a migration path for the specified vivol/volume.</p>
+<h1>Syntax</h1>
+<pre>migration-add-path -s &lt;fs label&gt; [-v &lt;vivol name&gt;] -t &lt;fs label list&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --source &lt;fs label&gt;</strong></dt>
+<dd><p>Source file system.</p></dd>
+<dt><strong>-v, --vivol &lt;vivol name&gt;</strong></dt>
+<dd><p>Name of source Virtual Volume (optional).</p></dd>
+<dt><strong>-t, --target &lt;fs label list&gt;</strong></dt>
+<dd><p>Target file system.</p></dd>
+</dl>
+<p>Adds a Data Migration relationship between a source file system or virtual volume and a target file system or a list of target file systems. The data migration function on the SMU can then be used to copy files selected by rule from the source to the target. The source file is replaced by a cross-file-system link to the target file. This allows users to continue accessing the source file.</p>
+<p>If multiple targets are to be used the list of target file systems is presented as a list of labels separated with colons. The migration-expand-path command may be used to add additional targets at a later stage.</p>
+<p>When multiple targets are selected the migration will spread the migrated files amongst the targets depending on the free space available on each.</p>
+<p>The migration path is also used to keep a record of the location of migrated files. It is not possible to change the migration path while there are cross-file-system links from the source file system or virtual volume to the target file system. If a path already exists, attempts to add a new path will fail.</p>
+<p>The source and target file systems must be assigned to the same EVS. If either is moved to a different EVS then both must be moved.</p>
+<p>The data migration system relies on the same mechanisms as the adjoined file system feature. These two features may not be used on the same file systems.</p>
+<h2>Access time based policy rules</h2>
+<p>Note: the use of an ACTIVE_WITHIN directive within a migration policy rule requires that access time maintenance has been enabled on the file system. See fs-accessed-time.</p>
+<h1>Examples</h1>
+<pre>migration-add-path -s fs1 -t fs2
+</pre>
+<p></p>
+<p>Creates a migration path from file system fs1 to file system fs2.</p>
+<pre>migration-add-path -s Accounts -v HR -t Company
+</pre>
+<p></p>
+<p>Creates a migration path from virtual volume HR on file system Accounts to file system Company.</p>
+<pre>migration-add-path -s fs1 -t fs2:fs3:fs4
+</pre>
+<p></p>
+<p>Creates a multi-target migration path from file system fs1 to file systems fs2, fs3 and fs4.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fs-accessed-time.html">fs-accessed-time</a> <a href="../Supervisor/migration-delete-path.html">migration-delete-path</a> <a href="../Supervisor/migration-expand-path.html">migration-expand-path</a> <a href="../Supervisor/migration-get-path.html">migration-get-path</a> <a href="../Supervisor/migration-list-paths.html">migration-list-paths</a> <a href="../Supervisor/migration-update-paths.html">migration-update-paths</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

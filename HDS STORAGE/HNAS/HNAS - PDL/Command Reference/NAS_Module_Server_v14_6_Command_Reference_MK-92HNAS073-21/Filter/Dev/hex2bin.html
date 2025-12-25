@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>hex2bin</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>hex2bin</h1>
+<p>Undoes hexdump</p>
+<h1>Syntax</h1>
+<pre>... | hex2bin 
+</pre>
+
+<h1>Description</h1>
+<p>The hex2bin filter converts hexdumps, like those from the eponymous command, back to the original data.</p>
+<h1>Examples</h1>
+<p>The output can be piped into the hexdump filter with switches to simplify the hexdump for scripted transformation. Contrast:</p>
+<pre>server:$ hexdump .bss 512 | grep vtable"|"same
+Using ANY symbol '.bss', size 0 B at address 0x9c00000
+                     vtable for FeatureSwitch+0x10
+                                             vtable for FeatureTelcSynchronizer+0x10
+                                             vtable for SimplerPersistentConfig&lt;unsigned int&gt;+0x10
+                     vtable for SimplerPersistentConfig&lt;bool&gt;+0x10
+                     vtable for SimplerPersistentConfig&lt;std::string&gt;+0x10
+..... same (for 2 more lines, 32 more bytes) .....
+                     vtable for LogTrace+0x18
+                                             vtable for LogTrace+0x68
+..... same (for 2 more lines, 32 more bytes) .....
+                     vtable for LogTrace+0xd8
+server:$
+</pre>
+<p></p>
+<p>... with:</p>
+<pre>server:$ hexdump .bss 512 | hex2bin | hexdump -v --no-symbols | grep vtable"|"same
+Using ANY symbol '.bss', size 0 B at address 0x9c00000
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Console</p>
+<h1>See Also</h1>
+<p><a href="../../Filter/User/hexdump.html">hexdump</a> <a href="../../Filter/Dev/strtransform.html">strtransform</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

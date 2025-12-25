@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ca-certificate-show</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ca-certificate-show</h1>
+<p>Show the installed custom certificates.</p>
+<h1>Syntax</h1>
+<pre>ca-certificate-show [--verbose | --pem]
+</pre>
+
+<h1>Description</h1>
+<p>The ca-certificate-show command displays the custom certificates contained in the system trusted certificate store.</p>
+<p>By default the command will output a summary list of the installed certificates.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-p, --pem</strong></dt>
+<dd><p>Output the certificates in base64 PEM format.</p></dd>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Output the certificates in human readable format.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To list the installed certificates:</p>
+<pre>$ ca-certificate-show
+</pre>
+<p></p>
+<pre>Status                 Valid from                Valid unti                      Name
+------   ------------------------   ------------------------   ----------------------
+ Valid   Oct 20 11:29:06 2017 GMT   Oct 20 11:29:06 2022 GMT   hcp-01.example.com.crt
+ Valid   Nov 22 11:23:07 2017 GMT   Nov 22 11:23:07 2022 GMT   hcp-02.example.com.crt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ca-certificate-delete.html">ca-certificate-delete</a> <a href="../Supervisor/ca-certificate-delete-all.html">ca-certificate-delete-all</a> <a href="../Supervisor/ca-certificate-import.html">ca-certificate-import</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cacls-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cacls-set</h1>
+<p>Set Security Descriptor element values</p>
+<h1>Syntax</h1>
+<pre>cacls-set revision &lt;uint8&gt; | control &lt;uint16&gt; | owner &lt;sid expression&gt; | group &lt;sid expression&gt; | [&lt;acl id&gt; ace &lt;ace id&gt; &lt;ace expression&gt;] &lt;file name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>WARNING: This command bypasses all security checks and doesn't ask for confirmation, so make sure you know what you're doing.</p>
+<p>The cacls-set command is used to set the Windows file access permissions for a file or directory by directly modifying the Security Descriptor for that item.</p>
+<p>The following options are available:</p>
+<dl>
+<dt><strong>cacls-set</strong></dt>
+<dd><p>owner &lt;account name | sid value&gt; &lt;file name&gt;</p></dd>
+<dd><p>Set Security Descriptor owner SID for file &lt;file name&gt;.</p></dd>
+<dt><strong>cacls-set</strong></dt>
+<dd><p>group &lt;account name | sid value&gt; &lt;file name&gt;</p></dd>
+<dd><p>Set Security Descriptor group SID for file &lt;file name&gt;.</p></dd>
+<dt><strong>cacls-set</strong></dt>
+<dd><p>&lt;acl id&gt; ace &lt;ace id&gt; &lt;expression | sid expression&gt;+ &lt;file name&gt;</p></dd>
+<dd><p>Set the field and corresponding value described by &lt;expression&gt; or &lt;sid expression&gt; in the ACE in position &lt;ace id&gt; in the ACL &lt;acl id&gt; for the file &lt;file name&gt;.  Multiple &lt;expression&gt; or &lt;sid expression&gt; statements can be given to set multiple fields in the same ACE.</p></dd>
+<dd><p>Note that in general it is only meaningful to set an ACE in position N assuming there are at least N pre-existing ACEs as setting an ACE generally assumes that the ACE is already present in the ACL. However, if the user sets the ACE in position N and there are exactly N-1 ACEs currently in the ACL a new ACE will be added to the ACL.  The new ACE will have default values for all fields not set by &lt;expression&gt; or &lt;sid expression&gt;.</p></dd>
+<dd><p>Note that a SID expression may be given only once per ACE id.</p></dd>
+</dl>
+<p>The following options are not currently supported but the syntax is listed for completeness:</p>
+<dl>
+<dt><strong>cacls-set</strong></dt>
+<dd><p>revision &lt;uint8&gt; &lt;file name&gt;</p></dd>
+<dd><p>Set Security Descriptor revision to &lt;uint8&gt; for file &lt;filename&gt;.</p></dd>
+<dt><strong>cacls-set</strong></dt>
+<dd><p>control &lt;uint16&gt; &lt;file name&gt;</p></dd>
+<dd><p>Set Security Descriptor control mask to &lt;uint16&gt; for file &lt;filename&gt;.</p></dd>
+</dl>
+<p>For a description of the meaning of values that can be applied to fields within a Security Descriptor see the cacls-fields manual page.</p>
+<h2>Meaning of terms</h2>
+<dl>
+<dt><strong>&lt;sid expression&gt;</strong></dt>
+<dd><p>In most cases the SID field of an ACE can be specified like so:</p></dd>
+<dd><p>who &lt;sid value | account name&gt;</p></dd>
+<dd><p>However, if the account name is ambiguous, e.g. root can refer to a Unix user or group, the following syntax must be used:</p></dd>
+<dd><p>user &lt;account name&gt;</p></dd>
+<dd><p>group &lt;account name&gt;</p></dd>
+<dt><strong>&lt;account name&gt;</strong></dt>
+<dd><p>An account name, e.g. "NT AUTHORITY\Anonymous Logon" in Windows style, ANONYMOUS@ for NFSV4.  Unix accounts can be specified either by user name or uid.  Kerberos accounts are specified in the usual user@realm style.</p></dd>
+<dd><p>If an account name is given rather than a Unix uid then the command will fail if the lookup fails.</p></dd>
+<dt><strong>&lt;sid value&gt;</strong></dt>
+<dd><p>S-v-i-a1-...-aN-r</p></dd>
+<dd><p>The character 'S' identifies that it's a SID, 'v' is the version, 'i' is the identifier authority, 'a1'...'aN' are the sub authorities and 'r' is the RID.  'v' is &lt;uint8&gt;; 'i' is &lt;uint8&gt;; 'a1...aN' are &lt;uint32&gt;; 'r' is &lt;uint 32&gt;.</p></dd>
+<dt><strong>&lt;acl id&gt;</strong></dt>
+<dd><p>'sacl' or 'dacl'; used to select the appropriate ACL.</p></dd>
+<dt><strong>&lt;ace id&gt;</strong></dt>
+<dd><p>&lt;uint16&gt;</p></dd>
+<dd><p>A &lt;uint16&gt; that selects, by position, the ACE to be modified.  Note that ACEs are numbered from 1, not 0.</p></dd>
+<dt><strong>&lt;expression&gt;</strong></dt>
+<dd><p>Set the nominated ACE field from the following:</p></dd>
+<dd><p>&lt;expression shortcut&gt;</p></dd>
+<dd><p>type &lt;uint8&gt;</p></dd>
+<dd><p>type &lt;allow | deny | auditx&gt;</p></dd>
+<dd><p>flags &lt;hex8&gt;</p></dd>
+<dd><p>flags &lt;f | d | p | i | I | S | F&gt;</p></dd>
+<dd><p>mask &lt;hex32&gt;</p></dd>
+<dd><p>mask &lt;r | w | a | x | d | D | t | T | n | N | c | C | o | y&gt;</p></dd>
+<dd><p>who &lt;sid value&gt;</p></dd>
+<dd><p>group &lt;account name&gt;</p></dd>
+<dd><p>owner &lt;account name&gt;</p></dd>
+<dd><p>See the cacls-fields manual page for an explanation of the abbreviations that can be used in place of explicit values above.</p></dd>
+<dd><p>Note that when setting an ACE, if you don't set all the fields in an ACE the unset values will retain their previous values from the old ACE.</p></dd>
+<dt><strong>&lt;expression shortcut&gt;</strong></dt>
+<dd><p>The following shortcuts effectively provide a convenient mask for a set of values but without the need to use the mask keyword.  See the cacls-fields manual page for details of the values associated with each shortcut.</p></dd>
+<dd><p>read</p></dd>
+<dd><p>write</p></dd>
+<dd><p>readexecute</p></dd>
+<dd><p>modify</p></dd>
+<dd><p>fullcontrol</p></dd>
+<dt><strong>&lt;uintN&gt;</strong></dt>
+<dd><p>an unsigned 'N' bit integer expressed as a decimal number, e.g. uint8, uint16, uint32.</p></dd>
+<dt><strong>&lt;hexN&gt;</strong></dt>
+<dd><p>an unsigned 'N' bit integer expressed as a hexadecimal number, e.g. hex8, hex16, hex32.</p></dd>
+</dl>
+<h1>Examples</h1>
+<dl>
+<dt><strong>cacls-set dacl ace 1 who S-1-0 flags i myfile</strong></dt>
+<dd><p>For the file myfile, update the ACE that is at position 1 in the DACL. In that ACE, set the SID to S-1-0 (NULL) and flags to Inherit Only ACE.</p></dd>
+<dt><strong>cacls-set dacl ace 5 mask rwx myfile</strong></dt>
+<dd><p>For the file myfile, update the ACE that is at position 5 in the DACL. In that ACE set the mask field to be Read Data / List Contents, Write Data / Create Child and Execute</p></dd>
+<dt><strong>cacls-set dacl ace 1 type allow fullcontrol who S-1-2-3-4 myfile</strong></dt>
+<dd><p>For the file myfile, update the ACE that is at position 1 in the DACL.  In that ACE set the type to allow, the mask to fullcontrol, and explicitly set the SID as S-1-2-3-4.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cacls-fields.html">cacls-fields</a> <a href="../Supervisor/chgrp.html">chgrp</a> <a href="../Supervisor/chmod.html">chmod</a> <a href="../Supervisor/chown.html">chown</a> <a href="../Supervisor/fs-dacl-mode.html">fs-dacl-mode</a> <a href="../Supervisor/security-decode-file.html">security-decode-file</a> <a href="../Supervisor/umask-directory-set.html">umask-directory-set</a> <a href="../User/umask-directory-show.html">umask-directory-show</a> <a href="../Supervisor/umask-file-set.html">umask-file-set</a> <a href="../User/umask-file-show.html">umask-file-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

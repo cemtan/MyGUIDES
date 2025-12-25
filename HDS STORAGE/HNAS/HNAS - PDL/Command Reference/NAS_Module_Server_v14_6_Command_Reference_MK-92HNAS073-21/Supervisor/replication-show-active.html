@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-show-active</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>replication-show-active</h1>
+<p>Show active object replication sessions</p>
+<h1>Syntax</h1>
+<pre>replication-show-active [-v]
+</pre>
+
+<h1>Description</h1>
+<p>Lists active object replication sessions and displays the aggregate throughput across all sessions originating from this physical node.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Provide more detailed information about the active object replication sessions.</p></dd>
+</dl>
+<p>Note that the time remaining is an estimate based on the file system data remaining. The latter shows "(calculating x%...)" if the estimate is not yet complete. The number of objects remaining is calculated separately and does not necessarily affect the time remaining.</p>
+<h1>Examples</h1>
+<pre>server:$ replication-show-active
+Active object replication sources:
+GUID: 3da52080-588f-11ca-9f05-c5d1939ee7a7
+  Source file system          : fs0 on EVS 1
+  Target file system          : fs1 on target-server(172.18.1.123):59550
+  Policy ID                   : 653e3bd0-50d3-11cb-90db-8163e0ec47af
+  Object replication type     : full copy of snapshot AUTO_SNAPSHOT_653e3bd0-50d3-11cb-90db-8163e0ec47af_4
+  Time elapsed                : 00:00:09/00:00:16
+       remaining              : 00:00:07
+  File system transfer rate   : 21.0388 MiB/s
+  File system data transferred: 189.349/353.458 MiB (53.5704%)
+                   remaining  : 164.109 MiB (46.4296%)
+  Data stream transfer rate   : 12.6232 MiB/s
+  Data stream transferred     : 113.609 MiB
+  Object transfer rate        : 2079.78 objects/s
+  Objects complete            : 18718/23999 (77.99%)
+          remaining           : 5281 (22.01%)
+</pre>
+<p></p>
+<pre>Active object replication targets:
+None
+</pre>
+<p></p>
+<pre>Replication throughput (all replications from this node): 24.85 MiB/s
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../Supervisor/replication-start.html">replication-start</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

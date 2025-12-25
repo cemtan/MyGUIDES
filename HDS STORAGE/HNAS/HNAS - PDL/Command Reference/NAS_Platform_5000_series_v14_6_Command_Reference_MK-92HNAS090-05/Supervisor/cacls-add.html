@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cacls-add</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cacls-add</h1>
+<p>Add ACLs and ACEs to a Security Descriptor</p>
+<h1>Syntax</h1>
+<pre>cacls-add &lt;acl id&gt; | [&lt;acl id&gt; ace &lt;ace id&gt; &lt;ace expression&gt;] &lt;file name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>WARNING: This command bypasses all security checks and doesn't ask for confirmation, so make sure you know what you're doing.</p>
+<p>The cacls-add command is used to add ACEs or ACLs to the Windows file access permissions for a file or directory by directly modifying the Security Descriptor for that item.</p>
+<p>The following options are available:</p>
+<dl>
+<dt><strong>cacls-add</strong></dt>
+<dd><p>&lt;acl id&gt; ace &lt;ace id&gt; &lt;expression | sid expression&gt;+ &lt;file name&gt;</p></dd>
+<dd><p>Add an ACE to the ACL &lt;acl id&gt; in position &lt;ace id&gt; and set one or more of its fields as specified in &lt;expression&gt; for the file &lt;file name&gt;.  Multiple &lt;expression&gt; or &lt;sid expression&gt; statements can be given to set multiple fields in the ACE being added.</p></dd>
+<dd><p>Note that in general it is only meaningful to add an ACE in position N assuming there are at least N-1 pre-existing ACEs.  If there are exactly N-1 ACEs then no ACEs will have to be moved otherwise the current ACE in position N and all subsequent ACEs will have to be shuffled down one place to make room.</p></dd>
+<dd><p>Note that a &lt;sid expression&gt; may be given only once per &lt;ace id&gt;.</p></dd>
+<dt><strong>cacls-add</strong></dt>
+<dd><p>&lt;acl id&gt; &lt;file name&gt;</p></dd>
+<dd><p>Add an empty ACL to the Security Descriptor for the file &lt;file name&gt;. Will only succeed if the ACL does not currently exist.  Use cacls-set or cacls-del to modify an existing ACL.</p></dd>
+</dl>
+<p>For a description of the meaning of values that can be applied to fields within a Security Descriptor see the cacls-fields manual page.</p>
+<h2>Meaning of terms</h2>
+<dl>
+<dt><strong>&lt;expression&gt;</strong></dt>
+<dd><p>Set the nominated ACE field from the following:</p></dd>
+<dd><p>&lt;expression shortcut&gt;</p></dd>
+<dd><p>type &lt;uint8&gt;</p></dd>
+<dd><p>type &lt;allow | deny | audit&gt;</p></dd>
+<dd><p>flags &lt;hex8&gt;</p></dd>
+<dd><p>flags &lt;f | d | p | i | I | S | F&gt;</p></dd>
+<dd><p>mask &lt;hex32&gt;</p></dd>
+<dd><p>mask &lt;r | w | a | x | d | D | t | T | n | N | c | C | o | y&gt;</p></dd>
+<dd><p>See the cacls-fields manual page for an explanation of the abbreviations that can be used in place of explicit values above.</p></dd>
+<dt><strong>&lt;sid expression&gt;</strong></dt>
+<dd><p>Setting the SID field of an ACE is slightly more complicated.  In most cases it can be specified like so:</p></dd>
+<dd><p>who &lt;sid value | account name&gt;</p></dd>
+<dd><p>However, if the account name is ambiguous, e.g. root can refer to a Unix user or group, the following syntax must be used:</p></dd>
+<dd><p>user &lt;account name&gt;</p></dd>
+<dd><p>group &lt;account name&gt;</p></dd>
+<dd><p>Note that if you use an &lt;expression&gt; or &lt;sid expression&gt; to add a new ACE but do not set all fields, default values will be used for the values not set.  The default value for integer or hexadecimal fields (type, flags, mask) is zero.  The default value for the SID field is to set it to the current value of the security descriptor owner field.</p></dd>
+<dt><strong>&lt;expression shortcut&gt;</strong></dt>
+<dd><p>The following shortcuts effectively provide a convenient mask for a set of values but without the need to use the mask keyword.  See the cacls-fields manual page for details of the values associated with each shortcut.</p></dd>
+<dd><p>read</p></dd>
+<dd><p>write</p></dd>
+<dd><p>readexecute</p></dd>
+<dd><p>modify</p></dd>
+<dd><p>fullcontrol</p></dd>
+<dt><strong>&lt;account name&gt;</strong></dt>
+<dd><p>An account name, e.g. "NT AUTHORITY\Anonymous Logon" in Windows style, ANONYMOUS@ for NFSV4.  Unix accounts can be specified either by user name or uid.  Kerberos accounts are specified in the usual user@realm style.</p></dd>
+<dd><p>An account name 'EXAMPLE\HOST1$' identifies a machine account for the computer 'HOST1'.</p></dd>
+<dd><p>If an account name is given rather than a Unix uid then the command will fail if the lookup fails.</p></dd>
+<dt><strong>&lt;sid value&gt;</strong></dt>
+<dd><p>S-v-i-a1-...-aN-r</p></dd>
+<dd><p>The character 'S' identifies that it's a SID, 'v' is the version, 'i' is the identifier authority, 'a1'...'aN' are the sub authorities and 'r' is the RID.  'v' is &lt;uint8&gt;; 'i' is &lt;uint8&gt;; 'a1...aN' are &lt;uint32&gt;; 'r' is &lt;uint 32&gt;.</p></dd>
+<dt><strong>&lt;acl id&gt;</strong></dt>
+<dd><p>'sacl' or 'dacl'; used to select the appropriate ACL.</p></dd>
+<dt><strong>&lt;ace id&gt;</strong></dt>
+<dd><p>&lt;uint16&gt;</p></dd>
+<dd><p>A &lt;uint16&gt; to select the ACE to set.  Note that ACEs are numbered from 1, not 0.</p></dd>
+<dt><strong>&lt;uintN&gt;</strong></dt>
+<dd><p>an unsigned 'N' bit integer expressed as a decimal number, e.g. uint8, uint16, uint32.</p></dd>
+<dt><strong>&lt;hexN&gt;</strong></dt>
+<dd><p>an unsigned 'N' bit integer expressed as a hexadecimal number, e.g. hex8, hex16, hex32.</p></dd>
+</dl>
+<h1>Examples</h1>
+<dl>
+<dt><strong>cacls-add dacl myfile</strong></dt>
+<dd><p>Add an empty DACL to file myfile.  Will only succeed if there is no pre-existing DACL.</p></dd>
+<dt><strong>cacls-add dacl ace 1 type deny who INTERACTIVE@ myfile</strong></dt>
+<dd><p>Add an ACE in DACL position 1 with type deny, lookup SID for group account INTERACTIVE@ and use it to set ACE 1 SID for file myfile.</p></dd>
+<dt><strong>cacls-add dacl ace 1 type allow who S-1-2-3-4 myfile</strong></dt>
+<dd><p>Add an ACE DACL in position 1 with type allow and SID S-1-2-3-4 to file myfile.</p></dd>
+<dt><strong>cacls-add dacl ace 1 readexecute user "NT AUTHORITY\Anonymous Logon" myfile</strong></dt>
+<dd><p>Add an ACE in position 1 of the DACL with readexecute mask, lookup SID for "NT AUTHORITY\Anonymous Logon" and use it to set ACE 1 SID for file myfile.  Note that we use the keyword "user" rather than "who" as "NT AUTHORITY\Anonymous Logon" has both user and group entries and we must therefore disambiguate.</p></dd>
+<dt><strong>cacls-add dacl ace 1 type allow who EXAMPLE\HOST1$ myfile</strong></dt>
+<dd><p>Add an ACE in DACL position 1 with type allow, lookup SID for machine account of the computer 'HOST1' and use it to set ACE 1 SID for file myfile.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cacls-fields.html">cacls-fields</a> <a href="../Supervisor/chgrp.html">chgrp</a> <a href="../Supervisor/chmod.html">chmod</a> <a href="../Supervisor/chown.html">chown</a> <a href="../Supervisor/fs-dacl-mode.html">fs-dacl-mode</a> <a href="../Supervisor/security-decode-file.html">security-decode-file</a> <a href="../Supervisor/umask-directory-set.html">umask-directory-set</a> <a href="../User/umask-directory-show.html">umask-directory-show</a> <a href="../Supervisor/umask-file-set.html">umask-file-set</a> <a href="../User/umask-file-show.html">umask-file-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

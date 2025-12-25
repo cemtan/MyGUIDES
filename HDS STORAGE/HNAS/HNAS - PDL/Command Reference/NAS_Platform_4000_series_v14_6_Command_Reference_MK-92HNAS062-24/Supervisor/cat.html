@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cat</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cat</h1>
+<p>Displays a dump of user data of one or more files</p>
+<h1>Syntax</h1>
+<pre>cat [--hex|--binary] [--offset &lt;offset&gt;] [--length &lt;number bytes to dump&gt;] [--stop-at-zero-byte|-s] &lt;path&gt; [[path1] ...] 
+</pre>
+
+<h1>Description</h1>
+<p>The cat command is used to display a dump of the user data of one or more files.  The command can be aborted with Ctrl-C.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-h, --hex</strong></dt>
+<dd><p>Produce a hex dump of the file.</p></dd>
+<dt><strong>-b, --binary</strong></dt>
+<dd><p>Specify that the file is binary to help the cat command flush the standard output regularly.</p></dd>
+<dt><strong>-o, --offset &lt;byte offset&gt;</strong></dt>
+<dd><p>Start dumping from the specified offset.</p></dd>
+<dd><p>The &lt;byte-offset&gt; and the &lt;byte-count&gt; below can be specified as a number with unit, or as an algebraic expression as described in the 'offset-and-length' man page.</p></dd>
+<dt><strong>-l, --length &lt;byte count&gt;</strong></dt>
+<dd><p>The number of bytes to dump (default is 4096; '0' can be specified to dump to the end of the file).</p></dd>
+<dt><strong>-s, --stop-at-zero-byte</strong></dt>
+<dd><p>Stop dumping when encountering the first zero byte starting from the specified offset.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. To display the first 512 bytes of file /mydir/myfile:</p>
+<pre>   cat --length 512 /mydir/myfile
+</pre>
+<p></p>
+<p>2. To display many files:</p>
+<pre>   cat file1.txt file2.txt file3.txt
+</pre>
+<p></p>
+<p>3. To dump the first 1024 bytes, or dump until reaching a zero byte, whichever occurs first:</p>
+<pre>   cat --length 1024 --stop-at-zero-byte data.txt
+</pre>
+<p></p>
+<p>4. To unzip a large file</p>
+<pre>   cat --length 0 --binary zipped.txt.gz | unzip
+</pre>
+<p></p>
+<p>If the file is very large, --binary option is needed so that cat can flush the standard output frequently.</p>
+<p>5. To hex dump:</p>
+<pre>   cat file.txt --hex
+</pre>
+<p></p>
+<p>The hex output formatting can be changed by nop or hexdump-set.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cd.html">cd</a> <a href="../Filter/Dev/hexdump-set.html">hexdump-set</a> <a href="../Filter/User/nop.html">nop</a> <a href="../Topic/offset-and-length.html">offset-and-length</a> <a href="../Supervisor/selectfs.html">selectfs</a> <a href="../Filter/User/unzip.html">unzip</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

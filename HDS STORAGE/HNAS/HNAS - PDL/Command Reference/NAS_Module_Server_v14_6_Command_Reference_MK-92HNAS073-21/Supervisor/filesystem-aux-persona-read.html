@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-aux-persona-read</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>filesystem-aux-persona-read</h1>
+<p>Reads the filesystem aux persona object in the specified filesystem</p>
+<h1>Syntax</h1>
+<pre>filesystem-aux-persona-read &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Display the detailed contents of the aux persona on the specified file system.</p>
+<p>All snapshots have a persona, but they only become important on replication target file systems (or file systems that were previously replication target file systems and have since been promoted to read/write). On a normal file system the persona of a snapshot simply specifies the file system and snapshot themselves. On a replication target file system the persona specifies the source file system and snapshot that the snapshot on the replication target corresponds to.</p>
+<p>All file systems also have an <strong>aux</strong> persona. This is used in scenarios where a replication target file system is subsequently promoted to read/write. In such cases the aux persona describes the original source file system that the was replicated to create the file system. Inspecting the aux persona can be useful in diagnosing replication problems.</p>
+<dl>
+<dt><strong>&lt;file-system&gt;</strong></dt>
+<dd><p>The file system for which persona details should be displayed.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>In general it should not be necessary to read and/or understand aux persona usage unless diagnosing a problem with a replication.</p>
+<p>Consider the case of a replication target file system that had personas as shown by:</p>
+<pre>  $ filesystem-persona-list replication_target_fs
+  Snapshot Name              Persona
+  -------------------------- ---------------------------------------------------------------------------------------------------------------
+  2021-06-09_0910+0100.tgt_rule "replication_source_fs", "2021-06-09_0910+0100.src_rule", 229, 2021-06-09 09:10:28+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0909+0100.tgt_rule "replication_source_fs", "2021-06-09_0909+0100.src_rule", 224, 2021-06-09 09:09:23+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0908+0100.tgt_rule "replication_source_fs", "2021-06-09_0908+0100.src_rule", 219, 2021-06-09 09:08:18+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0907+0100.tgt_rule "replication_source_fs", "2021-06-09_0907+0100.src_rule", 214, 2021-06-09 09:07:13+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0906+0100.tgt_rule "replication_source_fs", "2021-06-09_0906+0100.src_rule", 209, 2021-06-09 09:06:08+01:00, Incremental, ReplicationTargetComplete
+  LIVE                       "replication_source_fs", "2021-06-09_0910+0100.src_rule", 229, 2021-06-09 09:10:28+01:00, Incremental, ReplicationTargetComplete
+</pre>
+<p></p>
+<p>It is decided to roll the target file system back to the snapshot <code>2021-06-09_0908+0100.tgt_rule</code> representing the state of <code>replication_source_fs</code> at snapshot <code>2021-06-09_0908+0100.src_rule</code> and promote it to read/write. This is done with the <code>replication-recovery-task-submit</code> as follows:</p>
+<pre>  $ replication-recovery-task-submit --recovery-option promote-rw --recover-fs-dr-setting --recover-shares --recover-exports replication_target_fs 2021-06-09_0908+0100.tgt_rule
+</pre>
+<p></p>
+<p>Once that has completed we can inspect the state of the LIVE persona and aux persona on <code>replication_target_fs</code>:</p>
+<pre>  $ filesystem-persona-read replication_target_fs
+  Persona Object Contents [
+  Cluster UUID                    : bb0b8308-60d0-11d0-9000-2ddc7e1244b5
+  Unique volume ID                : 0x1244fac17e4b5c1a
+  Filesystem label                : "replication_target_fs"
+  Snapshot ID                     : 0
+  Snapshot label                  : ""
+  Snapshot time                   : 1970-01-01 01:00:00+01:00
+  Object replication start time   : 1970-01-01 01:00:00+01:00
+  Object replication end time     : 1970-01-01 01:00:00+01:00
+  Persona status                  : NonReplicationTarget
+  Object replication type         : None
+  Objects changed                 : 0
+  Data transferred/bytes          : 0
+  Local config object number      : 17(CONFIG_OBJECT_B)
+  Source config object number     : 16(CONFIG_OBJECT_A)
+  ] Persona Object Contents
+</pre>
+<p></p>
+<pre>  $ filesystem-aux-persona-read replication_target_fs
+  Aux Persona Object Contents [
+  Cluster UUID                    : bb0b8308-60d0-11d0-9000-2ddc7e1244b5
+  Unique volume ID                : 0x1244fafffd4672c0
+  Object creation time            : 2021-06-09 09:08:18+01:00
+  Snapshot ID                     : 0
+  Unique ID                       : 0xf3b83062
+  ] Aux Persona Object Contents
+</pre>
+<p></p>
+<p>Note that</p>
+<ul>
+<li>The LIVE persona refers to <code>replication_target_fs</code> and not the original source.</li>
+<li>The aux persona object is written on the replication target immediately after the end of a replication. The <code>Object creation time</code> field in the aux persona records the time that was done.</li>
+<li>The <code>Snapshot ID</code> field of the aux persona object is not used in the current implementation, and shows 0.</li>
+<li>The <code>Unique volume ID</code> of the aux persona is not that of <code>replication_target_fs</code> but is that of the original source <code>replication_source_fs</code> as hown below:</li>
+</ul>
+<pre>  $ filesystem-persona-read replication_source_fs 2021-06-09_0908+0100.src_rule
+  Persona Object Contents [
+  Cluster UUID                    : 00000000-0000-0000-0000-000000000000
+  Unique volume ID                : 0x1244fafffd4672c0
+  Filesystem label                : "replication_source_fs"
+  Snapshot ID                     : 0
+  Snapshot label                  : ""
+  Snapshot time                   : 1970-01-01 01:00:00+01:00
+  Object replication start time   : 1970-01-01 01:00:00+01:00
+  Object replication end time     : 1970-01-01 01:00:00+01:00
+  Persona status                  : NonReplicationTarget
+  Object replication type         : None
+  Objects changed                 : 0
+  Data transferred/bytes          : 0
+  Local config object number      : 16(CONFIG_OBJECT_A)
+  Source config object number     : 17(CONFIG_OBJECT_B)
+  ] Persona Object Contents
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-persona-list.html">filesystem-persona-list</a> <a href="../Supervisor/filesystem-persona-read.html">filesystem-persona-read</a> <a href="../Supervisor/replication-policy-create.html">replication-policy-create</a> <a href="../Supervisor/replication-recovery-task-submit.html">replication-recovery-task-submit</a> <a href="../User/snapshot-list.html">snapshot-list</a> <a href="../Supervisor/snapshot-recover-fs.html">snapshot-recover-fs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

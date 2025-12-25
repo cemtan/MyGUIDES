@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scheduler-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scheduler-stats</h1>
+<p>Reports core scheduler statistics</p>
+<h1>Syntax</h1>
+<pre>scheduler-stats [[-r] | [-v [&lt;additional divisor&gt;]]]
+</pre>
+
+<h1>Description</h1>
+<h2>Options</h2>
+<p>Report statistics about scheduler operation since the last time that the function was invoked or since the scheduler started for the first invocation.</p>
+<p>Usage:</p>
+<pre>scheduler-stats [[-r] | [-v [&lt;additional divisor&gt;]]]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-r</strong></dt>
+<dd><p>Reset the scheduler statistics without displaying anything.</p></dd>
+<dt><strong>-v</strong></dt>
+<dd><p>Display verbose statistics - in addition to the human-readable values, display the raw recorded data.</p></dd>
+<dt><strong>&lt;divisor&gt;</strong></dt>
+<dd><p>Provide an integer value to be used to generate a third column of values. Values in this third column are calculated as:</p></dd>
+<dd><p>&lt;raw value&gt; / &lt;elapsed time in seconds&gt; / &lt;divisor&gt;</p></dd>
+</dl>
+<h2>Understanding the output</h2>
+<p>The output is separated into 4 sections, the first giving the proportions of CPU time being spent in a variety of states, the second giving the per-second rate of certain scheduler events and the last two giving information about the level of parallel processing achieved.</p>
+<p>The rest of this section describes the individual terms used in the output.</p>
+<dl>
+<dt><strong>Time elapsed</strong></dt>
+<dd><p>The elapsed time in seconds since the command was last invoked (or the scheduler was started for the first invocation). If the period is less than 1s this is given in ms.</p></dd>
+<dd><p>The rest of the time statistics are given as percentages of this time.</p></dd>
+<dt><strong>Time active</strong></dt>
+<dd><p>The percentage of time spent with at least one pthread worker non-idle.</p></dd>
+<dt><strong>Time inactive</strong></dt>
+<dd><p>The percentage of time spent with all pthread workers idle.</p></dd>
+<dt><strong>Time in SMP mode</strong></dt>
+<dd><p>The percentage of time spent in symmetric multi processor mode.</p></dd>
+<dt><strong>Time in UP mode</strong></dt>
+<dd><p>The percentage of time spent in uniprocessor mode.</p></dd>
+<dt><strong>Time to wake workers</strong></dt>
+<dd><p>The percentage of time taken waking worker pthreads.</p></dd>
+<dt><strong>Time to acquire scheduler lock</strong></dt>
+<dd><p>The percentage of time taken acquiring the scheduler lock.</p></dd>
+<dt><strong>Time busy waiting</strong></dt>
+<dd><p>The percentage of time spent busy waiting on a BOS automatic event or mutex.</p></dd>
+<dt><strong>Time draining SMP threads</strong></dt>
+<dd><p>The percentage of time taken when SMP threads are running but no new work can be started because the next piece of work requires UP mode.</p></dd>
+<dt><strong>Time non-hogs</strong></dt>
+<dd><p>The percentage of time taken by threads that don't hog the CPU. Note that for non SMP capable threads the time is multiplied by the physical parallelism since this makes the resource unavailable for other users.</p></dd>
+<dt><strong>Time hogs</strong></dt>
+<dd><p>The percentage of time taken by threads that hog the CPU. Note that for non SMP capable threads the time is multiplied by the physical parallelism since this makes the resource unavailable for other users.</p></dd>
+<dt><strong>Total execution time</strong></dt>
+<dd><p>The total across all workers of the time spent active (non idle), expressed as a percentage of the elapsed time.</p></dd>
+<dt><strong>Block count</strong></dt>
+<dd><p>The number of times per second fibers blocked.</p></dd>
+<dt><strong>Yield count</strong></dt>
+<dd><p>The number of times per second fibers yielded.</p></dd>
+<dt><strong>UP schedules</strong></dt>
+<dd><p>The number of contiguous blocks of UP tasks.</p></dd>
+<dt><strong>SMP schedules</strong></dt>
+<dd><p>The number of contiguous blocks of SMP tasks.</p></dd>
+<dt><strong>SMP wake count</strong></dt>
+<dd><p>The number of times per second we've woken an SMP worker.</p></dd>
+<dt><strong>Total scheduler events</strong></dt>
+<dd><p>Total number of SMP scheduling events and UP scheduling events per second.</p></dd>
+<dt><strong>SMP scheduling events</strong></dt>
+<dd><p>The number of times per second the dispatcher is entered in SMP mode.</p></dd>
+<dt><strong>UP scheduling events</strong></dt>
+<dd><p>The number of times per second the dispatcher is entered in UP mode.</p></dd>
+<dt><strong>Productive SMP scheduling events</strong></dt>
+<dd><p>The number of SMP capable fibers that were scheduled per second.</p></dd>
+<dt><strong>Productive UP scheduling events</strong></dt>
+<dd><p>The number of UP capable fibers that were scheduled per second.</p></dd>
+<dt><strong>Unproductive SMP scheduling events</strong></dt>
+<dd><p>"SMP scheduling events" minus "Productive SMP scheduling events". Broadly speaking an unproductive SMP scheduling event is a context switch in SMP mode that leads to the idle fiber being selected for execution.</p></dd>
+<dt><strong>Unproductive UP scheduling events</strong></dt>
+<dd><p>"UP Scheduling events" minus "Productive UP scheduling events". Broadly speaking an unproductive UP scheduling event is a context switch in UP mode that leads to the idle fiber being selected for execution.</p></dd>
+<dt><strong>Yield monitor prods</strong></dt>
+<dd><p>If this value is close to 100 then the ready-queue is probably being turned over at least ~100 times per second i.e. a lower bound. For all other value then this is the rate at which the ready-queue is being turned over. Note that periods of very fast turnover won't compensate for periods of slow turnover. The computation can be considered to be an average over an infinite number of subdivisions of the "Time elapsed" where the rate in any subdivision can't exceed 100 per second.</p></dd>
+<dt><strong>Available physical parallelism</strong></dt>
+<dd><p>The number of physical CPUs that are available to the scheduler. A physical CPU hosts one or more logical CPUs and each logical CPU can host one or more worker threads.</p></dd>
+<dt><strong>Available logical parallelism</strong></dt>
+<dd><p>The number of worker threads available.</p></dd>
+<dt><strong>Load factor</strong></dt>
+<dd><p>The total time divided by the elapsed time i.e. the average number of worker threads that are concurrently active.</p></dd>
+<dt><strong>Load factor - active</strong></dt>
+<dd><p>The total time divided by the active time.</p></dd>
+<dt><strong>Max parallelism achieved</strong></dt>
+<dd><p>The "Load factor" divided by the number of worker threads expressed as a percentage.</p></dd>
+<dt><strong>Max parallelism achieved - active</strong></dt>
+<dd><p>The "Load factor - active" divided by the number of worker threads expressed as a percentage.</p></dd>
+<dt><strong>Average tasks per SMP schedule</strong></dt>
+<dd><p>The average number of tasks in each SMP schedule. Short SMP schedules are very inefficient.</p></dd>
+<dt><strong>Average tasks per UP schedule</strong></dt>
+<dd><p>The average number of tasks in each UP schedule.</p></dd>
+<dt><strong>Table</strong></dt>
+<dd><p>The final table shows the percentage of the elapsed time that was spent with various numbers of worker threads active.</p></dd>
+</dl>
+<h1>Examples</h1>
+<h2>Default output</h2>
+<pre>  $scheduler-stats
+  Times relative to elapsed time
+  ------------------------------
+  Time elapsed                      :        403.00 s
+  Time active                       :         84.85 %
+  Time inactive                     :         15.15 %
+  Time in SMP mode                  :         83.06 %
+  Time in UP mode                   :          1.79 %
+  Time to wake workers              :          1.04 %
+  Time to acquire scheduler lock    :         12.73 %
+  Time busy waiting                 :          0.47 %
+  Time draining SMP threads         :          0.97 %
+  Time non-hogs                     :        307.90 %
+  Time hogs                         :          0.42 %
+  Total execution time              :        306.99 %
+</pre>
+<p></p>
+<pre>  Event counts per second
+  -----------------------
+  Block count                       :     261461.03
+  Yield count                       :      30046.71
+  SMP schedules                     :       2884.25
+  UP schedules                      :        269.32
+  SMP wake count                    :      17251.44
+  Total scheduling events           :     311891.99
+    SMP scheduling events           :     308496.10
+      Productive SMP events         :     290981.29
+      Unproductive SMP events       :      17514.81
+    UP scheduling events            :       3395.88
+      Productive UP events          :        526.45
+      Unproductive UP events        :       2869.43
+  Yield monitor prods               :         99.98
+</pre>
+<p></p>
+<pre>  Parallelism
+  -----------
+  Available physical parallelism    :          4             physical CPUs
+  Available logical parallelism     :          4             threads
+  Load factor (active)              :          3.07 (  3.62) threads
+  Max parallelism achieved (active) :         76.75 ( 90.46) %
+  Average tasks per SMP schedule    :        100.89
+  Average tasks per UP schedule     :          1.95
+</pre>
+<p></p>
+<pre>  Percentage of time with N threads active
+  ----------------------------------------
+    0  15.15
+    1   6.65 (4.87 SMP, 1.79 UP)
+    2   2.49
+    3   7.44
+    4  68.26
+</pre>
+<p></p>
+<h2>Verbose output with an additional divisor used to give per operation measurements in this example</h2>
+<pre>  $scheduler-stats -v 177000
+  Times relative to elapsed time                                 raw times      raw / s / divisor
+  ------------------------------                                 ---------      -----------------
+  Time elapsed                      :        244.95 s         244948691393 ns             5649.72 ns
+  Time active                       :         84.84 %         207809440248 ns             4793.10 ns
+  Time inactive                     :         15.16 %          37139251145 ns              856.61 ns
+  Time in SMP mode                  :         83.05 %         203422063591 ns             4691.91 ns
+  Time in UP mode                   :          1.79 %           4387376657 ns              101.19 ns
+  Time to wake workers              :          1.04 %           2542318977 ns               58.64 ns
+  Time to acquire scheduler lock    :         12.80 %          31346508869 ns              723.00 ns
+  Time busy waiting                 :          0.46 %           1134893228 ns               26.18 ns
+  Time draining SMP threads         :          1.00 %           2453070344 ns               56.58 ns
+  Time non-hogs                     :        307.35 %         752847147840 ns            17364.35 ns
+  Time hogs                         :          0.48 %           1174128741 ns               27.08 ns
+  Total execution time              :        306.48 %         750723259085 ns            17315.36 ns
+</pre>
+<p></p>
+<pre>  Event counts per second                                       raw counts      raw / s / divisor
+  -----------------------                                       ----------      -----------------
+  Block count                       :     259895.88               63661156                   1.47
+  Yield count                       :      31866.82                7805735                   0.18
+  SMP schedules                     :       2908.51                 712435                   0.02
+  UP schedules                      :        293.43                  71876                   0.00
+  SMP wake count                    :      16885.10                4135984                   0.10
+  Total scheduling events           :     312141.13               76458562                   1.76
+    SMP scheduling events           :     308708.22               75617675                   1.74
+      Productive SMP events         :     291215.54               71332865                   1.65
+      Unproductive SMP events       :      17492.68                4284810                   0.10
+    UP scheduling events            :       3432.91                 840887                   0.02
+      Productive UP events          :        547.16                 134026                   0.00
+      Unproductive UP events        :       2885.75                 706861                   0.02
+  Yield monitor prods               :         99.98                  24490                   0.00
+</pre>
+<p></p>
+<pre>  Parallelism
+  -----------
+  Available physical parallelism    :          4             physical CPUs
+  Available logical parallelism     :          4             threads
+  Load factor (active)              :          3.06 (  3.61) threads
+  Max parallelism achieved (active) :         76.62 ( 90.31) %
+  Average tasks per SMP schedule    :        100.13
+  Average tasks per UP schedule     :          1.86
+</pre>
+<p></p>
+<pre>  Percentage of time with N threads active
+  ----------------------------------------
+    0  15.16
+    1   6.82 (5.03 SMP, 1.79 UP)
+    2   2.51
+    3   7.39
+    4  68.12
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/ops.html">ops</a> <a href="../Supervisor/profile.html">profile</a> <a href="../Supervisor/thread-list.html">thread-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-mirror-remotely</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-mirror-remotely</h1>
+<p>Add mirror relationships to a span whose secondary SDs aren&#39;t visible to this server</p>
+<h1>Syntax</h1>
+<pre>sd-mirror-remotely [--ssfs | -s] &lt;span-instance-name&gt; &lt;Luid-file-name&gt; &lt;Cod-file-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Some replication products, such as TrueCopy and Hitachi Universal Replicator, increase redundancy by mirroring data between two independent sets of media.  In configurations where a single cluster can see both the primary and the secondary system drives (SDs), the 'sd-mirror-prepare' and 'sd-mirror-detect' commands can be used to configure the relationships into the server and prepare it to fail over when necessary.  However, if the primary SDs are visible only to one server (or cluster) and the secondaries only to another server (or cluster), 'sd-mirror-remotely' must be used.</p>
+<p>(GAD is an exception: there is no need to configure GAD mirror relationships into the server or to unmount file systems before performing a graceful GAD failover.)</p>
+<p>In nearly every case, primary SDs are mirrored P-Vols and secondaries are S-Vols.  The 'storage-based-mirror' man page describes the exceptions to this general rule.</p>
+<p>The procedure is:</p>
+<p>1. Use your storage configurator, such as Storage Navigator or Hitachi Command Suite, to ensure that the secondary SDs (usually S-Vols) are up to date with the primary SDs (usually P-Vols).  Depending on the mirror type, this may mean checking that pairs are synchronized or performing a manual synchronization.</p>
+<p>2. Walk to the server or cluster connected to the secondary SDs.  Use 'sd-list' and 'sd-allow-access' to ensure that all the secondary SDs you wish to use are licensed (i.e. the server is allowed to access them).</p>
+<p>3. If the primary and secondary server are in the same cluster, use the 'evs migrate' command to move the Admin Service to a server that is connected to the secondary storage.  Then, on the secondary server, run the following commands:</p>
+<pre>ssc ... sd-luids-list              &gt; luids.txt
+ssc ... sd-dump-cod span all:2:a:h &gt; cod.txt
+</pre>
+<p></p>
+<p>(The three dots represent the usual ssc syntax for specifying the username, password and server name or IP address of the <strong>secondary</strong> server.)</p>
+<p>If the second command times out, use ssc's -t switch to increase the timeout.</p>
+<p>The use of ssc is not essential: if you prefer, you can run the commands in some other console and copy &amp; paste the text into the two text files.  In this case, however, be careful not to include anything in the text files other than the output of the commands themselves.</p>
+<p>Do not edit the files in any way except to strip out any extraneous surrounding text such as command prompts and the output of other commands.</p>
+<p>4. Move the files, if necessary, to a machine that has an ssc console to the server or cluster that is connected to the primary storage.</p>
+<p>If necessary, move the Admin Service to a server that is connected to the primary storage.  Then run the following command:</p>
+<pre>ssc ... sd-mirror-remotely Accounts luids.txt cod.txt
+</pre>
+<p></p>
+<p>(The three dots represent the usual ssc syntax for specifying the username, password and server name or IP address of the <strong>primary</strong> server.  'Accounts' stands for the instance name of the span into which you wish to configure mirror relationships.)</p>
+<p>Once again, the use of ssc is not essential: if you prefer, you can move the luids.txt and cod.txt files on to the server's built-in SSFS file system and then use some other console environment.</p>
+<p>If you use ssc but wish to read the files from the SSFS file system, you must use --ssfs; without this switch, the files will be read from the file system of the machine running the ssc client.  In all other console environments, the two text files are always read from SSFS, and the --ssfs switch is tolerated but ignored.</p>
+<p>If the files are read from the SSFS file system, they will, by default, be read from whichever server is running the Admin Service.  If the files reside on another cluster node, you will need to say so explicitly, using the syntax described in the 'ssfs' man page.</p>
+<p>'span-list -s' can be used to confirm that mirror relationships have been configured into the server.</p>
+<p>If the span's primary SDs have been assigned to tiers, the new secondary SDs will automatically be assigned to the same tiers, so that the span's tiers remain coherent.</p>
+<p>If you wish to configure mirror relationships into further spans, repeat this step as many times as necessary, reusing the same text files on each occasion.</p>
+<p>5. This step applies only to configurations in which the primary and secondary SDs are connected to different clusters, rather than to separate nodes in the same cluster.</p>
+<p>On the primary server, use 'span-add-cluster-uuid' to add the secondary cluster's UUID to the span.  This command enables the secondary cluster to mount its copies of the file systems after a failover.  Then resynchronize mirrors if necessary, and use 'sd-rescan-cod &lt;span-instance-name&gt;' on the secondary cluster to unload the span if 'span-list' reports that it is loaded there.  From this point onwards, the secondary cluster will be unaware of the span; it will not show up up the output of 'span-list', for example.  After any future failover, the secondary cluster will thus reload the span and become aware that its own cluster UUID is in the Cod.</p>
+<p>If the span is tiered, run 'span-encode-tiers' at the production cluster.  After the next failover, use 'span-decode-tiers' to copy SD tiering information from the production cluster to the backup cluster.</p>
+<p>If necessary, 'sd-mirror-remotely' will add the secondary SDs to the registry of the primary cluster, and they will be visible in the output of 'span-list -s' and 'sd-list'.  There is no need to license (allow access to) these SDs on the primary cluster and, provided that you do not do so, they do not count towards your storage capacity license.  In the same way, SDs visible only on the primary cluster will be visible when 'sd-list' is run on the secondary cluster, but the administrator need not and should not license them there.</p>
+<p>You will normally not wish to see events on the primary cluster, warning you that (from this cluster's perspective) these secondary SDs are unhealthy.  To suppress these events, run this command on the primary cluster:</p>
+<pre>span-deny-access --secondaries Accounts
+</pre>
+<p></p>
+<p>('Accounts' stands, as usual, for the instance name of the span you have just mirrored.)</p>
+<p>In this configuration (but not if all servers are in the same cluster), two additional steps will be needed after the first failover (but only the first):</p>
+<ol>
+<li>On the secondary cluster, use 'evsfs' to bind each mirrored filesystem to an EVS.</li>
+<li>On the secondary cluster, use 'cifs-share' or 'nfs-export' to create shares and/or exports.</li>
+</ol>
+<p>It is not necessary for the EVS binding and the shares and exports to be identical on the two clusters.</p>
+<p>Shares, exports and EVS bindings are stored separately in each cluster's registry, and not on disk.  In addition, if one cluster creates, expands or deletes a filesystem or expands the span, the other cluster will not become automatically aware of it.  In the worst case, a cluster could think that a deleted file system still existed, and might write to disk space that had been reallocated to a different file system, causing loss of data.</p>
+<p>As a result, the following steps must be taken on the new primary cluster immediately after every failover, before the cluster is allowed to mount file systems:</p>
+<ol>
+<li>'sd-rescan-cod &lt;span-instance-name&gt;' must be used to reload the span and its filesystems from Cod.  This step will make the cluster aware if any filesystems have been created, expanded, deleted, renamed, etc.  Otherwise, as described above, there is a risk of data-loss.  After 'sd-rescan-cod' returns control, leave a few seconds for Cod to reload.  'span-wait-for-loading --global' will avoid the need for guesswork.</li>
+<li>If any new file systems have been created and are to be mounted on the new primary cluster, the administrator must use 'evsfs' to bind them to EVSs.  Otherwise, it will be impossible to mount the new file systems on the new primary cluster.</li>
+<li>If any shares or exports have been created, deleted or modified on the old primary cluster, the administrator should consider making equivalent changes on the new primary cluster.  Otherwise, protocol clients will not have the correct access to the file systems.</li>
+<li>If any filesystems have been deleted on the old primary cluster, the administrator should use 'filesystem-forget-and-delete-nv-data' to remove them from the registry of the new primary cluster.  Otherwise, in time, all filesystem device IDs will be used up, and 'sd-rescan-cod', run in step 1, will be unable to load the span's filesystems, causing unnecessary loss of service.  In case of doubt, 'filesystem-list-stored --unloaded' will list filesystems that were once loaded but are no longer so.  If it is certain that the filesystem listed by this command have been deleted, the administrator should remove them from the registry using 'filesystem-forget-and-delete-nv-data'.</li>
+</ol>
+<h2>TROUBLESHOOTING</h2>
+<p>If 'sd-mirror-remotely' detects a problem with one of the input files, it will display an error message.  In certain conditions, it is also possible that no error message will be displayed, but the server will configure fewer mirror relationships than expected.  Follow these steps:</p>
+<ol>
+<li>Ensure that the input files have not been edited in any way other than by by the removal of leading and trailing lines.  If this is not the case, create fresh input files and repeat the command.</li>
+<li>Ensure that the primary and secondary SDs held identical Cod when the input files were generated, and that the Cod on the primaries did not change between the initial generation of the input files and the use of 'sd-mirror-remotely'.  The first step means ensuring that synchronous mirrors are paired or that asynchronous mirrors are updated just before the input files are generated.  The second step means doing as little as possible to the span between the generation of the input files and the successful use of 'sd-mirror-remotely'.  (There is no need to unmount file systems, quiesce I/O or prevent filesystem expansion: only span Cod need remain unchanged.)</li>
+<li>Ensure that the input files have not been truncated, and that all the necessary SDs appear in both files.  Take care when checking the input files, because SDs' device IDs will usually differ between clusters.  This difference does not present a problem for 'sd-mirror-remotely', but it does make manual checking more difficult.  All device IDs in the input files will be those used on the secondary server or cluster.</li>
+</ol>
+<h1>Examples</h1>
+<pre>ssc -u mandyw -p 4f4mIzcCtRs5m brahms sd-mirror-remotely Accounts luids.txt cod.txt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-forget-and-delete-nv-data.html">filesystem-forget-and-delete-nv-data</a> <a href="../Supervisor/filesystem-list-stored.html">filesystem-list-stored</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-luids-list.html">sd-luids-list</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/span-add-cluster-uuid.html">span-add-cluster-uuid</a> <a href="../Supervisor/span-decode-tiers.html">span-decode-tiers</a> <a href="../Supervisor/span-encode-tiers.html">span-encode-tiers</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/ssfs.html">ssfs</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

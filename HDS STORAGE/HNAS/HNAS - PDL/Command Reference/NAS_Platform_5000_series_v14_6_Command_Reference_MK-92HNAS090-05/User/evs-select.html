@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>evs-select</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>evs-select</h1>
+<p>Set EVS context</p>
+<h1>Syntax</h1>
+<pre>evs-select [-q] [&lt;evs-id&gt; [command]]
+Alias:       evssel
+Alias:       vn
+</pre>
+
+<h1>Description</h1>
+<p>This command sets the EVS that certain following commands apply to. It can also be used as a prefix to set the EVS for just one command.</p>
+<p>The first parameter is an EVS id which must be a valid, active EVS in the system.</p>
+<p>The id "admin" may be specified to reset the context to its default.</p>
+<p>The id "all" may be specified to run the following command in the context of each active EVS sequentially. This does not include the Admin Service.</p>
+<p>Commands that are marked as specific to the Admin Service will be forwarded to the cnode hosting the Admin Service. Commands that are marked as specific to an EVS can only be executed when an EVS is "in context", via this command or others. When an EVS is "in context", commands that are marked as being specific to an EVS will be run on the cnode hosting that EVS. Other commands are run locally. A command's specificity to the Admin Service or an EVS is given by the "Needs:" line of its help. Contrast the behavior of "evs-select all" with that of "for-each-evs", which runs its command argument on the cnode hosting the EVS, regardless of the command's requirements.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-q</strong></dt>
+<dd><p>Don't echo EVS number with "all" option.</p></dd>
+</dl>
+<p>ssrun -c can be useful when trying to run complicated commands.</p>
+<h1>Examples</h1>
+<p>The prompt changes to reveal the context:</p>
+<pre>server-a:$ evs-select 1
+server-a[server-s]:$
+</pre>
+<p></p>
+<p>Some commands perform different functions in the context of the Admin Service and a serving EVS:</p>
+<pre>server-a:$ cifs-share list
+CIFS Share List: No shares are currently configured.
+server-a:$ evs-select 1 cifs-share list | wc -l
+53
+server-a:$
+</pre>
+<p></p>
+<p>The EVSs enumerated are displayed on standard error:</p>
+<pre>server-a:$ evs-select all df
+EVS 1:
+</pre>
+<p></p>
+<pre>  ID     Label      Size            Used   Snapshots  Reduction           Avail  Thin               FS Type
+----  --------  --------  --------------  ----------  ---------  --------------  ----  --------------------
+1024        fs  3.969 GB  2.121 GB (53%)    0 B (0%)         NA  1.848 GB (47%)    No   4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>EVS 2:
+</pre>
+<p></p>
+<pre>  ID     Label      Size            Used   Snapshots  Reduction           Avail  Thin               FS Type
+----  --------  --------  --------------  ----------  ---------  --------------  ----  --------------------
+1025        rc  3.969 GB  2.111 GB (53%)  Read Cache         NA  1.858 GB (47%)    No  4 KB,ro,WFS-2,2 DSBs
+</pre>
+<p></p>
+<pre>server-a: $
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Console</p>
+<h1>See Also</h1>
+<p><a href="../User/cn.html">cn</a> <a href="../User/console-context.html">console-context</a> <a href="../Topic/console-prompt-style.html">console-prompt-style</a> <a href="../User/evs.html">evs</a> <a href="../Supervisor/for-each-evs.html">for-each-evs</a> <a href="../User/ssrun.html">ssrun</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

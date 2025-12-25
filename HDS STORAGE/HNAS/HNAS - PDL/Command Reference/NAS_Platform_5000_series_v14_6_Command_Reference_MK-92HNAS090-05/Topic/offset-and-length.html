@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>offset-and-length</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>offset-and-length</h1>
+
+<h1>Description</h1>
+<p>A number of file system commands have offset and length arguments that are commonly specified as a single number in byte unit. But they can also be specified with other byte units such as KB, MB, etc, or as an algebraic expression that yields an integer result, such as 5MB+4KB+20. This man page describes the details.</p>
+<h2>A. Single Unsigned Number</h2>
+<p>The default unit of offsets and lengths is byte. But a certain suffix can be appended to the value to indicate a different unit such as KB, MB, etc. Note that there is no spacing between the numeric value and the suffix. For example, 5KB means 5*1024 bytes.</p>
+<h3>1. Supported Units</h3>
+<p>There are two types of units:</p>
+<p><strong>a. Standard Byte Units</strong></p>
+<pre>        K or KB or KiB means 1024 bytes
+        M or MB or MiB means 1024 KB
+        G or GB or GiB means 1024 MB
+        T or TB or TiB means 1024 GB
+        P or PB or PiB means 1024 TB
+        E or EB or EiB means 1024 PB
+        Z or ZB or ZiB means 1024 EB
+        Y or YB or YiB means 1024 ZB
+</pre>
+<p></p>
+<p><strong>b. Special Unit</strong></p>
+<pre>        BLK means the block size of the file system on which the BALI command is running.
+</pre>
+<p></p>
+<p>Note that the special suffix can be specified alone or prefixed with one of the one-letter standard suffixes above. For instance, 5KBLK means 5*1024BLK, 4MBLK means 4*1024*1024BLK, etc.</p>
+<p>When accompanied by a unit, the leading numeric can be a floating-point number. However, the result after evaluating the unit is always truncated to the nearest whole number of bytes. For example, 1.1KB is 1126 bytes.</p>
+<h3>2. Scientific Notation</h3>
+<p>When specified in base 10, the unsigned number can be written in scientific notation as long as the result is a whole integer because a fractional byte does not make sense. For example, 3.14e2 is valid (value: 314), but 3.141e2 is invalid (value: 314.1).</p>
+<p>Scientific notation and units cannot be specified simultaneously for the same number; e.g., 12.7e3KB is invalid, 2.5KBe3 is interpreted as having an unknown unit KBe.</p>
+<p>Note the letter E can cause ambiguity between the exponent and the exabyte unit:</p>
+<pre>    - Unambiguous (valid):
+</pre>
+<p></p>
+<pre>        5e+3 and 5e3 and 5E3 always mean 5000
+        5EB+3 always means 5 exabytes plus 3.
+</pre>
+<p></p>
+<pre>    - Ambiguous (treated as error):
+</pre>
+<p></p>
+<pre>        5E+3 can be interpreted as 5000
+        5E+3 can also be interpreted as 5 exabytes plus 3
+</pre>
+<p></p>
+<p>To avoid ambiguity, use 'e' for the exponent and "EB" or "EiB" for exabyte.</p>
+<h2>B. Supporting Algebraic Expression</h2>
+<p>The offset and length arguments can also be specified as an algebraic expression as long as each term is evaluated to a whole number of bytes.  The final result for length and for offset from the start of a file are always interpreted as an unsigned number.</p>
+<p>Support for algebraic expression can be disabled via the following twiddle:</p>
+<pre>    set allow-algebraic-expression-in-offset-and-length false   # (default: true)
+</pre>
+<p></p>
+<p>If false, the arguments are restricted to a single unsigned number that can be followed by a unit.</p>
+<p>The result of evaluating an expression can be displayed by enabling the following trace:</p>
+<pre>    trace-on calculate:byte-expression
+</pre>
+<p></p>
+<h2>C. Commands Supporting Algebraic Expression</h2>
+<p>The following is an evolving list of file system commands that are known to support algebraic expression for offsets and lengths:</p>
+<pre>     cat
+     file-punch-zeroes
+     md5file
+     obj-cmp, obj-read, obj-read-show-histogram, obj-read-show-map
+     onode
+     trunc, tree-trunc
+     wrdata,
+     wrfile, tree-wrfile
+</pre>
+<p></p>
+<p>Some commands in this list (e.g., onode) do not support the BLK unit and its multiples (i.e., KBLK, MBLK, etc), but support may be added in the future.</p>
+<p>Note the 'calculate' command is a free-format calculator that does not run in any file system context. It can compute any expression containing units when run with option --allow-byte-units. If the expression contains BLK unit, the command uses the block size of the currently selected file system from the environment variable FS_LABEL.</p>
+<h2>D. Casting Negative Value To Unsigned</h2>
+<p>In general, lengths and offsets from the start of a file or a region cannot be negative, and hence, they are stored in unsigned integers. Thus, one would think that by specifying a negative value such as -1 for a 64-bit file length, the value would be interpreted as a huge unsigned number 0xFFffFFffFFffFFff. However, that is not the way the file system commands listed in section C work.</p>
+<p>During the parsing and evaluation phase, the parser stores raw numbers and results of calculation in variables that can be regarded as signed integers with infinite precision. Thus, there is no data wrap-around when data exceeds the maximum or minimum 64-bit integers. If the final result, which is a signed integer with infinite precision, is outside the range of the data type defined for offset or length, the parser will fail.</p>
+<p>Thus, if -1*5 is specified for a 64-bit file length, the parser will evaluate to '-5'. This value is outside the range of 64-bit unsigned integers, and the parser will fail with an out-of-range error message.</p>
+<p>A negative value that fits in an signed integer of certain width can be cast into an unsigned integer of the same width using the following command:</p>
+<pre>       poke allowCastingNegativeResultToUnsigned  1  # default: 0
+</pre>
+<p></p>
+<p>For example, for 8-bit integers, -128 can be cast to unsigned 8-bit integer, but -129 cannot because it is outside the range [-128,127].</p>
+<h1>Examples</h1>
+<p>1. Evaluate expression with units using the 'calculate' command</p>
+<pre>     $ calculate --allow-byte-units 2KB+10
+     2058
+</pre>
+<p></p>
+<p>2. Run command with offset and length supporting algebraic expression</p>
+<p>Because the command arguments are evaluated before the command does anything to the file system, we can choose any command in section C along with a non-existent file so that the command will fail without affecting the file system.</p>
+<pre>  $ selectfs fs1    # assume 4KB block size
+  $ trace-on calculate:byte-expression
+  $ file-punch-zeroes --offset 2BLK --length 1BLK dir/filename
+  ComputeSizeExpressionOption: Option 'offset': Evaluate '2BLK', result = 8192
+  ComputeSizeExpressionOption: Option 'length': Evaluate '1BLK', result = 4096
+  . . . .
+</pre>
+<p></p>
+<p>In general, the offset and length can be specified as an algebraic expression:</p>
+<pre>  $ file-punch-zeroes --offset 2BLK+1 --length 4.5BLK+10K-100 file1
+  ComputeSizeExpressionOption: Option 'offset': Evaluate '2BLK+1', result = 8193
+  ComputeSizeExpressionOption: Option 'length': Evaluate '4.5BLK+10K-100', result = 28572
+  . . . .
+</pre>
+<p></p>
+<p>The default policy is to not cast negative numbers into unsigned numbers.</p>
+<pre>  $ file-punch-zeroes --offset -1 --length 4.5BLK+10K-100 file1
+  Error: '-1' is not a legal value for the 'offset' switch
+  Syntax: file-punch-zeroes [--offset &lt;offset&gt;] [--length &lt;length&gt;] &lt;pathname&gt;
+</pre>
+<p></p>
+<p>We can change the policy via the following poke variable:</p>
+<pre>  $ poke allowCastingNegativeResultToUnsigned 1
+</pre>
+<p></p>
+<pre>  $ file-punch-zeroes --offset -1 --length 4.5BLK+10K-100 file1
+  ComputeSizeExpressionOption: Option 'offset': Evaluate '-1', result = 18446744073709551615 (0xffffffffffffffff)
+  ComputeSizeExpressionOption: Option 'length': Evaluate '4.5BLK+10K-100', result = 28572 (0xffffffffffffffaa)
+</pre>
+<p></p>
+<p>Note that the traces above reveal that the expression is evaluated by the ComputeSizeExpressionOption function. This function does not wrap numbers around when they exceed the max or min value of their data type.</p>
+<p>For example, let's assume the offset argument to the file-punch-zeroes command is unsigned 16-bit. The following command</p>
+<pre>  $ file-punch-zeroes --offset 65530+10 --length 1BLK dir/filename
+</pre>
+<p></p>
+<p>will fail because the offset value of 65530+10 = 65540 is out of range [0, 65535]. If ComputeSizeExpressionOption() supported wrapping, the offset would be 4 and the command would succeed.</p>
+<h1>See Also</h1>
+<p><a href="../Filter/Dev/calculate.html">calculate</a> <a href="../Supervisor/cat.html">cat</a> <a href="../Dev/file-punch-zeroes.html">file-punch-zeroes</a> <a href="../Dev/obj-cmp.html">obj-cmp</a> <a href="../Supervisor/obj-read.html">obj-read</a> <a href="../Dev/obj-read-show-histogram.html">obj-read-show-histogram</a> <a href="../Dev/obj-read-show-map.html">obj-read-show-map</a> <a href="../Supervisor/onode.html">onode</a> <a href="../Supervisor/selectfs.html">selectfs</a> <a href="../Dev/tree-trunc.html">tree-trunc</a> <a href="../Dev/tree-wrfile.html">tree-wrfile</a> <a href="../Dev/trunc.html">trunc</a> <a href="../Filter/Dev/wrdata.html">wrdata</a> <a href="../Dev/wrfile.html">wrfile</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

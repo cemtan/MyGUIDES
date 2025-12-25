@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>iscsi-target</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>iscsi-target</h1>
+<p>Manages iSCSI targets</p>
+<h1>Syntax</h1>
+<pre>iscsi-target operation
+Where operation is:
+list [&lt;alias&gt;]
+add [-c &lt;comment&gt;] [-m &lt;access-configuration&gt;] &lt;alias&gt; &lt;secret&gt;
+addlu &lt;alias&gt; &lt;lu&gt; &lt;lun&gt;
+del [-f] [&lt;alias&gt; | -g &lt;globally unique name&gt;]
+delall [-c]
+delalllu [-c] &lt;alias&gt;
+dellu [-f] &lt;alias&gt; &lt;lun&gt;
+mod [-n &lt;alias&gt;] [-g] [-c &lt;comment&gt;] [-s &lt;secret&gt;] [-a enable|disable] [-m &lt;access-configuration&gt;] &lt;alias&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command manages iSCSI targets. A target is the destination to which an iSCSI initiator connects.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>iscsi-target list [&lt;alias&gt;]</strong></dt>
+<dd><p>Lists one/all configured targets.</p></dd>
+<dl>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target to list.</p></dd>
+</dl>
+<dt><strong>iscsi-target add [-c &lt;comment&gt;] [-m &lt;access-configuration&gt;] &lt;alias&gt; &lt;secret&gt;</strong></dt>
+<dd><p>Adds a new target.</p></dd>
+<dl>
+<dt><strong>--comment, -c</strong></dt>
+<dd><p>Set comment.</p></dd>
+<dt><strong>--access-configuration, -m</strong></dt>
+<dd><p>Set the client access restrictions for the target. The default is '*(rw)', meaning that all clients have read and write access to the target.</p></dd>
+<dd><p>See <em>mount-point-access-configuration</em> for more details.</p></dd>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target to create.</p></dd>
+<dt><strong>secret</strong></dt>
+<dd><p>The secret that an initiator must provide when logging in to this target.</p></dd>
+</dl>
+<dt><strong>iscsi-target del [-f] [&lt;alias&gt; | -g &lt;globally unique name&gt;]</strong></dt>
+<dd><p>Deletes a target.</p></dd>
+<dl>
+<dt><strong>--force, -f</strong></dt>
+<dd><p>Force deletion of target even if in use.</p></dd>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target to delete.</p></dd>
+<dt><strong>globally unique name</strong></dt>
+<dd><p>The globally unique name of the target to delete.</p></dd>
+</dl>
+<dt><strong>iscsi-target delall [-c]</strong></dt>
+<dd><p>Deletes all targets.</p></dd>
+<dl>
+<dt><strong>--confirm, -c</strong></dt>
+<dd><p>Don't ask for confirmation.</p></dd>
+</dl>
+<dt><strong>iscsi-target mod [-n &lt;alias&gt;] [-g] [-c &lt;comment&gt;] [-s &lt;secret&gt;] [-a enable|disable] [-m &lt;access-configuration&gt;] &lt;alias&gt;</strong></dt>
+<dd><p>Modifies a target.</p></dd>
+<dl>
+<dt><strong>--new-alias, -n</strong></dt>
+<dd><p>Update the alias.</p></dd>
+<dt><strong>--regenerate-gun, -g</strong></dt>
+<dd><p>Regenerates the globally unique name.</p></dd>
+<dt><strong>--comment, -c</strong></dt>
+<dd><p>Update comment.</p></dd>
+<dt><strong>--secret, -s</strong></dt>
+<dd><p>Update shared secret.</p></dd>
+<dt><strong>--authentication, -a &lt;enable/disable&gt;</strong></dt>
+<dd><p>Enable/disable authentication.</p></dd>
+<dt><strong>--access-configuration, -m</strong></dt>
+<dd><p>Update the client access restrictions for the target. The default is '*(rw)', meaning that all clients have read and write access to the target.</p></dd>
+<dd><p>See <em>mount-point-access-configuration</em> for more details.</p></dd>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target to modify.</p></dd>
+</dl>
+<dt><strong>iscsi-target addlu &lt;alias&gt; &lt;logical unit&gt; &lt;lun&gt;</strong></dt>
+<dd><p>Adds a logical unit to the target, enabling initiators to access the logical unit via the logical unit number (LUN) specified.</p></dd>
+<dl>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target.</p></dd>
+<dt><strong>logical unit</strong></dt>
+<dd><p>The alias (name) of the logical unit to add.</p></dd>
+<dt><strong>lun</strong></dt>
+<dd><p>The LUN to assign to the logical unit (0-255).</p></dd>
+</dl>
+<dt><strong>iscsi-target dellu [-f] &lt;alias&gt; &lt;lun&gt;</strong></dt>
+<dd><p>Removes a logical unit from a target, making the specified LUN unavailable to initiators.</p></dd>
+<dl>
+<dt><strong>--force, -f</strong></dt>
+<dd><p>Force deletion of logical unit even if in use.</p></dd>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target.</p></dd>
+<dt><strong>lun</strong></dt>
+<dd><p>The LUN to remove.</p></dd>
+</dl>
+<dt><strong>iscsi-target delalllu [-c] &lt;alias&gt;</strong></dt>
+<dd><p>Removes all logical units from a target.</p></dd>
+<dl>
+<dt><strong>--confirm, -c</strong></dt>
+<dd><p>Don't ask for confirmation.</p></dd>
+<dt><strong>alias</strong></dt>
+<dd><p>The alias (name) of the target.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<pre>iscsi-target add -c "My target" t1 secretsecret1
+iscsi-target del t1
+iscsi-target delall -c
+iscsi-target mod -s secretsecret2 t1
+iscsi-target mod -a disable t1
+iscsi-target addlu t1 lu1 0
+iscsi-target dellu -f t1 0
+iscsi-target delalllu -c t1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/iscsi-domain.html">iscsi-domain</a> <a href="../User/iscsi-initiator.html">iscsi-initiator</a> <a href="../User/iscsi-lu.html">iscsi-lu</a> <a href="../User/iscsi-stats.html">iscsi-stats</a> <a href="../User/isns.html">isns</a> <a href="../Topic/mount-point-access-configuration.html">mount-point-access-configuration</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

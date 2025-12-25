@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-rewrite-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-rewrite-cod</h1>
+<p>Rewrite the currently loaded config to all system drives in a span</p>
+<h1>Syntax</h1>
+<pre>span-rewrite-cod [--danger-ignore-sd-sites] &lt;span-instance-name&gt;
+Alias:       rwcod
+</pre>
+
+<h1>Description</h1>
+<p>Takes a fresh copy of the span and filesystem configuration in memory, and writes it to Cod.</p>
+<p>Cod is explained in the 'cod' man page.</p>
+<h2>DEALING AN I/O ERROR WHILE COD WAS BEING WRITTEN</h2>
+<p>If the server experiences an I/O error when writing Cod, Cod will become inconsistent.  The span and filesystems will remain in memory -- 'span-list' and 'filesystem-list' will display them, and file systems can remain mounted -- but it will be impossible to load them back into memory next time the server or cluster is rebooted.</p>
+<p>As long as the server has not been rebooted, you can make the Cod consistent by fixing any storage problems and then using 'span-rewrite-cod' to write the current configuration to Cod.</p>
+<p>The command will show a list of SDs to which it managed to write and, if necessary, a second list of SDs to which it did not, along with the reasons why those SDs were unwritable.  If the command fails, the Cod will remain inconsistent, and so it is important not to reboot the server or rescan Cod until 'span-rewrite-cod' has been run successfully.</p>
+<p>If a Cod-write fails during normal operation (such as when creating or expanding a filesystem), the server sees that Cod has become inconsistent and prevents any operation that would cause further Cod-writes on the same span.  This restriction limits the differences between one copy of the Cod and another, and so simplifies recovery of the Cod.  Successfully running 'span-rewrite-cod' on a span makes the Cod consistent and allows further Cod-writing operations to work normally.</p>
+<h2>AFTER RUNNING A COMMAND THAT DOES NOT UPDATE COD</h2>
+<p>Some commands, such as 'span-restore-cod' and 'sd-mirror --no-cod-write', update the configuration in memory but do not update Cod.  The intention is to let you test the new configuration before committing to it.</p>
+<p>After running one of these commands, you need to use 'span-rewrite-cod' to update the Cod and make the change permanent.  Otherwise, spans and filesystems will revert to their previous configurations next time the server or cluster is rebooted.  'span-list' will print a warning if a Cod-write is needed.</p>
+<h2>OVERRIDE SWITCH</h2>
+<p>The --danger-ignore-sd-sites switch enables the command to run even if the primary SDs in the span are not all at the same site.  Think three times before using this switch: it is almost always better to fix the condition that's causing the command to fail than to use an override.</p>
+<h1>Examples</h1>
+<pre>span-rewrite-cod Accounts
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/sd-back-up-cod.html">sd-back-up-cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-restore-cod.html">sd-restore-cod</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-list-filesystem-cod.html">span-list-filesystem-cod</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

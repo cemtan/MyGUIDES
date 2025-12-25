@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-restore-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-restore-cod</h1>
+<p>span-restore-cod</p>
+<h1>Syntax</h1>
+<pre>span-restore-cod [--ssfs] &lt;filename&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Reads an integrated Cod backup (an ICB) and loads the corresponding span and its filesystems into memory.  ICBs are explained in the 'cod' man page.</p>
+<p>Consider using this command to restore from the latest available backup if a span's Cod has become damaged and the span or its filesystems are unloadable.</p>
+<p>If you are using ssc, the backup file is read the ssc file system (i.e. on the computer running the ssc client); you can choose to read the file from the server's SSFS file system instead by providing the --ssfs or -F switch.  In all other environments the file is always read from the SSFS file system.</p>
+<p>If the file is read from SSFS, it will be read from the SSFS file system on the cluster node where the Admin Service is running (even if you explicitly run the command on some other node).  To read the file from the SSFS file system on another node, use the syntax documented in the 'ssfs' man page.</p>
+<p>If another version of the same span is already loaded, 'span-restore-cod' will</p>
+<ul>
+<li>fail if any of the span's file systems are in use (mounted, being checked, being fixed, etc.), or otherwise</li>
+<li>replace the version of the span in memory with the version in the Cod backup file.</li>
+</ul>
+<p>To decide whether the span in memory and the span described by the ICB are two versions of the same span, it compares their permanent IDs. It pays no regard to their names.</p>
+<p>'span-restore-cod' does not write Cod back to disk.  Instead, it leaves the span in the same state as if it had been loaded normally but a Cod-write had failed: the filesystems can be mounted and used, but operations that involve further Cod-writes (such as adding or expanding a filesystem) will fail.</p>
+<p>'span-restore-cod' queues file systems for mounting (or auto-mounting), but does not wait for them to mount.  A script that runs this command may need to follow it with 'span-wait-for-loading --mount' to ensure that all the file systems on the span are ready to mount (or have already auto-mounted).</p>
+<p>If you decide to keep the newly restored span, run the 'span-rewrite-cod' command to write the Cod back to disk and make further Cod-writes possible.  If not, unmount all filesystems and run 'sd-rescan-cod &lt;span-instance-name&gt;' to discard the newly restored Cod and revert to the version on disk.  The 'span-list' prints a warning when any span's Cod needs rewriting.</p>
+<p>When a span is manually deleted, the server deletes each system drive's (SD's) encroachment area.  This tells other servers that the SDs are available for use.  If you use 'span-restore-cod' as a means of undeleting a manually deleted span, you'll need to rewrite encroachment data.</p>
+<h2>Alternative approaches</h2>
+<p>If the latest version of the configuration is still loaded into memory (as indicated by 'span-list' and 'filesystem-list'), use 'span-rewrite-cod'.  Failing that, if the latest configuration is on some SDs in the span but not on others (as shown by 'sd-dump-cod' or 'sd-dump-unloadable-cod'), you can use 'sd-copy-span-cod' and/or 'span-propagate-filesystem-cod' to copy it to the SDs that lack it.  Both these approaches avoid the risk of using a Cod backup that isn't fully up to date.</p>
+<h2>If the Cod backup is corrupt</h2>
+<p>The server reads a large part of the ICB, but not the whole file, before deciding to unload any loaded span with the same permanent ID.  If the server detects corruption in the ICB early on, it will report the corruption and leave the original span in memory, where it can be displayed by 'span-list'.  In this case, 'span-restore-cod' makes no change to the state of the cluster.</p>
+<p>If, however, corruption of the ICB cannot be detected until the old span has been unloaded, 'span-list' will show that neither span is in memory.  In this case, provided that Cod is intact, you can reload the original span by running 'sd-rescan-cod' without any command-line arguments.</p>
+<h1>Examples</h1>
+<pre>span-restore-cod Accounts.cod
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Topic/encroachment.html">encroachment</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/sd-back-up-cod.html">sd-back-up-cod</a> <a href="../Dev/sd-copy-span-cod.html">sd-copy-span-cod</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-restore-cod.html">sd-restore-cod</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-propagate-filesystem-cod.html">span-propagate-filesystem-cod</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/ssfs.html">ssfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

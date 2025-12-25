@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-list-recycle-bin</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-list-recycle-bin</h1>
+<p>List the filesystems that can be undeleted on a span</p>
+<h1>Syntax</h1>
+<pre>span-list-recycle-bin &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Every span has a recycle bin, which contains recently deleted filesystems.  After a time, a deleted filesystem is <strong>recycled:</strong> it is removed from the recycle bin and the space it occupied is freed for reuse by other filesystems.  Until then, it can be rescued from the recycle bin by the 'filesystem-undelete' command.</p>
+<p>'span-list-recycle-bin' lists the filesystems in a span's recycle bin, all of which can be undeleted if it transpires that they were deleted in error.</p>
+<h2>WHEN IS A FILESYSTEM RECYCLED?</h2>
+<p>Deleted filesystem F is recycled in six circumstances:</p>
+<ol>
+<li>When any space-allocation is made and filesystem F was deleted at least seven days ago.</li>
+<li>When a space-allocation cannot be satisfied without reusing space that was used by filesystem F (either because the span has run out of unused chunks or because any HDP pools on which the span resides have run out of real disk space).</li>
+<li>When you run 'filesystem-recycle'.</li>
+<li>When you move filesystem G to the recycle bin (for example, by running 'filesystem-delete' without the --no-undeletion-information switch), and the recycle bin already contains at least 16 dead filesystems, and F is one of the least-recently deleted filesystems.</li>
+<li>When the filesystem catalogue is at least 95% full, and you carry out one of several operations that potentially make the filesystem catalogue fuller, such as creating a filesystem or giving an existing filesystem a longer name.  The filesystem catalogue is described in the 'cod' man page.  Commands that never recycle filesystems for this reason include 'filesystem-undelete', 'filesystem-delete --no-undeletion-information' and 'filesystem-recycle'.</li>
+<li>When the span resides on compressed FMD storage, and free space is dangerously low.  The server will recycle enough deleted filesystems (where they exist) to make sure that every space-starved stripeset has some vacated chunks, and then it will launch an unmapper (if none is already running) to hand space back to the HDP pool and increase free physical space.  See the 'span-expedite-compression-space-check' man page.</li>
+</ol>
+<p>A space-allocation is made when any filesystem is created or expanded.  'filesystem-undelete' does <strong>not</strong> allocate space: thus undeleting filesystem F will not cause deleted filesystem G to be recycled.</p>
+<p>A single space-allocation, if large enough, can cause more than one deleted filesystem to be recycled.  It always recycles the least-recently deleted filesystem or filesystems.</p>
+<p>A space-allocation on one span never causes another span's filesystems to be recycled.</p>
+<p>Note that the rules in this section do not guarantee that a deleted filesystem will stay in the recycle bin for any minimum period before being recycled, nor that they will be immediately recycled after some maximum limit.  It is most unwise to use the recycle bin as temporary storage or to rely on a filesystem staying in it.  If you suspect that a deleted filesystem will be needed, it should be undeleted without delay.</p>
+<h1>Examples</h1>
+<p>This sample transcript shows the filesystems on span Hex that have not been deleted, followed by those that have.</p>
+<pre>server:$ span-list -f hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   70%      600  7,5,6,4,8,9                      90%
+   fs Blue                 UnMnt, EVS    1, cap     60, unconfined
+   fs Green                UnMnt, EVS    1, cap     75, unconfined
+   fs Red                  UnMnt, EVS    1, cap     40, unconfined
+</pre>
+<p></p>
+<pre>server:$ span-list-recycle-bin hex
+Permanent ID      Deleted at                 Cap/GiB    Base name
+================  =========================  =========  =========
+E8C38961F4C50E6C  2013-09-26 16:21:55+00:00         45  Yellow
+E8C389655DFF88B5  2013-09-26 16:21:57+00:00         25  Mauve
+E8C3896B674EE2B2  2013-09-26 16:22:00+00:00         90  Black
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Supervisor/filesystem-rename.html">filesystem-rename</a> <a href="../Supervisor/filesystem-undelete.html">filesystem-undelete</a> <a href="../Supervisor/span-expedite-compression-space-check.html">span-expedite-compression-space-check</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

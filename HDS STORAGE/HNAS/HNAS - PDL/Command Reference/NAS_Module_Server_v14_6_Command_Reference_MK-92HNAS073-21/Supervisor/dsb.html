@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dsb</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>dsb</h1>
+<p>Show DSB information</p>
+<h1>Syntax</h1>
+<pre>dsb [--summary] [--show-sdg] [--show-preservations] [--hex] {--all | &lt;fs&gt; [&lt;dsb index&gt;]}
+</pre>
+
+<h1>Description</h1>
+<p>Outputs a table of the given file system's dynamic super blocks, or the full details of a specific dynamic super block. Optionally outputs dynamic super block tables for all file systems assigned to the EVS in context.</p>
+<p>For WFS-2 file systems, by default the latest selectable DSB is output (a selectable DSB is one that isn't marked invalid and hasn't been rolled back). The following options can be used to change which DSB(s) are displayed:</p>
+<dl>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>If no DSB index is supplied, this will cause the command to output a summary table of the DSBs on the WFS-2 file system. If a DSB index is supplied, a summary of that specific DSB will be output</p></dd>
+<dt><strong>&lt;dsb index&gt;</strong></dt>
+<dd><p>Instead of outputting the latest selectable DSB, output details of the DSB at the given index</p></dd>
+</dl>
+<p>Options for file systems supporting block-based snapshots:</p>
+<dl>
+<dt><strong>--show-preservations, -p</strong></dt>
+<dd><p>Shows the updated blocks buffer stored in the DSB</p></dd>
+</dl>
+<p>Other options:</p>
+<dl>
+<dt><strong>--show-sdg</strong></dt>
+<dd><p>Outputs a table of the stored dynamic write balancing cursors</p></dd>
+<dt><strong>--hex, -h</strong></dt>
+<dd><p>Additionally outputs the DSB contents as a hex dump</p></dd>
+<dt><strong>--all, -a</strong></dt>
+<dd><p>Outputs the dsb for all file systems assigned to the EVS in context.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To see the latest selectable DSB for WFS-2 file system "fs2":</p>
+<pre>    $ dsb fs2
+</pre>
+<p></p>
+<p>To see DSB index 100 for WFS-2 file system "fs2":</p>
+<pre>    $ dsb fs2 100
+</pre>
+<p></p>
+<p>To see a summary of all DSBs on WFS-2 file system "fs2"</p>
+<pre>    $ dsb -s fs2
+</pre>
+<p></p>
+<pre>Sample DSB command output:
+</pre>
+<p></p>
+<pre>    $ dsb fs2
+    File system is WFS-2 and has 128 DSBs.
+    WFS-2 DSB @ index 29, offset 0x3810000 / 0x3c18000 (2022-03-30 13:29:24+01:00)
+    VLSI:
+      AsciiDescriptor                  : DSBP
+      SanityDWord0                     : WFS1
+      CheckpointNumber                 : 101044 (0x18ab4)
+      CheckpointState                  : WRITTEN_CHECKPOINT
+      NumberUpdatedObjects             : 0
+      Pad0                             : 0
+      UpdatedObjectsListChecksum       : 0
+      LastCheckpointNumberForSnapshots : 0
+      cleanUnmount                     : no
+      freedObjectNumberQueueSize       : 0
+      freedObjectNumberQueueFirstEntry : 0
+      Pad[  0]                         : 0x0
+      ...
+      Pad[  2]                         : 0x0
+      freedObjectNumberQueueLastEntry  : 0
+      Pad[  0]                         : 0x0
+      Pad[  1]                         : 0x0
+      FsaBlocksInUse                   : 12688 (0x3190)
+      FsaSnapshotBlockReferences       : 0
+      SparseBlocksInUse                : 0
+      SnapshotObjectsListObjectNumber  : 0
+      Format Time Stamp                : 2022-03-25 17:49:11+01:00 (0x623df2871d8aa687)
+      IndirectionObjectSectorPtr       : 0x18c1f40 / 0x18c1f80 (Resiliency: Onode and data)
+      FreeSpaceObjectSectorPtr         : 0x18c2200 / 0x18c2240 (Resiliency: Onode and data)
+      SnapshotConfigObjectSectorPtr    : 0x3b50c0 / 0x3b5100 (Resiliency: Onode and data)
+      FreedBlocksListObjectNumber      : 1041 (0x411)
+      Pad3                             : 0x0
+      SnapshotObjectsListChecksum      : 0
+      Pad4                             : 0x0
+      FreedBlocksListValidator         : 0x0
+      FreeSpaceObjectValidator         : 0x24fbcadcb1
+      IndirectionObjectValidator       : 0xe3000000d7f805a1
+      LeakFreeQueueCheckpointNumber    : 0
+      Pad[  0]                         : 0x0
+      ...
+      Pad[  4]                         : 0x0
+      UpdatedBlocksBufferCount         : 0
+      Pad[  0]                         : 0x0
+      ...
+      Pad[ 23]                         : 0x0
+      FsaCursorMain (deprecated)       : 0
+      FsaCursorA (deprecated)          : 0
+      FsaCursorB (deprecated)          : 0
+      Pad[  0]                         : 0x0
+      Tier 0
+        cursorA                        : 281474977116305 (0x1000000063091)
+        cursorB                        : 0
+        blocksInUse                    : 12608 (0x3140)
+        snapshotBlocksInUse            : 0
+      Tier 1
+        cursorA                        : 0
+        cursorB                        : 0
+        blocksInUse                    : 0
+        snapshotBlocksInUse            : 0
+      Pad[  0]                         : 0x0
+      ...
+      Pad[ 51]                         : 0x0
+      ReducedBlocksInUse               : 0
+      ReducedBlocksInTier0             : 0
+      ReducedBlocksInTier1             : 0
+      Crc                              : 0x115d6b62 (valid)
+      SanityDWord1                     : WFS2
+    NOT dumping SDG
+    Software:
+      AsciiDescriptor                  : SDSB
+      Crc                              : 0xc0b916a8 (valid)
+      Version                          : 2
+      DSB flags                        : 0x3 = DSBSelectable | DSBValid
+      Volume configuration flags       : 0x442c = Mountable | Formatted | Unclean | SDGInfoValid | BlockBasedSnapshotList
+      Permanent Filesystem ID          : 0x124797483f1a6ff7
+      File system feature flags        : 0x20000 = FileSystemFeature_DecoupledFreedBlocksLists
+      File system size in blocks       : 589824 (0x90000)
+      Tier 0 block count               : 0
+      Tier 1 block count               : 0
+      Utility Place Marker             : 0
+      Buffered blocks list             : 0
+      LiveFileSystemUsageConfig        : reset=80% warning=90% severe=97%
+      SnapshotsUsageConfig             : reset=80% warning=90% severe=97%
+      TotalVolumeUsageConfig           : reset=90% warning=95% severe=97%
+      StopGrowingLiveFS@SevereUsage    : 0x0
+      VolumeVirusScanId                : 0x0
+      (unused)                         : 0x0
+      SparseBlockThreshold             : 0x1 (raw=0x0)
+      WfsDynamicVolumeConfigFlags      : 0x1 (Wfs2 sparse-blocks threshold used)
+      SpaceRsvdNonUse100thsPercent     : 0x0
+      TrueSparseFileSupport            : 0x1 (local=0:undefined, effective=sparse-metadata support)
+      FSRIConfig                       : 0x0
+      FsaNextBlockNumber               : 0
+      ReadAheadConfig                  : signature=         0 : 00 00 00 00 : ...., version=0, flags=0x0, extra flags=0x0, chunk size=0x0, max read ahead=0x0, forced=0, quick start=0, hard=0
+      userDataWritePolicy              : 0 (0)
+      VolumeCVLConvertorConfig         : signature=         0 : 00 00 00 00 : ...., version=0, state=0, flags=[], resumeHandle=(not valid)
+      DrbConfig                        : signature=         0 : 00 00 00 00 : ...., version=0, flags=0x0, resumeHandle=(not valid)
+      Free object list state           :
+        Version                        : 0
+        Flags                          : 1
+        Number entries                 : 13
+        Validator                      : 213109 (0x34075)
+        Next object                    : 16401 (0x4011)
+        Consumer                       : FreeObjectListHandle[objectNumber = 16400, reuse count = 178], index 9
+        Producer                       : FreeObjectListHandle[objectNumber = 16400, reuse count = 178], index 22
+      Free object list reconstructor state :
+        Version                        : 0
+        Starting checkpoint number     : 0
+        Begin object number            : 16384 (0x4000)
+        End object number              : 16384 (0x4000)
+      Changed blocks count             : 0
+      Snapshot rollback checkpoint     : 0
+      Freed blocks list processing state :
+        Object number                  : 0
+        Resume offset                  : 0
+      Last Written timestamp           : 2022-03-30 13:29:24+01:00 (1 s ago)
+      File counts:
+        Regular                        : 1
+        Directory                      : 3
+        All files excluding directories : 1
+        All files including directories : 4
+      Pad[  0]                         : 0x0
+      ...
+      Pad[ 72]                         : 0x0
+</pre>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

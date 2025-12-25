@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-list-ctrl-dir-requests</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>migration-list-ctrl-dir-requests</h1>
+<p>lists all request files contained in the control directory of the specified migration path</p>
+<h1>Syntax</h1>
+<pre>migration-list-ctrl-dir-requests {-s &lt;fs label&gt; [-v &lt;vivol name&gt;] | -a}
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --source &lt;fs label&gt;</strong></dt>
+<dd><p>Source file system.</p></dd>
+<dt><strong>-v, --vivol &lt;vivol name&gt;</strong></dt>
+<dd><p>Name of source Virtual Volume (optional).</p></dd>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>All file systems.</p></dd>
+</dl>
+<p>Return a list of the migration request files that are currently in the control directories for the specified migration path. This command is similar to</p>
+<pre>selectfs fsname
+ls /path/to/control_dir/*.request
+</pre>
+<p></p>
+<p>repeated for each of the control directories, but it does not require the caller to know either the location of the control directories or the extension used for request files.</p>
+<h2>Naming Migration Request Files</h2>
+<p>Migration request files must be named with a specific extension in order to be recognized by the system. The required file name extension varies according to the type of migration to be performed.</p>
+<dl>
+<dt><strong>internal migration</strong></dt>
+<dd><p><code>&lt;file name&gt;.request</code></p></dd>
+<dt><strong>external migration</strong></dt>
+<dd><p><code>&lt;file name&gt;.request-ext</code></p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-list-ctrl-dir-requests -s fs0
+</pre>
+<p></p>
+<p>Display the requests specified in the control directory for file system fs0's data migration path, output would be of the form..</p>
+<pre>/path/to/control_dir1
+ MigrationRequest1.request
+ MigrationRequest2.request
+/path/to/control_dir2
+ MigrationRequest3.request
+ MigrationRequest4.request
+</pre>
+<p></p>
+<p>Where MigrationRequest1.request and MigrationRequest2.request are the only two request files in the first control directory, and MigrationRequest3.request and MigrationRequest4.request are the only two request files in the second control directory. The paths given are relative to the root directory of the specified file system or vivol.</p>
+<p>If one of the specified control directories does not exist then the following output will be shown.</p>
+<pre>/path/to/control_dir1
+ Directory does not exist.
+</pre>
+<p></p>
+<p>If a directory exists but is empty then the output will be.</p>
+<pre>/path/to/control_dir1
+ No Request Files.
+</pre>
+<p></p>
+<p>migration-list-ctrl-dir-requests -all</p>
+<p>Lists migration control directory requests for all file systems.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a> <a href="../Supervisor/migration-add-path.html">migration-add-path</a> <a href="../Supervisor/migration-delete-external-path.html">migration-delete-external-path</a> <a href="../Supervisor/migration-delete-path.html">migration-delete-path</a> <a href="../Supervisor/migration-expand-path.html">migration-expand-path</a> <a href="../Supervisor/migration-get-dependencies.html">migration-get-dependencies</a> <a href="../Supervisor/migration-list-paths.html">migration-list-paths</a> <a href="../Supervisor/migration-set-ctrl-dir.html">migration-set-ctrl-dir</a> <a href="../Supervisor/migration-update-paths.html">migration-update-paths</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

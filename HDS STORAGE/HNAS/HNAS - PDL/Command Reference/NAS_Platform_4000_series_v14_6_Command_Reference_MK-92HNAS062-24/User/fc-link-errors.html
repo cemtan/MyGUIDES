@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-link-errors</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>fc-link-errors</h1>
+<p>Show FC link error stats</p>
+<h1>Syntax</h1>
+<pre>fc-link-errors [-a] [-r]
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to display or reset statistics on low-level Fibre Channel link errors.</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>display statistics for all interfaces, not just enabled ones</p></dd>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>reset statistics</p></dd>
+</dl>
+<h2>Error details</h2>
+<dl>
+<dt><strong>Loss of Signal</strong></dt>
+<dd><p>As reported by the internal transceiver hardware or a pluggable optics module.</p></dd>
+<dt><strong>Bad Received Character</strong></dt>
+<dd><p>8b/10b decoding failures. It is normal for there to be a number of these when the link is first brought up.</p></dd>
+<dt><strong>Loss of Synchronisation</strong></dt>
+<dd><p>The FC controller detects an incoming signal but is unable to synchronise with it.</p></dd>
+<dt><strong>Link Failure</strong></dt>
+<dd><p>Loss of signal, loss of synchronisation (for longer than R_T_TOV), transmitter fault, N_Port NOS, or loop initialisation time-out.</p></dd>
+<dt><strong>Received EOFa</strong></dt>
+<dd><p>Incoming frames terminated with EOFa (End of Frame Abort). This delimiter is used when a transmitter or forwarder detects an error during transmission of a frame.</p></dd>
+<dt><strong>Discarded Frames</strong></dt>
+<dd><p>Frames discarded for reasons including: invalid EOF delimiter, CRC error, control character inside a frame, frame interrupted by link failure, frame too long, frame too short. Aborted frames are not included in this count.</p></dd>
+<dt><strong>Bad CRC</strong></dt>
+<dd><p>Frames with valid EOF but bad CRC. Invalid and aborted frames are not included.</p></dd>
+<dt><strong>Protocol Error</strong></dt>
+<dd><p>Counts N_Port protocol errors and incoming LRR primitive sequences.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ fc-link-errors
+Errors:
+                  Lost signal    Bad RX char    Lost sync    Link fail
+ FC 1                      0           12              0            0
+ FC 3                      0           10              0            0
+</pre>
+<p></p>
+<pre>                     RX EOFa  Discarded frames   Bad CRC  Protocol errors
+ FC 1                      0            0              0            0
+ FC 3                      0            0              0            0
+</pre>
+<p></p>
+<pre>Last reset: 2015-12-10 17:09:33+00:00
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/fc-link-congestion.html">fc-link-congestion</a> <a href="../Supervisor/fc-link-status.html">fc-link-status</a> <a href="../Supervisor/scsi-io-errors.html">scsi-io-errors</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

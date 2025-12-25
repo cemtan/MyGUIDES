@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>unified-management-ip-address</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>unified-management-ip-address</h1>
+
+<h1>Description</h1>
+<p>Unified management IP addresses are assigned to the non-file-serving interfaces of each controller of a unified system. They are configured using the Maintenance Utility (or HiCommand Suite, or Storage Navigator) and are used for the purposes described below. The examples given assume unified management IP addresses 172.27.12.10 and 172.27.12.11. The address 172.27.12.10 is used, but 172.27.12.11 can be used with exactly the same results.</p>
+<dl>
+<dt><strong>Uses of the unified management IP addresses</strong></dt>
+<dt><strong>1. Logging into the CLI console of the NAS platform.</strong></dt>
+<dd><p>The CLI can be accessed using ssh or ssc, in the following way:</p></dd>
+<dd><p>ssh manager@172.27.12.10</p></dd>
+<dd><p>ssc 172.27.12.10</p></dd>
+<dd><p>Either IP address, and any user configured in the NAS platform, can be used. If a command must be handled by a specific cluster node, then prefix the command with "console-context --cnode &lt;id&gt;". There is no need to ensure that the initial ssh or ssc connections are made to a specific controller.</p></dd>
+<dt><strong>2. Launching the embedded SMU.</strong></dt>
+<dd><p>The embedded SMU can be launched using the following URL (notice the port 20443):</p></dd>
+<dd><p>https://172.27.12.10:20443/mgr/app</p></dd>
+<dd><p>Alternatively, the following form can be used, omitting the port. The page navigated to presents the choice between launching the SMU (NAS Manager) or Maintenance Utility.</p></dd>
+<dd><p>http[s]://172.27.12.10</p></dd>
+<dd><p>The choice may be set as default. To return to the choice, the following form can be used.</p></dd>
+<dd><p>http[s]://172.27.12.10/TopPageSelection/</p></dd>
+<dt><strong>3. Registering the NAS platform with an external SMU.</strong></dt>
+<dt><strong>4. For applications to connect to the SOAP and REST APIs for managing the NAS platform.</strong></dt>
+<dt><strong>5. SNMP queries.</strong></dt>
+<dt><strong>6. For the NAS platform to access network services such as DNS, NTP, SMTP, trap receiver and syslog server, AD.</strong></dt>
+</dl>
+<p>The two IP addresses can be configured in DNS to resolve individual host names, one for each controller's unified management port. Alternatively a single host name can be resolved by DNS to both IP addresses, in which case the application will simply connect to the IP address it chooses, and get equivalent functionality.</p>
+<h1>Examples</h1>
+<p>Commands "ipaddr", "cluster-show" and "evs list" provide information about unified management IP addresses. The example below shows the output of "cluster-show -c".</p>
+<pre>server:$ cluster-show -c
+Node EVS ID    Type     Label Enabled Status    IP Address          Port
+---- ------ ------- --------- ------- ------ ---------------------- ----
+   1        Cluster    NODE-1     Yes Online       172.27.12.10     CTL1
+                                             2001:db8::1:1:4a:2     CTL1
+                                                    172.27.12.3     eth0
+                                                    172.24.48.1     eth1
+                                                2002::ac18:3001     eth1
+   1      0   Admin CLUSTER-A     Yes Online        172.24.48.2     eth1
+                                                 192.168.38.180      ag1
+                                                2002::ac18:3002     eth1
+   2        Cluster    NODE-2     Yes Online       172.27.12.11     CTL2
+                                             2001:db8::1:1:4a:3     CTL2
+                                                    172.27.12.4     eth0
+                                                    172.24.52.1     eth1
+                                                2002::ac18:3401     eth1
+</pre>
+<p></p>
+<p>The unified management IP addresses are shown with port "CTL1" and "CTL2", because they are the primary IP addresses for gaining access to controller 1 and controller 2 respectively. These addresses must be changed by using the Maintenance Utility; they cannot be configured using the NAS platform CLI or the SMU. They are, however, the only IP addresses that are contactable from a workstation used to manage the system.</p>
+<p>IP addresses configured on eth0 and eth1 are not accessible from outside the system. They are used for two purposes:</p>
+<p>1. eth0 IP addresses are for maintenance purposes, and a normally only used by your support team. In normal circumstances these ports would not be connected to a management LAN.</p>
+<p>2. eth1 IP addresses are for communication between the internal components of the system. These ports can never be connected to a management LAN.</p>
+<h1>See Also</h1>
+<p><a href="../User/cluster-show.html">cluster-show</a> <a href="../User/console-context.html">console-context</a> <a href="../User/evs.html">evs</a> <a href="../Supervisor/ipaddr.html">ipaddr</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

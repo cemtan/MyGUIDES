@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tree-delete</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>tree-delete</h1>
+
+<h1>Description</h1>
+<p>The tree delete feature provides a mechanism for removing a directory tree immediately from its position in the file system. The directory tree is moved to the system trash directory and is scheduled for background truncation. While background truncation is in progress, the contents of the unlinked directory tree will still be accessible (e.g. through cached handles) until they are deleted by the background deletion process. The background deletion will continue as long as new files or subdirectories are being added to it. Quotas associated with the directories and virtual volumes being deleted will be updated as the physical deletion occurs in the background.</p>
+<p>The 'tree-delete-job-submit' command is used to submit a job to the server to delete a directory tree on a file system. The server pushes the job request to a tree-delete job queue, which is limited to M jobs per physical node (M = 1280 by default). The server then returns a job id string.</p>
+<h2>Restrictions</h2>
+<p>Please see the 'tree-delete-job-submit' man page for restrictions on the types of directory that this feature can delete.</p>
+<h2>Tree Deletion Process</h2>
+<p>Upon receipt of a new delete job request, the server checks the job queue. If the queue is full, it will purge all completed jobs that are older than T minutes (default is 2 minutes) to make room for the new job. If there is no space available, the server will reject the job request. Once a job request is accepted, the server will assign it a job id and carry out a two-phase process to delete the directory tree.</p>
+<p>- Phase (1) immediately unlinks the directory, known as the source directory, from its parent's directory. Next, a job directory is created in a trash can (either TRASHCAN_0 or TRASHCAN_1) in the system trash directory /$__TREEDELETE_TRASH__/CURRENT_JOBS. The job directory is named after the job id string. Finally, the server will move the source directory to the job directory and push a job order to the job queue. If phase (1) is completed successfully, the server will return the job id.</p>
+<p>- Phase (2) begins when a fiber picks up the job order in the job queue to process. Jobs in the job queue are processed in the first-in first-out order. Depending on the directory structure, this phase can have more than one fiber dividing the workload to recursively delete the directory tree and its contents in the background.</p>
+<h2>Tree Delete Commands</h2>
+<dl>
+<dt><strong>tree-delete-job-submit</strong></dt>
+<dd><p>Submit a job to the server to delete a directory tree on a file system.</p></dd>
+<dt><strong>tree-delete-job-list</strong></dt>
+<dd><p>Submit a request to list the status of all jobs in the job queue. Records of recently completed jobs are retained in memory for a minimum of 2 minutes after completion.</p></dd>
+<dt><strong>tree-delete-job-status</strong></dt>
+<dd><p>Submit a request to query the status of a job by its job id.</p></dd>
+<dt><strong>tree-delete-job-abort</strong></dt>
+<dd><p>Submit a request to abort a job by its job id. User-aborted jobs will be moved to a special directory called USER_ABORTED_JOBS in /$__TREEDELETE_TRASH__. They are not rescheduled on file system remount.</p></dd>
+<dt><strong>tree-delete-job-reschedule</strong></dt>
+<dd><p>Submit a request to reschedule stale jobs.</p></dd>
+</dl>
+<h2>Logging</h2>
+<p>All start/finish/reschedule events are logged in the event log with the 'tree-delete' keyword. Details of tree deletion progress are not logged in dblog to avoid spamming. However, they are logged in a circular logtrace buffer in memory (about 1 MB). This buffer can be dumped/cleared by the command:</p>
+<pre>    logtrace dump tree-delete
+    logtrace clear tree-delete
+</pre>
+<p></p>
+<p>To get a diagnostics tarball, which contains the tree-delete logtrace in a separate file, one can run the following command over ssc:</p>
+<pre>    getdiagnostic
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/event-log-show.html">event-log-show</a> <a href="../Supervisor/getdiagnostic.html">getdiagnostic</a> <a href="../Supervisor/logtrace.html">logtrace</a> <a href="../Supervisor/tree-delete-job-abort.html">tree-delete-job-abort</a> <a href="../Supervisor/tree-delete-job-list.html">tree-delete-job-list</a> <a href="../Supervisor/tree-delete-job-reschedule.html">tree-delete-job-reschedule</a> <a href="../Supervisor/tree-delete-job-status.html">tree-delete-job-status</a> <a href="../Supervisor/tree-delete-job-submit.html">tree-delete-job-submit</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

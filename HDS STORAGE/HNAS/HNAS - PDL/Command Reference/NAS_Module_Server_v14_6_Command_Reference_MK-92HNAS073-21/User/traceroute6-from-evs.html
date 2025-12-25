@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>traceroute6-from-evs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>traceroute6-from-evs</h1>
+<p>trace route to remote system</p>
+<h1>Syntax</h1>
+<pre>traceroute6-from-evs [-4] [-6] [-f &lt;TTL&gt;] [-i &lt;source-IP-address&gt;[%&lt;interface&gt;]] [-I] [-m &lt;MaxTTL&gt;] [-p &lt;BaseUDPPort&gt;] &lt;IP-address or hostname&gt;[%&lt;interface&gt;] [packet-size]
+</pre>
+
+<h1>Description</h1>
+<p>'traceroute-from-evs' displays the route that packets traverse from the cluster node that the EVS currently resides on to reach the specified destination host.</p>
+<p>It traces the route an IP packet would follow to the destination host by sending probe packets with an increasing TTL (time to live) and listening for an ICMP TIME EXCEEDED reply from a gateway until the host is reached. Three probes are sent for each TTL value and a line is printed showing the TTL, address of the gateway and the round trip time of each probe.</p>
+<p>The probe packets sent to the host are either UDP (default) or ICMP ECHO requests. The optional 'packet-size' argument is the total size of the probe packet (default is 64 bytes), the actual packet size may be increased to include the required packet headers.</p>
+<p>If 'routing-by-evs' is enabled, then the choice of source address is limited to the source addresses configured on the EVS. If 'routing-by-evs' is disabled, then the choice of source address can be any of the source addresses currently hosted on the cluster node hosting the EVS.</p>
+<p>'traceroute6-from-evs' is equivalent to 'traceroute-from-evs -6'.</p>
+<p>Options:</p>
+
+<p>-4, -6</p>
+<p>Explicitly select IPv4 or IPv6 tracerouting. By default, the program will try to resolve the specified host name and use the appropriate protocol; if the host name has both IPv4 and IPv6 addresses, 'traceroute-from-evs' will use the IPv4 address.</p>
+<p>-f &lt;TTL&gt;</p>
+<p>Set the initial time-to-live. The default value is 1.</p>
+<p>-I</p>
+<p>Use ICMP ECHO requests rather than UDP.</p>
+<p>-i &lt;source-IP-address&gt; | &lt;interface&gt; | &lt;source-IP-address&gt;%&lt;interface&gt;</p>
+<p>Set the source IP address of the request to the supplied interface address. This may be a numeric IP address or the interface name; when specifying an IP address an interface suffix may also be included as '&lt;IP address&gt;%&lt;interface&gt;'. If an interface is specified both here and as part of the destination, then the two interface names must be the same.</p>
+<p>-m &lt;MaxTTL&gt;</p>
+<p>Set the maximum time-to-live to use. The default value is 30.</p>
+<p>-p &lt;BaseUDPPort&gt;</p>
+<p>Set the base UDP port to use. The default value is 33434.</p>
+
+<h1>Examples</h1>
+<p>To traceroute to the destination 'example.com' via the interface 'ag1':</p>
+<pre>traceroute-from-evs example.com%ag1
+example.com (198.51.100.101) ...
+1    198.51.100.101  1 ms  0 ms  0 ms
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/ping.html">ping</a> <a href="../User/ping-from-evs.html">ping-from-evs</a> <a href="../User/ping6.html">ping6</a> <a href="../User/ping6-from-evs.html">ping6-from-evs</a> <a href="../Topic/routing-by-evs.html">routing-by-evs</a> <a href="../User/traceroute.html">traceroute</a> <a href="../User/traceroute-from-evs.html">traceroute-from-evs</a> <a href="../User/traceroute6.html">traceroute6</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

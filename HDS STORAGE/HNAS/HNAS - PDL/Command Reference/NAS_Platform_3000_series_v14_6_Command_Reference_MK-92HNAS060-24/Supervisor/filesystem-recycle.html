@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-recycle</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>filesystem-recycle</h1>
+<p>Recycle a filesystem, discarding it from a span&#39;s recycle bin, so that it can no longer be undeleted</p>
+<h1>Syntax</h1>
+<pre>filesystem-recycle &lt;span-instance-name&gt; (&lt;permanent-filesystem-ID&gt; | --all-filesystems)
+            filesystem-recycle --all-spans --all-filesystems
+</pre>
+
+<h1>Description</h1>
+<p>Every span has a recycle bin, which is explained in the 'span-list-recycle-bin' man page.  When a filesystem is deleted, it spends some time in the recycle bin; as long as it stays there, it can be rescued by the 'filesystem-undelete' command.</p>
+<p>The server will normally recycle a recently deleted filesystem after a time, or as soon as the space it occupied is needed by other filesystems.  However, you can recycle one or more filesystems immediately by running 'filesystem-recycle'.</p>
+<h2>SYNTAX</h2>
+<p>To recycle a single filesystem, specify a span instance name and the permanent ID of the filesystem, which is listed by 'span-list-recycle-bin'.  The filesystem is specified by its permanent ID, rather than its name, because it is possible for a span's recycle bin to contain two or more filesystems with the same name.</p>
+<p>To recycle all the filesystems on a single span, specify the span's instance name and the --all-filesystems switch.</p>
+<p>To recycle all the filesystems on all spans, specify --all-spans and --all-filesystems.</p>
+<h2>WHAT THIS COMMAND DOES</h2>
+<p>'filesystem-recycle' destroys the information that 'filesystem-undelete' needs.  'filesystem-undelete' cannot undelete a recycled filesystem.</p>
+<p>'filesystem-recycle' frees up the space used by the filesystem for reuse in other filesystems.  This reduces the likelihood that other methods of undeletion, such as restoring from a Cod backup, will work.</p>
+<p>If used to empty a span's recycle bin, 'filesystem-recycle' makes Cod readable by releases older than 12.0, providing a downgrade path.  The '--all-spans --all-filesystems' syntax is provided mainly for this purpose.</p>
+<h2>WHAT THIS COMMAND DOES NOT DO</h2>
+<p>'filesystem-recycle' does not securely delete the data on the file system.  Using a Cod backup, an administrator may still be able to undelete the filesystem.  If you need secure data deletion, use facilities provided by the storage.</p>
+<h1>Examples</h1>
+<pre>server:$ span-list-recycle-bin trio
+Permanent ID      Deleted at                 Base name
+================  =========================  =========
+8288867E7C413305  2013-09-27 06:04:46+00:00  Alpha
+8288867F0C1AF160  2013-09-27 06:04:49+00:00  Bravo
+8288867C4F56E986  2013-09-27 06:04:53+00:00  Charlie
+server:$ filesystem-recycle trio 8288867E7C413305
+Success
+server:$ span-list-recycle-bin trio
+Permanent ID      Deleted at                 Base name
+================  =========================  =========
+8288867F0C1AF160  2013-09-27 06:04:49+00:00  Bravo
+8288867C4F56E986  2013-09-27 06:04:53+00:00  Charlie
+server:$ filesystem-undelete trio 8288867E7C413305
+This span's recycle bin does not contain a filesystem with that permanent ID
+server:$
+</pre>
+<p></p>
+<p>Using the --all-spans and --all-filesystem switches:</p>
+<pre>server:$ filesystem-recycle --all-filesystems first
+Span First, filesystem f01 (0x6df17ebec93ccb28): Success
+Span First, filesystem f02 (0x6df17ebec141448a): Success
+Span First, filesystem f03 (0x6df17ebed9458137): Success
+server:$ filesystem-recycle --all-spans --all-filesystems
+Span Second, filesystem s01 (0x6df17ebf52688d67): Success
+Span Second, filesystem s02 (0x6df17ebf1b5a8a54): Success
+Span Second, filesystem s03 (0x6df17ebfc78248c9): Success
+Span Third, filesystem t01 (0x6df17ebc90035757): Success
+Span Third, filesystem t02 (0x6df17ebcaf9576d5): Success
+Span Third, filesystem t03 (0x6df17ebca7e7b9f9): Success
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-undelete.html">filesystem-undelete</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

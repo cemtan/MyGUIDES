@@ -1,0 +1,345 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-share</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cifs-share</h1>
+<p>Manipulate CIFS shares on real file systems, cluster namespaces, or EVS namespaces</p>
+<h1>Syntax</h1>
+<pre>cifs-share operation
+where &#39;operation&#39; is one of:
+list [-v] [-n &lt;num-entries&gt;] [--target-label &lt;namespace|file-system&gt;] [&lt;sharename&gt;]
+add [-e] [-S (disable|hidden|enable)] [-l] [-d] [-F] [-u] [--enable-abe] [-A] [-C (disable|enable)] [--encrypt-data] [-c &lt;str&gt;] [-o &lt;cache-options&gt;] [-t &lt;access-configuration&gt;] [--nodefaultsaa] [-h (off|ads|user|domainuser|unix) [-H &lt;home-directory-root&gt;]] [-R (do-not-transfer|transfer|use-fs-default)] &lt;sharename&gt; &lt;namespace|file-system&gt; &lt;path&gt;
+del [--target-label &lt;namespace|file-system&gt;] &lt;sharename&gt;
+delall [--delete-cns-shares] [--confirm]
+mod [-e] [-s] [-S (disable|hidden|enable)] [-l | -m] [-d | -f] [-D | -F] [-u | -a] [--enable-abe | --disable-abe] [-A | -N] [-C (disable|enable)] [--encrypt-data | --no-encrypt-data] [-v &lt;new-file-system&gt;] [-p &lt;path&gt;] [-c &lt;str&gt;] [-o &lt;cache-options&gt;] [-t &lt;access-configuration&gt;] [--target-label &lt;namespace|file-system&gt;] [-h (off|ads|user|domainuser|unix) [-H &lt;home-directory-root&gt;]] [-R (do-not-transfer|transfer|use-fs-default)] &lt;sharename&gt;
+check-access [--target-label &lt;namespace|file-system&gt;] &lt;sharename&gt; &lt;client-ip-addr&gt;
+Alias:       cns-cifs-share
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-share command is used to manage CIFS shares on normal file systems, or cluster/EVS namespaces. A CIFS share makes a directory and everything below it available over CIFS.</p>
+<p>In cluster/EVS namespaces, any path that does not traverse a link to a normal file system can be shared.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>cifs-share list [OPTION]... [&lt;sharename&gt;]</strong></dt>
+<dd><p>List the details of the share(s). If a sharename is specified, only details for the given share will be displayed. If neither a target-label nor a sharename is specified, all the namespace and filesystem shares in the context of the current EVS will be listed. In the context of the Admin Service, only cluster namespace shares will be displayed. Options are:</p></dd>
+<dl>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Display verbose information.</p></dd>
+<dt><strong>-n, --max &lt;num-entries&gt;</strong></dt>
+<dd><p>Lists at most num-entries shares.</p></dd>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the share name. This option is valid only if a share name is provided. If this option is not provided we try to locate the share on both the namespace and the file systems that are visible in the context of the current EVS.</p></dd>
+</dl>
+<dt><strong>cifs-share add [OPTION]... &lt;sharename&gt; &lt;namespace|file-system&gt; &lt;path&gt;</strong></dt>
+<dd><p>Add a new CIFS share. Options are:</p></dd>
+<dl>
+<dt><strong>-e, --ensure</strong></dt>
+<dd><p>Ensure that the path exists. Create the path to the share if it doesn't already exist. Only applicable for CIFS shares for file systems.</p></dd>
+<dt><strong>-S, --snapshot-dirs</strong></dt>
+<dd><p>Sets the accessibility and visibility of the ~snapshot directory:</p></dd>
+<dl>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable ~snapshot directory. This option should be selected for a share that includes a virtualization path. The <em>virtualization-path-list</em> command can be used to list virtualization paths.</p></dd>
+<dt><strong>hidden</strong></dt>
+<dd><p>Enable access to but hide ~snapshot directory.</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable access to and show ~snapshot directory. This is the default.</p></dd>
+</dl>
+<dt><strong>-l, --lowercaseoncreate</strong></dt>
+<dd><p>Convert the names of all files and directories created via this share to lower case.</p></dd>
+<dt><strong>-d, --dontfollowsymlinks</strong></dt>
+<dd><p>If symlinks are encountered when browsing this share, don't follow them automatically on the server. If client side symlink handling is enabled, this setting does not affect clients using the SMB2 or SMB3 protocols.</p></dd>
+<dt><strong>-F, --followglobalsymlinks</strong></dt>
+<dd><p>Allow clients that are connected to this share to follow global symlinks.</p></dd>
+<dt><strong>-u, --noscanforviruses</strong></dt>
+<dd><p>If virus scanning is enabled, don't scan files accessed via this share for viruses.</p></dd>
+<dt><strong>-c, --comment &lt;comment&gt;</strong></dt>
+<dd><p>Set the comment for this share. The comment is a free-form text field that can be used to describe the share.</p></dd>
+<dt><strong>-o, --cache-options &lt;options&gt;</strong></dt>
+<dd><p>Set the share's cache options to one of the following:</p></dd>
+<dl>
+<dt><strong>0</strong></dt>
+<dd><p>Manual local caching for documents (default)</p></dd>
+<dt><strong>4</strong></dt>
+<dd><p>Automatic local caching for documents</p></dd>
+<dt><strong>8</strong></dt>
+<dd><p>Automatic local caching for programs</p></dd>
+<dt><strong>12</strong></dt>
+<dd><p>Local caching disabled</p></dd>
+</dl>
+<dt><strong>--enable-abe</strong></dt>
+<dd><p>Enable Access-based Enumeration, which makes visible only those files or folders that the user has rights to access.</p></dd>
+<dt><strong>-A, --continuous-availability</strong></dt>
+<dd><p>Enable continuous availability for this share. Files that are opened using SMB3 on a continuously available share can survive network failures as well as cluster node failures. Continuous availability requires client assistance.</p></dd>
+<dd><p>Continuous availability is not available on replication target file systems. It may be selected, but will be disabled until the file system is remounted as a read-write file system.</p></dd>
+<dd><p>Note: continuous availability may impact performance and should only be enabled where it is required (e.g. Microsoft Hyper-v, Microsoft SQL Server).</p></dd>
+<dt><strong>-C, --shadow-copy-use</strong></dt>
+<dd><p>Controls the participation of this share in a ShadowCopy point-in-time set.</p></dd>
+<dl>
+<dt><strong>enable</strong></dt>
+<dd><p>Allow this share to be part of a ShadowCopy set. This is the default.</p></dd>
+<dt><strong>disable</strong></dt>
+<dd><p>Refuse any requests to make this share a part of a ShadowCopy set.</p></dd>
+</dl>
+<dt><strong>--encrypt-data</strong></dt>
+<dd><p>Turn on encrypted access. Encrypted access makes data transfers secure by encrypting data in-flight, to protect against tampering and eavesdropping attacks. Clients using the SMB2 protocol that do not support encrypted access are unable to connect to this share (but see <em>smb3-reject-unencrypted-access-disable</em>). Clients using the SMB1 protocol ignore this setting allowing unencrypted access. See <em>smb-min-supported-version</em> to disable SMB1 clients. Only clients using dialects &gt;= SMB3.0 support encryption. See <em>smb-max-supported-version</em> and <em>smb3-encryption-enable</em> for more details. Note that this feature does not encrypt the data on the disk.</p></dd>
+<dt><strong>-t, --access-configuration &lt;options&gt;</strong></dt>
+<dd><p>Set the client access restrictions for this share. The default is '*(rw)', meaning that all clients have read and write access to this share.</p></dd>
+<dd><p>See <em>mount-point-access-configuration</em> and <em>umask-</em> for more details.</p></dd>
+<dt><strong>--nodefaultsaa</strong></dt>
+<dd><p>By default, a new share gets a Share Access Authentication (SAA) entry that grants Full Control to Everyone. This switch prevents that entry from being created, which means it will be inaccessible until an SAA entry is added.</p></dd>
+<dt><strong>-h, --home-directory &lt;option&gt;</strong></dt>
+<dd><p>Set the share's home directory behaviour to one of the following:</p></dd>
+<dl>
+<dt><strong>off</strong></dt>
+<dd><p>Disable the home directory feature for this share. No home directories will be created for any users. This is the default if the option is not supplied.</p></dd>
+<dt><strong>user</strong></dt>
+<dd><p>A per-user home directory should be created, with the user's directory name being the same as their Windows username, converted to lower case.</p></dd>
+<dt><strong>domainuser</strong></dt>
+<dd><p>A per-user home directory should be created, with the user's directory name being the same as their Windows username, converted to lower case. The home directory will be created in a sub-directory named for the user's Windows domain. For example, a user "DOMAIN\John Smith" would result in a home directory of "domain\john_smith".</p></dd>
+<dt><strong>unix</strong></dt>
+<dd><p>A per-user home directory should be created, with the user's directory name being the same as their UNIX username, converted to lower case.</p></dd>
+<dt><strong>ads</strong></dt>
+<dd><p>Use the home directory information supplied by the Active Directory server for each user. If this option is selected, then the --home-directory-root option must not be specified.</p></dd>
+</dl>
+<dt><strong>-H, --home-directory-root &lt;home-directory-path&gt;</strong></dt>
+<dd><p>Per-user home directories will be created in <em>home-directory-path</em>, relative to the share root, which is specified with no leading '\'. If not specified, or if set to the empty string, user home directories will be created directly in the share root. By default, only one share per file system can be configured with home directories. The cifs-home-directory command can be used to relax this restriction, in which case great care must be taken not to configure conflicting home directories. For example, a share with a path of \home1 and a share with a path of \home2 would not cause a conflict, whatever home directory paths were configured. However, a share with a path of \ and a default home directory path would conflict with a share with a path of \dir and a default home directory path.</p></dd>
+<dt><strong>-R, --disaster-recovery-setting &lt;option&gt;</strong></dt>
+<dd><p>This setting only applies to shares that target WFS-2 file systems.</p></dd>
+<dd><p>Sets whether the share should be brought online when the replication target of this share's file system is converted to read-write.</p></dd>
+<dd><p>Defaults to 'use-fs-default' if this setting is not specified explicitly.</p></dd>
+<dd><p>Set this option to one of the following:</p></dd>
+<dl>
+<dt><strong>transfer</strong></dt>
+<dd><p>Mark the share for transfer to the replication target of this share's file system, indicating that it should be brought online when the replication target is mounted read-write.</p></dd>
+<dt><strong>do-not-transfer</strong></dt>
+<dd><p>Do not transfer this share to the replication target.</p></dd>
+<dt><strong>use-fs-default</strong></dt>
+<dd><p>Use the file system default value to decide whether this share should be transferred to the replication target or not.</p></dd>
+</dl>
+</dl>
+<dt><strong>cifs-share del  [OPTION]... &lt;sharename&gt;</strong></dt>
+<dd><p>Delete the given share. Options are:</p></dd>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the share name. If this option is not provided we try to locate the share on both the namespace and the file systems that are visible in the context of the current EVS.</p></dd>
+</dl>
+<dt><strong>cifs-share delall [OPTION]</strong></dt>
+<dd><p>Delete all configured CIFS shares in both the file systems and the EVS namespaces (applies to EVSs configured with individual security setting only) visible in the context of the current EVS.</p></dd>
+<dl>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Delete all the shares without prompting for further confirmation from the user.</p></dd>
+<dt><strong>--delete-cns-shares</strong></dt>
+<dd><p>Delete all CIFS shares in the cluster namespaces visible in the context of the current EVS as well. This only applies to EVSs configured with global security settings.</p></dd>
+<dd><p>An EVS can be configured either with individual or global security setting.</p></dd>
+<dd><p>WARNING: There exists only a single instance of a cluster namespace CIFS share, which is visible in the context of all EVSs configured with global security. Thus, deleting such a share using this option will delete the single instance and make it unavailable to *all* of the EVSs configured with global security settings (see 'evs-security list').</p></dd>
+</dl>
+<dt><strong>cifs-share mod [OPTION]... &lt;sharename&gt;</strong></dt>
+<dd><p>Modify an existing CIFS share. Options are:</p></dd>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the share name. If this option is not provided we try to locate the share on both the namespace and the file systems that are visible in the context of the current EVS.</p></dd>
+<dt><strong>-e, --ensure</strong></dt>
+<dd><p>Ensure that the path exists. Create the path to the share if it doesn't already exist. Only applicable for CIFS shares for file systems.</p></dd>
+<dt><strong>-s, --saadefault</strong></dt>
+<dd><p>Add an 'Everyone, Full Control' SAA entry to this share.</p></dd>
+<dt><strong>-S, --snapshot-dirs</strong></dt>
+<dd><p>Sets the accessibility and visibility of the ~snapshot directory:</p></dd>
+<dl>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable ~snapshot directory. This option should be selected for a share that includes a virtualization path. The <em>virtualization-path-list</em> command can be used to list virtualization paths.</p></dd>
+<dt><strong>hidden</strong></dt>
+<dd><p>Enable access to but hide ~snapshot directory.</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable access to and show ~snapshot directory.</p></dd>
+</dl>
+<dt><strong>-l, --lowercaseoncreate</strong></dt>
+<dd><p>Convert the names of all files and directories created via this share to lower case.</p></dd>
+<dt><strong>-m, --maintaincaseoncreate</strong></dt>
+<dd><p>Don't convert the names of files and directories created via this share to lower case, but maintain the case as provided by the client.</p></dd>
+<dt><strong>-d, --dontfollowsymlinks</strong></dt>
+<dd><p>If symlinks are encountered when browsing this share, don't follow them automatically on the server. If client side symlink handling is enabled, this setting does not affect clients using the SMB2 or SMB3 protocols.</p></dd>
+<dt><strong>-D, --dontfollowglobalsymlinks</strong></dt>
+<dd><p>Don't allow clients that are connected to this share to follow global symlinks.</p></dd>
+<dt><strong>-f, --followsymlinks</strong></dt>
+<dd><p>If symlinks are encountered when browsing this share, follow them automatically on the server. If client side symlink handling is enabled, this setting does not affect clients using the SMB2 or SMB3 protocols.</p></dd>
+<dt><strong>-F, --followglobalsymlinks</strong></dt>
+<dd><p>Allow clients that are connected to this share to follow global symlinks.</p></dd>
+<dt><strong>-u, --noscanforviruses</strong></dt>
+<dd><p>If virus scanning is enabled, don't scan files accessed via this share for viruses.</p></dd>
+<dt><strong>-a, --scanforviruses</strong></dt>
+<dd><p>If virus scanning is enabled, scan files accessed via this share for viruses.</p></dd>
+<dt><strong>-v, --new-file-system &lt;file-system&gt;</strong></dt>
+<dd><p>Change the file system to which the share points.</p></dd>
+<dt><strong>-p, --path &lt;path&gt;</strong></dt>
+<dd><p>Change the path to which the share points.</p></dd>
+<dt><strong>-c, --comment &lt;comment&gt;</strong></dt>
+<dd><p>Change the share's comment.</p></dd>
+<dt><strong>-o, --cache-options &lt;options&gt;</strong></dt>
+<dd><p>Change the share's cache options. See above for a list of values.</p></dd>
+<dt><strong>--enable-abe</strong></dt>
+<dd><p>Enable Access-based Enumeration, which makes visible only those files or folders that the user has rights to access.</p></dd>
+<dt><strong>--disable-abe</strong></dt>
+<dd><p>Disable Access-based Enumeration.</p></dd>
+<dt><strong>-A, --continuous-availability</strong></dt>
+<dd><p>Enable continuous availability for this share. Files that are opened using SMB3 on a continuously available share can survive network failures as well as cluster node failures. Continuous availability requires client assistance.</p></dd>
+<dd><p>Continuous availability is not available on replication target file systems. It may be selected, but will be disabled until the file system is remounted as a read-write file system.</p></dd>
+<dd><p>Note: continuous availability may impact performance and should only be enabled where it is required (e.g. Microsoft Hyper-v, Microsoft SQL Server).</p></dd>
+<dt><strong>-N, --no-continuous-availability</strong></dt>
+<dd><p>Disable continuous availability for this share.</p></dd>
+<dt><strong>-C, --shadow-copy-use</strong></dt>
+<dd><p>Controls the participation of this share in a ShadowCopy point-in-time set.</p></dd>
+<dl>
+<dt><strong>enable</strong></dt>
+<dd><p>Allow this share to be part of a ShadowCopy set.</p></dd>
+<dt><strong>disable</strong></dt>
+<dd><p>Refuse any requests to make this share a part of a ShadowCopy set.</p></dd>
+</dl>
+<dt><strong>--encrypt-data</strong></dt>
+<dd><p>Turn on encrypted access. Encrypted access makes data transfers secure by encrypting data in-flight, to protect against tampering and eavesdropping attacks. Clients using the SMB2 protocol that do not support encrypted access are unable to connect to this share (but see <em>smb3-reject-unencrypted-access-disable</em>). Clients using the SMB1 protocol ignore this setting allowing unencrypted access. See <em>smb-min-supported-version</em> to disable SMB1 clients. Only clients using dialects &gt;= SMB3.0 support encryption. See <em>smb-max-supported-version</em> and <em>smb3-encryption-enable</em> for more details. Note that this feature does not encrypt the data on the disk.</p></dd>
+<dt><strong>--no-encrypt-data</strong></dt>
+<dd><p>Turn off encrypted access.</p></dd>
+<dt><strong>-t, --access-configuration &lt;options&gt;</strong></dt>
+<dd><p>Change the client access restrictions for this share.</p></dd>
+<dd><p>See <em>mount-point-access-configuration</em> and <em>umask-</em> for more details.</p></dd>
+<dt><strong>-h, --home-directory &lt;option&gt;</strong></dt>
+<dd><p>Set the share's home directory behaviour. See above for a list of the values.</p></dd>
+<dt><strong>-H, --home-directory-root &lt;home-directory-path&gt;</strong></dt>
+<dd><p>Per-user home directories will be created in <em>home-directory-path</em>, relative to the share root, which is specified with no leading '\'. See above for details.</p></dd>
+<dt><strong>-R, --disaster-recovery-setting &lt;option&gt;</strong></dt>
+<dd><p>Sets the share's disaster-recovery behaviour. See above for a list of the values.</p></dd>
+</dl>
+<dt><strong>check-access [OPTIONS] &lt;sharename&gt; &lt;client-ip-addr&gt;</strong></dt>
+<dd><p>Reports the access configuration that applies to the specified client. IPv4 or IPv6 addresses can be used. Options are:</p></dd>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the share name. If this option is not provided we try to locate the share on both the namespace and the file systems that are visible in the context of the current EVS.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>Display information for share cs1:</p>
+<pre>cifs-share list cs1
+</pre>
+<p></p>
+<pre>           Share name: cs1
+           Share path: \
+          Share users: 1
+         Share online: Yes
+        Share comment:
+        Cache options: Manual local caching for documents
+            ABE enabled: No
+Continuous Availability: No
+       Access snapshots: Yes
+      Display snapshots: Yes
+     ShadowCopy enabled: Yes
+       Encrypted access: Yes
+   Lower case on create: No
+        Follow symlinks: Yes
+ Follow global symlinks: No
+       Scan for viruses: Yes
+     File system label: fs
+      File system size: 3.469 GB
+File system free space: 1.317 GB
+     File system state:
+                formatted = Yes
+                  mounted = Yes
+                   failed = No
+         thin provisioned = No
+Disaster recovery setting:
+                Recovered = No
+         Transfer setting = Use file system default
+     Home directories: Off
+  Mount point options:
+</pre>
+<p></p>
+<p>'thin provisioned' refers to file system-level thin provisioning, as described in the 'filesystem-thin' man page.  It is unrelated to the configuration of the block storage.</p>
+<p>To create the directory \home\myuser on the file system fs0 and to create a CIFS share named myshare that makes it available over CIFS:</p>
+<pre>cifs-share add -e myshare fs0 \home\myuser
+</pre>
+<p></p>
+<p>To modify the client access restrictions to share 'myshare' on 'fs0' so that only clients in the 10.1.1.* subnet have read-write access, whereas all other clients have read-only access:</p>
+<pre>cifs-share mod -t "10.1.1.*(rw), *(ro)" --target-label fs0 myshare
+</pre>
+<p></p>
+<p>To check which access restriction matches a given client:</p>
+<pre>cifs-share check-access --target-label fs0 myshare 10.1.1.1
+10.1.1.*        rw, can browse
+</pre>
+<p></p>
+<p>To modify share 'myshare' to point at the directory \home\mynewuser on the file system fs3:</p>
+<pre>cifs-share mod -v fs3 -p \home\mynewuser --target-label fs0 myshare
+</pre>
+<p></p>
+<p>To create a CIFS share named 'mycnsshare' that makes the root of the cluster namespace 'cns0' available over CIFS:</p>
+<pre>cifs-share add mycnsshare cns0 \
+</pre>
+<p></p>
+<p>To modify the client access restrictions to share 'mycnsshare' so that only clients in the 10.1.1.* subnet have read-write access, whereas all other clients have read-only access:</p>
+<pre>cifs-share mod -t "10.1.1.*(rw), *(ro)" --target-label cns0 mycnsshare
+</pre>
+<p></p>
+<p>To check which access restriction matches a given client:</p>
+<pre>cifs-share check-access --target-label cns0 mycnsshare 10.1.1.1
+10.1.1.*        rw, can browse
+</pre>
+<p></p>
+<p>To create a CIFS share named 'myevsnsshare' that makes the root of the EVS namespace 'evs1' available over CIFS:</p>
+<pre>cifs-share add myevsnsshare evs1 \
+</pre>
+<p></p>
+<p>To modify the client access restrictions to share 'myevsnsshare' so that only clients in the 10.1.1.* subnet have read-write access, whereas all other clients have read-only access:</p>
+<pre>cifs-share mod -t "10.1.1.*(rw), *(ro)" --target-label evs1 myevsnsshare
+</pre>
+<p></p>
+<p>To check which access restriction matches a given client:</p>
+<pre>cifs-share check-access --target-label evs1 myevsnsshare 10.1.1.1
+10.1.1.*        rw, can browse
+</pre>
+<p></p>
+<p>To modify the client access restrictions to share 'myevsnsshare' so that only clients in the fdca:f995:220a:a00::/64 IPv6 subnet have read-write access, whereas all other clients have read-only access:</p>
+<pre>cifs-share mod -t "fdca:f995:220a:a00::/64(rw), *(ro)" --target-label evs1 myevsnsshare
+</pre>
+<p></p>
+<p>To check which access restriction matches a given IPv6 client:</p>
+<pre>cifs-share check-access --target-label evs1 myevsnsshare fdca:f995:220a:a00:1a03:73ff:fe30:3531
+fdca:f995:220a:a00::/64	ro
+</pre>
+<p></p>
+<p>To create a CIFS share and specify that home directories should be created in directory \dir\home\users in file system fs0 with the same name as a user's Windows username:</p>
+<pre>cifs-share add -h user -H home\users myshare fs0 \dir
+</pre>
+<p></p>
+<p>To have the Active Directory server specify the user's home directory in the file system fs0:</p>
+<pre>cifs-share add -h ads myshare fs0 \dir
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide or EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-home-directory.html">cifs-home-directory</a> <a href="../Supervisor/cifs-name.html">cifs-name</a> <a href="../User/cifs-saa.html">cifs-saa</a> <a href="../User/evs-security.html">evs-security</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/mount-point-access-configuration.html">mount-point-access-configuration</a> <a href="../Supervisor/replication-recovery-default-transfer-setting-get.html">replication-recovery-default-transfer-setting-get</a> <a href="../Supervisor/replication-recovery-default-transfer-setting-set.html">replication-recovery-default-transfer-setting-set</a> <a href="../Supervisor/smb-max-supported-version.html">smb-max-supported-version</a> <a href="../Supervisor/smb-min-supported-version.html">smb-min-supported-version</a> <a href="../Supervisor/smb2-client-side-symlink-handling-default.html">smb2-client-side-symlink-handling-default</a> <a href="../Supervisor/smb2-client-side-symlink-handling-disable.html">smb2-client-side-symlink-handling-disable</a> <a href="../Supervisor/smb2-client-side-symlink-handling-enable.html">smb2-client-side-symlink-handling-enable</a> <a href="../Supervisor/smb2-client-side-symlink-handling-status.html">smb2-client-side-symlink-handling-status</a> <a href="../Supervisor/smb3-encryption-enable.html">smb3-encryption-enable</a> <a href="../Supervisor/smb3-reject-unencrypted-access-disable.html">smb3-reject-unencrypted-access-disable</a> <a href="../Supervisor/umask-directory-set.html">umask-directory-set</a> <a href="../User/umask-directory-show.html">umask-directory-show</a> <a href="../Supervisor/umask-file-set.html">umask-file-set</a> <a href="../User/umask-file-show.html">umask-file-show</a> <a href="../Supervisor/virtualization-path-list.html">virtualization-path-list</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

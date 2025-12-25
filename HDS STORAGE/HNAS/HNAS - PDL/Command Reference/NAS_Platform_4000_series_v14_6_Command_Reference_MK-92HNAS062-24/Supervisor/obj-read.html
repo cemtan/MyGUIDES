@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>obj-read</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>obj-read</h1>
+<p>Reads data from an object using OBJ_READ</p>
+<h1>Syntax</h1>
+<pre>obj-read &lt;object number or path name&gt; [-n|--nbytes &lt;byte-count&gt;] [-o|--offset &lt;byte-offset&gt;] [-f &lt;file-system&gt;]
+	 [(-w|--word-dump) | (-a|--as-is)]
+	 [(-N|--snapshot-name &lt;name&gt;) | (-C|--snapshot-checkpoint-number &lt;number&gt;) | (-I|--snapshot-index &lt;index&gt;)]
+</pre>
+
+<h1>Description</h1>
+<p>The obj-read command is used to provide a hex dump of the contents of a file system object. An 'object' may be a file, a directory, or any other object whose data is described by an objStore object.</p>
+<p>The command should be run on a mounted file system to produce a clean output. If the file system is unmounted, the command will generate additional messages concerning the opening and closing the file system.</p>
+<p>Usage:</p>
+<p>The &lt;byte-offset&gt; and the &lt;byte-count&gt; below can be specified as an unsigned number with unit, or as an algebraic expression as described in the 'offset-and-length' man page.</p>
+<dl>
+<dt><strong>&lt;object-number (or path name)&gt;</strong></dt>
+<dd><p>The object-number or the path name of the object to be read. If the first character is a digit, the string is always interpreted as an object number. The number is hexadecimal if it starts with "0x" or "0X", or decimal otherwise.</p></dd>
+<dd><p>If the first character is not a digit, the string is interpreted as the path name as described below.</p></dd>
+<dd><p>The path name can be specified as an absolute path starting with "/", or a relative path optionally starting with "./".  For mounted or unmounted file systems one can specify either an absolute or a relative path name. But the relative path name can only be specified if the current working directory is defined, i.e., the file system must be both mounted and currently selected. If the relative path name starts with a digit, one must specify an absolute path name starting with "/", or a relative path name starting with "./" so that the command will not interpret it as an object number.</p></dd>
+<dd><p>If the specified file name is in a snapshot, its absolute path can be specified with or without the leading part "/.snapshot/&lt;snapshot-name&gt;". If the leading part is not specified, the snapshot must be specified by one of the three snapshot options -N, -C, or -I that are described shortly. Otherwise, the snapshot name is already specified in the path and, hence, it is an error to specify any snapshot option.</p></dd>
+<dt><strong>-o, --offset &lt;byte-offset&gt;</strong></dt>
+<dd><p>The offset from which to read (default 0)</p></dd>
+<dt><strong>-n, --nbytes &lt;byte-count&gt;</strong></dt>
+<dd><p>The number of bytes to read (default 512 bytes). A '0' can be specified to read the entire contents of the object.</p></dd>
+<dt><strong>-f, --file-system &lt;file system name&gt;</strong></dt>
+<dd><p>The name or volume number of the file-system in which the object resides</p></dd>
+<dt><strong>-a, --as-is</strong></dt>
+<dd><p>Do not dump in hex; display the contents of the object as is.</p></dd>
+<dt><strong>-w, --word-dump</strong></dt>
+<dd><p>Hex dump in WordDump64 style output. Note that --word-dump and --as-is are mutually exclusive.</p></dd>
+</dl>
+<p>By default, the object is in the live file system. If it resides in a snapshot, the snapshot must be specified by one of the three mutually exclusive options:</p>
+<dl>
+<dt><strong>-N, --name &lt;snapshot name&gt;</strong></dt>
+<dd><p>Specify the name of the snapshot where the object resides.</p></dd>
+<dt><strong>-C, --checkpoint &lt;snapshot checkpoint number&gt;</strong></dt>
+<dd><p>Specify the checkpoint number of the snapshot where where the object resides.</p></dd>
+<dt><strong>-I, --index -&lt;snapshot index&gt;</strong></dt>
+<dd><p>Specify the snapshot index of the snapshot where the object resides.</p></dd>
+</dl>
+<p>Note the hex output formatting can be changed by nop or hexdump-set.</p>
+<h1>Examples</h1>
+<p>1. To dump 1024 bytes at offset 4096 from the object with object-number 0x128400 on file system 3:</p>
+<pre>   $ obj-read 0x128400 -n 1024 -o 4096 -f 3
+</pre>
+<p></p>
+<p>2. If object 0x128400 is actually a file in the live file system, say /mydir/data/myfile.txt, the following commands will give the same result:</p>
+<pre>   $ obj-read /mydir/data/myfile.txt -n 1024 -o 4096 -f 3
+   $ cd /mydir/data; obj-read myfile.txt -n 1024 -o 4096 -f 3
+   $ cd /mydir/data; obj-read ./myfile.txt -n 1024 -o 4096 -f 3
+</pre>
+<p></p>
+<p>3. If the object 0x128400 is also in a snapshot named "mysnapshot", the following commands can be used:</p>
+<pre>   $ obj-read 0x128400 --snapshot-name mysnapshot -n 1024 -o 4096 -f 3
+   $ obj-read /mydir/data/myfile.txt --snapshot-name mysnapshot -n 1024 -o 4096 -f 3
+</pre>
+<p></p>
+<p>The separate snapshot option can be omitted if the snapshot name is specified in the absolute path starting with "/.snapshot" as follows:</p>
+<pre>   $ obj-read /.snapshot/mysnapshot/mydir/data/myfile.txt -n 1024 -o 4096 -f 3
+</pre>
+<p></p>
+<p>4. If the file name is a number, it must be specified as a full path name or a relative path name starting with "./" as follows:</p>
+<pre>   $ ls /mydir/data
+   12
+   myfile.txt
+</pre>
+<p></p>
+<pre>   $ obj-read /mydir/data/12 -n 1024 -o 4096 -f 3
+   $ cd /mydir/data; obj-read ./12 -n 1024 -o 4096 -f 3
+</pre>
+<p></p>
+<p>5. Compare obj-read and cat:</p>
+<pre>   - Given a filename, the contents of the file can be dumped in hex by 'obj-read' or 'cat --hex',
+     or dumped as-is by 'cat' or 'obj-read --as-is'.
+   - Given an object number, the contents of the object can only be dumped by 'obj-read'.
+</pre>
+<p></p>
+<pre>   $ obj-read --nbytes 0 328515 --as-is | stee object-328515
+   $ obj-read --nbytes 0 myfile --as-is | stee myfile1
+   $ cat --length 0 myfile | stee myfile2
+</pre>
+<p></p>
+<pre>   Note that stee or sswrdata can be used to save data to flash, and wrdata to the current selected file system.
+</pre>
+<p></p>
+<p>5. Compress large data:</p>
+<pre>   Use the zip filter to compress data in gzip format:
+</pre>
+<p></p>
+<pre>   $ obj-read --nbytes 0 largefile --as-is | zip | wrdata largefile.gz
+   $ cat --length 0 largefile | zip | wrdata largefile.gz
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cat.html">cat</a> <a href="../Filter/User/devnull.html">devnull</a> <a href="../Dev/disk-read.html">disk-read</a> <a href="../Filter/User/grep.html">grep</a> <a href="../Filter/User/hexdump.html">hexdump</a> <a href="../Filter/Dev/hexdump-set.html">hexdump-set</a> <a href="../Filter/User/nop.html">nop</a> <a href="../Topic/offset-and-length.html">offset-and-length</a> <a href="../Filter/User/sstee.html">sstee</a> <a href="../Filter/Dev/sswrdata.html">sswrdata</a> <a href="../Filter/User/unzip.html">unzip</a> <a href="../Filter/Dev/wrdata.html">wrdata</a> <a href="../Filter/User/zip.html">zip</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

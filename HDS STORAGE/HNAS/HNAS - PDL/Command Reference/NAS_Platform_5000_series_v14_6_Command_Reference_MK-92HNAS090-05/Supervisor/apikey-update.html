@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>apikey-update</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>apikey-update</h1>
+<p>Update an existing API Key</p>
+<h1>Syntax</h1>
+<pre>apikey-update (--description &lt;description&gt; | --prefix &lt;prefix&gt;) [--enable] [--disable] [--new-description &lt;new-description&gt;] [--add-access (full-access|native-rest-all|native-rest-read|other-all)] [--remove-access (full-access|native-rest-all|other-all)]
+</pre>
+
+<h1>Description</h1>
+<p>apikey-update can be used to enable or disable an API Key, and also update the description and access level associated with a key.</p>
+<p>The description associated with an API Key should be changed if the key were being put to a new use, or had been transferred to another end user.</p>
+<p>The access level of a key describes which external interfaces access has been granted to. Newly created keys have full-access, but the access level can be a combination of the following values:</p>
+<p>full-access - allows full read/write access to all APIs</p>
+<p>native-rest-all - allows full read/write access to the native RestAPI</p>
+<p>native-rest-read - allows read only access to the native RestAPI</p>
+<p>other-all - allows full read/write access to the SOAP APIs</p>
+<h2>Parameters</h2>
+<p>Exactly one of description or prefix must be specified:</p>
+<dl>
+<dt><strong>-d, --description &lt;description&gt;</strong></dt>
+<dd><p>Specify the key by the description associated with it.</p></dd>
+<dt><strong>-p, --prefix &lt;prefix&gt;</strong></dt>
+<dd><p>Specify the key by the randomly generated prefix of the key.</p></dd>
+<dt><strong>--enable</strong></dt>
+<dd><p>Enables the specified API Key.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>Disables the specified API Key.</p></dd>
+<dt><strong>-n, --new-description &lt;new-description&gt;</strong></dt>
+<dd><p>A new description to associate with the specified API Key.</p></dd>
+<dt><strong>-a, --add-access &lt;access-level&gt;</strong></dt>
+<dd><p>Adds an access level to the specified API Key. Valid choices are: (<strong>full-access</strong>|<strong>native-rest-all</strong>|<strong>native-rest-read</strong>|<strong>other-all</strong>)</p></dd>
+<dt><strong>-r, --remove-access &lt;access-level&gt;</strong></dt>
+<dd><p>Remove an access level from the specified API Key. Valid choices are: (<strong>full-access</strong>|<strong>native-rest-all</strong>|<strong>other-all</strong>)</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Disable the key associated with the description "testkey":</p>
+<pre>server:$ apikey-update -d testkey --disable
+</pre>
+<p></p>
+<p>Update the description associated with the key which has the prefix SzKdKXQxur:</p>
+<pre>server:$ apikey-update -p SzKdKXQxur --new-description "permanent key"
+</pre>
+<p></p>
+<p>Disable full access from a key which has the prefix SzKdKXQxur:</p>
+<pre>server:$ apikey-update -p SzKdKXQxur --remove-access full-access
+</pre>
+<p></p>
+<p>Enables read only access to the native RestAPI for a key which has the prefix SzKdKXQxur:</p>
+<pre>server:$ apikey-update -p SzKdKXQxur --add-access native-rest-read
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/apikey-create.html">apikey-create</a> <a href="../Supervisor/apikey-list.html">apikey-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

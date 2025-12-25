@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-space-distribution</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-space-distribution</h1>
+<p>Shows the distribution of filesystems across stripesets</p>
+<h1>Syntax</h1>
+<pre>span-space-distribution [&lt;span-instance-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>When a span is initially created, it contains one stripeset: all the data in the span is striped across all the system drives (SDs) in that stripeset.  Each time the span is expanded, a further stripeset is added.</p>
+<p>A span's stripesets may not all have the same performance.  Some of the reasons are:</p>
+<ul>
+<li>One stripeset may contain more disks than another</li>
+<li>One stripeset may contain newer, faster storage than another</li>
+<li>At file system level, the chunks in one stripeset may contain more free blocks than another, or free space may be less fragmented, enabling the server to write data more efficiently</li>
+</ul>
+<p>When investigating performance, it is often useful to understand how the data in each filesystem is distributed among the stripesets in the host span.  This command answers that question.</p>
+<p>If the command is run without any command line arguments, it displays the space distribution for all loaded spans.  If passed a span instance name, it displays the space distribution on just that span.  No other syntax is permitted.</p>
+<p>This command does not report how a single file, directory or directory tree is distributed among stripesets.  It is useful for understanding the performance of a filesystem as a whole, but exercise caution when looking at individual parts of a file system.</p>
+<p>Because of rounding, individual capacities and percentages may not add up to exactly the expected values.</p>
+<h1>Examples</h1>
+<pre>server:$ span-space-distribution projects
+  How each stripeset is used:
+    Stripeset 0:
+              70GiB    23.30%   Alpha
+              20GiB     6.66%   Bravo
+              20GiB     6.66%   Charlie
+              25GiB     8.32%   Delta
+             165GiB    55.07%   [Free space]
+    Stripeset 1:
+              40GiB     7.97%   Bravo
+             139GiB    27.89%   Charlie
+              45GiB     8.97%   Delta
+             276GiB    55.17%   [Free space]
+    Stripeset 2:
+             179GiB    44.86%   Delta
+             221GiB    55.14%   [Free space]
+    Stripeset 3:
+              20GiB     3.98%   Bravo
+             480GiB    96.02%   [Free space]
+</pre>
+<p></p>
+<pre>  Where each filesystem resides:
+    Filesystem Alpha:
+      Stripeset  0            70GiB   100.00%
+    Filesystem Bravo:
+      Stripeset  0            20GiB    25.04%
+      Stripeset  1            40GiB    49.97%
+      Stripeset  3            20GiB    24.99%
+    Filesystem Charlie:
+      Stripeset  0            20GiB    12.53%
+      Stripeset  1           139GiB    87.47%
+    Filesystem Delta:
+      Stripeset  0            25GiB    10.02%
+      Stripeset  1            45GiB    17.99%
+      Stripeset  2           179GiB    72.00%
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The "How each stripeset is used" section shows how the space on each stripeset is allocated to filesystems.  It shows, for example, that 23.30% of Stripeset 0 is allocated to filesystem Alpha and that about 22% is divided between the three other filesystems, and that 55.07% of the stripeset is free.  It also shows that nearly all the data on the span resides on the first three stripesets, because Stripeset 3 is nearly empty.</p>
+<p>The "Where each filesystem resides" section shows how each filesystem draws space from the stripesets in its host span.  It shows, for example, that filesystem Charlie resides predominantly on Stripeset 1, but also draws a small amount of space from Stripeset 0.</p>
+<p>If filesystems are in the span's recycle bin, the command's output looks like this:</p>
+<pre>server:$ span-space-distribution accounts
+  How each stripeset is used:
+    Stripeset 0:
+             125GiB     1.73%   First
+             123GiB     1.71%   Second
+             218GiB     3.01%   Deleted filesystem Third (0xeb970e6c55fef21e)
+            6758GiB    93.55%   [Free space]
+    Stripeset 1:
+              75GiB     1.04%   First
+             177GiB     2.45%   Second
+              13GiB     0.19%   Deleted filesystem Third (0xeb970e6c55fef21e)
+            6958GiB    96.32%   [Free space]
+</pre>
+<p></p>
+<pre>  Where each filesystem resides:
+    Filesystem First:
+      Stripeset  0           125GiB    62.50%
+      Stripeset  1            75GiB    37.50%
+    Filesystem Second:
+      Stripeset  0           123GiB    41.03%
+      Stripeset  1           177GiB    58.97%
+    Deleted filesystem Third (0xeb970e6c55fef21e):
+      Stripeset  0           218GiB    94.17%
+      Stripeset  1            13GiB     5.83%
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The command prints each deleted filesystem's permanent ID as well as its name, because it is possible for a span's recycle bin to contain more than one filesystem with the same name.</p>
+<p>On a span that resides on an HDP pool, 'span-space-distribution' will sometimes display the words 'Vacated space'.  This phrase refers to space that was occupied by one or filesystems that have since been deleted and recycled.  When other filesystems are created or expanded, this vacated space will be used before any other unused space.</p>
+<h2>UNDERSTANDING IMBALANCE</h2>
+<p>To see how filesystems came to be laid out as they did on span Projects, it is necessary to understand the server's behavior.  The server allocates a whole number of chunks whenever a filesystem is created or expanded.  Each chunk resides on a single stripeset.  When a chunk is allocated, the server tries to meet several conflicting goals, set out in the 'span-tune-allocator' man page; but two of these goals are to keep all stripesets equally full and to distribute the chunks in each filesystem evenly across all the stripesets in the span.</p>
+<p>When a span is expanded, the server does not move chunks between stripesets or attempt to move any existing data on to the new stripeset.  Instead, the new stripeset will be used for new chunk allocations until the server's balance goals are satisfied.</p>
+<p>(Software release older than 11.2 had a simpler chunk allocator that had only one goal: optimal balance of total workload across all stripesets.  This difference must be borne in mind if the span has ever been used with these older releases.)</p>
+<p>Equipped with this knowledge, we can now explain the imbalances shown in the transcript above:</p>
+<ul>
+<li>Filesystem Alpha resides exclusively on Stripeset 0 because that is the only stripeset that existed when the filesystem was created and expanded.  If filesystem Alpha were to be expanded now, the new chunks would almost certainly be drawn from Stripeset 3.  The number of SDs contributing space to the filesystem would be increased, and its performance would rise.</li>
+<li>Filesystem Charlie resides predominantly on Stripeset 1 because, when Charlie was created, only two stripesets existed and Stripeset 1 was the emptier of the two.</li>
+<li>Stripeset 3 is emptier than the other stripesets because few filesystem expansions have taken place since the stripeset was added to the span.  The next few chunk allocations will be taken from this stripeset until it becomes as heavily loaded as the other stripesets in the span.</li>
+</ul>
+<p>It is possible to induce imbalance in other ways -- for example:</p>
+<ul>
+<li>If filesystem Alpha were to be deleted, Stripeset 0 would become emptier than Stripesets 1 and 2.</li>
+<li>The use of 'filesystem-expand --on-stripeset' to defeat the server's normal choices will usually produce imbalance.</li>
+</ul>
+<p>When utilization is imbalanced, the server will use future allocations (creation and expansion of filesystems) to heal the imbalance as far as possible.</p>
+<p>To see which SDs are in each stripeset, use 'span-list -s'.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Supervisor/span-tune-allocator.html">span-tune-allocator</a> <a href="../Supervisor/span-vacated-chunks.html">span-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

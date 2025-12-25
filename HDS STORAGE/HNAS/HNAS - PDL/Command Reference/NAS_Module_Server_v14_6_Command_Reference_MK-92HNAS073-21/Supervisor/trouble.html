@@ -1,0 +1,251 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>trouble</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>trouble</h1>
+<p>Diagnose the cluster and the storage</p>
+<h1>Syntax</h1>
+<pre>trouble [--list-reporters | -r | --fault-conditions | -f | --start-perf | -p | --stop-and-report-perf | -P | --run-perf &lt;time-in-seconds&gt; | -u | --cancel-perf | -C] [--perf] [--terse | -t] [--rescan-reporters | -R] [--show-reporters | -h] [--send-diagnostics | -d] [--ignore-thresholds | -i] [((--cluster-node | -c) &lt;node-ID&gt;) | ((--evs | -E) &lt;EVS-ID&gt;) | ((--filesystem-instance-name | -F) &lt;filesystem-label&gt; ) | --admin | -a] [(--sort | -s) &lt;criteria&gt;] [--execute | -x] [--in-diags] [--width | -w &lt;console-width&gt;] [&lt;reporter-or-group-name&gt;...]
+</pre>
+
+<h1>Description</h1>
+<h2>An automated troubleshooter</h2>
+<p>'trouble' is an automatic diagnosis system for the server and its storage.  It identifies problems, categorizes them, prioritizes them, and presents them on the console, accompanied with advice on investigating and solving them.</p>
+<p>'trouble' often prints commands that you can run simply by pasting them into the console.  Running investigative commands (marked 'To see') is safe.  Running remedial commands (marked 'To fix') requires understanding and discretion; don't run remedial commands without understanding what they do and satisfying yourself that they do what you want.</p>
+<p>(Of course, not every fault can be fixed by a server command.  Some problems require physical intervention or configuration of third-party hardware.)</p>
+<p>For troubleshooting, the simplest approach is often to run 'trouble', fix the first few problems it mentions, and repeat the process until 'trouble' no longer reports any problems.  Often, this is all that is required.</p>
+<p>You'll notice that every problem has a priority.  The priority doesn't reflect the severity or impact of the problem; instead, it tries to show which problems are root causes and which are merely consequences. Solve the high-priority problems (the ones with the smallest numbers), run 'trouble' again, and you'll often find that lower-priority problems have disappeared.</p>
+<p>'trouble' can also identify possible performance problems.  A good starting point is to type 'trouble --run-perf 30' and wait 30 seconds for the results.  This facility is used more often by the service organization than directly by customers.</p>
+<h2>Running commands automatically</h2>
+<p>If you supply the '--execute' or '-x' switch, 'trouble' will automatically run every investigative command (marked 'To see') that it suggests. Commands will be run after the main report has been printed.  To make them easier to find, they will be run in alphabetical order, regardless of the order in which they were suggested, and even if they contain numbers.  This means that, for example, 'sd-list 10' runs before 'sd-list 9'.</p>
+<h2>Sending diagnostics</h2>
+<p>If you supply the '--send-diagnostics' or '-d' switch, 'trouble' will send diagnostics if it issues a serious warning.  Not all warnings are serious enough to require diagnostics; in general, diagnostics will be sent only if 'trouble' finds a problem that is causing, or is likely to cause, loss of service.</p>
+<p>Diagnostics are sent to all configured recipients: there is no way to restrict the recipient list.</p>
+<h2>Investigating performance</h2>
+<p>By default, 'trouble' looks for problems that are likely to cause loss or degradation of service.  If you use one of four switches, it will instead gather and list performance statistics.</p>
+<p>This facility needs enhanced performance statistics to be enabled, at a slight cost in performance.</p>
+<p>If you are investigating performance problems, run a trouble performance report when the problem is at its worst.  If the problem is intermittent, it is also useful to make a report when performance is good; comparing the two reports can help to identify the root cause.</p>
+<dl>
+<dt><strong>--start-perf, -p</strong></dt>
+<dd><p>Tells the server to start gathering statistics.  You can gather statistics for as long or as short a time as you wish; we recommend running for at least a few minutes.</p></dd>
+<dd><p>This command returns control at once; it doesn't list any statistics.</p></dd>
+<dt><strong>--stop-and-report-perf, -P</strong></dt>
+<dd><p>Stops gathering statistics; prints any that are out of range.  May also print warnings of the type that appear in a fault report.</p></dd>
+<dd><p>Warnings point out static configuration details that may or not be causing performance problems; statistics show aspects of the server's performance that are below normal.  Think of warnings as possible causes and statistics as possible results.</p></dd>
+<dt><strong>--cancel-perf, -C</strong></dt>
+<dd><p>Stops gathering statistics, like --stop-and-report-perf, but discards the report that --stop-and-report-perf would have printed.</p></dd>
+<dt><strong>--run-perf, -u</strong></dt>
+<dd><p>Equivalent to --start-perf, a wait, and then --stop-and-report-perf.</p></dd>
+<dd><p>Unlike --start-perf and --stop-and-report-perf, the --run-perf switch occupies the console while statistics are gathered.  It is therefore best to specify only a short delay.</p></dd>
+</dl>
+<p>Each of the commands mentioned in this section runs on a single cluster node.  If you're using a cluster, use '--cluster-node' (-c), '--evs' (-E) or '--filesystem' (-F) to specify the node on which you want the command to run.</p>
+<p>The '--ignore-thresholds' switch modifies the action of '--run-perf' and '--stop-and-report-perf': it lists all statistics, whether or not they are out of range.</p>
+<h2>Reporters</h2>
+<p>The 'trouble' command is not monolithic.  The server has many "reporters" -- programs that run when you type 'trouble', and which probe various parts of the server and its storage.</p>
+<p>Reporters come in two kinds: fault reporters find problems that may cause loss or degradation of service, and performance reporters find performance statistics that are out of range (unexpectedly high or low).</p>
+<p>You can list all available reporters by typing 'trouble --list-reporters' or 'trouble -r'.  By default, the command lists fault reporters; if you add '--perf' or '-e', it instead lists performance reporters.</p>
+<p>Each reporter has a base priority.  This is the highest priority that the reporter is capable of reporting.  'trouble' uses the base priority to ensure that high-priority reporters run before lower-priority ones.</p>
+<p>Each reporter has a name and a group name.  You can specify these names on the command line to narrow down the search for problems. For example, 'trouble fcic span' will run just the 'fcic' and 'span' reporters, while 'trouble storage' will run all reporters in the 'storage' group, including 'fcic', 'span' and several others.  You can specify any number of reporter and group names in a single command.</p>
+<p>If you are running performance reporters, specify them with the '--start-perf' or '--run-perf' command.  There's no need to specify them again with '--stop-and-report-perf': the server already knows which reporters are gathering statistics.</p>
+<p>Some reporters detect problems that are so serious that other reporters shouldn't be allowed to run.  They are capable of aborting the 'trouble' command, so that existing problems are not compounded.  These reporters are mandatory: they always run, whether you ask for them or not.</p>
+<p>Specifying reporter and group names alongside '--list-reporters' will reduce the number of reporters that the command lists.  For example 'trouble -r storage system' lists all the reporters in the 'storage' and 'system' groups.</p>
+<h2>Showing more or less detail</h2>
+<p>The '--terse' or '-t' switch avoids printing</p>
+<ul>
+<li>reporter names (with their associated groups, board names and base priorities),</li>
+<li>the actions that normally follow warnings, and</li>
+<li>notifications about warnings that have caused the server to send diagnostics (though it does not suppress the diagnostics themselves).</li>
+</ul>
+<p>It's useful when you're repeatedly running 'trouble' to see whether a particular problem has been fixed, or when you're using a terminal with limited scrollback.</p>
+<p>Conversely, '--show-reporters' or '-h' lists all reporters before running them.  It will show all reporters you requested, as well as all mandatory reporters.</p>
+<p>These switches have no effect on performance reporters.</p>
+<h2>Inspecting only one server in a cluster</h2>
+<p>The '--admin' or '-a' switch limits the inspection to the server that's running the Admin Service.  Other cluster nodes aren't examined. It can help reduce duplication if the errors that interest you are duplicated across multiple nodes in a cluster.</p>
+<p>The '--cluster-node' or '-c' switch inspects just the node you specify, and ignores other nodes.  It's useful if you want to check for faults that are specific to a single cluster node, such as storage connectivity. Be aware that some tests are run only on the Admin Service; if the Admin Service isn't running on the node you specify, those tests won't be performed.  You can use 'evs list' to see where the Admin Service is running.</p>
+<p>As an alternative to '--cluster-node', you can use '--evs', which selects the cluster node where the specified EVS is running.  For example, if EVS 2 is running on cluster node 1, '--evs 2' will run reports on cluster node 2.</p>
+<p>As yet another alternative, you can use '--filesystem' to specify a filesystem instance name.  For example, if filesystem Accounts is bound to EVS 2, which is running on cluster node 1, '--filesystem Accounts' will run reports on cluster node 1.</p>
+<p>When you run fault reporters, these switches are optional: by default, the command will inspect all nodes in the cluster.  In contrast, when you run performance reporters on a cluster (as opposed to a stand-alone  server), it is mandatory to use one of '--cluster-node', '--evs' and '--filesystem' to specify a cluster node.</p>
+<h2>Listing all possible problems</h2>
+<p>Type 'trouble --fault-conditions' or 'trouble -f'.  The command will list all problems that 'trouble' is capable of reporting.  By default, the command lists faults; if you add '--perf' or '-e', it instead lists performance measurements.</p>
+<p>If you specify one or more reporter or group names on the command line -- for example, 'trouble -f span scsi' -- then the command will list only problems that the specified reporters can detect.  If you see less output than you expect, try adding or removing '--perf'.</p>
+<h2>Sorting the output</h2>
+<p>The '--sort' or '-s' switch lets you change the order in which listings are produced.  Follow it with a sequence of one or more letters, chosen from the lists below.</p>
+<p>When running fault or performance reporters, the sort criteria are:</p>
+<dl>
+<dt><strong>a</strong></dt>
+<dd><p>The reporter's base priority</p></dd>
+<dt><strong>b</strong></dt>
+<dd><p>Places internal reporters before external ones</p></dd>
+<dt><strong>c</strong></dt>
+<dd><p>The cluster node on which the problem is found</p></dd>
+<dt><strong>d</strong></dt>
+<dd><p>The deviation -- the amount by which a performance statistic is out of range.  If faults and performance statistics are combined in the same 'trouble' report, sorting by this criterion will place the faults at the top of the list; any statistics that are within range will appear at the bottom.</p></dd>
+<dt><strong>e</strong></dt>
+<dd><p>Entity ID (see below)</p></dd>
+<dt><strong>g</strong></dt>
+<dd><p>Reporter group name</p></dd>
+<dt><strong>m</strong></dt>
+<dd><p>The text of the warning message</p></dd>
+<dt><strong>p</strong></dt>
+<dd><p>The priority of the warning</p></dd>
+<dt><strong>r</strong></dt>
+<dd><p>Reporter name</p></dd>
+<dt><strong>t</strong></dt>
+<dd><p>Entity type (see below)</p></dd>
+<dt><strong>y</strong></dt>
+<dd><p>Message type: warning or measurement</p></dd>
+</dl>
+<p>The default sort order is 'yagrtepdmcb'.</p>
+<p>With '--list-reporters', the sort criteria are:</p>
+<dl>
+<dt><strong>a</strong></dt>
+<dd><p>The reporter's base priority</p></dd>
+<dt><strong>b</strong></dt>
+<dd><p>The board on which the reporter runs</p></dd>
+<dt><strong>g</strong></dt>
+<dd><p>Reporter group name</p></dd>
+<dt><strong>r</strong></dt>
+<dd><p>The reporter name</p></dd>
+</dl>
+<p>The default order is 'agrb'.</p>
+<p>With '--fault-conditions', the sort criteria are:</p>
+<dl>
+<dt><strong>a</strong></dt>
+<dd><p>The reporter's base priority</p></dd>
+<dt><strong>b</strong></dt>
+<dd><p>The board on which the reporter runs</p></dd>
+<dt><strong>g</strong></dt>
+<dd><p>Reporter group name</p></dd>
+<dt><strong>m</strong></dt>
+<dd><p>The text of the warning message</p></dd>
+<dt><strong>p</strong></dt>
+<dd><p>The priority of the warning</p></dd>
+<dt><strong>r</strong></dt>
+<dd><p>The reporter name</p></dd>
+</dl>
+<p>The default order is 'agrbpm'.</p>
+<h3>Entity types and entity IDs</h3>
+<p>Some reporters report problems on multiple types of entity.  For example, the 'span' reporter inspects system drives, spans and filesystems (among other things).  The entity type is a number that distinguishes between the different types of entity that a reporter can inspect. Sorting on entity type ensures, for example, that the 'span' reporter warns about system drives, and then spans, and then filesystems, in that order.</p>
+<p>An entity ID is a name or number that distinguishes between all the entities of a given type.  Sorting on entity ID ensures that all warnings for system drive 1 are listed before problems for system drive 2, and all problems for span 'alpha' are listed before problems for span 'bravo'.  If a reporter does not specify entity types and IDs, the 'trouble' command will, by default, group that reporter's warnings by header and sort its headers alphabetically.</p>
+<p>If you specify one or more sort criteria, they are moved to the head of the list, but the remaining criteria still operate as tie-breakers. For example, if you say 'trouble --sort cb' in order to separate out the warnings from each board in a cluster, the effective sort order will be 'cbagrtedpm'.</p>
+<p>You can reverse the order of any criterion by specifying it in upper case.  For example, 'trouble --sort AP' lists the highest-priority warnings last, rather than first.  This may be useful if your terminal has limited scrollback.</p>
+<h2>Console width</h2>
+<p>In most cases, 'trouble' will automatically detect the console width.  However, you can use --width or -w to force a width of your choosing.  'trouble' always uses at least 50 columns.</p>
+<h2>Throttling</h2>
+<p>The server throttles (limits) the number of warnings that can be issued:</p>
+<ul>
+<li>If a single reporter produces too many warnings, the last warnings it produces are discarded.</li>
+<li>If the reporters on a single node produce too many warnings in total, the server runs no further reporters on that node.</li>
+</ul>
+<p>The default limits are:</p>
+<dl>
+<dt><strong>Per reporter</strong></dt>
+<dd><p>1000</p></dd>
+<dt><strong>Per node</strong></dt>
+<dd><p>2000</p></dd>
+</dl>
+<p>If throttling occurs, a high-priority warning will be printed, explaining what kind of throttling was used and which warnings have been omitted.</p>
+<p>Throttling is intended to keep the 'trouble' report to a manageable length without discarding valuable information.  If you need to see warnings that have been throttled, there are two approaches you can take:</p>
+<ul>
+<li>Solve high-priority problems, so that their warnings go away.  If lower-priority problems remain, they will become visible.</li>
+<li>Use the '--cluster-node' or '--admin' switches to examine a single server, or specify individual reporter names to see the output of those reporters.</li>
+</ul>
+<p>Sorting the output won't help: warnings are throttled <strong>before</strong> being sorted.</p>
+<p>The per-node limit is applied loosely: any trouble reporters that are already running when the per-node limit is reached are allowed to finish running and add further warnings to the trouble report.</p>
+<p>Releases older than 12.2 used to apply a per-cluster limit.  Because all nodes now run their trouble reporters at the same time, rather than just one node running reporters at once, this limit is no longer applied.</p>
+<p>Throttling of a different type occurs when you use the --in-diags switch.  One 'trouble --in-diags' command will refuse to start within three minutes of a previous such command completing successfully on the same cluster node.  (For the purposes of --in-diags, 'trouble' always runs on the Admin Service, even if you use a switch to limit the report to a different node.)</p>
+<p>The --in-diags switch is meant primarily for the server's built-in diagnostics or for scripts that may run often, rather than for interactive use.</p>
+<h2>Rescanning for reporters</h2>
+<p>The first time 'trouble' runs after a reboot, it scans for reporters.  It caches a list of reporters in order to run more quickly in future.</p>
+<p>Some platforms allow new reporters to be added to a running server.  After one or more reporters have been added, run any 'trouble' command with the --rescan-reporters (or -R) switch.  For example, either of</p>
+<pre>trouble --list-reporters --rescan-reporters
+trouble -rR
+</pre>
+<p></p>
+<p>will rescan the list of reporters and verify that any new reporters have been found.</p>
+<h2>TROUBLESHOOTING</h2>
+<p>Use the following facilities if a reporter should ever cause problems.  They all relate to fault reports: reports generated when you do not supply the --start-perf, --stop-and-report-perf or --run-perf switches.</p>
+<h3>Determining which reporters are running</h3>
+<p>To maximize performance, the server runs several reporters in parallel; however, rather than running all reporters at once, it starts the next reporter when a previous one has finished.  The following command will list all reporters that are running at the moment when the command is run:</p>
+<pre>pn all thread-list -a | grep 'Trouble reporter'
+</pre>
+<p></p>
+<p>This facility can be useful if 'trouble' runs more slowly than usual.</p>
+<h3>Suppressing a trouble reporter</h3>
+<p>To prevent one or more reporters from running, use 'set' like this:</p>
+<pre>set disable-trouble-reporters foo
+</pre>
+<p></p>
+<p>Now the reporter called 'foo' will not run.  Specify only the reporter name, ignoring the group name.  Should you need to disable more than one reporter, separate names with semicolons:</p>
+<pre>set disable-trouble-reporters 'foo;bar;baz'
+</pre>
+<p></p>
+<p>To re-enable all reporters, possibly after a software upgrade:</p>
+<pre>unset disable-trouble-reporters
+</pre>
+<p></p>
+<p>These commands take cluster-wide effect at once and persist across reboots.</p>
+<h3>Suppressing the entire 'trouble' command</h3>
+<p>'trouble' runs automatically in a number of circumstances, including when diagnostics are taken.  In the unlikely event that 'trouble' causes problem and suppressing individual reporters does not help, you can suppress the entire 'trouble' command by typing:</p>
+<pre>set trouble_suppressed_for_case 12345
+</pre>
+<p></p>
+<p>where 12345 should be replaced by a TAC Case number.  If you do not have a TAC Case number, use the value 1.  This setting takes effect immediately; it acts cluster-wide and is persistent across reboots.  To reenable the 'trouble' command, type:</p>
+<pre>unset trouble_suppressed_for_case
+</pre>
+<p></p>
+<h1>Examples</h1>
+<pre>trouble
+</pre>
+<p></p>
+<p>Finds all faults throughout the cluster.</p>
+<pre>trouble storage
+</pre>
+<p></p>
+<p>Finds all faults in the storage system.</p>
+<pre>trouble --list-reporters storage system
+</pre>
+<p></p>
+<p>Lists all reporters in the 'storage' and 'system' groups.</p>
+<pre>trouble --fault-conditions fcic
+</pre>
+<p></p>
+<p>Lists all faults that the 'fcic' reporter is able to find.</p>
+<pre>trouble --run-perf 30
+</pre>
+<p></p>
+<p>Gathers performance statistics for 30 seconds and then lists any that are out of range.  In a cluster, a cluster node must be specified directly or indirectly -- for example:</p>
+<pre>trouble --run-perf 30 --evs 3
+trouble --run-perf 30 --cluster-node 2
+trouble --run-perf 30 --filesystem Accounts
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/alert-mail.html">alert-mail</a> <a href="../Supervisor/enhanced-perf-stats.html">enhanced-perf-stats</a> <a href="../User/evs.html">evs</a> <a href="../Supervisor/set.html">set</a> <a href="../Supervisor/thread-list.html">thread-list</a> <a href="../Supervisor/trouble-ping.html">trouble-ping</a> <a href="../Supervisor/unset.html">unset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

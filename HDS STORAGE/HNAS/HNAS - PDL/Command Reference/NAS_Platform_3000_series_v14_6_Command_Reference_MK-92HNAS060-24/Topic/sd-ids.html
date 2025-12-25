@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-ids</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sd-ids</h1>
+
+<h1>Description</h1>
+<p>Every system drive (SD) has an internal Lun, a host Lun, a device ID, and a Luid.  The server's various commands and storage configurators use all four of these identifiers in various combinations, and so you will sometimes need to convert between them.</p>
+<p>A system drive is also called a logical unit, or LU for short, and this document will use the terms interchangeably.  Some people say 'Lun' when they mean LU, but that makes it difficult to say things like 'every LU has two Luns.'</p>
+<h2>INTERNAL LUN</h2>
+<p>An internal Lun is a number that uniquely identifies an LU within a single storage array.  It is chosen when the LU is created, and it never changes.  Two different storage arrays can have LUs with the same internal Lun.  The word 'Lun' is simply an acronym for 'Logical unit number.'</p>
+<p>You can display a table that relates the server's <strong><font color=blue>device IDs<font color=black></strong> to <strong><font color=red>internal Luns<font color=black></strong> and <strong><font color=green>host Luns<font color=black></strong> (described below) by running 'sd-list --raid-names':</p>
+<pre>server:$ sd-list --raid-names 0-3
+<strong><font color=blue>Device<font color=black></strong>  Status  Alw  GiByte  <font color=cyan>Rack label <font color=black>  <strong><font color=red>SD label   <font color=black></strong>  <strong><font color=green>Lun<font color=black></strong>  In span
+<strong><font color=blue>------<font color=black></strong>  ------  ---  ------  <font color=cyan>-----------<font color=black>  <strong><font color=red>-----------<font color=black></strong>  <strong><font color=green>---<font color=black></strong>  ----------------
+<strong><font color=blue>   0  <font color=black></strong>  OK      Yes    2430  <font color=cyan>470714     <font color=black>  <strong><font color=red>0200       <font color=black></strong>  <strong><font color=green>  0<font color=black></strong>  Foo
+<strong><font color=blue>   1  <font color=black></strong>  OK      Yes    2430  <font color=cyan>470714     <font color=black>  <strong><font color=red>0201       <font color=black></strong>  <strong><font color=green>  1<font color=black></strong>  Foo
+<strong><font color=blue>   2  <font color=black></strong>  OK      Yes    2430  <font color=cyan>470714     <font color=black>  <strong><font color=red>0202       <font color=black></strong>  <strong><font color=green>  2<font color=black></strong>  Foo
+<strong><font color=blue>   3  <font color=black></strong>  OK      Yes    2430  <font color=cyan>470714     <font color=black>  <strong><font color=red>0203       <font color=black></strong>  <strong><font color=green>  3<font color=black></strong>  Foo
+server:$
+</pre>
+<p></p>
+<p>The relevant columns are:</p>
+<ul>
+<li><strong><font color=blue>Device = device ID<font color=black></strong></li>
+<li><strong><font color=red>SD label = internal Lun<font color=black></strong></li>
+<li><strong><font color=green>Lun = host Lun<font color=black></strong></li>
+</ul>
+<p>A further field, <font color=cyan>Rack label<font color=black> is short for 'storage array name'.  Every storage array has a unique serial number, which can be displayed in a configurator such as Storage Navigator and may be shown on a label attached to the array.</p>
+<p>The '--sort l' switch (that's a lower-case ell) sorts the table by host Lun; '--sort d' sorts it by internal Lun; '--sort k' sorts by storage array name.  These options can be combined, as in '--sort kd', which sorts by array name and then internal Lun.  They enable you to produce a table that converts between device ID, internal Lun and host Lun in whichever direction you need.</p>
+<p>Most console commands that manipulate SDs, such as 'sd-allow-access' or 'sd-set', expect SD device IDs on the command line.  However, for several dozen commands (all listed at the end of the 'sd-spec' man page), if you use advanced 'sd-spec' syntax, it is possible to use array names and internal Luns without having to convert to SD device IDs at all:</p>
+<pre>server:$ sd-list --raid-names 8
+Device  Status  Alw  GiByte  Rack label   SD label     Lun  In span
+------  ------  ---  ------  -----------  -----------  ---  ----------------
+   8    OK      Yes    2430  470714       0208           8
+server:$ sd-deny-access :k=470714:d=0208
+Information: An administrator has unlicensed (denied access to) SD 8.
+Success
+server:$
+</pre>
+<p></p>
+<p>This facility is perhaps more useful in scripts than for everyday interactive commands.</p>
+<h2>HOST LUN</h2>
+<p>Every LU that is exposed to the server has a host Lun.  A host Lun is a number that uniquely identifies an LU within a single host group.  Different host groups can expose the same LU on different host Luns.  However, to avoid confusion, it is a very good idea to use the same host Lun for a given LU on all host groups that expose it and, furthermore, to make the host Lun the same as the internal Lun, so that there is less to look up.  (You do not have control over device IDs, and so you cannot easily go further, making the two Luns the same as the device ID.)</p>
+<p>Unlike an internal Lun, a host Lun can be changed at any time in a storage configurator.  However, you must never change an LU's host Lun while I/O is in progress to that LU, because the host Lun is the identifier that the server uses to direct I/O to the right LU.  If the sector cache has a queue of data waiting to be written to host Lun 13 and that host Lun suddenly starts referring to a different LU, all the pending data will be written to the wrong LU, causing obvious damage to all file systems on the span.  To change a host Lun safely, follow this procedure:</p>
+<ul>
+<li>Unmount all file systems on the span that uses the LU.</li>
+<li>Run 'span-deny-access' on the span.</li>
+<li>Change the host Lun, using your storage configurator.</li>
+<li>Run 'scsi-refresh'.</li>
+<li>Run 'sd-allow-access' to relicense SDs and reload the span.</li>
+<li>Use 'evsfs add' to rebind file systems to vnodes.</li>
+<li>Mount file systems.</li>
+</ul>
+<p>As described above, 'sd-list --raid-names' can produce a table that converts between device IDs and Luns of both kinds.</p>
+<h2>DEVICE ID</h2>
+<p>A device ID is the usual way for the server to identify a system drive and report its configuration and status.  Each SD that is visible to a cluster has a unique device ID, even if the server has several storage arrays that reuse the same host Luns and internal Luns.  Each system drive will have the same device ID on all pnodes in a cluster, every time the cluster boots.  However, if two clusters are connected to the same storage, they do not necessarily use the same device IDs.  Device IDs are allocated and managed by the server; the SMU and certain storage configurators can display and use them, but other storage configurators cannot.</p>
+<p>SDs' device IDs can change, but only if you follow a procedure like this:</p>
+<ul>
+<li>Unmount file systems.</li>
+<li>Run 'span-deny-access'.</li>
+<li>Disconnect the storage, or make it invisible to the server by using your storage configurator to remove LUs' host Luns.</li>
+<li>Run 'sd-forget'.</li>
+<li>Later, reconnect the storage, or reinstate host Luns.  The server responds by allocating new SD device IDs, always allocating the lowest unused device ID to each SD it discovers.</li>
+</ul>
+<p>The same procedure may change the device IDs of any file systems on the span.</p>
+<p>Device IDs between 0 and 1,023 are used by LUs and backup devices (tape drives and robots).  Device IDs starting at 1,024 are used by file systems.</p>
+<h2>LUID</h2>
+<p>A Luid is a long string of bytes that is generated by the server's Scsi driver from data gleaned from the Raid controller.  The internal Lun is one of the ingredients; the host Lun is not.  A Luid should be unique throughout the world, and it should stay constant throughout the life of the SD, although, in practice, Luids may change in response to certain kinds of storage maintenance.  If Luids change, use 'sd-recover-from-changed-luids --span-base-name'.</p>
+<p>If two or more clusters are connected to the same storage, they will agree about each SD's Luid.</p>
+<p>The 'sd-luids-list' and 'sd-list --scsi' commands display Luids on demand:</p>
+<pre>server:$ sd-luids-list | head -5
+Device  Luid
+------  ------------------------------------------------------------
+   0    [03:01:00]60:06:0E:80:22:14:3A:00:50:41:14:3A:00:00:02:00
+   1    [03:01:00]60:06:0E:80:22:14:3A:00:50:41:14:3A:00:00:02:01
+   2    [03:01:00]60:06:0E:80:22:14:3A:00:50:41:14:3A:00:00:02:02
+server:$ sd-list --scsi 1 | grep ^Luid
+Luid:           [03:01:00]60:06:0E:80:22:14:3A:00:50:41:14:3A:00:00:02:01
+server:$
+</pre>
+<p></p>
+<p>The server stores a persistent database that converts between SD device IDs and Luids.  This is why an SD always has the same device ID on all pnodes, every time you boot.</p>
+<p>Span Cod (the data structure that stores the layout of SDs within spans, described in the 'cod' man page) contains Luids, rather than Luns (of either kind) or device IDs.  Therefore, changing host Luns or moving the span to another cluster (which may use different device IDs for the same LUs) will not prevent Cod from loading normally.</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/scsi-refresh.html">scsi-refresh</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-enumerate.html">sd-enumerate</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-luids-list.html">sd-luids-list</a> <a href="../Supervisor/sd-recover-from-changed-luids.html">sd-recover-from-changed-luids</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

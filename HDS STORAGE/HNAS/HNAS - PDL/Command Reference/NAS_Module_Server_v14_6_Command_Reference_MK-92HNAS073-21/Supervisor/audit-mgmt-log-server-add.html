@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>audit-mgmt-log-server-add</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>audit-mgmt-log-server-add</h1>
+<p>Add a new management audit log server</p>
+<h1>Syntax</h1>
+<pre>audit-mgmt-log-server-add &lt;server&gt; [ --port &lt;port&gt; ]
+</pre>
+
+<h1>Description</h1>
+<p>This command configures the server to send management audit events to an external CEF-aware syslog server. Management audit events are always sent in CEF form.</p>
+<p>Each use of this command specifies a single CEF-aware syslog server to add.  Up to two such servers may be configured.  Management audit events are sent to each configured CEF-aware syslog server.</p>
+<p>The CEF-aware syslog server can be specified as a DNS hostname, or an IP address (IPv4 or IPv6).  At this time, only simple TCP (non-TLS) transfers are supported.</p>
+<p>If the port number for the CEF-aware syslog server is not specified, the UDP default of 514 is assumed, even though we send events over unsecured TCP.</p>
+<h1>Examples</h1>
+<p>To send management audit events to a CEF-aware syslog server "logserver" on port number 612:</p>
+<pre>audit-mgmt-log-server-add logserver --port 612
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/audit-mgmt-log.html">audit-mgmt-log</a> <a href="../Supervisor/audit-mgmt-log-server-connections.html">audit-mgmt-log-server-connections</a> <a href="../Supervisor/audit-mgmt-log-server-delete.html">audit-mgmt-log-server-delete</a> <a href="../Supervisor/audit-mgmt-log-server-list.html">audit-mgmt-log-server-list</a> <a href="../Supervisor/audit-mgmt-log-stats.html">audit-mgmt-log-stats</a> <a href="../Supervisor/audit-syslog.html">audit-syslog</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

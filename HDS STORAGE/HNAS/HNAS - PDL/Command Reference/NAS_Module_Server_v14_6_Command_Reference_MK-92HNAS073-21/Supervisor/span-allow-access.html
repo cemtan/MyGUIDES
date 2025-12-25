@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-allow-access</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-allow-access</h1>
+<p>Allow access to all the system drives in a span</p>
+<h1>Syntax</h1>
+<pre>span-allow-access &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This is one of a sequence of commands used when you are moving a span from one server or cluster to another.  It licenses (allows access to) all unlicensed system drives (SDs) in the specified span.</p>
+<p>If the 'span-deny-access' command has previously configured the span to permit mirrored partners to be unlicensed, 'span-allow-access' undoes that configuration and tells the server to issue warnings if any SD in the span is unlicensed.</p>
+<p>The 'span-assign-to-cluster' man page shows the full procedure for moving a span between clusters.</p>
+<p>If you merely wish to undo the effect of 'span-deny-access' without moving the span between clusters, here is the procedure:</p>
+<ul>
+<li>Use 'sd-allow-access' to license any one primary SD in the span.  (A primary SD is usually a stand-alone SD or a mirrored P-Vol; the 'storage-based-mirror' man page describes the exceptions.)</li>
+<li>Pause for a few seconds (or, in a script, run 'span-wait-for-loading') to wait for the server to load Cod from the SD you have just licensed.  You can confirm it using 'span-list'.</li>
+<li>Use 'span-allow-access' to license all the other SDs in the span.</li>
+<li>In a script, run 'span-wait-for-loading --mount' to wait until the resulting background processes have completed.</li>
+<p>If working interactively, you can use 'sd-list-queues' and 'filesystem-list-queues' to watch the progress of these background processes without waiting for them to complete, but they normally run fast enough to make monitoring unnecessary.</p>
+<li>Use 'evsfs' to bind filesystems to EVSs.</li>
+</ul>
+<h1>Examples</h1>
+<pre>span-allow-access ProjectX
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/evsfs.html">evsfs</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-list-queues.html">sd-list-queues</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

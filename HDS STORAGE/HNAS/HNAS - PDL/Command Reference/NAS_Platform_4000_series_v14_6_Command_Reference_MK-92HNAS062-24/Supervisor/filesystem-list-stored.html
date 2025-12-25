@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-list-stored</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>filesystem-list-stored</h1>
+<p>List all filesystems known to the system, whether or not they&#39;re loaded</p>
+<h1>Syntax</h1>
+<pre>filesystem-list-stored [-u | --unloaded | &lt;device-id&gt;]
+Alias:       fsss
+</pre>
+
+<h1>Description</h1>
+<p>This command lists all filesystems known to the server, regardless of whether they are currently loaded and which EVS they're bound to.</p>
+<p>If you specify a device ID, only a single filesystem is displayed.</p>
+<p>If you specify the --unloaded switch, only unloaded filesystems are displayed.  See the 'cod' man page for an explanation of loading.</p>
+<h2>Information displayed</h2>
+<dl>
+<dt><strong>Dev</strong></dt>
+<dd><p>The device ID of the filesystem.</p></dd>
+<dt><strong>Loaded</strong></dt>
+<dd><p>'Yes' if the server has loaded the filesystem from Cod; 'No' if the filesystem isn't currently loaded.</p></dd>
+<dt><strong>Healthy</strong></dt>
+<dd><p>'Yes' if the filesystem has been loaded and all the system drives on which the host span resides are healthy; 'No' otherwise.</p></dd>
+<dt><strong>EVS</strong></dt>
+<dd><p>The EVS to which the filesystem is bound, or a dash if it isn't bound to an EVS.</p></dd>
+<dt><strong>Cap/GiB</strong></dt>
+<dd><p>The filesystem's capacity, in gibibytes, where one GiB is 2**30 bytes.</p></dd>
+<dt><strong>Permanent ID</strong></dt>
+<dd><p>The 64-bit permanent ID of the filesystem.</p></dd>
+<dt><strong>Filesystem Instance Name</strong></dt>
+<dd><p>The instance name of the filesystem.</p></dd>
+</dl>
+<h2>'filesystem-list' versus 'filesystem-list-stored'</h2>
+<p>The 'filesystem-list' command displays only filesystems that are currently loaded into memory.  'filesystem-list-stored' reads from the registry, and is therefore able to display even those filesystems that haven't loaded.  However, the information it produces is less detailed than the output of 'filesystem-list'.</p>
+<p>By default, in the context of a service vnode, 'filesystem-list' shows only filesystems that are bound to the current EVS or to no EVS at all.  'filesystem-list-stored' does not filter by EVS, and displays all filesystems in the registry.</p>
+<h1>Examples</h1>
+<pre>server:$ filesystem-list-stored
+Dev   Loaded  Healthy  EVS  Cap/GiB  Permanent ID      Filesystem instance name
+----  ------  -------  ---  -------  ----------------  ------------------------
+1024   Yes      Yes     1        70  EB970D68F7C48208  Accounts
+1025   Yes      Yes     2        90  EB970D7CDA61DECD  Engineering
+1026   Yes      Yes     2        95  EB970D769C482922  Sales
+1027   Yes      Yes     1        90  EB970F29F5F5E874  Marketing
+1028   No       No      -         4  EB970F7A1080EBD1  fs0
+server:$ filesystem-list-stored --unloaded
+Dev   Loaded  Healthy  EVS  Cap/GiB  Permanent ID      Filesystem instance name
+----  ------  -------  ---  -------  ----------------  ------------------------
+1028   No       No      -         4  EB970F7A1080EBD1  fs0
+server:$ filesystem-list-stored 1028
+Dev   Loaded  Healthy  EVS  Cap/GiB  Permanent ID      Filesystem instance name
+----  ------  -------  ---  -------  ----------------  ------------------------
+1028   No       No      -         4  EB970F7A1080EBD1  fs0
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../User/filesystem-list.html">filesystem-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

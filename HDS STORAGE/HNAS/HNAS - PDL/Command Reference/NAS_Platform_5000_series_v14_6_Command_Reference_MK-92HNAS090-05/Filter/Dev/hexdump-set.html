@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>hexdump-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>hexdump-set</h1>
+<p>Set up options to override hex dump settings of commands and/or filters in the local thread</p>
+<h1>Syntax</h1>
+<pre>... | hexdump-set ... | hexdump-set [--show-ascii] [--show-byte-addresses | --show-line-addresses] [--show-dumped-range]
+		 [--show-symbols] [--verbose] [--no-spaces-between-bytes] [--color]
+		   [--max-bytes-per-line &lt;num-bytes, default: 16&gt;] [--first-display-address &lt;address, default: 0&gt;]
+		     [--focus-address &lt;address, default: 0&gt;]  [--leftwards] | &lt;dumping filter...&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Many commands and filters support dumping data in hex using an internal hex dump library that allows the callers to customize the output style via 11 settings. However, most commands/filters predefine their output style and do not allow users to change their predefined settings. A few do allow users to change just a limited number of settings such as the disk-read command and the hexdump filter. Thus, it is desirable to have a mechanism to override the predefined hex dump settings of all existing commands and filters at runtime. This mechanism is now supported by the hexdump-set command and filter.  This tool supports options to change all 11 hex dump settings. Its default behavior is designed to produce a simple hex dump of data bytes without the address and ASCII fields or any extra messages.</p>
+<p>When run as a command wrapper, hexdump-set overrides all hex dump settings of the target command with its own settings as long as the target command is not another hexdump-set command.</p>
+<p>When run as a filter, hexdump-set overrides all hex dump settings of all the subsequent filters in the command line until the occurrence of another hexdump-set filter.</p>
+<p>Thus, for both the command and filter versions, any occurrence of hexdump-set on the command line will cause its hex dump settings to propagate from left to right until the next occurrence of hexdump-set. The propagating settings will override the internal hex dump settings of all commands/filters that are positioned along the path of propagation. Note that the filter version supports an option to reverse the propagation direction.</p>
+<h2>Command Options</h2>
+<dl>
+<dt><strong>--colored, -c</strong></dt>
+<dd><p>Specifies that certain parts of the output are colored (e.g., address values, periods in the ASCII field, etc). Note that the characters to be colored are surrounded with appropriate ANSI escape sequences to help the console render in colors. However, the escape sequences may appear as is in the dblog.</p></dd>
+<dd><p>This option has no effect on Windows.</p></dd>
+<dt><strong>--first-display-address, -f &lt;byte-address&gt;</strong></dt>
+<dd><p>Specifies the first address to display in the output. The default is address 0x0, which is unused.</p></dd>
+<dt><strong>--focus-address, -o &lt;byte-address&gt;</strong></dt>
+<dd><p>Specifies the important address in a HexDumpAround similar to the style of grep -C. The default is address 0x0, which is unused.</p></dd>
+<dt><strong>--max-bytes-per-line, -m &lt;num-bytes&gt;</strong></dt>
+<dd><p>Specifies the maximum number of data bytes to dump per line. The default is 16.</p></dd>
+<dt><strong>--no-spaces-between-bytes, -n</strong></dt>
+<dd><p>Dumps consecutive data bytes without intervening spaces. The default is to separate byte dumps with a single space.</p></dd>
+<dt><strong>--show-ascii, -a</strong></dt>
+<dd><p>Specifies that the output contains the ASCII field. The default is to suppress the ASCII field.</p></dd>
+<dt><strong>--show-byte-addresses, -b</strong></dt>
+<dd><p>Specifies that the output contains the address field where the address value of each line is the byte address of the first data byte in the line.</p></dd>
+<dt><strong>--show-line-addresses, -l</strong></dt>
+<dd><p>Specifies that the output contains the address field where the address value of each line is the line number. The first line number is 0.</p></dd>
+<dd><p>Note that options -l and -b are mutually exclusive. The default is that both options are false, meaning suppress the address field.</p></dd>
+<dt><strong>--show-dumped-range, -d</strong></dt>
+<dd><p>A stream of data can be dumped byte by byte, or passed to a range dumping API to dump the entire range. In the latter case the API can display an extra message about the range if its internal show-dumped-range flag is true. The extra message is "Hexdumping the half-open range [a, b)" where a and b are the start and end addresses of the dumped range, respectively.</p></dd>
+<dd><p>Thus, option --show-dumped-range to hexdump-set aims to override the internal show-dumped-range flag of the range dumping API. The default value is false, meaning suppress the extra hex dumping message.</p></dd>
+<dd><p>Note this option has no effect if the dumping commands/filters in the local thread do not call the range dumping API. For example, the hexdump command calls the range dumping API but the hexdump filter does not. To find out if a dumping command/filter calls the range dumping API, run it without hexdump-set.</p></dd>
+<dt><strong>--show-symbols, -s</strong></dt>
+<dd><p>Specifies that each recognized pointer in the data is to be dumped as a 64-bit hex value with a symbolic decode below. The default value is false, meaning do not recognize pointers in the data.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Do not skip any lines; i.e., dumps all input data even though this may result in groups of consecutive identical output lines.  This is similar to Unix's "hexdump -v".</p></dd>
+<dd><p>The default value is false, meaning for each group of N consecutive identical output lines, show only the first line followed by a one-line summary for N-1 remaining lines.</p></dd>
+</dl>
+<h2>Filter Options</h2>
+<p>The hexdump-set filter supports all options described above plus the following:</p>
+<dl>
+<dt><strong>--leftwards, -L</strong></dt>
+<dd><p>Specifies that the settings of hexdump-set are to propagate leftwards; i.e., they override the hex dump settings of all commands and filters to the left until the next occurrence of hexdump-set.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>A. Use hexdump-set command</p>
+<pre>      $ sscat test.txt
+      Testing hexdump library
+</pre>
+<p></p>
+<p>1. The default behavior of 'cat --hex' command is to hex dump with a dumped range message and three fields: address, data, and ASCII.</p>
+<pre>      $ cat test.txt --hex
+      Hexdumping the half-open range [0x00007F76F513EAC0, 0x00007F76F513EAD8).
+      0x0000000000000000 : 54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20 : Testing hexdump
+      0x0000000000000010 : 6C 69 62 72 61 72 79 0A                         : library.
+</pre>
+<p></p>
+<pre>
+</pre>
+<p></p>
+<p>2. The default behavior of hexdump-set is to display just a simple hex dump:</p>
+<pre>      $ hexdump-set cat test.txt --hex
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<pre>      $ hexdump-set vn 1 cat test.txt --hex
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<p>3. Turn on one or more options to hexdump-set:</p>
+<pre>      $ hexdump-set --show-ascii cat test.txt --hex
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20 : Testing hexdump
+      6C 69 62 72 61 72 79 0A                         : library.
+</pre>
+<p></p>
+<pre>      $ hexdump-set --show-byte-address --show-range cat test.txt --hex
+      Hexdumping the half-open range [0x00007EFFF4A0A630, 0x00007EFFF4A0A648).
+      0x0000000000000000 : 54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      0x0000000000000010 - 6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<p>4. All the settings of a hexdump-set wrapper cannot pass through another hexdump-set target:</p>
+<pre>      $ hexdump-set --show-ascii hexdump-set --show-byte-address cat test.txt --hex
+      0x0000000000000000 : 54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      0x0000000000000010 - 6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<p>The first wrapper 'hexdump-set --show-ascii' cannot propagate its settings through the second hexdump-set command on the right.  The 'cat --hex' command has its hex dump settings overridden by the closest hexdump-set wrapper to the left. Thus, 'hexdump-set --show-ascii' has no effect and should be removed.</p>
+<p>B. Use hexdump-set filter</p>
+<p>1. Use hexdump filter to dump data:</p>
+<pre>      $ cat test.txt | hexdump
+      0x0000000000000000 : 54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20 : Testing hexdump
+      0x0000000000000010 : 6C 69 62 72 61 72 79 0A                         : library.
+</pre>
+<p></p>
+<p>2. Use hexdump-set filter to override all the internal settings of the hexdump filter.</p>
+<pre>      $ cat test.txt | hexdump-set | hexdump
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<pre>      $ cat test.txt | hexdump-set --show-ascii | hexdump
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20 : Testing hexdump
+      6C 69 62 72 61 72 79 0A                         : library.
+</pre>
+<p></p>
+<p>3. Dump the original hex dump by running hexdump twice:</p>
+<pre>      $ cat test.txt | hexdump-set --show-ascii | hexdump | hexdump
+      35 34 20 36 35 20 37 33 20 37 34 20 36 39 20 36 : 54 65 73 74 69 6
+      45 20 36 37 20 32 30 20 36 38 20 36 35 20 37 38 : E 67 20 68 65 78
+      20 36 34 20 37 35 20 36 44 20 37 30 20 32 30 20 :  64 75 6D 70 20
+      3A 20 54 65 73 74 69 6E 67 20 68 65 78 64 75 6D : : Testing hexdum
+      70 20 0A 36 43 20 36 39 20 36 32 20 37 32 20 36 : p .6C 69 62 72 6
+      31 20 37 32 20 37 39 20 30 41 20 20 20 20 20 20 : 1 72 79 0A
+      20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 :
+      20 20 20 3A 20 6C 69 62 72 61 72 79 2E 0A       :    : library..
+</pre>
+<p></p>
+<p>4. Change the behavior of the rightmost hexdump filter:</p>
+<pre>      $ cat test.txt | hexdump-set --show-ascii | hexdump | hexdump-set | hexdump
+      35 34 20 36 35 20 37 33 20 37 34 20 36 39 20 36
+      45 20 36 37 20 32 30 20 36 38 20 36 35 20 37 38
+      20 36 34 20 37 35 20 36 44 20 37 30 20 32 30 20
+      3A 20 54 65 73 74 69 6E 67 20 68 65 78 64 75 6D
+      70 20 0A 36 43 20 36 39 20 36 32 20 37 32 20 36
+      31 20 37 32 20 37 39 20 30 41 20 20 20 20 20 20
+      20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+      20 20 20 3A 20 6C 69 62 72 61 72 79 2E 0A
+</pre>
+<p></p>
+<p>5. Reverse the propagation direction with --leftwards option:</p>
+<pre>      $ cat test.txt --hex | hexdump-set --leftwards
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<pre>      $ cat test.txt | hexdump | hexdump-set --leftwards
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20
+      6C 69 62 72 61 72 79 0A
+</pre>
+<p></p>
+<pre>      $ cat test.txt --hex | hexdump-set --show-ascii --leftwards
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20 : Testing hexdump
+      6C 69 62 72 61 72 79 0A                         : library.
+</pre>
+<p></p>
+<pre>      $ cat test.txt | hexdump | hexdump-set --show-ascii --leftwards
+      54 65 73 74 69 6E 67 20 68 65 78 64 75 6D 70 20 : Testing hexdump
+      6C 69 62 72 61 72 79 0A                         : library.
+</pre>
+<p></p>
+<p>6. If the goal is just to remove coloring escape sequences from the hex dump output of a command or filter, an alternative solution is to pipe the output through nop:</p>
+<pre>      $ disk-read -f fs 50BLK+2K -n 1K | nop
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Console</p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/cat.html">cat</a> <a href="../../Supervisor/dblog.html">dblog</a> <a href="../../Dev/disk-read.html">disk-read</a> <a href="../../Filter/User/hexdump.html">hexdump</a> <a href="../../Dev/hexdump-set.html">hexdump-set</a> <a href="../../Filter/User/nop.html">nop</a> <a href="../../Supervisor/obj-read.html">obj-read</a> <a href="../../Supervisor/onode.html">onode</a> <a href="../../Filter/Dev/strtransform.html">strtransform</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

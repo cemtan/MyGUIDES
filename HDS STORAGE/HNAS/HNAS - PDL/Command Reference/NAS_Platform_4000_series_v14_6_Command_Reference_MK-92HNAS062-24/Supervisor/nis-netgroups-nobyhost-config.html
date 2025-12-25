@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nis-netgroups-nobyhost-config</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nis-netgroups-nobyhost-config</h1>
+<p>Show/set configuration for netgroup lookups without netgroup.byhost map</p>
+<h1>Syntax</h1>
+<pre>nis-netgroups-nobyhost-config [--on | --off] [--depth n] [--verbose]
+</pre>
+
+<h1>Description</h1>
+<p>Controls whether the netgroup.byhost map is queried.</p>
+<p>This command only applies to classic NIS - its configuration is ignored while in NIS/LDAP mode.</p>
+<p>This command allows a user to enable or disable the NIS netgroups 'nobyhost' feature. When this feature is enabled, the server will not use the NIS netgroup.byhost map in order to determine whether a host is a member of a netgroup. Instead, it will make repeated recursive lookups in the netgroup map. This may be appropriate if, for example, the netgroup.byhost map is not available.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--on</strong></dt>
+<dd><p>Enable the 'nobyhost' feature. This means the NIS netgroup.byhost map will not be used.</p></dd>
+<dt><strong>--off</strong></dt>
+<dd><p>Disable the 'nobyhost' feature. This means the NIS netgroup.byhost map will be used - and the server will expect it to be available.</p></dd>
+<dt><strong>-d n, --depth n</strong></dt>
+<dd><p>This option is deprecated in favor of nis-netgroups-lookup-depth. Set the maximum netgroup lookup depth to n.</p></dd>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>This option is deprecated in favor of nis-netgroups-lookup-depth. Display the maximum netgroup lookup depth if the 'nobyhost' feature is enabled. Implied by -d.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display the current settings:</p>
+<pre>        $ nis-netgroups-nobyhost-config
+        The NIS netgroups 'nobyhost' feature is switched OFF
+        This means the NIS netgroup.byhost map will be used
+        $
+</pre>
+<p></p>
+<p>Switch the 'nobyhost' feature on:</p>
+<pre>        $ nis-netgroups-nobyhost-config --on
+        The NIS netgroups 'nobyhost' feature is switched ON
+        This means the NIS netgroup.byhost map will not be used
+        $
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/nis-netgroups-lookup-depth.html">nis-netgroups-lookup-depth</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

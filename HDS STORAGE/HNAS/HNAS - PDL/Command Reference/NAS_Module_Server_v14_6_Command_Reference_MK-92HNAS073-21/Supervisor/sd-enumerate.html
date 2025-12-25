@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-enumerate</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-enumerate</h1>
+<p>List system drives specified on the command line</p>
+<h1>Syntax</h1>
+<pre>sd-enumerate [--tolerate-empty-terms] [--tolerate-empty-list] &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Lists system drives (SDs) on a single line, without reporting any information about them.  Uses 'sd-spec' to enable flexible specification of the required SDs.</p>
+<p>There are two switches:</p>
+<dl>
+<dt><strong>--tolerate-empty-terms, -t</strong></dt>
+<dd><p>Omits the usual error message if a term matches no SDs.  For example, 'sd-enumerate all:unhealthy all:denied' has two terms, which are 'all:unhealthy' and 'all:denied'.</p></dd>
+<dt><strong>--tolerate-empty-list, -l</strong></dt>
+<dd><p>Omits the usual syntax summary if the command as a whole displays no SD device IDs.</p></dd>
+</dl>
+<p>These switches are useful when there is a reasonable expectation that the command may display no devices.</p>
+<p>To see details of SDs, rather than just summarising their device IDs, use 'sd-list'.</p>
+<h1>Examples</h1>
+<p>To see which SDs are licensed and have come up on this server:</p>
+<pre>server:$ sd-enumerate all:allowed:healthy
+SDs 0-3 and 9-24
+server:$
+</pre>
+<p></p>
+<p>To see all unspanned SDs that this server has recognized as GAD LUs:</p>
+<pre>server:$ sd-enumerate all:is-gad:not-in-a-span
+SDs 11-24
+server:$
+</pre>
+<p></p>
+<p>To see all TrueCopy S-Vols without displaying an error message if no S-Vols have been detected:</p>
+<pre>server:$ sd-enumerate -lt all:is-secondary
+No SDs found
+server:$
+</pre>
+<p></p>
+<p>If you give no command-line arguments, the command lists the device IDs of all SDs:</p>
+<pre>server:$ sd-enumerate
+SDs 0-3 and 9-24
+server:$
+</pre>
+<p></p>
+<p>Depending on timing and on the health of cables and other connection infrastructure, it is possible for an SD to be healthy (or recognized as a GAD device, a mirrored secondary, etc.) on one server but not on another server in the same cluster.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/sd-list.html">sd-list</a> <a href="../Topic/sd-spec.html">sd-spec</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

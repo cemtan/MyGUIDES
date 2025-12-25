@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-mirror-prepare</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-mirror-prepare</h1>
+<p>Prepare to detect and then list or configure Raid mirror relationships</p>
+<h1>Syntax</h1>
+<pre>sd-mirror-prepare [-c | --commit] [-s | --synchronous] &lt;span-instance-name&gt; [&lt;system-drives-see-&#39;man sd-spec&#39;&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command writes data blocks for use by 'sd-mirror-detect', which detects storage-based mirrors and configures them into the server.  See that command's man page before reading on.</p>
+<p>If your storage-based mirrors are synchronous (i.e. if they are always kept up to date, as with TrueCopy, rather than being resynchronized every few seconds or minutes, as with HUR) then you can use the --synchronous switch to write data and detect mirror relationships in a single step, avoiding the need to run 'sd-mirror-detect'.  By default, mirror relationships will be printed out, along with an 'sd-mirror' command  that could be used to configure them into the server manually, but no further action will be taken.</p>
+<p>If you supply the --commit switch, the mirror relationships found will be configured into the server and written to Cod.  If a primary SD has been assigned to a tier, the corresponding secondary will automatically be assigned to the same tier, and the command will fail if this assignment is impossible.</p>
+<p>Instead of giving the --synchronous switch, you can choose to specify a set of secondary SDs.  If you do, they must all be licensed, healthy, unspanned and secondary.  'sd-mirror-prepare' will scan just the SDs you specify, looking for mirror relationships; it will not scan any other secondary SDs that may be visible to the server.  See the `sd-spec' man page for the correct syntax.</p>
+<h1>Examples</h1>
+<p>The first transcript shows the use of 'sd-mirror-prepare' with neither the --synchronous switch nor secondary SDs' device IDs specified on the command line:</p>
+<pre>server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Quad                   Yes  100%    32768  32768 x    1073741824  90%
+</pre>
+<p></p>
+<pre>   On HDP pool 0 with 1435GiB free
+   Set 0: 4 x 8192GiB = 32768GiB, of which 32768GiB is free, 0GiB is vacated, 32768GiB is available
+      SD 0 (rack '91250498', SD '0000')
+      SD 1 (rack '91250498', SD '0001')
+      SD 2 (rack '91250498', SD '0002')
+      SD 3 (rack '91250498', SD '0003')
+</pre>
+<p></p>
+<pre>server:$ sd-mirror-prepare trio
+Done.
+</pre>
+<p></p>
+<pre>Synchronize Raid mirrors (unless they're synchronous), and then run:
+</pre>
+<p></p>
+<pre>sd-mirror-detect Quad 1396428020
+server:$ sd-mirror-detect Quad 1396428020
+Pairs found:
+       0 =   10
+       1 =   11
+       2 =   12
+       3 =   13
+</pre>
+<p></p>
+<pre>sd-mirror Quad 0=10 1=11 2=12 3=13
+</pre>
+<p></p>
+<pre>Duplicates found: none
+</pre>
+<p></p>
+<pre>To configure these mirror relationships into the server,
+reissue the command, adding --commit
+server:$ sd-mirror-detect --commit Quad 1396428020
+4 new mirrored pairs configured
+OK
+server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Quad                   Yes  100%    32768  32768 x    1073741824  90%
+</pre>
+<p></p>
+<pre>   On HDP pool 0 with 1435GiB free
+   Set 0: 4 x 8192GiB = 32768GiB, of which 32768GiB is free, 0GiB is vacated, 32768GiB is available
+      SD 0 (rack '91250498', SD '0000') = SD 10 (rack '91250498', SD '0005')
+      SD 1 (rack '91250498', SD '0001') = SD 11 (rack '91250498', SD '0006')
+      SD 2 (rack '91250498', SD '0002') = SD 12 (rack '91250498', SD '0007')
+      SD 3 (rack '91250498', SD '0003') = SD 13 (rack '91250498', SD '0008')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The second transcript is similar, but shows how to specify secondary SDs to restrict the set of SDs on which 'sd-mirror-detect' looks for mirror relationships:</p>
+<pre>server:$ sd-mirror-prepare trio
+Done.
+</pre>
+<p></p>
+<pre>Synchronize Raid mirrors (unless they're synchronous), and then run:
+</pre>
+<p></p>
+<pre>sd-mirror-detect Quad 1396428789
+server:$ sd-mirror-detect Quad 1396428789 10-13
+Pairs found:
+       0 =   10
+       1 =   11
+       2 =   12
+       3 =   13
+</pre>
+<p></p>
+<pre>sd-mirror Quad 0=10 1=11 2=12 3=13
+</pre>
+<p></p>
+<pre>Duplicates found: none
+</pre>
+<p></p>
+<pre>To configure these mirror relationships into the server,
+reissue the command, adding --commit
+server:$ sd-mirror-detect --commit Quad 1396428789 10-13
+4 new mirrored pairs configured
+OK
+server:$
+</pre>
+<p></p>
+<p>The third transcript shows the use of the --synchronous switch, which assumes that mirror relationships as synchronous:</p>
+<pre>server:$ sd-mirror-prepare --synchronous trio
+Pairs found:
+       0 =   10
+       1 =   11
+       2 =   12
+       3 =   13
+</pre>
+<p></p>
+<pre>sd-mirror Quad 0=10 1=11 2=12 3=13
+</pre>
+<p></p>
+<pre>Duplicates found: none
+</pre>
+<p></p>
+<pre>To configure these mirror relationships into the server,
+reissue the command, adding --commit
+server:$ sd-mirror-prepare --synchronous --commit trio
+4 new mirrored pairs configured
+OK
+server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Quad                   Yes  100%    32768  32768 x    1073741824  90%
+</pre>
+<p></p>
+<pre>   On HDP pool 0 with 1435GiB free
+   Set 0: 4 x 8192GiB = 32768GiB, of which 32768GiB is free, 0GiB is vacated, 32768GiB is available
+      SD 0 (rack '91250498', SD '0000') = SD 10 (rack '91250498', SD '0005')
+      SD 1 (rack '91250498', SD '0001') = SD 11 (rack '91250498', SD '0006')
+      SD 2 (rack '91250498', SD '0002') = SD 12 (rack '91250498', SD '0007')
+      SD 3 (rack '91250498', SD '0003') = SD 13 (rack '91250498', SD '0008')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The fourth transcript shows how to specify secondary SDs' device IDs on the 'sd-mirror-prepare' command line (not the 'sd-mirror-detect' command line, as in the second transcript), the implication being, once again, that mirror relationships as synchronous:</p>
+<pre>server:$ sd-mirror-prepare trio 10-13
+Assuming --synchronous, since you specified system drives
+Pairs found:
+       0 =   10
+       1 =   11
+       2 =   12
+       3 =   13
+</pre>
+<p></p>
+<pre>sd-mirror Quad 0=10 1=11 2=12 3=13
+</pre>
+<p></p>
+<pre>Duplicates found: none
+</pre>
+<p></p>
+<pre>To configure these mirror relationships into the server,
+reissue the command, adding --commit
+server:$ sd-mirror-prepare --commit trio 10-13
+4 new mirrored pairs configured
+OK
+server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Quad                   Yes  100%    32768  32768 x    1073741824  90%
+</pre>
+<p></p>
+<pre>   On HDP pool 0 with 1435GiB free
+   Set 0: 4 x 8192GiB = 32768GiB, of which 32768GiB is free, 0GiB is vacated, 32768GiB is available
+      SD 0 (rack '91250498', SD '0000') = SD 10 (rack '91250498', SD '0005')
+      SD 1 (rack '91250498', SD '0001') = SD 11 (rack '91250498', SD '0006')
+      SD 2 (rack '91250498', SD '0002') = SD 12 (rack '91250498', SD '0007')
+      SD 3 (rack '91250498', SD '0003') = SD 13 (rack '91250498', SD '0008')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-remotely.html">sd-mirror-remotely</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

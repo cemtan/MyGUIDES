@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-list-changed-luids</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-list-changed-luids</h1>
+<p>See whether any licensed, healthy system drives&#39; Luids have changed</p>
+<h1>Syntax</h1>
+<pre>sd-list-changed-luids [--ignore-unlicensed-old-sds | -i]
+</pre>
+
+<h1>Description</h1>
+<p>When you create a span, the server stores the span's configuration on every system drive (SD) that is used in the span.  This structure is called 'Cod' (Configuration On Disk), and is explained in the 'cod' man page.</p>
+<p>Cod does not store SDs' device IDs, because those IDs can change if you move storage between clusters or if you forget and rediscover an SD.  Instead, it stores Luids.  A Luid is a long piece of text, produced from information provided by the storage, that uniquely identifies an SD worldwide.</p>
+<p>Occasionally, in response to storage trauma or certain maintenance procedures, the storage changes a system drive's Luid.  The server will believe that the SD has failed and a new SD has appeared, and will give the 'new' SD a new device ID.</p>
+<p>If you license the 'new' SD using 'sd-allow-access', the server will detect the changed Luid and refuse to load the span that includes the SD.</p>
+<p>The 'sd-list-changed-luids' command asks the server whether it has detected any changed Luids, and prints the old and new device ID for each affected SD.  It does not attempt any repair; for that, use 'sd-recover-from-changed-luids'.</p>
+<p>The normal recovery procedure is:</p>
+<ol>
+<li>Use 'sd-allow-access' to license the 'new' SDs.  (To identify these SDs, you can use 'sd-list --healthy --denied'; to license all the SDs that appear in this listing, use 'sd-allow-access all:healthy:denied'.)  Wait a few seconds for Cod to load.  The server will log events about changed Luids.</li>
+<li>If 'span-list' shows the failed span, unload it by typing 'sd-rescan-cod &lt;span-instance-name&gt;'.  If more than one span is affected, run this command for each one in turn; then check that 'span-list' does not show any of the spans you wish to recover.  The presence of the old spans in memory would prevent the new versions of the spans from being recovered.</li>
+<p>If 'sd-rescan-cod' does not unload the span, abandon this procedure and use 'span-replace-sd' instead.</p>
+<li>Use 'sd-list-changed-luids' to check that the server has detected all changed Luids.</li>
+<li>Use 'sd-recover-from-changed-luids' to make the server reload spans.  Wait a few seconds.  Run 'span-list' to see which spans have been recovered.  Do not, for now, rewrite the recovered spans' Cod.</li>
+<li>Use 'check-directory' to verify the integrity of all file systems on the affected spans.  If problems are found, it may mean that other storage trauma has occurred, or it may mean that the server has not correctly recovered the span.  In the latter case, unload the recovered spans using 'sd-rescan-cod &lt;span-instance-name&gt;' and go no further.</li>
+<li>Use 'span-rewrite-cod' to update the Cod, reflecting the updated configuration.</li>
+<li>Use 'sd-forget' to remove the 'old' SDs from the server's registry.</li>
+</ol>
+<h2>SWITCHES</h2>
+<p>The --ignore-unlicensed-old-sds or -i switch makes the server ignore 'old' SDs that are not licensed.  If you follow the steps listed here in the specified order, this switch will have no effect.</p>
+<h2>STORAGE-BASED SNAPSHOTS</h2>
+<p>Do not use this command if the SDs whose Luids have changed are part of a storage-based snapshot.  Instead, see the 'sd-recover-from-changed-luids' man page for a special recovery procedure for use with storage-based snapshots.</p>
+<h1>Examples</h1>
+<pre>server:$ sd-list-changed-luids
+Dev 5 was dev 1
+Dev 6 was dev 2
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/check-directory.html">check-directory</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-forget.html">sd-forget</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-luids-list.html">sd-luids-list</a> <a href="../Supervisor/sd-recover-from-changed-luids.html">sd-recover-from-changed-luids</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/span-disable-snapshots.html">span-disable-snapshots</a> <a href="../Supervisor/span-replace-sd.html">span-replace-sd</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

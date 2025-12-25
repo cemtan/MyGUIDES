@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nfs-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>nfs-perf</h1>
+<p>Display NFS performance statistics</p>
+<h1>Syntax</h1>
+<pre>nfs-perf [[--reset] | [--summary] [--verbose] [--access-type (all|local|localcvl|remotecvl|legacynas)] [--type (elapsed|cpu|nvramreservation|lock|block|wfstime|wfscalls|remotetime|remotecalls|fscontext|security|accessandregionlock|readoplock|writeoplock|handleoplock|gns|renamelock|inq|requestsignatureverification|throughputcontrol|quotacheck|quotarecord|legacynastime|legacynascalls|sharedvirtualdisk|decrypt|encrypt|all)] [--file-system &lt;label&gt; | --all-file-systems]] [--version &lt;version&gt;] [&lt;request-pattern&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The nfs-perf command reports NFS performance statistics for requests that are handled by the software on that node, including requests that are CNS redirected from another node. Requests that are auto-inquired (i.e. handled by the hardware) will not be shown in the command's output.</p>
+<p>Usage:</p>
+<pre>nfs-perf [OPTION...] [&lt;request-pattern&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>--access-type, -T all | local | localcvl | remotecvl | legacynas</strong></dt>
+<dd><p>Only displays statistics for accesses to objects of the given type.</p></dd>
+<dt><strong>--all-file-systems, -a</strong></dt>
+<dd><p>Show per file system stats for all file systems.</p></dd>
+<dt><strong>--file-system, -f &lt;label&gt;</strong></dt>
+<dd><p>Show per file system stats for the specified file system.</p></dd>
+<dt><strong>--reset, -r</strong></dt>
+<dd><p>Reset the statistics.</p></dd>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>Only display a summary.</p></dd>
+<dt><strong>--type, -t elapsed | cpu | nvramreservation | lock | block | wfstime | wfscalls | remotetime | remotecalls | fscontext | security | accessandregionlock | readoplock | writeoplock | handleoplock | gns | renamelock | inq | requestsignatureverification | throughputcontrol | quotacheck | quotarecord | legacynastime | legacynascalls | sharedvirtualdisk | decrypt| encrypt | all</strong></dt>
+<dd><p>Only display statistics of the given type.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display verbose information.</p></dd>
+<dt><strong>--version, -n</strong></dt>
+<dd><p>Display stats for the specified version of NFS only. The version can be 2, 3 or 4.</p></dd>
+<dt><strong>&lt;request-pattern&gt;</strong></dt>
+<dd><p>Only show statistics for requests with names that contain the given string.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>A server consisting of a 2-node cluster has 10 NFSv3 write operation arriving on node 1. 5 of those operations are handled on node 1 and another 5 are CNS redirected to node 2.</p>
+<p>Show software NFS performance for NFSv3 write operations on node 1 and node 2, respectively:</p>
+<pre>server:$ pn 1 nfs-perf write3
+=======================================================================
+Global:
+------------------------------------------------------------------
+WRITE3      ( 7):
+</pre>
+<p></p>
+<pre>Local Access:
+ -------------
+ (Elapsed time)
+ Samples=       5  Total=    922 us  Min=149 us  Av=184 us  Max=215 us
+ Last reset 35.6 min ago
+</pre>
+<p></p>
+<pre>         5|           #
+         2|           #
+         1|           #
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          128ns   33us     8ms     2s  34s
+</pre>
+<p></p>
+<pre>server:$ pn 2 nfs-perf write3
+=======================================================================
+Global:
+------------------------------------------------------------------
+WRITE3      ( 7):
+</pre>
+<p></p>
+<pre>Local Access:
+ -------------
+ (Elapsed time)
+ Samples=       5  Total=   1.21 ms  Min=148 us  Av=242 us  Max=505 us
+ Last reset 35.6 min ago
+</pre>
+<p></p>
+<pre>         4|           #
+         2|           #
+         1|           ##
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          128ns   33us     8ms     2s  34s
+</pre>
+<p></p>
+<p>As all 10 NFSv3 write requests arrived on node 1, they are logged by nim-nfs-perf on node 1 even though 5 of them were CNS redirected to node 2:</p>
+<pre>server:$ pn 1 nim-nfs-perf -o NFS3_WRITE
+</pre>
+<p></p>
+<pre>Accumulating statistics over all values of 'file_system'
+</pre>
+<p></p>
+<pre>nfs_operation=39 (NFS3_WRITE      ) :  Samples=10        Total=3.36 ms     Av=330 us  Max=660 us
+</pre>
+<p></p>
+<pre>         5|     #
+         2|    ##
+         1|    ## #
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          10u 160 3ms 40 655 10s 2.8m 45m
+</pre>
+<p></p>
+<pre>server:$ pn 2 nim-nfs-perf -o NFS3_WRITE
+</pre>
+<p></p>
+<pre>Accumulating statistics over all values of 'file_system'
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/nfs-stats.html">nfs-stats</a> <a href="../Supervisor/nim-nfs-perf.html">nim-nfs-perf</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

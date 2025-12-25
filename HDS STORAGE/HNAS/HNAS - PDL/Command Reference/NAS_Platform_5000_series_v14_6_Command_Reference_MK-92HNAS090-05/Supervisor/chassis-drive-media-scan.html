@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>chassis-drive-media-scan</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>chassis-drive-media-scan</h1>
+<p>Run the chassis drive media scan utility</p>
+<h1>Syntax</h1>
+<pre>chassis-drive-media-scan  [ --write --quiet ] --drive (A | B) | --remove-lock
+</pre>
+
+<h1>Description</h1>
+<p>The 'chassis-drive-media-scan' command is used to run a media scan on one of the chassis internal drives. This command should only be run as part of troubleshooting a system where one of the chassis drives is suspect as it removes the drive from the RAID volumes and when --write is specified will scrub the drive media.</p>
+<p>The command launches a background process on the system and returns.  The progress and completion of the media scan is reported in the event log.</p>
+<p>Note: This command does not affect the storage connected to the Fiber Channel ports of the system.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--write</strong></dt>
+<dd><p>Causes the media scan to write a test pattern on the media and run a read verification.  This will force the drive to replace any blocks flagged as having Uncorrectable Read Errors.</p></dd>
+<dt><strong>--drive</strong></dt>
+<dd><p>This option is used to specify the drive to be media scanned .</p></dd>
+<dd><p>Valid values for the drive are 'A' and 'B'.  These indicate the labelling of the physical drives in the unit  and are NOT guaranteed to be the same as the software device names (sda, sdb etc).</p></dd>
+<dt><strong>--quiet</strong></dt>
+<dd><p>Produces minimal console output</p></dd>
+<dt><strong>--remove-lock</strong></dt>
+<dd><p>Forces the removal of the lock file that stops more than one instance of the media scan running. This should only be needed after the system is shut down whilst a media scan is running.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>$ chassis-drive-media-scan --write --drive A
+Information: Starting media scan on Drive A. Report will be in /var/opt/raid-monitor/log/21-Sep-2009:11:26:54-DriveA.
+Severe: Chassis device 'md1' has invalid drive configuration. Drive A is missing
+Severe: Chassis device 'md0' has invalid drive configuration. Drive A is missing
+Severe: Chassis device 'md2' has invalid drive configuration. Drive A is missing
+Information: Media scan of DriveA completed.
+Information: Recovering drive.
+Information: Recovery complete.
+Information: Chassis device 'md1' is rebuilding partition 'sda6' on Drive A. Rebuild is 2 percent complete.
+Information: Chassis device 'md0' is queued for rebuild to Drive A partition sda5.
+Information: Chassis device 'md2' is queued for rebuild to Drive A partition sda2.
+Information: Chassis device 'md1' status is good. Volume is fault tolerant
+Information: Chassis device 'md1' rebuild complete.
+Information: Chassis device 'md0' is rebuilding partition 'sda5' on Drive A. Rebuild is 5 percent complete.
+Information: Chassis device 'md0' status is good. Volume is fault tolerant
+Information: Chassis device 'md0' rebuild complete.
+Information: Chassis device 'md2' is rebuilding partition 'sda2' on Drive A. Rebuild is 17 percent complete.
+Information: Chassis device 'md2' status is good. Volume is fault tolerant
+Information: Chassis device 'md2' rebuild complete.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/chassis-drive-clean-configuration.html">chassis-drive-clean-configuration</a> <a href="../Supervisor/chassis-drive-status.html">chassis-drive-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

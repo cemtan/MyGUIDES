@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-set-ctrl-dir</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>migration-set-ctrl-dir</h1>
+<p>Sets a control directory for a migration path</p>
+<h1>Syntax</h1>
+<pre>migration-set-ctrl-dir {-s &lt;source&gt; [-v &lt;vivol&gt;] (-c|-p &lt;dir_path&gt;) [-d]}
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --source &lt;fs label&gt;</strong></dt>
+<dd><p>Source file system.</p></dd>
+<dt><strong>-v, --vivol &lt;vivol name&gt;</strong></dt>
+<dd><p>Name of source Virtual Volume (optional).</p></dd>
+<dt><strong>-c, --control-dir-default</strong></dt>
+<dd><p>Use the default control directory location (.control) with this migration path. Note that -c and -p are mutually exclusive.</p></dd>
+<dt><strong>-p, -control-dir-path &lt;dir path&gt;</strong></dt>
+<dd><p>The path (relative to the root of the file system/vivol) to the control directory.</p></dd>
+<dt><strong>-d, --delete</strong></dt>
+<dd><p>Remove the directory path specified from the list of directories that will be used to contain request files for the specified control path.</p></dd>
+</dl>
+<p>Specifies the location of a directory that is to be used to contain request files for a migration path.</p>
+<p>The manual page for <code>migration-list-ctrl-dir-requests</code> describes how migration request files should be named.</p>
+<h1>Examples</h1>
+<pre>migration-set-ctrl-dir -s fs0 -c
+</pre>
+<p></p>
+<p>Set a control directory for the fs0 migration path to the default location.</p>
+<pre>migration-set-ctrl-dir -s fs0 -p /path/to/ctrl_dir
+</pre>
+<p></p>
+<p>Set a control directory for the fs0 migration path to the /path/to/ctrl_dir directory on fs0. On completion the command will display the control directory and migration path affected and whether it was set or deleted.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a> <a href="../Supervisor/migration-add-path.html">migration-add-path</a> <a href="../Supervisor/migration-delete-external-path.html">migration-delete-external-path</a> <a href="../Supervisor/migration-delete-path.html">migration-delete-path</a> <a href="../Supervisor/migration-expand-path.html">migration-expand-path</a> <a href="../Supervisor/migration-get-dependencies.html">migration-get-dependencies</a> <a href="../Supervisor/migration-list-ctrl-dir-requests.html">migration-list-ctrl-dir-requests</a> <a href="../Supervisor/migration-list-paths.html">migration-list-paths</a> <a href="../Supervisor/migration-update-paths.html">migration-update-paths</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

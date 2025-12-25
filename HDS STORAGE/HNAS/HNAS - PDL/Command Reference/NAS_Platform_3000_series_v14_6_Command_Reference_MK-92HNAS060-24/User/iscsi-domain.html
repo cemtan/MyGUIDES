@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>iscsi-domain</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>iscsi-domain</h1>
+<p>Set, display or unset the iSCSI domain</p>
+<h1>Syntax</h1>
+<pre>iscsi-domain [-d] [&lt;DNS domain&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to set the DNS domain used by iSCSI. iSCSI qualified names should be unique across the world, so they're built, in part, from the DNS domain of an organization and the date at which the DNS domain was owned by the organization. For example, if a company owned the domain example.com in March 2004, the iSCSI qualified name for a target with that domain would include "2004-03.com.example".</p>
+<p>Using this command provides the iSCSI service with a DNS domain from which to create its unique names, and does not update the DNS configuration in any way.</p>
+<pre>iscsi-domain [OPTIONS] [&lt;domain&gt;]
+    Sets, displays or unsets the domain.
+    domain
+        The new domain name.
+</pre>
+<p></p>
+<pre>    OPTIONS
+    --delete, -d
+        Unset the domain.
+</pre>
+<p></p>
+<h1>Examples</h1>
+<pre>iscsi-domain
+iscsi-domain example.com
+iscsi-domain -d
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/iscsi-initiator.html">iscsi-initiator</a> <a href="../User/iscsi-lu.html">iscsi-lu</a> <a href="../User/iscsi-stats.html">iscsi-stats</a> <a href="../User/iscsi-target.html">iscsi-target</a> <a href="../User/isns.html">isns</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-dump-unloadable-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-dump-unloadable-cod</h1>
+<p>Show all unloadable span and filesystem Cod on all system drives</p>
+<h1>Syntax</h1>
+<pre>sd-dump-unloadable-cod [-t | --terse]
+</pre>
+
+<h1>Description</h1>
+<p>This is a troubleshooting command.  It's intended for use by your support provider and inside diagnostic email messages.</p>
+<p>When the server encounters system drives (SDs) at start of day, or when you run 'sd-rescan-cod' at any time, the server loads the three kinds of Cod, as described in the 'cod' man page.</p>
+<p>The 'sd-dump-unloadable-cod' command dumps all unloadable Cod in the same format as 'sd-dump-cod'.  It proceeds in two stages.  First, it finds all SDs that have unloadable span Cod, and dumps that span Cod.  For example, if span Foo uses SDs 1, 2 and 3, but SD 2's Cod has been damaged, the command will dump Cod from (at most) SDs 1 and 3.  It's important to understand that if Cod has been destroyed on <strong>all</strong> visible SDs in a span, the server won't know that there's a damaged span, and 'dump-unloadable-cod' won't list any span Cod.  Spans that contain just a single SD are unlikely ever to be listed.</p>
+<p>In its second stage, 'sd-dump-unloadable-cod' finds each loaded span with an unloadable filesystem catalog or chunk table and, from each SD in the span, dumps whichever data structure won't load.</p>
+<p>The --terse switch dumps the chunk table in a more concise format than normal.  Other types of Cod are unaffected.</p>
+<p>'sd-dump-unloadable-cod' makes no attempt to load Cod: it merely shows Cod that was unloadable last time the server tried to load it.  For that, see 'sd-rescan-cod'.</p>
+<p>It's not necessary to run 'sd-dump-unloadable-cod' and scour its output in order to find discrepancies between SDs.  When the server finds a Cod discrepancy, it logs an event, specifying the SDs whose Cod disagrees.  For filesystem Cod, you can also run 'span-list-filesystem-cod' for a concise table of Cod versions on all SDs in a loaded span.</p>
+<h1>Examples</h1>
+<pre>sd-dump-unloadable-cod
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/event-log-show.html">event-log-show</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../User/span-list.html">span-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-log</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fc-log</h1>
+<p>dump/clear FC logs</p>
+<h1>Syntax</h1>
+<pre>fc-log [-d, --dump][-c, --clear][-s, --size][-h, --help]
+</pre>
+
+<h1>Description</h1>
+<p>Dump or clear the contents of the fibre channel (FC) log or logs.</p>
+<p>There is a separate log for each host port; it logs FC commands transmitted and responses received from the given host port.</p>
+<p>If no host port number is specified, host port 1 FC log is assumed.</p>
+<p>Console output may be stopped or aborted with a key press or by CTRL-C.</p>
+<p>The syntax of a log entry indicates the FC frame that was transmitted or received as follows:</p>
+<dl>
+<dt><strong>Sent/Rxed</strong></dt>
+<dd><p>FC frame was sent or received by the server host port.</p></dd>
+<dt><strong>Frame Type</strong></dt>
+<dd><p>The name of the command frame sent to the FC target port, or the name of the response frame received by the FC target port.</p></dd>
+<dt><strong>xxxxxx</strong></dt>
+<dd><p>Address of the target port that the FC command was sent to or a response was received from.</p></dd>
+<dt><strong>&lt;OXID&gt;</strong></dt>
+<dd><p>The OXID of the exchange.</p></dd>
+<dt><strong>[Sn]</strong></dt>
+<dd><p>n = the server internal session number of the exchange.</p></dd>
+<dt><strong>STATUS</strong></dt>
+<dd><p>The status of the session.</p></dd>
+<dt><strong>OFFLINE</strong></dt>
+<dd><p>The remote port is offline or is not responding and has been logged out.</p></dd>
+<dt><strong>POLLING</strong></dt>
+<dd><p>The remote port is not responding so the host port is periodically polling it.</p></dd>
+<dt><strong>INACTIVE</strong></dt>
+<dd><p>The remote port is an initiator port.</p></dd>
+<dt><strong>DISCOVERY</strong></dt>
+<dd><p>The session is attempting to establish a login session with the remote port.</p></dd>
+<dt><strong>PENDING</strong></dt>
+<dd><p>Attempting to re-establish an active login session with the remote target port.</p></dd>
+<dt><strong>ACTIVE</strong></dt>
+<dd><p>The session has successively established a login session with the target port.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong><strong>-d, --dump</strong></strong></dt>
+<dd><p>Dump the contents of the FC log for the given host port for all host ports. The last 20 entries are output if no range is specified.</p></dd>
+<dl>
+<dt><strong>-h, --hport &lt;1..n&gt;</strong></dt>
+<dd><p>Specify host port log to dump.</p></dd>
+<dt><strong>-H, --Hports</strong></dt>
+<dd><p>Dump logs for all host ports.</p></dd>
+<dt><strong>-p, --port &lt;addrs&gt;</strong></dt>
+<dd><p>Filter by the target port address.</p></dd>
+<dt><strong>-r, --rev</strong></dt>
+<dd><p>Output entries in reverse order, oldest last.</p></dd>
+<dt><strong>-a, --all | -n &lt;[-]no of entries to dump&gt;</strong></dt>
+<dd><p>Output all entries, last n entries, or first n entries if n is negative. If n = 0, dump entire log; by default, dump last 20 entries.</p></dd>
+</dl>
+<dt><strong><strong>-c, --clear</strong></strong></dt>
+<dd><p>Clear the log, default is host port 1 log.</p></dd>
+<dl>
+<dt><strong>-h, --hport &lt;1..n&gt;</strong></dt>
+<dd><p>Specify host port log to be cleared.</p></dd>
+<dt><strong>-C, --Conf</strong></dt>
+<dd><p>Do not request confirmation before clearing the log.</p></dd>
+</dl>
+<dt><strong><strong>-s, --size</strong></strong></dt>
+<dd><p>Show the current and maximum log size.</p></dd>
+<dt><strong><strong>-h, --help</strong></strong></dt>
+<dd><p>Show help.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Dump the entire FC log for host port 1:</p>
+<pre>fc-log -d -a
+</pre>
+<p></p>
+<p>Dump last 100 entries from host port 2 log for target port on FC address 10200:</p>
+<pre>fc-log -d -h 2 -p 0x10200 -n 100
+</pre>
+<p></p>
+<p>Dump first 20 entries from host port 2 log for target port on FC address 610c00:</p>
+<pre>fc-log -d -h 2 -p 610c00 -n -10
+</pre>
+<p></p>
+<p>Dump all entries from host port 1 log:</p>
+<pre>fc-log -d -h 1 -a
+</pre>
+<p></p>
+<p>Dump all entries from all host port logs:</p>
+<pre>fc-log -d -H -a
+</pre>
+<p></p>
+<p>Clear the host port 1 log, no confirmation:</p>
+<pre>fc-log -c -h 1 -C
+</pre>
+<p></p>
+<p>Clear all host port logs, no confirmation:</p>
+<pre>fc-log -c -H -C
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-ports.html">fc-ports</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

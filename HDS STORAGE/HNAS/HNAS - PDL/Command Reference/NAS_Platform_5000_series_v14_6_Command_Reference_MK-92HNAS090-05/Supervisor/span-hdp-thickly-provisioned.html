@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-hdp-thickly-provisioned</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-hdp-thickly-provisioned</h1>
+<p>Indicate that a span that violates HDP guidelines will always be thickly provisioned</p>
+<h1>Syntax</h1>
+<pre>span-hdp-thickly-provisioned &lt;span-instance-name&gt; (no|yes)
+</pre>
+
+<h1>Description</h1>
+<p>Release 12.1 introduced support for HDP thin provisioning and, with it, two new restrictions:</p>
+<ul>
+<li>No span can contain a mixture of HDP DP-Vols and plain parity groups.</li>
+<li>No stripeset can contain DP-Vols from two different DP pools.  (A newly created span has one stripeset, and a further stripeset is created by 'span-expand' or GUI equivalent, though not by the addition of more disks to an existing DP pool.)</li>
+</ul>
+<p>If these guidelines are violated, the server cannot reliably determine how much disk space is available, and so it prohibits a number of important operations, such as:</p>
+<ul>
+<li>Creating a filesystem</li>
+<li>Deleting a filesystem</li>
+<li>Recycling a filesystem</li>
+<li>Undeleting a filesystem</li>
+<li>Expanding a filesystem</li>
+<li>Expanding a span</li>
+</ul>
+<p>Spans created and expanded in releases earlier than 12.1 may be in this condition.</p>
+<p>'span-hdp-thickly-provisioned' is intended for these spans.  It can also be used as a temporary measure when the DP-Vols that host a span are moved between DP pools.</p>
+<p>When run with 'yes', the command has two effects:</p>
+<ul>
+<li>It waives the usual prohibitions.</li>
+<p>File systems that are very full may auto-expand, perhaps several times, after the command is run.  The command returns control quickly, without waiting for any auto-expansion to take place.</p>
+<li>It prevents the server from making any attempt to determine how much disk space is available on the DP pool(s) that host the span.  In fact, the server will treat the span as if it resided on plain parity groups: the server will not keep a vacated-chunks list, reuse existing chunks after a filesystem is recycled, or support 'span-unmap-vacated-chunks' on the span.</li>
+</ul>
+<p>As a result, if 'span-hdp-thickly-provisioned' is run, <strong>all DP pools that contribute space to the span must be kept thickly provisioned at all times.</strong>  In other words, the total capacity of the DP-Vols on each pool must never exceed the real disk space in that pool.</p>
+<p>Should the pool run out of disk space, disk I/O would fail and file systems would unmount.  Each time the server tried to remount them, it would retry the failed I/O, which would fail again and prevent file systems from coming back up.  The only reliable way to regain access to the data would be to add more disk space to the DP pool.</p>
+<h2>INSUFFICIENT PRECAUTIONS</h2>
+<p>A weaker precaution -- keeping the total capacity of the filesystems on the span smaller than the total amount of real space on the pools that contribute to the span -- is <strong>not sufficient,</strong> because some chunks that were once used by deleted and recycled filesystems may still invisibly be mapped to real disk space.</p>
+<p>A second weaker precaution -- ensuring that the total DP-Vol capacity on all these pools is no larger than the total amount of disk space on all the pools is <strong>also insufficient,</strong> because the server will make no attempt to determine which DP pools are exhausted and draw new space from those that are not.</p>
+<p>Finally, confining the span to prevent auto-expansion is <strong>not sufficient,</strong> because 'span-hdp-thickly-provisioned' prevents the server from pre-allocating HDP pages when they are added to a filesystem as it otherwise would.  As a result, even if no filesystems are created or expanded, the free space on a DP pool will fall when the Filesystem writes to any HDP page for the first time.  Such write operations can occur days or even weeks after a filesystem was last expanded, depending on the amount of free space on the file system and the rate at which data is written to it.</p>
+<p>The requirement for DP pools to be thickly provisioned does not preclude the use of the 'filesystem-thin' command to report an artifically large capacity to protocols clients.  This file system-level thin provisioning may become especially useful when storage-level thin provisioning cannot be used because 'span-hdp-thickly-provisioned' is in force.</p>
+<h2>WHEN THIS COMMAND IS NOT NEEDED</h2>
+<p>We recommend using a single DP pool per span (or one pool per tier if the span is tiered), and we strongly recommend dedicating each DP pool to a single span.  Nevertheless, ignoring these recommendations does not trigger the prohibitions listed above, and does not require the use of 'span-hdp-thickly-provisioned'.</p>
+<h2>REINSTATING PROHIBITIONS</h2>
+<p>Running the command with 'no', rather than 'yes', undoes the effect of the command, restoring the normal prohibitions if the span still violates HDP guidelines.</p>
+<p>If the span no longer violates guidelines (presumably because the DP-Vols hosting it have been migrated between DP pools since the command was originally run), it is still wise to keep pools thickly provisioned for a period.  Because space was not pre-allocated during filesystem creations and expansions while 'span-hdp-thickly-provisioned' was in effect, some filesystems may contain HDP pages to which the Filesystem has not yet written.  When it does so for the first time, the free space on the DP pool will fall.  The server cannot take this phenomenon into account when you create or expand filesystems from now on.  DP pools should therefore be kept thickly provisioned until you notice that free space on the DP pools has stopped falling.</p>
+<h2>INTERACTION WITH UVM</h2>
+<p>If you run 'span-hdp-thickly-provisioned' and later virtualize the span via UVM, 'span-hdp-thickly-provisioned' will take precedence: the server will not recognize that the span resides on UVM internal LUs.</p>
+<p>'span-hdp-thickly-provisioned' cannot be enabled while the server recognizes that the span resides on UVM internal LUs.  Running 'span-hdp-thickly-provisioned ... yes' against a span residing on UVM LUs is therefore an irreversible process.</p>
+<h2>NOT TO BE CONFUSED WITH</h2>
+<p>This command is unrelated to 'filesystem-thin', a command that instructs the server to report to protocols clients that a filesystem is larger than its actual capacity.</p>
+<h1>Examples</h1>
+<pre>span-hdp-thickly-provisioned Accounts yes
+</pre>
+<p></p>
+<p>Waives the usual prohibitions on a span that violates HDP guidelines.  Promises that all DP pools that contribute space to the span will always be thickly provisioned.</p>
+<pre>span-hdp-thickly-provisioned Accounts no
+</pre>
+<p></p>
+<p>Reinstates the usual prohibitions if the span still violates HDP guidelines.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Topic/uvm.html">uvm</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

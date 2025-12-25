@@ -1,0 +1,2310 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strtoken</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>strtoken</h1>
+<p>Create a string from tokens in an input line, then display it or run it as a BALI command</p>
+<h1>Syntax</h1>
+<pre>... | strtoken [&lt;general-options&gt;] [&lt;transform-options&gt;] [&lt;token-type&gt;]  [&lt;action&gt; | &lt;if-action&gt; | &lt;action-if&gt;]
+	where
+	&lt;general-options&gt;       ::= [-s|--skip-input-lines-if-token-not-found] [-k|--keep-blank-output-lines]
+	                            [-z|--zero-token-separator|-z &lt;string&gt;] [-l|--line-separator &lt;string&gt;]
+	                            [-M|--max-output-lines] [-S|--save-tokens-with-prefix/unique &lt;prefix&gt;]
+	                            [-u|--unsigned-data|-u] [-w|--word-tokens-only]
+	&lt;transform-options&gt;     ::= [-B|--bali-env] [-m|--macro-symbol &lt;char, default %&gt;]
+	                            [(-e|--enable-backslash-escape) | (-E|--escape-char &lt;char&gt;)]
+	                               [-p|--process-macros-and-escapes]
+	&lt;token-types&gt;           ::= ( -t|--token-delimiters[/a|d,n|N,c,q] &lt;delimiting chars&gt; )
+	                                | ( -a|--additional-token-delimiters[/a|d,n|N,c,q] &lt;extra-chars&gt; )
+	                            | -h|--hex[/u,w,a|d,n|N,c,q]
+	                            | -d|--decimal[/u,w,a|d,n|N,q]
+	                            | -H|--hex-or-decimal[/u,w,a|d,n|N,c,q]
+	                            | -o|--octal[/w,a|d,n|N,q]
+	                            | -b|--binary[/w,a|d,n|N,q]
+	                            | -f|--floating[/w,a|d,n|N,c,q]
+	                            | -n|--number[/f,u,w,a|d,n|N,c,q]
+	                            | -D|--date[/w,a|d,n|N,c,q]
+	                            | -T|--time[/w,a|d,n|N,c,q]
+	                            | -F|--full-date-time[/w,a|d,n|N,c,q]
+	                            | -X|--regex/F,w,i,v,j=&lt;mchars&gt;,k=&lt;nchars&gt;,a|d,n|N,c,q &lt;pattern&gt;
+	                            | ( -L|--left-delimiter/r,w,i,v,t,M,S,j=&lt;mchars&gt;,a|d,n|N,c,q  &lt;left-pattern&gt;
+	                                -R|--right-delimiter/r,w,i,v,t,M,S,k=&lt;nchars&gt;,a|d,n|N,c,q  &lt;right-pattern&gt; )
+	&lt;action&gt;                ::= ( (-r|--run/all,end,delay-expansion,capture-stderr)
+	                            | (--sort[/e,n|N,a|d,c,q] &lt;key&gt;
+	                            | (-c|--echo]) )  [--]  [&lt;output-or-cmd-line&gt;]
+	&lt;output-or-cmd-line&gt;    ::= &lt;argument1&gt; [&lt;argument2&gt; [&lt;argument3&gt; [... [&lt;argumentN&gt;]]]]
+	&lt;if-action&gt;             :: --if[/str|qstr|dqstr] &lt;expression&gt;  &lt;action&gt;
+	   &lt;action-if&gt;             :: &lt;action except --echo&gt;  (--if[/str|qstr|dqstr] | --if-strquery | --unless-strquery) &lt;arguments..&gt;)
+	
+</pre>
+
+<h1>Description</h1>
+<p>This filter creates a new output line from tokens in the output lines from the preceding command in the chain. The new output can be displayed as text, or run as a BALI command. The strtoken filter is very useful when used with grep, env-set, mse-set, strline, etc.</p>
+<p>Note:</p>
+<p>* [--keep-all-tokens-as-is|-K] is a legacy option in the &lt;general-options&gt; category. To display the original input line, one can specify -K %0, or %.line, or %.__ token. The last two methods are preferred.</p>
+<p>* [-u|--unsigned-data|-u] is a global flag, which affects all numeric token type options such as -h|-d|-H|-n.  The local sub-option /u specified to individual numeric options always overrides the global flag.</p>
+<p>* Similarly, [-w|--word-tokens-only] is a global flag but can be overridden by the local sub-option /w specified to individual numeric options.</p>
+<p>* All arguments following the &lt;action&gt; verbs are treated as the output line to display or the command line to run. However, the output/command line stops at the first argument that begins with --if, --if-strquery, or --unless-strquery. These arguments signify a conditional statement.</p>
+<p>* Both --if-strquery and --unless-strquery options must be specified with at least 8 characters to minimize potential conflict with tokens in the command line run by the --run option. If there is conflict, the --run option should be specified with /end sub-option to clearly mark the start and end of the target command line.</p>
+<p>* The --if-strquery conditional executes the strquery filter with all the arguments following it. If the result is true (a positive integer), &lt;action&gt; will be executed.</p>
+<p>* The --unless-strquery conditional executes the strquery filter with all the arguments following it. If the result is false (zero), &lt;action&gt; will be executed.</p>
+<p>* The --if conditional accepts one and only one &lt;expression&gt; argument if specified before &lt;action&gt;. If specified after &lt;action&gt;, it accepts all arguments following --if. The &lt;expression&gt; will then be formed by concatenating all these arguments with one space inserted in between. If the result of the expression is nonzero, &lt;action&gt; will be executed.</p>
+<p>* Only one conditional prevails. If the --if option is specified before &lt;action&gt;, all occurrences of --if, --if-strquery, --unless-strquery after &lt;action&gt; are treated as part of &lt;action&gt;.</p>
+<p>* strtoken supports two types of sorting:</p>
+<pre>    a) Horizontal sorting
+       For each input line, sort across all tokens that result from splitting the line.
+       The list to be sorted is represented by token number 0.
+       The sorting behavior is specified by the suboptions to &lt;token-types&gt;.
+       See examples 17-18.
+</pre>
+<p></p>
+<pre>    b) Vertical sorting
+       Sort across all input lines using option --sort &lt;key&gt;.
+       The sorting behavior is specified by the suboptions to --sort.
+       Vertical sorting provides a rich functionality similar to sorting data in a spreadsheet;
+       e.g., sort first by column C, then by column F, then by column H, then by column M.
+       This is because &lt;key&gt; can be formatted using token numbers with a variety of formatting options.
+       See examples 19-22.
+</pre>
+<p></p>
+<h2>Table of contents</h2>
+<pre>            A. Overview
+            A1. Token number
+            A2. Special tokens
+            A3. Building a token list
+            A4. Building multiple token lists
+            A5. Accessing tokens in different token lists
+            A6. Processing the &lt;output-or-cmd-line&gt; template
+            A7. Run the &lt;output-or-cmd-line&gt; template as a BALI command
+            A8. Processing numbers and date times
+            A8.1 Processing minus sign
+            A8.2 Dual data types
+            A8.3 Number words and date time words
+            B. Options
+            B1. Sub-options
+            B1.1 Numeric token options
+            B1.2 String token options
+            B2. General options
+            B3. Transform options
+            B4. Token type options
+            B5. Output options
+            B6. Conditional output options
+            C. Formatting token output
+            D. How to use strtoken in an mse script?
+            E. Advanced options
+            EXAMPLES
+            SEE ALSO
+</pre>
+<p></p>
+<h2>A. Overview</h2>
+<p>All arguments to strtoken are parsed from left to right for options and values. Parsing will stop after a "--" argument, or at the first unrecognizable argument, whichever occurs first. The first argument after "--" or the first unrecognizable argument will be treated as the beginning of &lt;output-or-cmd-line&gt;, and all arguments that follow will not be parsed for strtoken's options anymore. For example, if a "-m" argument appears after the start of &lt;output-or-cmd-line&gt;, it will not be parsed for a new macro symbol value.</p>
+<p>If --run option is specified, all the N arguments in &lt;output-or-cmd-line&gt; form a BALI command line to be executed. Otherwise, strtoken will concatenate all N arguments in &lt;output-or-cmd-line&gt;, one after another with a single space in between, to form a single text string to display.</p>
+<p>The strtoken filter builds a list of tokens from an input line. Currently, the filter offers 14 criteria for building tokens; they are listed in &lt;token-types&gt; in the syntax above. If the list of tokens is not empty, the input line is said to match the strtoken filter. Tokens in the input line are scanned from left to right and are numbered in ascending order starting from 1. They can also be referenced from right to left using negative numbers: -1 is the rightmost token, -2 is next to the rightmost token, etc.</p>
+<p>If the token list is not empty and &lt;output-or-cmd-line&gt; is not specified, strtoken behaves like the 'grep' filter; i.e., it displays the entire input line.</p>
+<p>By default, if the standard input or the output line is empty or is all white space, strtoken does nothing, i.e., it does not output anything. But this behavior can be overridden by --keep-blank-output-lines option.</p>
+<h2>A1. Token number</h2>
+<p>In general, strtoken can be viewed as transforming a standard input line in to a standard output line based on the template specified by &lt;output-or-cmd-line&gt;. The template, also known as the formatting string or strings, must be specified after the last option to strtoken. The template can contain text and token numbers in any order. Each token number is specified with a leading percent sign and the whole aggregate is known as a positional parameter. For instance, &lt;output-or-cmd-line&gt; can be "I found %1 and %2".  The leading percent sign is known as the macro symbol, which can be redefined. The filter will replace "%n" with the actual value of the n-th token in the standard input line. The positional parameter can be optionally specified with a format specifier to change how it appears in the output. This will be described in Section C.</p>
+<pre>    Example A1.1:
+       $ echo "Monday Wednesday Friday" | strtoken "I have meetings on %1, %2, %-1."
+       I have meetings on Monday, Wednesday, Friday.
+</pre>
+<p></p>
+<p>By default, if the template contains a token number that does not exist in an input line (e.g., token number out of range), strtoken will simply expand that positional parameter in to an empty string. If such an input line should be discarded, specify --skip-input-lines-if-token-not-found option. This option causes the line number of the standard input to be different from the line number of the standard output.</p>
+<h2>A2. Special tokens</h2>
+<p>In addition to regular token numbers %n where n is nonzero, strtoken also supports the following special tokens.</p>
+<dl>
+<dt><strong>Token %0</strong></dt>
+<dd><p>Token %0 represents a new string consisting of all tokens where successive tokens are separated by a single space.</p></dd>
+<dd><p>Note that the zeroth token is a convenient way of specifying a new string consisting of all tokens in the form of "%1&lt;x&gt;%2&lt;x&gt;%3&lt;x&gt;..." where &lt;x&gt; is called the output token separator. By default, &lt;x&gt; is a single space but can be overridden with the --zero-token-separator option.</p></dd>
+</dl>
+<pre>        Example A2.1:
+           $ echo "Monday Wednesday    Friday" | strtoken %0
+           Monday Wednesday Friday
+</pre>
+<p></p>
+<dl>
+<dt><strong>Token %+</strong></dt>
+<dd><p>Token %+ represents the total number of tokens in the input line. The value depends on the type of tokens, which is specified by an option in the &lt;token-types&gt; group (see syntax).</p></dd>
+<dt><strong>Tokens %.__, %.line</strong></dt>
+<dd><p>These two tokens are synonymous and represent the input line with the ending newline, if any, discarded.</p></dd>
+<dt><strong>Tokens %.linelen</strong></dt>
+<dd><p>This represents the length of the input line, excluding the ending newline, if any.</p></dd>
+<dt><strong>Tokens %.___, %.rawline</strong></dt>
+<dd><p>These two tokens are synonymous and represent the raw input line (the ending newline, if any, is not discarded).</p></dd>
+<dt><strong>Tokens %.rawlinelen</strong></dt>
+<dd><p>This represents the length of the raw input line in bytes, including the ending newline, if any.</p></dd>
+<dt><strong>Token %.trimmedline</strong></dt>
+<dd><p>This represents the input line after removing leading and trailing white space.</p></dd>
+<dt><strong>Tokens %.trimmedlinelen</strong></dt>
+<dd><p>This represents the length of the trimmed input line in bytes.</p></dd>
+<dt><strong>Tokens %.____, %.lineno</strong></dt>
+<dd><p>These two tokens are synonymous and expand to the input line number. The input line number starts with 1 for the first line.</p></dd>
+<dt><strong>Token %.outlineno</strong></dt>
+<dd><p>This token expands to the output line number. The strtoken filter processes the standard input line to produce an output generically called an output line even though the output can be empty or consists of one or more lines. A non-empty output corresponding to a standard input line is counted as 1. The first output line number is 1.</p></dd>
+</dl>
+<p>Note that the mse interpreter also supports positional parameters and the same set of special tokens. Thus, if an mse script contains strtoken, the tokens that belong to strtoken will be expanded by mse when it executes the script. To avoid this, all strtoken's tokens should be enclosed in square/angle brackets. For instance,</p>
+<pre>    Example A2.2:
+       $ mse 'echo "Monday Wednesday Friday" | strtoken "I have meetings on %[1], %[2], %[-1]."'
+       I have meetings on Monday, Wednesday, Friday.
+</pre>
+<p></p>
+<p>By default, if a token number is non-existent (e.g., token number out of range), strtoken will simply expand it in to an empty string.</p>
+<h2>A3. Building a token list</h2>
+<p>In general, the strtoken filter reads a standard input line and builds a list of tokens based on the token type specified to the command. By default, if no token type is specified, the filter will split the input line in to tokens delimited by white space.</p>
+<p>The user can change the token type to obtain a different list of tokens. For example, if the user is interested mainly in numeric tokens, it is more efficient to specify one of the numeric data option such as --hex. In this case, strtoken will change all characters in the standard input line in to spaces except those that are part of hex numbers.  The resulting input line now consists of hex numbers separated by spaces. The first hex number in the line is %1, the second is %2, etc.</p>
+<p>The following examples are concerned with hex and decimal numbers:</p>
+<pre>    Example A3.1:
+       $ echo abc 123 def 0x15 xyz 0x28 65 | strtoken --hex %1 %2
+       0x15 0x28
+       $ echo abc 123 def 0x15 xyz 0x28 65 | strtoken --decimal %1 %2
+       123 65
+</pre>
+<p></p>
+<h2>A4. Building multiple token lists</h2>
+<p>Currently, strtoken supports the following token types:</p>
+<pre>   1. Tokens delimited by white space, or by delimiting characters specified with --token-delimiters option
+   2. Tokens delimited by white space and additional delimiting characters
+      that are specified by --additional-delimiters option
+   3. Hex tokens specified by --hex
+   4. Decimal tokens specified by --decimal
+   5. Hex or decimal tokens specified by --hex-or-decimal
+   6. Octal tokens specified by --octal
+   7. Binary tokens specified by --binary
+   8. Floating-point tokens specified by --fixed
+   9. Number tokens specified by --number
+  10. Date tokens specified by --date
+  11. Time tokens specified by --time
+  12. Full date time tokens specified by --full-date-time
+  13. Tokens that match a regular expression specified by --regex
+  14. Tokens that are delimited by left and right regular expressions that are
+      specified by --left-delimiter and --right-delimiter options.
+</pre>
+<p></p>
+<p>Starting with release 13.1, strtoken can accept multiple token types in the command line. Each token type option causes the filter to reparse the original standard input line in to a new list of tokens. Each list is identified by a one-letter name. The token types are numbered in the order of their appearance in the command line from left to right, starting from 1. The list associated with the first token type option is named A, the second is B, etc.</p>
+<p>There is always a default list named 't', which consists of tokens separated by white space delimiters (space, tab, newline, carriage return). This list is always built even if the --token-delimiters option is not specified.</p>
+<p>An n-th token in a given list is referred to by  %[n&lt;list-name&gt;]. For example, %[1A] is the first token in list A, %[2B] is the second token in list B. The square brackets can be replaced with &lt;&gt; or {}. Note that the name of the last list can be omitted, which is for backward compatibility.</p>
+<pre>    Example A4.1:
+       $ echo abc 123 def 0x15 xyz 0x28 65 | strtoken --hex --decimal %[1A] %[2B] %[1t]
+                                                        |       |       |     |     |
+         All hex numbers constitute token list A -------+       |       |     |     first token in default list
+         All decimal numbers constitute token list B -----------+       |     second token in list B
+                                                                        first token in list A
+</pre>
+<p></p>
+<pre>       $ echo abc 123 def 0x15 xyz 0x28 65 | strtoken --hex --decimal %[1A] %2 %[1t]   # same
+       0x15 65 abc
+</pre>
+<p></p>
+<p>In summary, the tokens are accessed by positional parameters %1, %2, %3, etc if there is only one list, or if the tokens belong to the last list. The positional number can appear in square brackets; e.g., %[1], %[2], etc. If there are more than one list, the lists are labeled A, B, C, etc depending on the order of appearance of the token type options. To access the n-th token in list X, use %[nX]. The last list can be accessed with or without a label.</p>
+<h2>A5. Accessing tokens in different token lists</h2>
+<p>The tokens in a given token list can be accessed via different notations:</p>
+<dl>
+<dt><strong>1. Positional parameters</strong></dt>
+</dl>
+<pre>           List t:  %[0t], %[1t], %[2t], %[3t], etc, %[+t]
+           List A:  %[0A], %[1A], %[2A], %[3A], etc, %[+A]
+           List B:  %[0B], %[1B], %[2B], %[3B], etc, %[+B]
+           . . . .
+           Last list:  %[0], %[1], %[2], %[3], etc, %[+]
+</pre>
+<p></p>
+
+<p>Note that %[+A] is the number of tokens in list A. The last list has two representations: one without a letter suffix, and one with a letter suffix. For example, if there are 3 lists, list C and the last list refer to the same list.</p>
+<p>All the positional parameters are destroyed after strtoken processes each input line.</p>
+<p>2. Macros in local minishell environment</p>
+<p>If option -S|--save-tokens-with-prefix &lt;prefix&gt; is not specified, strtoken saves all tokens in the local minishell environment as follows.</p>
+
+<pre>           List t:  %.t0, %.t1, %.t2, %.t3, etc, %.tcount
+           List A:  %.A0, %.A1, %.A2, %.A3, etc, %.Acount
+           List B:  %.B0, %.B1, %.B2, %.B3, etc, %.Bcount
+           . . . .
+</pre>
+<p></p>
+
+<p>Note that %.Acount is the total number of tokens in list A. To obtain the local minishell variable name of a positional token, simply reverse its positional parameter name and prepend a dot to it. For example, positional token %1B is associated with the variable .B1 in the local minishell environment.</p>
+<p>All the local minishell variables are destroyed upon strtoken's exit.</p>
+<p>3. Macros in global minishell environment</p>
+<p>If option -S|--save-tokens--with-prefix &lt;prefix&gt; is specified, the variables are saved in the global, not local, minishell environment. Therefore, these variables are available for use in subsequent commands until they are explicitly deleted by the user.</p>
+<p>For simplicity, assuming '-S X' option is specified, the following global mse variables will be created:</p>
+
+<pre>           List t:  %Xt0, %Xt1, %Xt2, %Xt3, etc, %Xtcount
+           List A:  %XA0, %XA1, %XA2, %XA3, etc, %XAcount
+           List B:  %XB0, %XB1, %XB2, %XB3, etc, %XBcount
+           . . . .
+</pre>
+<p></p>
+<p>All the global minishell variables are persistent. The user has to clean up by running the mse-unset command. For example, 'mse-unset --all' deletes all variables, 'mse-env | grep ^X | mse-unset' deletes all variables starting with X.</p>
+<p>By default, strtoken expands only positional parameters in the output templates; it does not expand macros with variables in the local or global minishell environment. To force strtoken to evaluate these macros, one has to specify -p|--process-macros-and-escapes option.</p>
+<pre>    Example A5.1:
+       $ echo abc 123 def 0x15 xyz 0x28 | strtoken --hex %2 %.t1     # no expansion
+       0x28 %.t1
+       $ echo abc 123 def 0x15 xyz 0x28 | strtoken -p --hex %2 %.t1  # force expansion
+       0x28 abc
+</pre>
+<p></p>
+<p>If -p is not specified, the only way to have macros expanded is to run other commands that support evaluating macros. For example,</p>
+<pre>    Example A5.2:
+       $ echo abc 123 def 0x15 xyz 0x28 | strtoken --hex --run mse echo %2 %.t1
+       0x28 abc
+</pre>
+<p></p>
+<p>In example A5.2, '.t1' is a built-in variable in strtoken's local minishell. As a child command of strtoken, mse has access to all of its parent's variables. But if a command is not run by strtoken, it will not be able to access strtoken's local variables as shown next.</p>
+<pre>    Example A5.3:
+       $ echo abc 123 def 0x15 xyz 0x28 | strtoken --hex --run mse echo %2 %.t1
+       0x28 abc
+       $ mse echo %.t1
+       Token %.t1 is not found in built-in macro list
+       %.t1
+</pre>
+<p></p>
+<p>If a command is not run by strtoken, the only way is to use the global minishell environment to share variables.</p>
+<pre>    Example A5.4:
+       $ echo abc 123 def 0x15 xyz 0x28 | strtoken --hex -S XYZ --run mse echo %2 %.t1
+       0x28 abc
+       $ mse echo %XYZt1   # This command is run separately from strtoken.
+       abc
+</pre>
+<p></p>
+<h2>A6. Processing the &lt;output-or-cmd-line&gt; template</h2>
+<p>In general, the &lt;output-or-cmd-line&gt; template can contain positional parameters (e.g. %2) and macros (e.g. %variable or %.variable) and escape sequences. The filter always expands them in as many as three separate scanning passes in the following order:</p>
+<dl>
+<dt><strong>a. Expansion of positional parameters</strong></dt>
+<dd><p>By default, the filter expands only positional parameters during the first scanning pass. Thus, macros are still left intact in the &lt;output-or-cmd-line&gt; template after the first pass.</p></dd>
+<dt><strong>b. Expansion of escapes and macros by --process-macros-and-escapes option</strong></dt>
+<dd><p>This pass is triggered by --process-macros-and-escapes only.</p></dd>
+<dt><strong>c. Expansion of escapes and macros by --run option</strong></dt>
+<dd><p>This pass is triggered by --run option with commands such as mse or mse-run.</p></dd>
+</dl>
+<p>Thus, expansion of escapes and macros is conditional on certain conditions as described in options --run and --process-macros-and-escapes. Built-in macros (e.g., %.variable) are searched in the local minishell environment. Non built-in macros are searched first in the global minishell environment, then BALI environment. If you want to limit the search in the BALI environment only, specify --bali-env option.</p>
+<p>In general, strtoken preserves the standard input line's newline character in the output. In other words, if a standard input line ends with a newline character, the corresponding output line will be terminated with a newline character even though the &lt;output-or-cmd-line&gt; template does not contain it. For this reason, the newline character used to separate the output lines are known as line separator. It can be changed to an arbitrary string if desired. For instance, if it is changed to a single space, the net result is to join all output lines in to a single line with a space in between the former lines.</p>
+<p>For convenience, a line consisting of all white space is called a blank line. By default, if an output line is blank, strtoken will discard it as if the corresponding input line were non-existent. But this behavior can be overridden with the --keep-all-blank-output-lines option.</p>
+<h2>A7. Run the &lt;output-or-cmd-line&gt; template as a BALI command</h2>
+<p>To this end, specify option --run before the &lt;output-or-cmd-line&gt; template.</p>
+<pre>    Example A7.1:
+       $ echo my report/is/here | strtoken -t / --run echo-arguments %1 %2 %3
+       argument0: [echo-arguments]
+       argument1: [my]
+       argument2: [report]
+       argument3: [is]
+       argument4: [here]
+       argument count:5
+</pre>
+<p></p>
+<p>The --run option causes strtoken to do the following:</p>
+<pre>    (a) expand all tokens in the arguments after --run,
+    (b) concatenate them with a single space inserted in between,
+    (c) treat the resulting string as a BALI command line,
+    (d) run the BALI command line as if the user retyped it manually, and
+    (e) display the standard output and standard error of the BALI command.
+</pre>
+<p></p>
+<p>As a result, the following command line is equivalent to example A7.1:</p>
+<pre>    Example A7.2:
+       $ echo my report/is/here | strtoken -t / --run echo-arguments "%1" %2 %3
+</pre>
+<p></p>
+<p>If the intention is to produce 'my report' as one argument to the target command, one must specify quote correctly as follows:</p>
+<pre>    Example A7.3:
+       $ echo my report/is/here | strtoken -t / --run echo-arguments '"%1"' %2 %3
+       $ echo my report/is/here | strtoken -t / --run 'echo-arguments "%1" %2 %3'
+       argument0: [echo-arguments]
+       argument1: [my report]
+       argument2: [is]
+       argument3: [here]
+       argument count: 4
+</pre>
+<p></p>
+<p>An alternative is to use the --run/delay-expansion. This option causes all tokens to be passed as is to the target command, and expansion of macros and escape sequences is deferred until the target command begins to execute.</p>
+<pre>    Example A7.4: Pass %1 %2 %3 as is to echo-arguments and let echo-arguments expand the macros later
+       $ echo my report/is/here | strtoken -t / --run/delay echo-arguments %1 %2 %3
+       argument0: [echo-arguments]
+       argument1: [my report]
+       argument2: [is]
+       argument3: [here]
+       argument count: 4
+</pre>
+<p></p>
+<p>Note that if the target command is 'mse' or 'mse-run' and if the arguments following it still contain macros, the macros will be expanded in the context of the target command.  Thus it is possible to have a maximum of three separate expansion passes (see Example 14 in the EXAMPLES Section).</p>
+<h2>A8. Processing numbers and date times</h2>
+<p>The strtoken filter can recognize date time and number sequences in the input line. Such a sequence is called a word if it is surrounded by white space, punctuation, or symbol. If it is preceded and/or followed immediately by an alphabetic character, it is part of another word (i.e., suffix or prefix) and can no longer be referred to as a word.</p>
+<p>To count numbers and date times, strtoken replaces all other characters in the input line with spaces. The result is that the line is reduced to a list of numbers or date times. These new tokens are numbered from left to right starting at 1. They can also be counted from right to left starting at -1. Token 0 represents the entire list as explained above.</p>
+<p>The filter can recognize the following types of date time and number sequences.</p>
+
+<p>* A binary number is always a sequence starting with "0b" followed by a sequence of binary digits and binary digit separator until terminated by a non hex digit character. The binary digit separator is the underscore, which can be used to separate groups of binary digits for readability purposes. Examples of binary numbers are 0b10011, 0b1011_1101.</p>
+<p>* An octal number is always a sequence starting with "0" (zero) followed by a sequence of octal digits until terminated by a non-octal digit character. If the sequence is terminated by a decimal digit 8 or 9, the octal number is considered invalid.</p>
+<p>* A hex number is always a sequence starting with "0x" or "0X" followed by a sequence of hex digits until terminated by a non hex digit character.</p>
+<p>* A decimal number is a sequence starting with an optional plus or minus sign, followed by a sequence of decimal digits until terminated by a non decimal digit character. If users specify that all data are unsigned, the minus sign will be discarded.</p>
+<p>* A date sequence is a string of the form "yyyy-mm-dd" (e.g., "2015-08-10").</p>
+<p>* A time sequence is a string of the form "hh:mm:ss", or "hh:mm:ss.&lt;fraction&gt;", both of which can be followed by an optional space and a GMT offset in the form "+hh:mm" or "-hh:mm".</p>
+<p>* A full date time sequence is a string of the following forms:</p>
+
+<pre>         (a) "yyyy-mm-dd hh:mm:ss[.&lt;fraction&gt;][ ][+hh:mm|-hh:mm]"
+                e.g. "2015-08-10 04:35:33", "2015-08-10 04:35:33.014106200-07:00"
+</pre>
+<p></p>
+<pre>         (b) ISO date format: "yyyy-mm-ddThh:mm:ss[.&lt;fraction&gt;][ ][+hh:mm|-hh:mm]"
+                e.g. "2015-08-10T04:35:33", "2015-08-10T04:35:33.014106200-07:00"
+</pre>
+<p></p>
+<pre>         (c) "&lt;Weekday&gt; &lt;Month&gt; &lt;day&gt; hh:mm:ss [&lt;3-letter timezone&gt;] yyyy"
+             where supported timezones are GMT, UTC, EST, CST, MST, PST, EDT, CDT, MDT, and PDT.
+                e.g. "Fri Sep  4 22:39:02 PDT 2015"
+</pre>
+<p></p>
+<h3>A8.1 Processing minus sign</h3>
+<p>The only time when the minus sign matters is when it precedes a signed decimal number. If a binary/octal/hex number or an unsigned decimal number is preceded by a minus sign, the minus sign has no bearing on the number because the sign of the number, if considered signed data, is already included in its binary/octal/hex digits. Thus, the minus sign is discarded (i.e., replaced with a space).</p>
+<h3>A8.2 Dual data types</h3>
+<p>A date time or number sequence is always stored internally in two formats: (i) text string as found from the input line, and (ii) 64-bit number as converted from the text string. Thus, each token has dual data types: text and numeric.  By default, the text tokens will be displayed. However, they can be reformatted to display the numeric value differently as described in Section C.</p>
+<p>All numeric data are treated as signed 64-bit values by default, and as unsigned 64-bit values if --unsigned-data option is specified. Specifically for date times, the number of seconds is stored in the higher-order 32 bits, and the number of nanoseconds in the fractional second in the lower-order 32 bits.</p>
+<h3>A8.3 Number words and date time words</h3>
+<p>If a number string is surrounded by white space or punctuation or symbol, it is said to be a number word. If it has an alphabetic prefix or suffix, it is no longer a number word.  A date time word is defined similarly.</p>
+<pre>    Example A8.1:
+       $ echo "The record at offset 0x0100 of file0x28 is 3KB long and has 400 items"
+</pre>
+<p></p>
+<p>Observe:</p>
+<pre>    "0x0100" is a hex number word.
+    "0x28" is a hex number but is not a hex number word.
+    "3" is a decimal number but is not a decimal number word.
+    "400" is a decimal number word.
+</pre>
+<p></p>
+<p>To count only hex number sequences, whether number words or not, specify option --hex only:</p>
+<pre>    Example A8.2:
+       $ echo "The record at offset 0x0100 of file0x28 is 3KB long and has 400 items" | strtoken --hex %0
+       0x0100 0x28
+</pre>
+<p></p>
+<p>Because the --hex option causes "0x0100" to be interpreted as numeric, strtoken offers many choices to format the output. For example, to display the offset in decimal,</p>
+<pre>    Example A8.3:
+       $ echo "The record at offset 0x0100 of file0x28 is 3KB long and has 400 items" | strtoken --hex %[1,Td]
+       256
+</pre>
+<p></p>
+<p>To restrict the counting to number words only, specify --word-tokens-only option, or /w sub-option:</p>
+<pre>    Example A8.4:
+       $ echo "The record at offset 0x0100 of file0x28 is 3KB long and has 400 items" | strtoken --hex --word-tokens-only %0
+       $ echo "The record at offset 0x0100 of file0x28 is 3KB long and has 400 items" | strtoken --hex/w %0
+       0x0100
+</pre>
+<p></p>
+<h2>B. Options</h2>
+<p>The strtoken filter supports a lot of main options and secondary options; the secondary options are now called sub-options. The main options are names preceded by a double dash, and the sub-options are names or letters typed after the string consisting the main option and a forward slash.</p>
+<h2>B1. Sub-options</h2>
+<p>It is desirable to change the standard behavior of many strtoken options. This can be achieved by defining secondary options, which are names preceded by a double dash. However, this style does not reveal the dependency of the secondary options.</p>
+<p>In an effort to reduce the proliferation of secondary options that makes it hard to read, strtoken now supports sub-options which are visually grouped together and tied directly to the primary options.</p>
+<p>The sub-options are always optional. If specified to an option, the option must be followed by a forward slash, which is then followed by the sub-options. For example, the syntax</p>
+<pre>                -r|--run/all,end,delay-expansion,capture-stderr
+</pre>
+<p></p>
+<p>means the main option, --run, has four sub-options named 'all', 'end', 'delay-expansion', and 'capture=stderr'. This syntax is equivalent to</p>
+<pre>                -r|--run[/all,end,delay-expansion,capture-stderr]
+</pre>
+<p></p>
+<p>because the sub-options are always optional. Like the main option names, the sub-options can be specified with just enough characters to be identified unambiguously. For example, -r/a means --run/all.</p>
+<h3>B1.1 Numeric token options</h3>
+<p>In particular, a number of numeric token types have the following syntax, for example:</p>
+<pre>          --decimal[/u,w,a|d,n|N,c,q]
+</pre>
+<p></p>
+<p>The sub-options belong to two groups with different goals:</p>
+<p>1) How to extract numeric tokens from standard input lines?</p>
+<pre>      * u : count only unsigned numbers
+      * w : count only tokens that are well delimited (word tokens)
+</pre>
+<p></p>
+<p>2) How to sort the list of numeric tokens?</p>
+<pre>      * a : specify sorting the token list in ascending order
+      * d : specify sorting the token list in descending order
+      * n : treat tokens as signed numbers for sorting purposes
+      * N : treat tokens as unsigned numbers for sorting purposes
+      * c : use case-insensitive comparison for alphabetic sorting
+      * q : specify unique tokens in the sorted list (keep only one token for duplicates)
+</pre>
+<p></p>
+<pre>   Default sorting behavior:
+</pre>
+<p></p>
+<pre>      * No sorting if none of the sorting sub-options are specified.
+      * If no sorting order a or d is specified, assume sorting in ascending order.
+      * If no numeric sub-option n or N is specified, assume alphabetic sorting.
+      * If q or c is specified alone, assume alphabetic sorting in ascending order.
+</pre>
+<p></p>
+<p>Notes on sorting with numeric sub-options n and N:</p>
+<p>The following two options give rise to a list of string tokens, which can consist of numeric strings only, or alphabetic strings only, or mixed numeric and alphabetic strings:</p>
+<pre>           --token-delimiters[/a|d,n|N,c,q] &lt;delimiting chars&gt;
+           --additional-token-delimiters[/a|d,n|N,c,q] &lt;extra-chars&gt;
+</pre>
+<p></p>
+<p>In this case, if n or N is specified, strtoken will treat all tokens as either signed or unsigned numbers, respectively. This can result in failure if a token is not numeric. By design, strtoken solves this problem as follows.</p>
+<p>If n or N is specified, strtoken will divide the token list in to two sub-lists: one numeric sub-list to be sorted numerically, and one alphabetic sub-list to be sorted alphabetically. The resulting sorted sub-lists will be joined together at the end, with the numeric sub-list preceding the alphabetic sub-list.</p>
+<h3>B1.2 String token options</h3>
+<p>A number of options that accept string values can be specified with sub-options to support regular expressions. For example,</p>
+<pre>           --regex/F,w,i,v,j=&lt;mchars&gt;,k=&lt;nchars&gt;,a|d,n|N,c,q,i &lt;pattern&gt;
+</pre>
+<p></p>
+<p>1) Regular expression</p>
+<p>The first six sub-option F, w, i, v, j, and k support regular expression parsing and their meanings are described in detail in the regex-options man page. It is sufficient to summarize them as follows:</p>
+<pre>      * F : fixed string (i.e., &lt;pattern&gt; is not a regular expression)
+      * w : count only tokens that are well delimited (word tokens)
+      * i : ignoring case in matching
+      * v : inverted matching
+      * j=&lt;n&gt; : stretch the start boundary of the match by n characters,
+                n can be negative. The default is n = 0.
+      * k=&lt;n&gt; : stretch the end boundary of the match by n characters,
+                n can be negative. The default is n = 0.
+</pre>
+<p></p>
+<p>2) Sorting</p>
+<p>The last six sub-options a|d,n|N,c,q support sorting and their meanings are described in B1.1.</p>
+<p>Note that there are two sub-options for ignoring character case: sub-option i applies to regular expressions, and sub-option c to sorting.</p>
+<h2>B2. General options</h2>
+<p>For convenience, the options are grouped in to four categories as follows.</p>
+<dl>
+<dt><strong>--skip-input-lines-if-token-not-found, -s</strong></dt>
+<dd><p>By default, if a token specified in &lt;output-or-cmd-line&gt; is not found in the current input line, the token will be replaced with an empty string (i.e., ""). But if this option is specified, strtoken will skip the input line if it cannot find any specified token in it.</p></dd>
+<dt><strong>--keep-all-blank-output-lines, -k</strong></dt>
+<dd><p>All tokens specified in &lt;output-or-cmd-line&gt; will be replaced with the corresponding values in each input line. If the resulting string is blank, it will be discarded as if the corresponding input line were non-existent. But if this option is specified, the result will be displayed as is.</p></dd>
+<dt><strong>--keep-all-tokens-as-is, -K</strong></dt>
+<dd><p>Legacy option. If this option is specified, "%0" will be expanded into the original standard input line with the trailing newline removed. The new way to obtain the same result is specifying the "%.line" or "%.__" token in the output.</p></dd>
+<dt><strong>--save-tokens-with-prefix/unique, -S &lt;macro-prefix&gt;</strong></dt>
+<dd><p>By default, the tokens are stored only in strtoken's local minishell environment as described in section A5(2). Therefore, they are not available outside strtoken's context.</p></dd>
+<dd><p>If the -S option is specified, the variables are saved in the global minishell environment as described in section A5(3). When strtoken begins to process the next input line, all the variables associated with the preceding line will be removed. Thus, the variables of the last standard input line will not be removed upon strtoken's exit. The user has the responsibility to clean up the global minishell environment after use by running mse-unset. To remove all variables with "XYZ" prefix:  mse-env | grep ^XYZ | mse-unset.</p></dd>
+<dd><p>If the /unique sub-option is specified, all the tokens have their variable names appended with a suffix of the form "Line&lt;input-line-number&gt;" to make them unique across input lines. For example, assuming '-S/u X' option is specified, the following global mse variables will be created for the default token list:</p></dd>
+</dl>
+<pre>           Line 1:  %Xt0Line1, %Xt1Line1, %Xt2Line1, %Xt3Line1, etc, %XtcountLine1
+           Line 2:  %Xt0Line2, %Xt1Line2, %Xt2Line2, %Xt3Line2, etc, %XtcountLine2
+           etc
+</pre>
+<p></p>
+
+<p>When /unique is specified, strtoken will not clean up variables when processing a new standard input line. This is because the user must have an intention to use them later when specifying /unique. Therefore, the user must remember to clean up the global minishell environment.</p>
+<p>--zero-token-separator, -z &lt;string&gt;</p>
+<p>Specify a string to use to separate the tokens when "%0" is specified in &lt;output-or-cmd-line&gt;. Thus, this option has no effect if "%0" is not used. By default, the output token separator is a single space.</p>
+
+<pre>    Example B2.1: Insert a dash between output tokens
+       $ echo Monday 2015/08/10 | strtoken -t / --zero-token-separator - %0
+       Monday 2015-08-10
+</pre>
+<p></p>
+<dl>
+<dt><strong>--line-separator, -l &lt;string&gt;</strong></dt>
+<dd><p>If an input line is terminated with a newline, the output line will be appended with a line separator, which is the newline character by default.  Use this option to specify a different line separator. This results in joining all the output lines together with &lt;string&gt;. Note that this joining functionality can be achieved by using the 'strjoin' filter.</p></dd>
+</dl>
+<h2>B3. Transform options</h2>
+<p>Options in this group control how to change the input text in to the output.</p>
+<dl>
+<dt><strong>--macro-symbol, -m &lt;char&gt;</strong></dt>
+<dd><p>Specify the macro symbol character.  The default is the percent sign. To disable macro expansion, specify digit 0 as the macro symbol.</p></dd>
+<dd><p>The macro symbol is used to expand macros in the values of options --token-demiters, --zero-token-separator, --line-separator and &lt;output-or-cmd-line&gt;. Expanding macros in &lt;output-or-cmd-line&gt; is normally limited to positional macros %0, %1, %2, etc. Non-positional macros in &lt;output-or-cmd-line&gt; will be expanded if option --process-macros-and-escapes is specified.</p></dd>
+</dl>
+<pre>    Example B3.1:
+       $ mse-set -v today Wednesday             # define variable today in global minishell environment
+       today=Wednesday
+       $ echo Meet here | strtoken %1 %today    # non-positional macros are not expanded
+       Meet %today
+       $ echo Meet here | strtoken --process-macros-and-escapes %1 %today  # expand all macros
+       Meet Wednesday
+       $ echo Meet here | strtoken -m / --process-macros-and-escapes /1 /today  # use a different macro symbol
+       Meet Wednesday
+</pre>
+<p></p>
+<dl>
+<dt><strong>--bali-env, -B</strong></dt>
+<dd><p>This option is deprecated. It specifies that the filter will use only variables in the BALI environment to resolve all macro tokens. To see all BALI variables, run the 'env' command.</p></dd>
+<dd><p>By default, the filter will resolve macros by searching first in the global minishell environment, then in the BALI environment. To see all the variables in the minishell environment, run the 'mse-env' command.</p></dd>
+</dl>
+<pre>    Example B3.2:
+       $ mse-set -v today Wednesday                 # set variable in global minishell environment
+       today=Wednesday
+       $ env-set -v today "December 9, 2015"        # set variable in BALI environment
+       today=December 9, 2015
+       $ echo Meet here | strtoken -p %1 %today
+       Meet Wednesday
+       $ echo Meet here | strtoken --bali-env -p %1 %today  # search BALI environment only
+       Meet December 9, 2015
+</pre>
+<p></p>
+<dl>
+<dt><strong>--enable-backslash-escape, -e</strong></dt>
+<dd><p>Enable the interpretation of backslash escape characters in the values of options --token-demiters, --zero-token-separator, --line-separator and &lt;output-or-cmd-line&gt;. By default, the escape character is undefined (NULL byte), i.e., the only special character is the macro symbol and all other characters in the string are literally text, including the backslash. If this option is specified, the backslash is not normal text; rather the sequence of an escape character and the character(s) following it is interpreted based on the rules described in the "quoted-text" man page. For example, "\n" is interpreted as a newline character instead of two individual characters (the backslash and the letter 'n').</p></dd>
+</dl>
+<pre>    Example B3.3:
+       $ echo abc def | strtoken -p -e "%1\n%2"
+       abc
+       def
+</pre>
+<p></p>
+<dl>
+<dt><strong>--escape-char, -E &lt;escapeChar&gt;</strong></dt>
+<dd><p>This option is similar to -e but allows users to specify another character to use as the escape character instead of the backslash.</p></dd>
+</dl>
+<pre>    Example B3.4:
+       $ echo abc def | strtoken -p -E @ "%1@n%2"
+       abc
+       def
+</pre>
+<p></p>
+
+<p>However, the command above will fail if run by an mse interpreter:</p>
+
+<pre>       $ mse 'echo abc def | strtoken -p -E @ "%1@n%2"'
+       strtoken: --escape-char %1\n%2: must specify either a single character or a character code in hex &lt;= 0xFF
+</pre>
+<p></p>
+
+<p>This is because mse parses the string argument first and, hence, recognizes @ as its default escape character. Therefore, mse interprets "@ " as a single space character (see the "quoted-text" man page). After mse resolves all macros and escape sequences, what strtoken sees is as follows, which explains the error above:</p>
+
+<pre>       ... | strtoken -p -E "%1\n%2"
+</pre>
+<p></p>
+<dl>
+<dt><strong>--process-macros-and-escapes, -p</strong></dt>
+<dd><p>By default, strtoken expands only the positional tokens %0, %1, %2, etc. in the &lt;output-or-cmd-line&gt;. If this option is specified, strtoken performs another pass after expanding all positional tokens. During this pass, all non-positional tokens, or macros, will be expanded and undefined macros will be replaced with an empty string. (See details in Example 14 below.) The following built-in macros are available for use:</p></dd>
+</dl>
+
+<p>* %.t&lt;n&gt;: the text of the n-th token (n = 0, 1, 2, etc.) if the input line is split based on the default white space token delimiters.</p>
+
+<pre>    Example B3.5:
+       $ mse-set -v msg Hello
+       msg=Hello
+       $ echo Dave | strtoken %msg %1     # positional macros expanded, %msg is not.
+       %msg Dave
+       $ echo Dave | strtoken --process-macros-and-escapes %msg %1    # two-pass expansion
+       Hello Dave
+</pre>
+<p></p>
+<h2>B4. Token type options</h2>
+<p>Options in this group specify the criteria to identify tokens. In general, each option causes the filter to parse the entire input line to find all tokens and place them in to a separate list. The list is named A, B, C, etc in the order of the corresponding option's appearance in the command line.</p>
+<dl>
+<dt><strong>--token-delimiters[/a|d,n|N,c,q], -t &lt;chars&gt;</strong></dt>
+<dd><p>Specify a set of one or more characters to be used to split tokens in the standard input line. The delimiter string, &lt;chars&gt;, is subject to interpretation of escape sequences if -e or -E option is specified (see below). By default, token delimiters are white space (spaces, tabs, newlines). The list of tokens after splitting can be sorted by specifying sub-options a|d,n|N,c,q as described in section B1. If sub-option c is specified, case-insensitive sorting is used.</p></dd>
+</dl>
+<pre>    Example B4.1:
+       $ echo Monday 2015/08/10 | strtoken --token-delimiters / %2
+       08
+</pre>
+<p></p>
+<dl>
+<dt><strong>--additional-token-delimiters[/a|d,n|N,c,q], -a &lt;extra-chars&gt;</strong></dt>
+<dd><p>Specify extra token delimiters in addition to the default white space delimiters (space, tab, newline). The complete set of token delimiters is a union of the default set and the set specified by this option. The list of tokens after splitting can be sorted by specifying sub-options a|d,n|N,c,q as described in section B1.</p></dd>
+</dl>
+<pre>    Example B4.2: Treat white space and forward slash characters as delimiters
+       $ echo Monday 2015/08/10 | strtoken -a / %2
+       2015
+</pre>
+<p></p>
+<dl>
+<dt><strong>--hex[/w,a|d,n|N,c,q] -h</strong></dt>
+<dd><p>Parse the standard input line for valid hex number tokens as described in Section A8. To select only hex number words, specify either a local w sub-option or a global --word-tokens-only option. By default, hex number tokens will be displayed as is (i.e., as its appearance in the standard input). However, they can be displayed in different formats as described in Section C.</p></dd>
+<dd><p>The sub-options a|d,n|N,c,q control how the list of tokens is sorted.</p></dd>
+</dl>
+<pre>      * a : sort the list of tokens in ascending order (default is alphabetically)
+      * d : sort the list of tokens in descending order (default is alphabetically)
+      * n : sort the list of tokens numerically as signed integers
+      * N : sort the list of tokens numerically as unsigned integers
+      * c : sort the list of tokens ignoring character case
+      * q : keep only unique tokens in the sorted list, discarding duplicates
+</pre>
+<p></p>
+<pre>    Note that a and d are mutually exclusive, so are n and N.
+</pre>
+<p></p>
+<pre>    Example B4.4: Select only valid hex number strings
+       $ echo abc 10 xyz 0x20 30 0x40 file0x50 file0x60mn | strtoken --hex %0      # display hex number strings as is
+       0x20 0x40 0x50 0x60
+       $ echo abc 10 xyz 0x20 30 0x40 file0x50 file0x60mn | strtoken --hex %[0,Td] # display in decimal format
+       32 64 80 96
+       $ echo abc 10 xyz 0x20 30 0x40 file0x50 0x60mn | strtoken --word-tokens-only --hex %0
+       $ echo abc 10 xyz 0x20 30 0x40 file0x50 0x60mn | strtoken --hex/w %0        # same result
+       0x20 0x40
+       $ echo xyz 0x200 30 0x40 0X40 file0x50 file0x60mn | strtoken --hex/d %0     # sort alphabetically in descending order
+       0x60 0x50 0x40 0x200 0X40
+       $ echo 0x200 30 0x40 0X40 file0x50 file0x60mn | strtoken --hex/nd %0        # sort numerically in descending order
+       0x200 0x60 0x50 0x40 0X40
+       $ echo 0x200 30 0x40 0X40 file0x50 file0x60mn | strtoken --hex/ndq %0       # unique tokens in output, discarding duplicates
+       0x200 0x60 0x50 0x40
+</pre>
+<p></p>
+<dl>
+<dt><strong>--octal[/w,a|d,n|N,q], -o</strong></dt>
+<dd><p>Specify that strtoken counts only valid octal number tokens. If a sequence of octal digits is followed by any digit "8" or "9", the octal sequence becomes invalid and is not counted. To select only octal number words, specify either a local w sub-option or a global --word-tokens-only option. By default, octal number tokens will be displayed as is. However, they can be displayed in different formats as described in Section C.</p></dd>
+<dd><p>The sub-options a|d,n|N,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+</dl>
+<pre>    Example B4.5: Select only valid octal number strings (0459 is invalid octal)
+       $ echo abc 10 0x20 030 040 0459 file050 file060mn | strtoken --octal %0      # display octal number tokens as is
+       030 040 050 060
+       $ echo abc 10 0x20 030 040 0459 file050 file060mn | strtoken --octal %[0,Td] # reformat in decimal
+       24 32 40 48
+       $ echo abc 10 0x20 030 040 0459 file050 file060mn | strtoken --word-tokens-only --octal %0
+       $ echo abc 10 0x20 030 040 0459 file050 file060mn | strtoken --octal/w %0    # same result
+       030 040
+</pre>
+<p></p>
+<dl>
+<dt><strong>--binary[/w,a|d,n|N,q], -b</strong></dt>
+<dd><p>Specify that strtoken counts only valid binary number tokens. If a sequence of binary digits is followed by any digit from 2 to 9, the binary sequence becomes invalid and is not counted. To select only binary number words, specify either a local w sub-option or a global --word-tokens-only option. By default, binary number tokens will be displayed as is. However, they can be displayed in different formats as described in Section C.</p></dd>
+<dd><p>The sub-options a|d,n|N,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+</dl>
+<pre>    Example B4.6: Count only valid binary number strings (0b105 is invalid)
+       $ echo abc 10 0x20 030 0b10 0b105 file0b11 file0b10mn | strtoken --binary %0       # display binary number tokens as is
+       0b10 0b11 0b10
+       $ echo abc 10 0x20 030 0b10 0b105 file0b11 file0b10mn | strtoken --binary %[0,Tb]  # reformat in binary
+       0b0000_0010 0b0000_0011 0b0000_0010
+       $ echo abc 10 0x20 030 0b10 0b105 file0b11 file0b10mn | strtoken --word-tokens-only --binary %0
+       0b10
+</pre>
+<p></p>
+<dl>
+<dt><strong>--decimal[/w,a|d,n|N,q], -d</strong></dt>
+<dd><p>Specify that strtoken counts only valid decimal number tokens, including those starting with zero followed by decimal digits. In other words, this option treats all octal numbers as decimal.</p></dd>
+<dd><p>The local u sub-option and the global --unsigned-data option control how strtoken treats the minus sign preceding a decimal number. If either is specified, the minus sign is no longer part of a decimal number, i.e., strtoken will discard all minus signs when parsing the standard input for unsigned decimal numbers. By default, strtoken treats the minus sign preceding a decimal number as part of the negative number.</p></dd>
+<dd><p>To select only decimal number words, specify either a local w sub-option or a global --word-tokens-only option.</p></dd>
+<dd><p>By default, decimal number tokens will be displayed as is. However, they can be displayed in different formats as described in Section C.</p></dd>
+<dd><p>The sub-options a|d,n|N,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+</dl>
+<pre>    Example B4.7: Count only valid decimal numbers
+       $  echo abc 10 0x20 30 040 095 file40 file50mn 2015-08-01| strtoken -d %0      # display number strings as is
+       10 30 040 095 40 50 2015 -08 -01
+       $  echo abc 10 0x20 30 040 095 file40 file50mn 2015-08-01| strtoken -d %[0,Td] # display in decimal format
+       10 30 40 95 40 50 2015 -8 -1
+       $  echo abc 10 0x20 30 040 095 file40 file50mn 2015-08-01| strtoken -d %[0,Cs,Th] # display as short integer in hex format
+       0xa 0x1e 0x28 0x5f 0x28 0x32 0x7df 0xfff8 0xffff
+       $  echo abc 10 0x20 30 040 095 file40 file50mn 2015-08-01| strtoken --word-tokens-only -d %0
+       $  echo abc 10 0x20 30 040 095 file40 file50mn 2015-08-01| strtoken -d/w %0       # same as command above
+       10 30 040 095 2015 -08 -01
+       $  echo abc 10 0x20 30 040 095 file40 file50mn 2015-08-01| strtoken -d/wu %0      # discard minus signs
+       10 30 040 095 2015 08 01
+</pre>
+<p></p>
+<dl>
+<dt><strong>--hex-or-decimal[/w,a|d,n|N,c,q], -H</strong></dt>
+<dd><p>Specify that strtoken counts only valid hex and decimal number tokens, including those starting with zero followed by decimal digits. In other words, this option treats all octal numbers as decimal. To count number words only, specify additional option --word-tokens-only. By default, number tokens will be displayed as is. However, they can be displayed in different formats as described in Section C.</p></dd>
+<dd><p>The sub-options a|d,n|N,c,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+</dl>
+<pre>    Example B4.8:
+       $  echo abc 10 0x20 0b11 040 2015-08-01| strtoken -H %0
+       10 0x20 040 2015 -08 -01
+</pre>
+<p></p>
+<dl>
+<dt><strong>--floating[/w,a|d,n|N,c,q], -f</strong></dt>
+<dd><p>Specify that strtoken counts only valid floating-point number tokens. To select only floating-point number words, specify either a local w sub-option or a global --word-tokens-only option. The sub-options a|d,n|N,c,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+<dt><strong>--number[/f,u,w,a|d,n|N,c,q], -n</strong></dt>
+<dd><p>Specify that every character in the input line will be discarded (replaced with a space) unless it is part of a binary, octal, hex, or decimal number token. If sub-option /f is specified, floating-point tokens are also included. The sub-options a|d,n|N,c,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+<dd><p>Note that there is a slight difference in how option --n handles binary and octal number strings. The motivation to support this difference stems from the fact that we are mainly concerned with counting all number tokens, regardless of their formats.</p></dd>
+<dd><p>a) An invalid octal number containing 8 or 9 is automatically treated as a valid decimal number. For example, "09" is an invalid octal number for --octal option, but is a valid decimal number 9 for --number option.</p></dd>
+<dd><p>b) An invalid binary number token terminated by a decimal digit from 2 to 9 is automatically interpreted as consisting of two number tokens separated by a character ('b' or 'B'). For instance, "0b15" is processed as two numeric strings "0" and "15", i.e., "0b" is no longer special.</p></dd>
+</dl>
+<pre>    Example B4.9: Count all valid numeric data
+       $ echo abc10 20MB 30 040 0508 0x60 0b111 0b123 and 2015-08-01 | strtoken -n %0
+       10 20 30 040 0508 0x60 0b111 0 123 2015 -08 01
+       $ echo abc10 20MB 30 040 0508 0x60 0b111 0b123 and 2015-08-01 | strtoken --word-tokens-only -n %0
+       30 040 0508 0x60 0b111 2015 -08 01
+</pre>
+<p></p>
+<p>Note "08" is interpreted as a decimal, and hence, the minus sign in "-08" is part of the decimal number. But "01" is a valid octal number string, and hence, the minus sign in "-01" is not part of the octal number. The value 0508 in the output is actually decimal 508. To verify, we can display in decimal format using T-formatter (see Section C4).</p>
+<pre>       $ echo abc10 20MB 30 040 0508 0x60 0b111 0b123 and 2015-08-01 | strtoken --word-tokens-only -n %[0,Td]
+       30 32 508 96 7 2015 -8 1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--unsigned-data, -u</strong></dt>
+<dd><p>Specify that all numbers in the input line are to be interpreted as unsigned 64-bit integers, i.e., all minus signs are discarded even if they appear before a decimal number.</p></dd>
+<dd><p>This option is available when a numeric data option is specified such as --hex, --decimal, --binary, etc. By default, all numeric data in the input line are treated as signed 64 bit data, and hence, the minus sign preceding a decimal number is part of the number.</p></dd>
+<dd><p>If the command line contains multiple numeric options, this option will apply to all of them. The alternative is to specify the u sub-option to individual numeric options.</p></dd>
+</dl>
+<pre>    Example B4.10:
+       $ echo Monday 2015-08-01| strtoken -d %0
+       2015 -08 -01
+       $ echo Monday 2015-08-01| strtoken -u -d %0    # specify global option -u
+       $ echo Monday 2015-08-01| strtoken -d/u %0     # or specify sub-option u
+       2015 08 01
+</pre>
+<p></p>
+<pre>    Example B4.11:  To display the last example in B8 assuming unsigned data:
+       $ echo abc10 20MB 30 040 0508 0x60 0b111 0b123 and 2015-08-01 | strtoken -u --word-tokens-only -n %0
+       $ echo abc10 20MB 30 040 0508 0x60 0b111 0b123 and 2015-08-01 | strtoken -n/uw %0
+       30 040 0508 0x60 0b111 2015 08 01
+</pre>
+<p></p>
+<dl>
+<dt><strong>--word-tokens-only, -w</strong></dt>
+<dd><p>Specify that only numbers or date time strings that are words (i.e., surrounded by non-alphabetic characters) will be counted when numeric or date time options are specified. This option can be specified anywhere as long as there is only one numeric token type option in the command line. However, if there are multiple token type options, the -w option affects only the numeric token type options that follows it.</p></dd>
+<dd><p>Note that a plus/minus sign preceding a decimal number is part of the number and is also a word delimiter. For example, "0x18-15" consists of two number words 0x18 and -15.</p></dd>
+</dl>
+<pre>    Example B4.12:
+       $ echo file10date20 30 40  | strtoken -d %0
+       10 20 30 40
+       $ echo file10date20 30 40  | strtoken -w -d %0
+       30 40
+       $ echo 2015-12-11 | strtoken --word-tokens-only -d %0  # -12 and -11 are number words
+       2015 -12 -11
+</pre>
+<p></p>
+<dl>
+<dt><strong>--date[/w,a|d,n|N,c,q], -D</strong></dt>
+<dd><p>If specified, every character in the input line will be discarded (replaced with a space) unless it is part of a date pattern of the form yyyy-mm-dd as explained in Section A8. If the date string is surrounded by alphabetic characters, it is said to be not a date time word.</p></dd>
+<dd><p>The sub-options a|d,n|N,c,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+</dl>
+<pre>    Example B4.13:
+       $ echo Monday2015-08-10 and Wednesday 2015-12-09 | strtoken -D %0
+       2015-08-10 2015-12-09
+       $ echo Monday2015-08-10 and Wednesday 2015-12-09 | strtoken -D --word-tokens-only %0
+       2015-12-09
+</pre>
+<p></p>
+<p>Note that the --date option causes the token to be kept internally as a date time value where the time part is zero, i.e., "00:00:00.00..0+00:00".</p>
+<dl>
+<dt><strong>--time[/w,a|d,n|N,c,q], -T</strong></dt>
+<dd><p>If specified, every character in the input line will be discarded (replaced with a space) unless it is part of a time pattern as listed in Section A8.</p></dd>
+<dd><p>If a time string is surrounded by alphabetic characters, it is said to be not a time word and can be excluded from counting by option --word-tokens-only. The only exception is when the time string is part of the ISO format where the time part is preceded by "T".</p></dd>
+<dd><p>The sub-options a|d,n|N,c,q control how the list of tokens is sorted as described in --hex option.</p></dd>
+</dl>
+<pre>    Example B4.14:
+       $ echo 2015-08-10 04:35:33 and 2015-12-09T04:35:33.014106200-08:00 | strtoken -T %0
+       04:35:33 04:35:33.014106200-08:00
+</pre>
+<p></p>
+<pre>       $ echo 04:35:33 and T04:35:33.014106200-08:00 | strtoken --word-tokens-only -T %0
+       04:35:33
+</pre>
+<p></p>
+<pre>       $ echo Today04:35:33-08:00 and tomorrow 10:25:46-540   | strtoken -T %0  # "-540" is not part of the second time string
+       04:35:33-08:00 10:25:46
+</pre>
+<p></p>
+<pre>       $ echo Today04:35:33-08:00 and tomorrow 10:25:46-540   | strtoken --word-tokens-only -T %0
+       10:25:46
+</pre>
+<p></p>
+
+<p>Note that the --time option causes the token to be kept internally as a date time value where the date part is "1970-01-01".</p>
+<p>--full-date-time[/w,a|d,n|N,c,q], -F</p>
+<p>If specified, every character in the input line will be discarded (replaced with a space) unless it is part of a date time pattern as listed in Section A8. If a date time pattern is surrounded by alphabetic characters, it is said to be not a date time word and can be excluded from counting by option --word-tokens-only.</p>
+<p>The sub-options a|d,n|N,c,q control how the list of tokens is sorted as described in --hex option.</p>
+
+<pre>    Example B4.15:
+       $ echo Monday2015-08-10 04:35:33 and 2015-12-09 04:35:33.014106200-08:00 | strtoken -F %0
+       2015-08-10 04:35:33 2015-12-09 04:35:33.014106200-08:00
+</pre>
+<p></p>
+<pre>       $ echo Monday2015-08-10 04:35:33 and 2015-12-09 04:35:33.014106200-08:00 | strtoken --word-tokens-only -F %0
+       2015-12-09 04:35:33.014106200-08:00
+</pre>
+<p></p>
+<dl>
+<dt><strong>-X, --regex/F,w,i,v,j=&lt;mchars&gt;,k=&lt;nchars&gt;,a|d,n|N,c,q &lt;pattern&gt;</strong></dt>
+<dd><p>Select only tokens in the input line that match the specified regular expression &lt;pattern&gt;. By default, &lt;pattern&gt; is a regular expression. If the pattern is a fixed string, specify 'F' sub-option using the forward slash extension notation.</p></dd>
+</dl>
+<pre>         F : Specify that &lt;pattern&gt; is a fixed string (default: regular expression).
+         w : Count only those tokens containing matches that form whole words.
+             Word constituent characters for a whole word consist of letters, digits, and the underscore.
+         i : Ignore case distinctions in both the pattern and the input lines.
+         v : Specify invert-matching (count only tokens that do match the pattern).
+         j &lt;m, default 0&gt; : Stretch the matched token's left boundary by &lt;m&gt; characters, m can be negative.
+         k &lt;n, default 0&gt; : Stretch the matched token's right boundary by &lt;n&gt; characters, n can be negative.
+         a|d,n|N,c,q : sorting sub-options, described in section B1.1 and in the description of --hex option.
+</pre>
+<p></p>
+<p>Suppose the line length is L, and a matched token is found to start at offset x and end at offset y. If options -j and/or -k are specified, the new start and end boundaries are computed as follows.</p>
+<pre>       start = x + m, reset to 0 if start &lt; 0, and reset to L if start &gt; L
+       end  = y + n, reset to 0 if end &lt; 0, and reset to L if end &gt; L
+</pre>
+<p></p>
+<p>Note that a positive stretch means stretching to the right, a negative means to the left. If start is equal to end, the resulting token is empty and is discarded. If the stretching causes start to exceed end, the final string is reverse. For instance,</p>
+<pre>     line : "abcdefg"
+     If the new start is 5, new end is 2 =&gt; final token : "fedc"
+</pre>
+<p></p>
+
+<p>The filter applies the pattern matching to the standard input line from left to right to identify one token at a time. This token candidate is a substring that matches the specified pattern if -v is not specified, or does not match the specified pattern if -v is specified. The starting and ending offsets of the token candidate are then adjusted by sub-options -j and -k, respectively. If the resulting value of the start offset is negative, it is reset to zero. If the resulting value of the ending offset is more than the line length, it is reset to the end of the line.</p>
+
+<pre>    Example B4.16:
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X 0x[0-9a-f]+ %0
+       0x20 0x30
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X -w 0x[0-9a-f]+ %0
+       0x20
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X -i -w 0x[0-9a-f]+ %0
+       0x20 0X40
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X -v 0x[0-9a-f]+ %0
+       abc 15   xyz  mnp 0X40
+</pre>
+<p></p>
+<pre>       # Normalize spacing to a single space
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X -v 0x[0-9a-f]+ %0 | strtoken %0
+       abc 15 xyz mnp 0X40
+</pre>
+<p></p>
+<pre>       # Extend or shrink the resulting string by specifying offsets
+       $ echo abcd123xyzt | strtoken -X [0-9]+  %0
+       123
+       $ echo abcd123xyzt | strtoken -X -j -1 -k 2  [0-9]+ %0
+       d123xy
+</pre>
+<p></p>
+<pre>       # If -v is specified, the specified offsets apply to the inverted-matching tokens as follows:
+       $ echo abcd123xyzt456mnp | strtoken -X -v [0-9]+  /%1--%2==%3/
+       /abcd--xyzt==mnp/
+       $ echo abcd123xyzt456mnp | strtoken -X -v -j -1 -k 2  [0-9]+  /%1--%2==%3/
+       /abcd12--3yxzt45==6mnp/
+</pre>
+<p></p>
+<pre>    For more examples, see the regex-options man page.
+</pre>
+<p></p>
+<dl>
+<dt><strong>-L, --left-delimiter/r,w,i,v,t,M,S,j=&lt;num&gt;,a|d,n|N,c,q &lt;left-delimiter&gt;</strong></dt>
+<dt><strong>-R, --right-delimiter/r,w,i,v,t,M,S,k=&lt;num&gt;,a|d,n|N,c,q &lt;right-delimiter&gt;</strong></dt>
+<dd><p>Select only tokens in the input line that are enclosed between two strings specified by -L and -R options.</p></dd>
+<dd><p>By default, the left and right delimiters are fixed strings. They can be changed to a regular expression if sub-option r is specified.</p></dd>
+<dd><p>The sub-options consist of two groups:</p></dd>
+</dl>
+
+<p>1) Parsing: The complete set of sub-options are described in detail in the 'regex-options' man page, and can be summarized as follows:</p>
+
+<pre>           * r : pattern is a regular expression (default: fixed string)
+           * w : count only tokens that are well delimited (word tokens)
+           * i : ignoring case in matching
+           * v : inverted matching
+           * t : including the delimiter token in the match
+           * M : selecting the innermost token if the delimiters are nested.
+           * S : processing all nested tokens if the delimiters are nested.
+           * j=&lt;n&gt; : stretch the start boundary of the match by n characters,
+                     n can be negative. The default is n = 0.
+           * k=&lt;n&gt; : stretch the end boundary of the match by n characters,
+                     n can be negative. The default is n = 0.
+</pre>
+<p></p>
+
+<p>2) Sorting: The six sub-options a|d,n|N,c,q have the same meaning as those described in the --hex option.</p>
+
+
+<p>In general, -L and -R are specified in pairs; it does not matter which one is specified first.</p>
+<p>If -L is specified and -R is not, the matching right delimiter is defaulted to the end of the input line. This happens in the following cases:</p>
+<p>* If two -L options are specified in a row and the first one does not have a matching -R option, the filter will silently add a "-R $" option after the first -L.</p>
+<p>* If the last occurrence of -L option in the command line does not have a matching -R option, the filter will silently add "-R $" option after the -L option.</p>
+<p>Similarly, if -R is specified and -L is not, the matching left delimiter is defaulted to the start of the input line.</p>
+
+<pre>    Example B4.17:
+       # a) Select tokens between two delimiters, exclusively.
+       $ echo abcd-123-xyz | strtoken --left cd  --right xy %0
+       -123-
+</pre>
+<p></p>
+<pre>       # Same as (a), but add offsets to the left and right boundaries
+       $ echo abcd-123-xyz | strtoken --left/j1 cd  --right/k-1 xy %0
+       123
+</pre>
+<p></p>
+<pre>       # b) Select tokens between two delimiters, inclusively.
+       $ echo abcd-123-xyz | strtoken --left/t cd  --right/t xy %0
+       cd-123-xy
+</pre>
+<p></p>
+<pre>       # Same as (b), but add offsets to the new left and right boundaries
+       $ echo abcd-123-xyz | strtoken --left/tj-1 cd --right/t xy %0
+       bcd-123-xy
+       $ echo abcd-123-xyz | strtoken --left/tj1 cd --right/tk-1 xy %0
+       d-123-x
+</pre>
+<p></p>
+<pre>    Example B4.18: Nested delimiters
+</pre>
+<p></p>
+<pre>       # Build a list of disjoint tokens
+       $ echo (((a=1), (b=2)), (c=3) | strtoken -L ( -R ) -z \n %0
+       (a=1), (b=2)
+       c=3
+</pre>
+<p></p>
+<pre>       # Build a list of nested tokens
+       $ echo (((a=1), (b=2)), (c=3) | strtoken -L/N ( -R )  -z \n %0
+       (a=1), (b=2)
+       a=1
+       b=2
+       c=3
+</pre>
+<p></p>
+<h2>B5. Output options</h2>
+<p>Options in this category control how strtoken produces the output.</p>
+<dl>
+<dt><strong>--echo, -c</strong></dt>
+<dd><p>Treat &lt;output-or-cmd-line&gt; as text and display it. This is also the default behavior if --echo or --run is not specified. The &lt;output-or-cmd-line&gt; template will be processed as follows:</p></dd>
+</dl>
+
+<p>* scan the &lt;output-or-cmd-line&gt; template to expand all positional parameters,</p>
+<p>* scan the resulting output line again to resolve all escapes and macros if -p is specified, and</p>
+<p>* if &lt;output-or-cmd-line&gt; consists of more than one argument, all the arguments will be joined together in the order of their appearance with exactly one space spacing.</p>
+
+<pre>    Example B5.1:
+       $ echo Dave Mary | strtoken --echo Hello   %1  and    %2
+       Hello Dave and Mary
+</pre>
+<p></p>
+<dl>
+<dt><strong>--run, -r</strong></dt>
+<dd><p>Treat &lt;output-or-cmd-line&gt; as a BALI command line and run it as if the user retyped &lt;output-or-cmd-line&gt; in a BALI console. This is a three-step process:</p></dd>
+</dl>
+
+<p>a) scan the &lt;output-or-cmd-line&gt; template to expand all positional parameters,</p>
+<p>b) scan the resulting output line again to expand all escapes and macros if -p is specified, and</p>
+<p>c) pass all the resulting tokens to the command as if the user retyped them in a BALI console.</p>
+<p>If the command to run is 'mse' or 'mse-run' or 'strquery', strtoken delegates step (b) to these commands. (see Example 14).</p>
+
+<pre>    Example B5.2:
+       $ echo /hot day/cold night/ strtoken -t / --run touch %1  # create 2 files: "hot" and "day"
+</pre>
+<p></p>
+<pre>    Token %1 is "hot day". After expansion of %1, the option '--run touch %1' becomes
+    '--run touch hot day'. Thus, the command behaves as if we typed 'touch hot day" in a BALI console.
+    The result is to create 2 files. To create just one file named "hot day", we need to quote %1 as follows:
+</pre>
+<p></p>
+<pre>       $ echo /hot day/cold night/ strtoken -t / --run touch "%1"  # create 1 file: "hot day"
+</pre>
+<p></p>
+<dl>
+<dt><strong>-r|--run/all|end,delay-expansion,capture-stderr</strong></dt>
+<dd><p>The behavior of the --run option can be modified by four sub-options. Note the sub-option names can be specified with just enough characters to be identified unambiguously. Up to three sub-options can be specified simultaneously, noting that 'all' and 'end' are mutually exclusive.</p></dd>
+<dd><p>1. If /all is specified, all arguments following --run constitute the target command line that will be executed by --run. Thus, if a --if-strquery, or --unless-strquery, or --if option is specified after --run, it will become part of the target commmand line as illustrated below.</p></dd>
+</dl>
+<pre>        ... | strtoken ... --run/all sscat file1 "|" split --split-at : --if-strquery --has group
+                                     &lt;---------------- target command line ---------------------&gt;
+</pre>
+<p></p>
+
+<p>2. If /end is specified, the first argument following --run specifies a tag that will terminate the target command line handled by --run. The actual command line will begin at the argument following the tag and end at the second occurrence of the same tag. For instance, the following command specifies 'xyz' as a tag:</p>
+
+<pre>        ... | strtoken ... --run/end xyz sscat file1 "|" split --split-at : --if-strquery --has group xyz --if-strquery --has department
+                                     ^^^ &lt;------------------ target command line -------------------&gt; ^^^
+                                     tag                                                              tag
+</pre>
+<p></p>
+
+<p>Thus, the syntax above means the sscat command is run if and only if '--if-strquery --has department' returns true.</p>
+<p>3. If /delay-expansion is specified, the token expansion in steps (a) and (b) of --run option is deferred. In other words,</p>
+
+
+<p>* Pass all the original arguments as is to the command. This means the number of tokens passed to the command is also equal to the number of parameters it receives.</p>
+<p>* Expand all positional parameters</p>
+<p>* Expand all escapes and macros if -p is specified.</p>
+
+<pre>    Example B5.3:
+       $ echo /hot day/cold night/ strtoken -t / --run/delay touch %1  # create 1 file: "hot day"
+</pre>
+<p></p>
+
+<p>Token %1 is "hot day". The option --run/delay defers the expansion of "%1". Thus, it passes a token "%1" as is to the 'touch' command, then expand it to "hot day". Because 'touch' sees only one argument, it interprets this as a single file name.</p>
+<p>4. If /capture-stderr is specified, the standard error messages of the target command will be captured in the standard output of strtoken. Otherwise, they are not captured.</p>
+<p>Note that this sub-option is introduced in release 13.4.5115. In earlier releases, strtoken always captured the target command's standard error messages in its standard output and there was no way to separate them.</p>
+
+<pre>    Example B5.4:
+       $ echo abcd.txt | strtoken --run ls %1
+       error: NotFound
+</pre>
+<p></p>
+<pre>       $ echo abcd.txt | strtoken --run ls %1 | wc -l
+       error: NotFound
+       0
+</pre>
+<p></p>
+<pre>       $ echo abcd.txt | strtoken --run/capture-stderr ls %1 | wc -l
+       1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--sort[/e,n|N,a|d,c,q] &lt;key&gt;</strong></dt>
+<dd><p>This option is used to sort the input lines based on the specified key, which can be constructed from the tokens.</p></dd>
+<dd><p>If this option is specified, each &lt;output-or-cmd-line&gt; (see below) is associated with the specified &lt;key&gt;. All output lines are buffered and sorted based on the associated key before display. The &lt;key&gt; can be constructed in the same way as &lt;output-or-cmd-line&gt; by using macros or positional tokens %1, %2, etc.</p></dd>
+<dd><p>By default, the &lt;key&gt; is considered text and hence all keys are sorted alphabetically in ascending order.</p></dd>
+<dd><p>Note that the --sort option can be followed by a slash, which, in turn, is followed by one or more sub-option letters e, n|N, a|d, c, q. If 'e' is specified, the entire &lt;key&gt; is treated as an expression to be evaluated using the 'calculate' command. The result is then used as the key for sorting.</p></dd>
+</dl>
+
+<p>* e : evaluate &lt;key&gt; with the calculate command before using it for sorting.</p>
+<p>* n : sort numerically by treating the first token in &lt;key&gt; as a 64-bit signed integer.</p>
+<p>* N : sort numerically by treating the first token in &lt;key&gt; as a 64-bit unsigned integer.</p>
+<p>* a : sort in ascending order (default).</p>
+<p>* d : sort in descending order.</p>
+<p>* c : ignoring character case in sorting.</p>
+<p>* q : display lines with unique keys. If two or more lines have the same key, display just one line.</p>
+<p>If both n and N are not specified, the default is sorting alphabetically. If both a and d are not specified, the default is sorting in ascending order. If q is not specified, the default is to display all lines including lines with duplicate keys.</p>
+
+<pre>    Example B5.5:
+       $ span-list
+       Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+       ---------------------  ---  ----  -------  -------------------------------  ---
+       span0                  Yes   24%     2112  2,3,4,5,6,7,8,9                  90%
+       span1                  Yes  100%     2112  10,11,12,13,14,15,16,17          90%
+       span2                  Yes  100%     2112  18,19,20,21,22,23,24,25          90%
+       span3                  Yes  100%     2112  26,27,28,29,30,31,32,33          90%
+       span4                  Yes  100%     2112  34,35,36,37,38,39,40,41          90%
+       span5                  Yes  100%     2112  42,43,44,45,46,47,48,49          90%
+       span6                  Yes  100%     2112  50,51,52,53,54,55,56,57          90%
+       span7                  Yes   99%     2112  58,59,60,61,62,63,64,65          90%
+</pre>
+<p></p>
+<pre>    Let's use 'strline --goto 3' to discard the first two lines, then sort the input lines based on the third
+    column in increasing integer values, and finally output the sorted original text lines:
+</pre>
+<p></p>
+<pre>       $ span-list | strline --goto 3 | strtoken --additional-token-delim % --sort/Na %3 %.line
+       span0                  Yes   24%     2112  2,3,4,5,6,7,8,9                  90%
+       span7                  Yes   99%     2112  58,59,60,61,62,63,64,65          90%
+       span1                  Yes  100%     2112  10,11,12,13,14,15,16,17          90%
+       span2                  Yes  100%     2112  18,19,20,21,22,23,24,25          90%
+       span3                  Yes  100%     2112  26,27,28,29,30,31,32,33          90%
+       span4                  Yes  100%     2112  34,35,36,37,38,39,40,41          90%
+       span5                  Yes  100%     2112  42,43,44,45,46,47,48,49          90%
+       span6                  Yes  100%     2112  50,51,52,53,54,55,56,57          90%
+</pre>
+<p></p>
+<dl>
+<dt><strong>&lt;output-or-cmd-line&gt;</strong></dt>
+<dd><p>The output line to display or the command to run, which can consist of one or more arguments.</p></dd>
+<dd><p>If &lt;output-or-cmd-line&gt; is empty, echo the standard input. If --line-separator is not a newline, the net result is to join all the standard input lines.</p></dd>
+<dd><p>The output line can contain positional tokens and macros but they are expanded in two different passes as described in option --run or --echo.</p></dd>
+<dd><p>Positional tokens are specified as %n such as %0, %1, %2, etc. They can be enclosed in a pair of delimiters such as curly/square/angle brackets. For instance, %1 can be specified as %{1}, %[1], %&lt;1&gt;. Using a pair of delimiters allows additional formatting instructions to be specified as described next.</p></dd>
+<dd><p>Note that token %n, when appearing in an mse script, can be the positional parameter to the mse command. Thus, if %n belongs to strtoken, it should be enclosed by a pair of delimiters to prevent the mse command from expanding it in the mse context.</p></dd>
+</dl>
+<h2>B6. Conditional output options</h2>
+<p>Options in this category control whether strtoken should display the output or run the command line.</p>
+<dl>
+<dt><strong>--max-output-lines, -M &lt;number&gt;</strong></dt>
+<dd><p>Stop processing the standard input after the number of output lines displayed, or the number of commands to run, has reached the specified number.</p></dd>
+<dd><p>This option is useful when used with conditionals. Suppose file.txt has hundreds of thousands of lines and we want to find just the first line that contains "my book" and is 100 characters long. It is better to stop after displaying just one line as follows:</p></dd>
+</dl>
+<pre>     Example B6.1
+        sscat file.txt | strtoken -M 1 --if/s strlen(%.line) == 100 .and. find(%.line,str(my book))
+</pre>
+<p></p>
+
+<p>Without option -M, we will have to pipe the result to 'head 1', which causes strtoken to compute all lines in file.txt, wasting CPU resources.</p>
+<p>--if-strquery &lt;argument1&gt; &lt;argument2&gt; ... &lt;argumentN&gt;</p>
+<p>Specify the condition when to display the output line or run the command line. Run strquery filter with the same set of arguments as listed after --if-strquery. The result is typically an integer, which is interpreted as follows: true if positive, false if zero, and errored if negative. If true, display the output line or run the command line. If zero, do not display the output line nor run the command line. If negative, it is an error.</p>
+<p>This option must be specified as the last option to strtoken. It will not be interpreted as a conditional if an --echo option is specified somewhere before it. In this case, --if-strquery becomes part of the text to be displayed by the --echo option.</p>
+<p>--unless-strquery &lt;argument1&gt; &lt;argument2&gt; ... &lt;argumentN&gt;</p>
+<p>Similar to --if-strquery with a reverse effect. If the integer result is zero, display the output line or run the command line. If positive, do not display the output line nor run the command line. If negative, it is always an error condition.</p>
+<p>When this option is specified after --echo, it is not a conditional anymore; it becomes part of the text to be displayed by --echo.</p>
+<p>--if &lt;expression&gt;</p>
+<p>This option evaluates the &lt;expression&gt; based on the 'calculate' command syntax. The &lt;expression&gt; can contain any built-in functions, arithmetic/logical/string operators, literal strings, variable names, numbers, etc as described in the 'calculate' and 'mse-functions' man pages.</p>
+<p>If the result is numerically nonzero, it is interpreted as true. Otherwise, it is false.</p>
+<p>If true, display the output line or execute the command specified by --run|-echo|--sort. If false, take no action.</p>
+<p>This option can be specified anywhere in the command line. However, where it is specified determines how many arguments belong to &lt;expression&gt;.</p>
+<p>When the option is specified before the output to display, or the --run|--echo|--sort option, the &lt;expression&gt; consists of only one argument immediately following it.</p>
+<p>If specified after --echo, --if is no longer conditional; it is part of the text to be displayed by --echo.</p>
+<p>If specified after --run|--sort, the &lt;expression&gt; consists of all arguments following --if. In this case the &lt;expression&gt; string will be formed by concatenating all these arguments with one space inserted in between.</p>
+<p>Note that all tokens specified as "%,&lt;token&gt;" will be converted internally to str(%&lt;token&gt;). The comma must follow the macro symbol immediately. This rule applies to the &lt;expression&gt;, output template, and sort key, For example, %,1 becomes str(%1), and %,xyz becomes str(%xyz), and %,[1,Td] becomes str(%[1,Td]). The comma has been chosen to represent str() because it is reminiscent of an apostrophe, which reminds the single quotes enclosing a string.</p>
+<p>--if[/str|qstr|dqstr] &lt;expression&gt;</p>
+<p>The behavior of the --if option can be optionally modified by the three sub-options /str, /qstr, and /dqstr. They are the names of the three quoting functions described in the 'mse-functions' man page.</p>
+<p>The three sub-options are mutually exclusive, and must be specified immediately after --if (without intervening spaces). Their names can be specified with enough letters to make them unique.</p>
+<p>When such a sub-option is specified, the filter will quote all positional tokens %n in the output line or command to run with the requested quoting function. This does not apply to %,&lt;token&gt; because it already means str(%&lt;token&gt;). For example, --if/str causes all tokens %n to be changed to str(%n), --if/qstr to qstr(%n), and --if/dqstr to dqstr(%n).</p>
+<p>Because the resulting tokens contain no quotes, they will survive the BALI shell interpretation and arrive at the calculator engine as is. The calculator engine understands these quoting functions and interpret the data correctly as requested.</p>
+
+<h3>Summary</h3>
+<p>1. The --if option can be specified before or after --run|--sort or output text.</p>
+<pre>   Example B6.2
+</pre>
+<p></p>
+<pre>       # Display %1 if the line has "xyz"
+       $ echo file1.txt cd ef xyz | strtoken %1 --if has(.line,xyz)
+       $ echo file1.txt cd ef xyz | strtoken --if has(.line,xyz) %1
+       file1.txt
+</pre>
+<p></p>
+<pre>       # Create file %1 if the line has "xyz"
+       $ echo file1.txt cd ef xyz | strtoken --run touch %1 --if has(.line,xyz)
+       $ echo file1.txt cd ef xyz | strtoken --if has(.line,xyz) --run touch %1
+</pre>
+<p></p>
+<p>2. The --if-strquery and --unless-strquery options must be specified after --run|--sort or output text.</p>
+<pre>   Example B6.3
+</pre>
+<p></p>
+<pre>       # Display %1 if the line has "xyz"
+       $ echo file1.txt cd ef xyz | strtoken %1 --if-strquery --has xyz
+</pre>
+<p></p>
+<pre>       # Create file %1 if the line has "xyz"
+       $ echo file1.txt cd ef xyz | strtoken --run touch %1 --if-strquery --has xyz
+</pre>
+<p></p>
+<p>3. Only one conditional prevails. When an --if option is specified before --run|--sort or output text, all subsequent occurrences of --if, --if-strquery, and --unless-strquery are considered part of --run|--sort or output text.</p>
+<pre>   Example B6.4:
+</pre>
+<p></p>
+<pre>      a) ... | strtoken --run ls --if-strquery ....
+         This runs the ls command if if-strquery evaluates to true
+</pre>
+<p></p>
+<pre>      b) ... | strtoken --if 1 --run ls --if-strquery ....
+         This runs 'ls --if-strquery ...' command. Because of the leading '--if 1' conditional,
+         the --if-strquery argument becomes part of the ls command.
+</pre>
+<p></p>
+<pre>      c) ... | strtoken --run/all ls --if-strquery ....
+         Sub-option /all specifies that all arguments after --run belong to the target command to run.
+         Thus, this command line behaves exactly like (b).
+</pre>
+<p></p>
+<h2>C. Formatting token output</h2>
+<p>By default, the positional tokens are displayed exactly as they appear in the input. But they can be reformatted differently if they are specified with a formatting instruction using the following syntax:</p>
+<pre>    %[&lt;tokenNumber&gt;, C&lt;datatype&gt;, P&lt;percentChar&gt;, T&lt;typeChar&gt;, W&lt;width&gt;, F&lt;fillChar&gt;, J&lt;justifyChar&gt;, S&lt;startOffset&gt;, L&lt;ByteLength&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>C1. Formatting Instruction Syntax</strong></dt>
+</dl>
+
+<p>* The instruction must begin with a macro symbol (e.g., '%'), which is followed by a pair of delimiters such as curly brackets, square brackets, angle brackets, or parentheses.</p>
+<p>* Inside the delimiter pair is a list of comma-delimited string items.  The spaces surrounding commas are insignificant.</p>
+<p>* The first item must be the number of the token.</p>
+<p>* All subsequent items begin with a capital letter known as formatting code or formatter.</p>
+<p>* Each formatter must be followed immediately by an argument (no spaces allowed).</p>
+<p>* The same formatter cannot be specified multiple times for each token.</p>
+<p>* Formatters can appear in any order but must be specified after the token number.</p>
+
+<dl>
+<dt><strong>C2. C-Formatter</strong></dt>
+<dd><p>C specifies how to convert/cast the token from one data type to another.  C accepts the following conversion characters:</p></dd>
+</dl>
+<pre>          c : cast the numeric token to a signed 8-bit integer before display (character data)
+          s : cast the numeric token to a signed 16-bit integer before display (short integer data)
+          i : cast the numeric token to a signed 32-bit integer before display (integer data)
+          h : cast the numeric token to a signed 64-bit integer before display (hyper integer data)
+</pre>
+<p></p>
+<pre>          C : cast the numeric token to an unsigned 8-bit integer before display
+          S : cast the numeric token to an unsigned 16-bit integer before display
+          I : cast the numeric token to an unsigned 32-bit integer before display
+          H : cast the numeric token to an unsigned 64-bit integer before display
+</pre>
+<p></p>
+<pre>          t : cast date time to a 32-bit time value in seconds since 1970/01/01
+          n : cast date time to a 64-bit time value (seconds since 1970/01/01
+              in bits 63..32, and fractional second in nanoseconds in bits 31..0)
+</pre>
+<p></p>
+<pre>       Example C1: Cast numeric data
+          $ echo 255 | strtoken %[1,Cc]
+          strtoken: Error: Without numeric or date time option, C-formatter is not supported in format string: "%[1,Cc]"
+</pre>
+<p></p>
+<pre>          $ echo 255 | strtoken -d %[1,Cc]  # Cc has an effect when %1 is a numeric data (thanks to -d)
+          -1
+          $ echo 257 | strtoken -d %[1,CC]  # cast in to an unsigned character
+          1
+          $ echo -2 | strtoken -d %[1,CC]   # -d causes %1 to represent -2, which is then cast to an unsigned character
+          254
+          $ echo -2 | strtoken -u -d %[1,CC]  # -u causes the minus sign to be discarded, hence %1 represents 2.
+          2
+          $ echo -254 | strtoken -u -d %[1,Cc]  # -u causes %1 to represent 254, which is then cast to a signed character.
+          -2
+</pre>
+<p></p>
+<pre>       Example C2: Cast date time
+          $ echo Save file at 2015-12-09 18:48:01-08:00 | strtoken --full-date-time %1  # no cast, display as is
+          2015-12-09 18:48:01-08:00
+</pre>
+<p></p>
+<pre>          $ echo Save file at 2015-12-09 18:48:01-08:00 | strtoken --full-date-time %[1,Ct]
+          0x5668e7e1
+</pre>
+<p></p>
+<pre>          $ echo Save file at 2015-12-09 18:48:01-08:00 | strtoken --full-date-time %[1,Cn]
+          0x5668e7e100000000
+</pre>
+<p></p>
+<dl>
+<dt><strong>C3. P-Formatter</strong></dt>
+<dd><p>P specifies a character to play the role of '%' in the strftime-format of the "+" argument to T-formatter. This specification is local, or limited, to the instruction for the current token only.</p></dd>
+<dt><strong>C4. T-Formatter</strong></dt>
+<dd><p>T specifies how to display the token. The argument to T is called output format types. The following types are supported:</p></dd>
+</dl>
+<pre>   * For input tokens processed as strings:
+</pre>
+<p></p>
+<pre>          s  : display as string (display the same text token as found in the input)
+</pre>
+<p></p>
+<pre>   * For input tokens processed as numeric:
+</pre>
+<p></p>
+<pre>          f  : display a floating-point number in default format (like %f format in the C language).
+               The default format can be overridden if f is immediately followed by:
+                   &lt;num&gt;   : display the value with precision equal to &lt;num&gt;
+                   F&lt;num&gt;  : display in fixed format with precision equal to &lt;num&gt;
+                   S&lt;num&gt;  : display in scientific format with precision equal to &lt;num&gt;
+</pre>
+<p></p>
+<pre>                  echo 123.456 | strtoken -f %[1,fF4]   # display 123.4560
+                  echo 123.456 | strtoken -f %[1,fS4]   # display 1.2346e+02
+                  echo 123.456 | strtoken -f %[1,f4]    # display 1234.5
+</pre>
+<p></p>
+<pre>          d  : display as signed decimal (overridden by C-formatter (see section C2)
+          u  : display as unsigned decimal (overridden by C-formatter (see section C2)
+</pre>
+<p></p>
+<pre>          k  : display the numeric token as a 16-hex-digit string. In other words, treat the numeric token as a
+               64-bit unsigned integer n, then display n as a 16-hex-digit string.
+</pre>
+<p></p>
+<pre>          K  : add an offset of 2^{63} to the numeric token, then display the result as a 16-hex-digit string.
+               In other words, the K-formatter adds a constant offset to move the range of 64-bit signed
+               integers to the range 0..UMAX of 64-bit unsigned integers, where UMAX = 2^{64} - 1.
+               This transformation preserves the ordering of the original 64-bit signed integers.
+</pre>
+<p></p>
+<pre>          c  : display the one-complement of the result displayed by the k-formatter.
+               In other words, the c-formatter changes the value n of the numeric token to x = UMAX - n, then
+               displays x as a 16-hex-digit string.
+</pre>
+<p></p>
+<pre>               It can be seen that the c-formatter changes a sequence of numbers n1, n2, n3 in to
+               a new sequence x1, x2, x3 where the new ordering is reverse compared to the original:
+                    n = 0 is changed to UMAX
+                    n = 1 is changed to UMAX-1
+                    . . . . . . . . . . . . .
+                    n = UMAX is changed to 0
+</pre>
+<p></p>
+<pre>          C  : display the one-complement of the result displayed by the K-formatter.
+               In other words, the C-formatter treats the numeric token as a 64-bit signed integer m,
+               lifts it up to m = n + 2^{63}, then compute the one complement x = UMAX - m and finally displays
+               x as a 16-hex-digit string.
+</pre>
+<p></p>
+<pre>               Note that k, K, c, C formatters are designed to produce a 16-hex-digit string for use as a key
+               for alphabetic sorting with the --sort option.  As an example, consider a table with
+               signed integers in column 2 and unsigned integers in column 5.
+</pre>
+<p></p>
+<pre>               To sort the table first by column 2, then by column 5, both in ascending order:
+                     ... | strtoken --sort %[2,TK]%[5,Tk] %[.line]
+</pre>
+<p></p>
+<pre>               To sort the table first by column 2 in ascending order, then by column 5
+               in descending order:
+                     ... | strtoken --sort %[2,TK]%[5,Tc] %.line
+</pre>
+<p></p>
+<pre>          h  : display in hex using "0x" prefix
+          o  : display in octal using "0" prefix
+          b  : display in binary using "0b" prefix
+</pre>
+<p></p>
+<pre>          D  : interpret data as date time but display only the date part, e.g., "2015-12-18"
+          T  : interpret data as date time but display only the time part, e.g., "06:15:23-08:00"
+          F  : interpret data as date time and display the full (complete) date time string, e.g., "2015-12-18 06:15:23-08:00"
+          I  : interpret data as date time and display the full date time string in ISO format, e.g., "2015-12-18T06:15:23-08:00"
+               The four characters D, I, F, T can be followed immediately by n and/or u (order irrelevant) where:
+                     n : to display the time part in nanosecond resolution,
+                     u : to display using UTC time (Coordinated Universal Time).
+</pre>
+<p></p>
+<pre>          w  : interpret data as date time and display the local date time in weekday format, e.g. "Fri Sep  4 22:05:06 2015"
+</pre>
+<p></p>
+<pre>          +[strftime-format] : interpret data as date time and display the date time based on the strftime format
+               string that is specified inside a pair of curly/square/angle brackets or parentheses.
+</pre>
+<p></p>
+
+<p>C4.1. Default output format type</p>
+<p>The default output format type is 's' (string). All output format types other than 's' are supported if and only if the token is interpreted as numeric. Note date time tokens are stored internally as numeric data and hence are regarded as numeric. The data is numeric if the 'strtoken' filter is run with one of these options:</p>
+
+<pre>            --hex | --decimal | --hex-or-decimal | --binary | --octal | --number | --floating --date | --time | --full-date-time
+</pre>
+<p></p>
+
+<p>If a token is numeric, its text token in the original input line is still used for display unless any of the following formatters are specified: T-formatter, C-formatter, F-formatter.</p>
+
+<pre>         Example C3:
+            $ echo 0256 | strtoken -d %1    # the original text "0256" is used for display
+            0256
+</pre>
+<p></p>
+
+<p>Note that -d forces the numeric token to be parsed as a decimal number even though it looks like an octal number. The filter does not display the decimal value 256; what it displays is the original text token as listed in the input.</p>
+<p>The following shows that the token is treated as a number in the output:</p>
+
+<pre>         Example C4:
+</pre>
+<p></p>
+<pre>            $ echo 0x3456 | strtoken --hex %[1,CC]  # C-formatter, convert to unsigned char
+            0x56
+            $ echo 0256 | strtoken -d %[1,W6,F0]    # F-formatter, fill character '0' (see Section C6)
+            256000
+            $ echo 0256 | strtoken -d %[1,Td]  # T-formatter, output in decimal
+            256
+            $ echo 0256 | strtoken -d %[1,Th]  # T-formatter, output in hex
+            0x100
+            $ echo 0256 | strtoken -d %[1,Tb]  # T-formatter, output in binary
+            0b0000_0001_0000_0000
+</pre>
+<p></p>
+
+<p>C4.2. Date time string input</p>
+<p>If the date time is a string, it can be displayed selectively in many formats.</p>
+
+<pre>         Example C5:
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %1  # display full date time from input as is
+            2015-12-11 22:24:23.456-08:00
+</pre>
+<p></p>
+<pre>            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,Td]     # display in decimal
+            6227279366463554048
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,Th]     # display in hex
+            0x566bbd971b2e0200
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,Ct,Th]  # convert to seconds and display in hex
+            0x566bbd97
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TD]   # date part
+            2015-12-11
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TT]   # time part in second
+            22:24:23-08:00
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TTn]  # with nanosecond resolution
+            22:24:23.456000000-08:00
+</pre>
+<p></p>
+<pre>            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TTnu] # UTC time
+            06:24:23.456000000+00:00
+</pre>
+<p></p>
+<pre>            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TF]
+            2015-12-11 22:24:23-08:00
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TFn]
+            2015-12-11 22:24:23.456000000-08:00
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TFnu]
+            2015-12-12 06:24:23.456000000-00:00
+</pre>
+<p></p>
+<pre>            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TI]
+            2015-12-11T22:24:23-08:00
+            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TIn]
+            2015-12-11T22:24:23.456000000-08:00
+</pre>
+<p></p>
+<pre>            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,TW]
+            Fri Dec 11 22:24:23 2015
+</pre>
+<p></p>
+<pre>            $ echo Friday at 2015-12-11 22:24:23.456-08:00 | strtoken -F %[1,T+[%H:%M:%S]]  # see (C4.4) below
+            22:24:23
+</pre>
+<p></p>
+<p>Note that the -08:00 UTC offset comes about because the commands were run in December in California (time zone is PST). If they are run in the summer, the output will show a different time with a -07:00 UTC offset for PDT. To avoid the time changes, choose option TFu to display UTC time.</p>
+<pre>         Example C6:
+            # If run in December (PST):
+            $ tz-show
+            timezone: US/Pacific  DST is not active
+            $ echo Monday at 2015-06-22 10:35:18-07:00 | strtoken -F %[1,TF]
+            2015-06-22 09:35:18-08:00
+</pre>
+<p></p>
+<pre>            # If run in the summer (PDT):
+            $ tz-show
+            timezone: US/Pacific  DST is active
+            $ echo Monday at 2015-06-22 10:35:18-07:00 | strtoken -F %[1,TF]
+            2015-06-22 10:35:18-07:00
+</pre>
+<p></p>
+<pre>            # Display UTC time
+            $ echo Monday at 2015-06-22 10:35:18-07:00 | strtoken -F %[1,TFu]
+            2015-06-22 17:35:18+00:00
+</pre>
+<p></p>
+
+<p>C4.3. Numeric date time input</p>
+<p>If the date time input is numeric, strtoken interprets the date and time differently based on the magnitude of the value.</p>
+<p>If the value is truly 32 bits, the value is assumed to be the number of seconds since midnight of 1970-01-01. Otherwise, the value is assumed to consist of the number of seconds since midnight of 1970-01-01 in bits 63..32, and the number of nanoseconds in the fractional second in bits 31..0.</p>
+<p>The numeric data can be displayed selectively in many formats similar to Section C4.2.</p>
+
+<pre>         Example C7: Use the same time values in example C4:
+            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TF]
+            2015-12-11 22:24:23-08:00
+            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TFu]
+            2015-12-12 06:24:23+00:00
+</pre>
+<p></p>
+<pre>            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TFn]
+            2015-12-11 22:24:23.456000000-08:00
+            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TFnu]
+            2015-12-12 06:24:23.456000000+00:00
+</pre>
+<p></p>
+<pre>            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TD]
+            2015-12-11
+            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TDu]
+            2015-12-12
+</pre>
+<p></p>
+<pre>            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TT]
+            22:24:23-08:00
+            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TTu]
+            06:24:23+00:00
+</pre>
+<p></p>
+<pre>            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TTn]
+            22:24:23.456000000-08:00
+            $ echo 0x566bbd971b2e0200 | strtoken --hex %[1,TTnu]
+            06:24:23.456000000+00:00
+</pre>
+<p></p>
+
+<p>C4.4. More on strftime format strings</p>
+
+
+<p>The "T+" token must be followed immediately by a pair of delimiters. The legal delimiter pairs are curly/square/angle brackets or parentheses. The text inside the pair is interpreted as the format string of the C strftime function. See the Linux man page for strftime for more information. However, the BALI shell supports only a subset of format specifiers as follows:</p>
+
+<pre>                 %a, %A, %b, %B, %c, %C, %d, %D, %e, %h, %H, %I, %j, %m, %M, %n, %p,
+                 %r, %R, %S, %T, %u, %U, %V, %V, %w, %W, %x, %X, %y, %Y, %%
+</pre>
+<p></p>
+<pre>         Example C8:
+            $ echo 6226261759420218968 | strtoken -d "%{1, T+[%T]}"
+            04:35:33
+</pre>
+<p></p>
+<pre>         Example C9:  All the following formats are equivalent to the last example C6:
+            $ echo 6226261759420218968 | strtoken -d "%{1, T+{%T}}"     # use different delimiters
+            $ echo 6226261759420218968 | strtoken -d "%{1, P&amp;, T+&lt;&amp;T&gt;}"
+            $ echo 6226261759420218968 | strtoken -d "%{1, Px, T+&lt;xT&gt;}"
+</pre>
+<p></p>
+
+<p>The last two commands show that the percent sign in the strftime format was replaced by an ampersand, and letter x, respectively, to improve readability.</p>
+
+<dl>
+<dt><strong>C5. W-Formatter</strong></dt>
+<dd><p>W specifies the width of the field initially reserved for the token. The default is to display the data in as many columns as required. If the width is negative, the result is right justified.</p></dd>
+</dl>
+<pre>         Example C10: Display 2 in a field of 3 columns, right justified:
+            $ echo 2 | strtoken %[1,W-3]
+              2
+</pre>
+<p></p>
+<dl>
+<dt><strong>C6. F-Formatter</strong></dt>
+<dd><p>F specifies the fill character. Default is no fill character.</p></dd>
+</dl>
+<pre>         Example C11:
+            $ echo 0x2 | strtoken -h %[1,W5,F0]   # left justified, fill in the right with '0'
+            0x200
+            $ echo 0x2 | strtoken -h %[1,W-5,F0]  # right justified, fill in the left with '0'
+            0x002
+            $ echo 0x2 | strtoken -h %[1,W-5,Fz]  # right justified, fill in the left with 'z'
+            zz0x2
+</pre>
+<p></p>
+<p>Note on the fill characters for right justification cases:</p>
+<p>In general, if the fill character is '0', zeros will be inserted between the binary/octal/hex prefixes (or the plus/minus sign, if any, of a decimal number) and the first digit of the number. Otherwise, the fill characters will be prepended to the prefix.</p>
+<dl>
+<dt><strong>C7. J-Formatter</strong></dt>
+<dd><p>J specifies justification within the initial field. It supports the following justification code letters:</p></dd>
+</dl>
+<pre>          l : justify left, fill the right of data if the fill character is specified
+          r : justify right, fill the left of data if the fill character is specified
+          c : justify center, fill both sides of data if the fill character is specified.
+              The letter c can be optionally followed by 'r' or 'l':
+                  l: fill only the left of data if the fill character is specified
+                  r: fill only the right of data if the fill character is specified
+</pre>
+<p></p>
+<p>If the width is negative, the left and right justifications (l and r) swap their meanings.</p>
+<pre>         Example C12: Left justification
+            $ echo 0x2 | strtoken -h %[1,W7,F=]abc     # default is left justified when width is positive
+            0x2====abc
+            $ echo 0x2 | strtoken -h %[1,W7,F=,Jl]abc  # specify left justification explicitly: Jl
+            0x2====abc
+            $ echo 0x2 | strtoken -h %[1,W-7,F=,Jr]abc # Jr means Jl because width is negative
+            0x2====abc
+</pre>
+<p></p>
+<pre>         Example C13: Right justification
+            $ echo 0x2 | strtoken -h %[1,W-7,F=]abc    # default is left justified when width is negative
+            ====0x2abc
+            $ echo 0x2 | strtoken -h %[1,W7,F=,Jr]abc  # specify right justification explicitly: Jr
+            ====0x2abc
+            $ echo 0x2 | strtoken -h %[1,W-7,F=,Jl]abc # Jl actually means right justification because the width is negative
+            ====0x2abc
+</pre>
+<p></p>
+<pre>         Example C14: Center justification
+            $ echo 0x2 | strtoken -h %[1,W7,F=,Jc]abc  # default is to fill in both sides of "0x2"
+            ==0x2==abc
+            $ echo 0x2 | strtoken -h %[1,W7,F=,Jcl]abc  # fill the left side of "0x2"
+            ==0x2  abc
+            $ echo 0x2 | strtoken -h %[1,W7,F=,Jcr]abc  # fill the right side of "0x2"
+              0x2==abc
+</pre>
+<p></p>
+<dl>
+<dt><strong>C8. S-Formatter</strong></dt>
+<dd><p>S specifies the offset from the start of the initial field to display.</p></dd>
+</dl>
+<pre>         Example C15:
+            $ echo 0x234567 | strtoken %[1,S2]abc
+            234567abc
+</pre>
+<p></p>
+<dl>
+<dt><strong>9. L-Formatter</strong></dt>
+<dd><p>L specifies the length of the data (number of characters) to display.</p></dd>
+</dl>
+<pre>         Example C16:
+            $ echo 0x234567 | strtoken %[1,S2,L3]abc
+            234abc
+</pre>
+<p></p>
+<h2>D. How to use strtoken in an mse script?</h2>
+<p>The strtoken filter allows the token numbers to be specified in many formats (see Section C1). For example, the following command lines produce the same result when run directly in the BALI shell:</p>
+<pre>    ls *.txt | strtoken --run 'cat %1'         # (1)
+    ls *.txt | strtoken --run 'cat %{1}'       # (2)
+    ls *.txt | strtoken --run 'cat %(1)'       # (3)
+    ls *.txt | strtoken --run 'cat %[1]'       # (4)
+    ls *.txt | strtoken --run 'cat %&lt;1&gt;'       # (5)
+    ls *.txt | strtoken -m ^ --run 'cat ^1'    # (6)
+</pre>
+<p></p>
+<p>However, when strtoken is used in an mse script, only formats (4) to (6) produce correct results.</p>
+<pre>    $ sscat test.scr
+    ls *.txt | strtoken --run 'cat %[1]'
+</pre>
+<p></p>
+<pre>    $ mse -f test.scr
+</pre>
+<p></p>
+<p>This is because the mse command interpreter supports positional arguments as follows:</p>
+<pre>    $ mse -f &lt;argument0&gt; &lt;argument1&gt; &lt;argument2&gt; &lt;argument3&gt; &lt;...&gt;
+</pre>
+<p></p>
+<p>where &lt;argument0&gt; is the script name and where &lt;argumentN&gt;'s are represented by tokens %0, %1, %2, etc in the script.</p>
+<p>Thus, any occurrences of positional parameters, %n, in the mse script will be first interpreted by the mse command, not strtoken. By design, the mse command interprets %n or %{n} as variable expansion, %(n) as command substitution. Thus, the strtoken formats (1) to (3) above cannot be used in an mse script.</p>
+<h2>E. Advanced options</h2>
+<h1>Examples</h1>
+<p>Many simple examples have been provided to explain individual options. This section includes more examples in no particular order.</p>
+<p>1. Some simple examples:</p>
+<p>a. String token</p>
+<pre>   $ echo "The command has completed successfully" | strtoken %2
+   command
+</pre>
+<p></p>
+<p>b. Process only hexadecimal numbers</p>
+<p>The 'strtoken -h' command discards all tokens except hexadecimal numbers.</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x00026 10" | strtoken -h %0
+   0x12 0x00026
+</pre>
+<p></p>
+<p>Display the second hex data in different output formats:</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x00026 10" | strtoken -h '%{2,W-10}'
+      0x00026
+   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -h '%{2,W-10,F0}'
+   0x00000026
+</pre>
+<p></p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x00026 10" | strtoken -h '%{2,Tb,W-15,F0}' # binary format
+   0b00000010_0110
+</pre>
+<p></p>
+<p>c. Process only decimal numbers</p>
+<p>The 'strtoken -d' command discards all tokens except decimal numbers. The tokens are output in the same decimal format by default.</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -d %3
+   6
+</pre>
+<p></p>
+<p>Override the output format:</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -d '%{3,Th}'
+   0x6
+</pre>
+<p></p>
+<p>Note that the curly brackets can be replaced with a different pair of brackets as follows:</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -d %[3,Th]
+   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -d %&lt;3,Th&gt;
+   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -d %(3,Th)
+</pre>
+<p></p>
+<p>d. Process all numbers</p>
+<p>The 'strtoken -n' command discards all tokens except numeric data. By default, the numeric tokens are output in the same format as the input.</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -n %3
+   0x12
+</pre>
+<p></p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -d %1 | env-set -v COUNT
+   COUNT=3
+</pre>
+<p></p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -n %1 %2 %3
+   3 5 0x12
+</pre>
+<p></p>
+<p>Override the default output format for %1 and %2:</p>
+<pre>   $ echo "Values: 3 5 0x12 6 0x26 10" | strtoken -n "%{1,Th} %{2,Tb} %3"
+   0x3 0b0000_0101 0x12
+</pre>
+<p></p>
+<p>2. Specify a different set of token delimiters</p>
+<pre>   $ echo "15/20 30" | strtoken %1
+   15/20
+</pre>
+<p></p>
+<p>To display 15 and 30 only, we can run:</p>
+<pre>   $ echo "15/20 30" | strtoken -d %1 %3
+   15 03
+</pre>
+<p></p>
+<p>Or we can specify white space and '/' as token delimiters:</p>
+<pre>   $ echo "15/20 30" | strtoken --additional-token-delimiters / %1 %3
+   15 30
+</pre>
+<p></p>
+<p>Another way is to specify the complete set of token delimiters. To specify tab, carriage return, and newline we must resort to escape sequences by using option -e.</p>
+<pre>   $ echo "15/20 30" | strtoken -e -t "/ \t\r\n" %1 %3
+   15 30
+</pre>
+<p></p>
+<p>3. Run commands in a file (script)</p>
+<p>Suppose we have a file, say file1, that contains a number of BALI commands:</p>
+<pre>   vn 1
+   unmount fs1
+   format -cb4 fs1
+   mount fs1
+   cv fs1
+   touch xfile1 xfile2 xfile3
+   ls -l
+</pre>
+<p></p>
+<p>We can run all the commands above as follows:</p>
+<pre>   $ cat file1 | strtoken --run %0
+</pre>
+<p></p>
+<p>If the file is in the flash:</p>
+<pre>   $ sscat file1 | strtoken --run %0
+</pre>
+<p></p>
+<p>So far, strtoken has offered no advantage over ssrun:</p>
+<pre>   $ ssrun -x file1
+</pre>
+<p></p>
+<p>However, ssrun cannot be used when we need to modify the script before running it. For example, we can run the script after changing "fs1" to "fs2" and all xfileN to yfileN as follows:</p>
+<pre>   $ sscat file1 | strreplace fs1 fs2 | strreplace xfile yfile | strtoken -K --run %0
+</pre>
+<p></p>
+<p>4. Formatting the output</p>
+<pre>   $ echo Wednesday | strtoken "%{1,W20,Jr}"
+              Wednesday
+</pre>
+<p></p>
+<pre>   $ echo Wednesday | strtoken "%{1,W20,Jr,Fz}"
+   zzzzzzzzzzzWednesday
+</pre>
+<p></p>
+<p>Note that W20 means the initial field width of token #1 is 20 columns.</p>
+<p>To display only 5 characters starting from offset 10:</p>
+<pre>   $ echo Wednesday | strtoken "%{1,W20,Jr,Fz,S10,L5}"
+   zWedn
+</pre>
+<p></p>
+<p>Other formatting examples:</p>
+<pre>   $ echo 1 2 3 4 | strtoken -n "%{3,W5,Jr,F0}"
+   00003
+</pre>
+<p></p>
+<pre>   $ echo 1 2 3 4 | strtoken -n "%{3,W5,Jl,F0}"
+   30000
+</pre>
+<p></p>
+<pre>   $ echo 1 2 3 4 | strtoken "%0"
+   1 2 3 4
+</pre>
+<p></p>
+<pre>   $ echo 1 2 3 4 | strtoken -n "%{0,W5,Jl,F0}"
+   10000 20000 30000 40000
+</pre>
+<p></p>
+<p>5. Change macro symbol</p>
+<p>When used with the 'mse' command interpreter, the macro symbol should be changed to a different character to prevent the 'mse' command from interpreting the strtoken's macro tokens as positional parameters.</p>
+<p>The following example uses '^' as the macro symbol for strtoken:</p>
+<pre>   $ mse 'echo 1 2 3 4 | strtoken -m ^ "^0"'
+   1 2 3 4
+</pre>
+<p></p>
+<p>Be careful with special characters. For example, if '&amp;' is used instead:</p>
+<pre>   $ mse 'echo 1 2 3 4 | strtoken -m &amp; "&amp;0"'
+   Error: '--macro-symbol' requires a parameter to follow it.
+   strtoken: Syntax error
+   Not executing command because pipeline failed at 'strtoken'.
+</pre>
+<p></p>
+<p>To fix this error, we need to quote '&amp;' to prevent the BALI shell from interpreting it as a special character:</p>
+<pre>   $ mse 'echo 1 2 3 4 | strtoken -m "&amp;" "&amp;0"'
+   1 2 3 4
+</pre>
+<p></p>
+<p>6. The following output is used in examples 7 to 10:</p>
+<pre>   $ df
+</pre>
+<p></p>
+<pre>     ID  Label      Size         Used  Snapshots  Reduction           Avail  Thin              FS Type
+   ----  -----  --------  -----------  ---------  ---------  --------------  ----  -------------------
+   1024    fs1  12.78 GB  Not mounted   0 B (0%)         NA  10.64 GB (83%)    No  4 KB,WFS-2,128 DSBs
+   1025    fs2  3.906 GB  Not mounted   0 B (0%)         NA  1.788 GB (46%)    No  4 KB,WFS-2,128 DSBs
+   1026    fs3  10.81 GB  Not mounted   0 B (0%)         NA  8.681 GB (80%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>   $
+</pre>
+<p></p>
+<p>Note that the df output contains one blank line at the top and one at the bottom.</p>
+<p>7. Use strtoken to build a command to execute</p>
+<p>For example, to mount all file systems that are not mounted:</p>
+<pre>   $ df | grep 'Not mounted'
+   1024    fs1  12.78 GB  Not mounted   0 B (0%)         NA  10.64 GB (83%)    No  4 KB,WFS-2,128 DSBs
+   1025    fs2  3.906 GB  Not mounted   0 B (0%)         NA  1.788 GB (46%)    No  4 KB,WFS-2,128 DSBs
+   1026    fs3  10.81 GB  Not mounted   0 B (0%)         NA  8.681 GB (80%)    No  4 KB,WFS-2,128 DSBs
+   $
+   $ df | grep 'Not mounted' | strtoken --run 'mount %2'
+</pre>
+<p></p>
+<p>Thus, the 'strtoken --run' command is similar to the standard Linux 'find -exec' command, which executes a command line built on the fly.</p>
+<p>8. Handle blank lines using output of example 6.</p>
+<p>a. By default, all blank output lines will be discarded:</p>
+<pre>   $ df | strtoken %2
+   Label
+   -----
+   fs1
+   fs2
+   fs3
+   $
+</pre>
+<p></p>
+<p>b. To keep all blank output lines:</p>
+<pre>   $ df | strtoken -k %2
+</pre>
+<p></p>
+<pre>   Label
+   -----
+   fs1
+   fs2
+   fs3
+</pre>
+<p></p>
+<pre>   $
+</pre>
+<p></p>
+<p>9. Handle non-existent tokens using output of example 6.</p>
+<p>a. By default, all non-existent tokens will be expanded in to an empty string</p>
+<pre>   $ df | strtoken "Found %2 %14."
+   Found  .
+   Found Label .
+   Found ----- .
+   Found fs1 No.
+   Found fs2 No.
+   Found fs3 No.
+   $
+</pre>
+<p></p>
+<p>b. If a token is not found in an input line, skip the input line:</p>
+<pre>   $ df | strtoken --skip "Found %2 %14."
+   Found fs1 No.
+   Found fs2 No.
+   Found fs3 No.
+   $
+</pre>
+<p></p>
+<p>10. Use strtoken as a non-blank-line pass-through filter</p>
+<p>When no output string is specified, strtoken behaves as a pass-through filter where (i) all blank input lines are discarded, (ii) all newlines are preserved.</p>
+<pre>   $ df | strtoken
+     ID  Label      Size         Used  Snapshots  Reduction           Avail  Thin              FS Type
+   ----  -----  --------  -----------  ---------  ---------  --------------  ----  -------------------
+   1024    fs1  12.78 GB  Not mounted   0 B (0%)         NA  10.64 GB (83%)    No  4 KB,WFS-2,128 DSBs
+   1025    fs2  3.906 GB  Not mounted   0 B (0%)         NA  1.788 GB (46%)    No  4 KB,WFS-2,128 DSBs
+   1026    fs3  10.81 GB  Not mounted   0 B (0%)         NA  8.681 GB (80%)    No  4 KB,WFS-2,128 DSBs
+   $
+</pre>
+<p></p>
+<p>11. Interpret a 64-bit value as 64-bit time and display in various formats:</p>
+<pre>    $ sscat file2
+    onode/fs1:   Format TimeStamp : 0x55d2b61500d73e6d (2015-08-18 04:35:33.014106200+00:00)
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %1        # Will interpret the first hex number as 64-bit time
+    0x55d2b61500d73e6d
+</pre>
+<p></p>
+<pre>    # Display both date and time.
+    # Note the day number is different from the source date time string due to different timezones.
+    $ sscat file2 | strtoken -h %[1,Tt]
+    2015-08-17 21:35:33-07:00
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,TD]   # Display the date part only, noting the day number is different
+    2015-08-17
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,TT]   # Display the time part only
+    21:35:33-07:00
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,TTn]   # Display the time part to nanosecond resolution
+    21:35:33.014106200-07:00
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,TFn]   # Display both date and time to nanosecond resolution
+    2015-08-17 21:35:33.014106200-07:00
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,TI]   # Display ISO date and time
+    2015-08-17T21:35:33-07:00
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,TIn]   # Display ISO date and time to nanosecond resolution
+    2015-08-17T21:35:33.014106200-07:00
+</pre>
+<p></p>
+<p>For more date time processing capabilities, see the man pages for timestamp-encode and timestamp-decode commands.</p>
+<p>12. Display a 64-bit time value using strftime format syntax:</p>
+<pre>    $ sscat file2 | strtoken -h %[1,T+[%c]]  # date and time in current local
+    Mon Aug 17 21:35:33 2015
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,T+[%x]]  # date part in current local
+    Mon Aug 17 2015
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,T+[%X]]  # time part in current local
+    21:35:33
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,T+[%D]]  # Date in American style
+    08/17/15
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,T+[%m-%d-%y]]
+    08-17-15
+</pre>
+<p></p>
+<pre>    $ sscat file2 | strtoken -h %[1,T+[%m-%d-%Y]]
+    08-17-2015
+</pre>
+<p></p>
+<pre>    See the Linux man page of strftime for the meaning of all the format specifiers.
+</pre>
+<p></p>
+<p>13. Find the duration of tree cloning jobs in Example (3c) of the 'strjoin' man page.</p>
+<pre>    a. The start and end times of each job is stored in jobtimes.txt, one line per job:
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt
+       JOB ID : ca5f2f00-dc75-11d0-9084-3909d434570f Started : 2015-08-30 04:00:59-07:00 Ended   : 2015-08-30 04:15:32-07:00
+       JOB ID : ab126810-dc70-11d0-9083-3909d434570f Started : 2015-08-30 05:16:13-07:00 Ended   : 2015-08-30 05:31:08-07:00
+</pre>
+<p></p>
+<pre>    b. The following commands show the end times:
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken %11 %12     # specify string tokens #11 and #12
+       $ sscat jobtimes.txt | strtoken -F %2       # or specify date and time token #2 in the line
+       2015-08-30 04:15:32-07:00
+       2015-08-30 05:31:08-07:00
+</pre>
+<p></p>
+<pre>       To convert to Unix times:
+       $ sscat jobtimes.txt | strtoken --seconds -F %2
+</pre>
+<p></p>
+<pre>    c. The following commands show the start times:
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken %7 %8
+       $ sscat jobtimes.txt | strtoken -F  %1
+       2015-08-30 04:00:59-07:00
+       2015-08-30 05:16:13-07:00
+</pre>
+<p></p>
+<pre>    d. Find the job duration:
+</pre>
+<p></p>
+<pre>    The job duration is the end time minus the start time:
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken -F -s %2-%1
+       1440933332-1440932459
+       1440938048-1440936973
+</pre>
+<p></p>
+<pre>    The output is text, not the answer that we want. What we want is as follows:
+</pre>
+<p></p>
+<pre>       $ cal 1440933332-1440932459
+       873
+</pre>
+<p></p>
+<pre>    To this end we need to run 'cal' in the context of strtoken by
+    using the command output substitution feature of macros (see macro-support man page):
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken -F -s "%(cal %2-%1)"
+       %(cal 1440933332-1440932459)
+       %(cal 1440938048-1440936973)
+</pre>
+<p></p>
+<pre>    The 'cal' command was not run because we forgot to tell strtoken to
+    process the output again to expand all remaining macros. So finally,
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken -F -s -p "%(cal %2-%1)"
+       873
+       1075
+</pre>
+<p></p>
+<pre>    e. Use built-in macros to make output more readable:
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken -F -s -p "Job %.outlineno: %(cal %2-%1) sec"
+       Job 1: 873 sec
+       Job 2: 1075 sec
+</pre>
+<p></p>
+<pre>       $ sscat jobtimes.txt | strtoken -F -s -p "Job %.outlineno: ID = %.t4, execution time is %(cal %2-%1) sec"
+       Job 1: ID = ca5f2f00-dc75-11d0-9084-3909d434570f, execution time is 873 sec
+       Job 2: ID = ab126810-dc70-11d0-9083-3909d434570f, execution time is 1075 sec
+</pre>
+<p></p>
+<p>Note that the presence of option -F makes %.t4 different from %4: ".t4" is the fourth text token in the input line when it is parsed with delimiters " \r\n\t" whereas ".4" is the fourth combined date time string, which, in this case, is non-existent.</p>
+<p>14. Understanding multiple passes of token expansion</p>
+<pre>    a. One pass:
+       $ echo file1 file2 | strtoken --run ls %1 %2
+</pre>
+<p></p>
+<pre>    b. Two passes:
+       $ echo file 0x3 | strtoken --hex --process-macros-and-escapes --run touch "%{.t1}%1"
+</pre>
+<p></p>
+<pre>       Pass 1 is automatic; it expands positional parameter %1 to "0x3".
+       Pass 2 is performed by --process-macros-and-escapes; it expands "%{.t1}" in to "File".
+       The result is to run the BALI command: touch file0x3
+</pre>
+<p></p>
+<pre>    c. Three passes:
+</pre>
+<p></p>
+<pre>       $ mse-set -v name2 File300
+       name2=File300
+</pre>
+<p></p>
+<pre>       $ echo file 0x3 0x1 | strtoken --hex -p --run mse -m , touch ",name%(cal %1-%2)"
+</pre>
+<p></p>
+<pre>       Pass 1 is automatic; it expands positional parameters %1 and %2.
+       Pass 2 is performed by --process-macros-and-escapes; it expands "%(cal 0x3-0x1)" in to "2".
+       Pass 3 is performed by "mse" with comma as the macro symbol. This expands ",name2" in to "File300".
+       The result is to run the mse command, which executes: touch File300
+</pre>
+<p></p>
+<p>The following commands are equivalent and produce the same result as (c) for this particular value of "name2":</p>
+<pre>    d. $ echo file 0x3 0x1 | strtoken --hex -p --run "mse -m , touch ,name%(cal %1-%2)"
+    e. $ echo file 0x3 0x1 | strtoken --hex -p --run "mse-run -m , touch ,name%(cal %1-%2)"
+    f. $ echo file 0x3 0x1 | strtoken --hex -p --run  mse-run -m , touch ",name%(cal %1-%2)"
+</pre>
+<p></p>
+<p>However, if the name2 variable has a multi-word value (e.g. name2 = "File Note"), the mse command in (c) and (d) produces multiple files (e.g. files "File" and "Note") but the mse-run command in (e) and (f) produces a single file named "File Note".</p>
+<p>The difference is due to the design of mse-run, which delays expansion of macros by passing all arguments to the target command (e.g. passing ",name2" to touch) and let it expand the macros. This behavior is explained in detail in the mse-run man page. Thus, all macros are expanded in the context of the target command (e.g., touch) instead of mse-run.</p>
+<p>15. Use options specific for the zeroth token</p>
+<pre>    $ echo "ab   cd    ef" | strtoken %0
+    ab cd ef
+</pre>
+<p></p>
+<pre>    $ echo "ab   cd    ef" | strtoken -K %0
+    ab   cd    ef
+</pre>
+<p></p>
+<pre>    $ echo "ab   cd    ef" | strtoken --zero-token-separator ==&gt;  %0
+    ab==&gt;cd==&gt;ef
+</pre>
+<p></p>
+<p>16. How to select only numeric data and display them correctly?</p>
+<p>We will use the output of the setdate command as an example:</p>
+<pre>    $ setdate
+    2015-12-09 02:02:21-08:00	Daylight saving time is not in effect
+</pre>
+<p></p>
+<p>16.1 Interpret numeric data as signed numbers</p>
+<pre>   a) Count only decimal numbers even if they begin with 0:
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -d %0  # display the decimal number string as is
+      2015 -12 -09 02 02 21 -08 00
+</pre>
+<p></p>
+<pre>      $ echo 2015-12-09 02:02:21-08:00 | strtoken -d %[0,Td]  # display as decimal
+      2015 -12 -9 2 2 21 -8 0
+</pre>
+<p></p>
+<pre>      $ echo 2015-12-09 02:02:21-08:00 | strtoken -d %[0,Th]  # display as hex
+      2015 -12 -9 2 2 21 -8 0
+</pre>
+<p></p>
+<pre>      $ echo 2015-12-09 02:02:21-08:00 | strtoken -d %[0,Th]  # display as hex
+      0x7df 0xfffffffffffffff4 0xfffffffffffffff7 0x2 0x2 0x15 0xfffffffffffffff8 0x0
+</pre>
+<p></p>
+<pre>   b) Retain input numbers in all formats
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -n %0
+      2015 -12 -09 02 02 21 -08 00
+</pre>
+<p></p>
+<pre>   c) Retain numbers in all formats, display in string format using their corresponding string tokens:
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -n %[0,Ts]
+      2015 -12 -09 02 02 21 -08 00
+</pre>
+<p></p>
+<p>16.2 Interpret numeric data as unsigned numbers by specifying -u option</p>
+<pre>   In this case, the minus sign preceding a number is not part of the number.
+</pre>
+<p></p>
+<pre>   d) Retain only numbers in decimal format, display them as is (i.e., string format)
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -u -d %0
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -u -d %[0,Ts]  # same output
+      2015 12 09 02 02 21 08 00
+</pre>
+<p></p>
+<pre>   e) Retain numbers in all formats, display them as is (i.e., string format)
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -u -n %0
+      $ echo 2015-12-09 02:02:21-08:00 | strtoken -u -n %[0,Ts]  # same output
+      2015 12 09 02 02 21 08 00
+</pre>
+<p></p>
+<p>17. Sort tokens alphabetically in each input line</p>
+<pre>   a) Sort all tokens alphabetically in ascending order (/a):
+</pre>
+<p></p>
+<pre>      $ echo abc1 4 100 aa2 60 8 bb 2 AA2 xyz | strtoken -a/a ' ' %0
+      100 2 4 60 8 AA2 aa2 abc1 bb xyz
+</pre>
+<p></p>
+<pre>   b) Sort all tokens alphabetically in ascending order (/a),
+      ignoring case (/c), and keeping unique tokens (/q), i.e., discarding duplicates
+</pre>
+<p></p>
+<pre>      $ echo abc1 4 100 aa2 60 8 bb 2 AA2 xyz | strtoken -a/a,c,q ' ' %0
+      100 2 4 60 8 aa2 abc1 bb xyz
+</pre>
+<p></p>
+<p>18. Sort numeric tokens in each input line</p>
+<pre>   a) Sort all decimal numbers alphabetically in ascending order.
+      Numbers that are part of alphanumeric words are included in the list.
+</pre>
+<p></p>
+<pre>      $ echo abc1 4 100 aa2 60 8 bb 2 AA2 xyz | strtoken -d/a %0
+      1 100 2 2 2 4 60 8
+</pre>
+<p></p>
+<pre>      Keep unique tokens, discarding duplicates:
+</pre>
+<p></p>
+<pre>      $ echo abc1 4 100 aa2 60 8 bb 2 AA2 xyz | strtoken -d/a,q %0
+      1 100 2 4 60 8
+</pre>
+<p></p>
+<pre>   b) Sort all decimal number words alphabetically in ascending order.
+      The numbers that are part alphanumeric words are excluded from the list.
+</pre>
+<p></p>
+<pre>      $ echo abc1 4 100 aa2 60 8 bb 2 AA2 xyz | strtoken -d/w,a %0
+      100 2 4 60 8
+</pre>
+<p></p>
+<pre>   c) Sort all decimal number words numerically in ascending order
+</pre>
+<p></p>
+<pre>      $ echo abc1 4 100 aa2 60 8 bb 2 AA2 xyz | strtoken -d/w,n,a %0
+      2 4 8 60 100
+</pre>
+<p></p>
+<p>19. Sort all input lines based on a single criterion</p>
+<pre>   a) Data to sort for examples 19 through 22:
+</pre>
+<p></p>
+<pre>      $ ls -l | mse-set -t input
+      dr--r--r--    -  2    65534    65534     2048 2016-11-03 16:02:50-08:00 $__CFN__
+      d---------    -  3        0        0     2048 2016-11-03 16:02:50-08:00 $__NDMP__
+      drwxrwxrwx    -  2        0        0    14336 2016-11-03 16:03:10-08:00 data
+      drwxrwxrwx    - 23        0        0    53248 2016-11-08 18:40:53-08:00 test-database
+      drwxrwxrwx    - 22        0        0   131072 2016-11-08 18:40:26-08:00 testing
+</pre>
+<p></p>
+<pre>   b) Sort lines based on increasing lengths of file names (field no. 9):
+</pre>
+<p></p>
+<pre>      $ mse echo %input | strtoken --sort/e,n strlen(mstr(%9)) %[.line]
+      drwxrwxrwx    -  2        0        0    14336 2016-11-03 16:03:10-08:00 data
+      drwxrwxrwx    - 22        0        0   131072 2016-11-08 18:40:26-08:00 testing
+      dr--r--r--    -  2    65534    65534     2048 2016-11-03 16:02:50-08:00 $__CFN__
+      d---------    -  3        0        0     2048 2016-11-03 16:02:50-08:00 $__NDMP__
+      drwxrwxrwx    - 23        0        0    53248 2016-11-08 18:40:53-08:00 test-database
+</pre>
+<p></p>
+
+<p>Note the /e sub-option means to evaluate the next argument using the same calculator's library as the 'calculate' command. The /n sub-option means to treat the next argument, after it is evaluated, as a numeric key.</p>
+
+<pre>   c) Sort lines based on decreasing lengths of filenames:
+</pre>
+<p></p>
+<pre>      $ mse echo %input | strtoken --sort/e,n,d strlen(mstr(%9)) %[.line]
+      drwxrwxrwx    - 23        0        0    53248 2016-11-08 18:40:53-08:00 test-database
+      d---------    -  3        0        0     2048 2016-11-03 16:02:50-08:00 $__NDMP__
+      dr--r--r--    -  2    65534    65534     2048 2016-11-03 16:02:50-08:00 $__CFN__
+      drwxrwxrwx    - 22        0        0   131072 2016-11-08 18:40:26-08:00 testing
+      drwxrwxrwx    -  2        0        0    14336 2016-11-03 16:03:10-08:00 data
+</pre>
+<p></p>
+<p>20. Sort all input lines based on two criteria</p>
+<p>Suppose the input lines in (19a) need to be sorted based on two criteria:</p>
+<pre>   - First, based on file sizes (field 6) in decreasing order,
+   - Then, if the lines have equal file sizes, they need to be sorted based on directory reference
+     count (field 3) in decreasing order.
+</pre>
+<p></p>
+<p>Because the filter syntax supports specification of only one key, we need to create a single key that consists of two subkeys, each of which satisfies one of the criteria mentioned above. To this end, we will create a string key of fixed length for use in alphabetic sorting. Note</p>
+<pre>   * File sizes range from 2048 to 131072: we need to normalize them as a 6-digit string subkey with '0' filled as needed.
+   * Reference count ranges from 2 to 23: we need to normalize them as a 2-digit string subkey with '0' filled as needed.
+   * Combine the two strings together to produce a single key
+</pre>
+<p></p>
+<p>a) Test creating a new fixed-length key from the numeric values in fields 6 and 3.</p>
+<pre>   $ mse echo %input | strtoken %[6,W-6,F0]-%[3,W-2,F0]
+   002048-02
+   002048-03
+   014336-02
+   053248-23
+   131072-22
+</pre>
+<p></p>
+<p>b) Sort input lines by this string in decreasing order:</p>
+<pre>   $ mse echo %input | strtoken --sort/d  %[6,W-6,F0]-%[3,W-2,F0]
+   drwxrwxrwx    - 22        0        0   131072 2016-11-08 18:40:26-08:00 testing
+   drwxrwxrwx    - 23        0        0    53248 2016-11-08 18:40:53-08:00 test-database
+   drwxrwxrwx    -  2        0        0    14336 2016-11-03 16:03:10-08:00 data
+   d---------    -  3        0        0     2048 2016-11-03 16:02:50-08:00 $__NDMP__
+   dr--r--r--    -  2    65534    65534     2048 2016-11-03 16:02:50-08:00 $__CFN__
+</pre>
+<p></p>
+<p>21. Sort based on two criteria with opposite sorting directions</p>
+<p>What if, in example (20), we want to sort by the second subkey in increasing numerical value?</p>
+<p>The trick is to form a new fixed-length combined key that contains the desired subkey ordering when the combined key is sorted alphabetically in decreasing order. This can be achieved by subtracting the secondary key from, say 100, as follows:</p>
+<pre>   Old key        New key
+   ------------------------------
+   002048-02      002048-98
+   002048-03      002048-97
+   014336-02      014336-98
+   053248-23      053247-77
+   131072-22      131072-78
+</pre>
+<p></p>
+<p>It can be seen that the second subkey in the new key is the 100-complement of the second subkey in the old key.</p>
+<p>a) Let's see if we can create a new key to contain both subkeys:</p>
+<pre>   $ mse echo %input | strtoken %[6,W-6,F0]-%((100-%3))
+   002048-%((100-2))
+   002048-%((100-3))
+   014336-%((100-2))
+   053248-%((100-23))
+   131072-%((100-22))
+</pre>
+<p></p>
+<p>b) The resulting strings are not final yet.  We need to specify --process-macros-and-escapes to expand arithmetic substitution macro:</p>
+<pre>   $ mse echo %input | strtoken --process-macros-and-escapes %[6,W-6,F0]-%((100-%3))
+   002048-98
+   002048-97
+   014336-98
+   053248-77
+   131072-78
+</pre>
+<p></p>
+<p>c) The resulting strings can now be used for sorting. Thus, we will add --sort option to sort:</p>
+<pre>   $ mse echo %input | strtoken --process-macros-and-escapes --sort/d %[6,W-6,F0]-%((100-%3))
+   drwxrwxrwx    - 22        0        0   131072 2016-11-08 18:40:26-08:00 testing
+   drwxrwxrwx    - 23        0        0    53248 2016-11-08 18:40:53-08:00 test-database
+   drwxrwxrwx    -  2        0        0    14336 2016-11-03 16:03:10-08:00 data
+   dr--r--r--    -  2    65534    65534     2048 2016-11-03 16:02:50-08:00 $__CFN__
+   d---------    -  3        0        0     2048 2016-11-03 16:02:50-08:00 $__NDMP__
+</pre>
+<p></p>
+<p>d) What if, in (b), we substract the secondary key from 30 instead of 100?</p>
+<pre>   $ mse echo %input | strtoken --process-macros-and-escapes %[6,W-6,F0]-%((30-%3))
+   002048-28
+   002048-27
+   014336-28
+   053248-7
+   131072-8
+</pre>
+<p></p>
+<p>e) Clearly, the resulting strings cannot be used for reliable sorting because their lengths are not equal. Thus, the output must be formatted by specifying formatting options embedded in the expression of the arithmetic substitution macro (see the 'calculate' man page):</p>
+<pre>   $ mse echo %input | strtoken -p '%[6,W-6,F0]-%(([-w 2 -f 0] 30-%3))'
+   002048-28
+   002048-27
+   014336-28
+   053248-07
+   131072-08
+</pre>
+<p></p>
+<p>Thus, the final command to produce the desired sorted result is as follows:</p>
+<pre>   $ mse echo %input | strtoken -p --sort/d '%[6,W-6,F0]-%(([-w 2 -f 0] 30-%3))'
+</pre>
+<p></p>
+<p>22. Alternative methods to reproduce the sorted results of examples 20 and 21</p>
+<p>Note the keys in (20 and 21) were formed from the fourth and the first decimal number words, respectively. We can use four special numeric formatters {Tk, TK, Tc, TC} designed to ease sorting as follows.</p>
+<p>a) The key in (20a) can be converted to hex as follows:</p>
+<pre>   $ mse echo %input | strtoken -d %[4,Tk]-%[1,Tk]
+   0x0000000000000800-0x0000000000000002
+   0x0000000000000800-0x0000000000000003
+   0x0000000000003800-0x0000000000000002
+   0x000000000000d000-0x0000000000000017
+   0x0000000000020000-0x0000000000000016
+</pre>
+<p></p>
+<pre>   Thus, the command line to produce the desired sorting is as follows:
+</pre>
+<p></p>
+<pre>   $ mse echo %input | strtoken -d --sort/d %[4,Tk]-%[1,Tk]
+</pre>
+<p></p>
+<p>b) The key in (21b) can be converted to hex as follows:</p>
+<pre>   $ mse echo %input | strtoken -d %[4,Tk]-%[1,Tc]
+   0x0000000000000800-0xfffffffffffffffd
+   0x0000000000000800-0xfffffffffffffffc
+   0x0000000000003800-0xfffffffffffffffd
+   0x000000000000d000-0xffffffffffffffe8
+   0x0000000000020000-0xffffffffffffffe9
+</pre>
+<p></p>
+<p>Note that the second subkey in (21b) is the 100-complement of the second subkey in (20a), but the second subkey in (22b) is the UMAX-complement, or one-complement, of the second subkey in (20a). Although their values are different, both subkeys give the desired ordering.</p>
+<pre>   $ mse echo %input | strtoken -d --sort/d %[4,Tk]-%[1,Tc]
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Dev/env.html">env</a> <a href="../../Filter/Dev/env-set.html">env-set</a> <a href="../../Filter/Dev/env-unset.html">env-unset</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Topic/macro-support.html">macro-support</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/mse-env.html">mse-env</a> <a href="../../Filter/Dev/mse-run.html">mse-run</a> <a href="../../Filter/Dev/mse-set.html">mse-set</a> <a href="../../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../../Topic/quoted-text.html">quoted-text</a> <a href="../../Filter/Dev/strjoin.html">strjoin</a> <a href="../../Filter/Dev/strline.html">strline</a> <a href="../../Filter/Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strreplace.html">strreplace</a> <a href="../../Filter/Dev/strsplit.html">strsplit</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

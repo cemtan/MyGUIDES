@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tree-delete-job-submit</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>tree-delete-job-submit</h1>
+<p>Submit a request to delete a directory tree</p>
+<h1>Syntax</h1>
+<pre>tree-delete-job-submit [--confirm] [-f &lt;file-system&gt;] &lt;directory-path&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Submits a request to delete a directory and all files and directories below it. The target directory will be unlinked from its parent directory immediately and the entire directory tree will be queued for deletion in the background as a background tree deletion job. The command does not wait for the job to complete.</p>
+<p>So, deleting a directory tree is a two-phase process:</p>
+<p>- Phase (1) immediately unlinks the directory from its parent's directory, moves it to a trash can (either TRASHCAN_0 or TRASHCAN_1) in the system directory /$__TREEDELETE_TRASH__/CURRENT_JOBS, creates a job order, and pushes it to the tree-delete job queue. The last action constitutes a job-schedule event.</p>
+<p>- Phase (2) begins when the job order in the job queue is picked up for processing by another fiber. This action constitutes a job-start event. Jobs in the job queue are processed in the first-in first-out order. Depending on the directory structure, this phase can have more than one fiber dividing the workload to recursively delete the directory and its contents in the background.</p>
+<p>Note that, after phase (1) is complete, the contents of the unlinked target directory tree will still be accessible (e.g. through cached handles), until they are deleted by the background deletion process during phase (2). The target directory tree's background deletion will continue as long as new files or subdirectories are being added to it. On file system unmount, all tree delete jobs (either waiting or running) associated with the file system will be stopped. On a subsequent mount, these jobs will be restarted to continue directory tree deletions. Quotas associated with the directories and virtual volumes being deleted will be updated as the physical deletion occurs in the background.</p>
+<h3>Restrictions</h3>
+<p>This command cannot delete directory types listed below:</p>
+<dl>
+<dt><strong>System directory or its sub-directory</strong></dt>
+<dd><p>System directories cannot be deleted by this command. This command identifies system directories as the ones residing at root of the file system and having names prefixed with "$__" and suffixed with "__".</p></dd>
+<dt><strong>Virtualization root or its sub-directory</strong></dt>
+<dd><p>This command cannot delete the target directory of a virtualization path association (i.e. the virtualization root). Submission of a virtualization root, or any sub-directory thereof, for deletion will fail with a message "The source path contains a cross volume link".</p></dd>
+<dt><strong>Regular directory containing virtualization root(s)</strong></dt>
+<dd><p>WARNING: Submission of such a directory will succeed, but the contained virtualization roots will linger in the trash can until deleted via the virtualization-path-delete command with the --force option specified.</p></dd>
+<dt><strong>Sub-directory of a virtual volume</strong></dt>
+<dd><p>This command can delete a virtual volume as a whole, but not an individual sub-directory contained in it.</p></dd>
+<dt><strong>Root directory</strong></dt>
+<dd><p>Root directory of a file system cannot be deleted by this command.</p></dd>
+<dt><strong>Directories of a WORM filesystem</strong></dt>
+<dd><p>This command cannot delete directories residing on a WORM filesystem, even if the directory has expired or no retention period.</p></dd>
+</dl>
+<h2>Options</h2>
+<dl>
+<dt><strong>--confirm</strong></dt>
+<dd><p>If --confirm is not specified, the command will prompt for confirmation. Specifying --confirm suppresses this interactive confirmation.</p></dd>
+<dt><strong>-f, --file-system &lt;file-system&gt;</strong></dt>
+<dd><p>The file system to work on. The currently selected file system is used if this option is not specified.</p></dd>
+<dt><strong>&lt;directory-path&gt;</strong></dt>
+<dd><p>The absolute path of the directory to be deleted. See 'Restrictions' section. The path can contain symlinks to other directories. This path must exist. The characters '?' and '*', if present in the path, are treated as normal characters.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Suppose the directory "bar" exists on file system "fs1" under the directory "/foo". To delete the directory tree rooted at "bar", one can submit a tree delete request as follows:</p>
+<pre>  $ tree-delete-job-submit -f fs1 /foo/bar --confirm
+  Information: Tree-delete: Scheduled job 41fb598e-b955-11cf-912b-13ad0cc2fa41 (vnode: 1, file system: "fs1", tree path: "/foo/bar").
+  Information: Tree-delete: Started job 41fb598e-b955-11cf-912b-13ad0cc2fa41.
+  tree-delete-job-submit: Request submitted successfully.
+  tree-delete-job-submit: Job id = 41fb598e-b955-11cf-912b-13ad0cc2fa41
+</pre>
+<p></p>
+<p>The first information line is the job-schedule event in the event log. The second information line is the job-start event in the event log. The last output line shows the job id assigned by the tree delete server.</p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/event-log-show.html">event-log-show</a> <a href="../Supervisor/rm.html">rm</a> <a href="../Supervisor/rmdir.html">rmdir</a> <a href="../Topic/tree-delete.html">tree-delete</a> <a href="../Supervisor/tree-delete-job-abort.html">tree-delete-job-abort</a> <a href="../Supervisor/tree-delete-job-list.html">tree-delete-job-list</a> <a href="../Supervisor/tree-delete-job-reschedule.html">tree-delete-job-reschedule</a> <a href="../Supervisor/tree-delete-job-status.html">tree-delete-job-status</a> <a href="../Supervisor/virtualization-path-delete.html">virtualization-path-delete</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

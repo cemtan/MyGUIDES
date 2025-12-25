@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>per-fs-throttle</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>per-fs-throttle</h1>
+
+<h1>Description</h1>
+<p>This man page does not describe a particular command: it explains what per-FS throttling does and how to use it.</p>
+<h2>INTRODUCTION</h2>
+<p>The purpose of the per-FS throttle facility is to permit the administrator to place an upper limit on resource usage by a given filesystem. The intention is to provide a mechanism to prevent one filesystem from using to too many server resources thereby adversely impacting another filesystem. The only resource that is controlled in this release is the number of fibers that a filesystem can simultaneously use. By limiting the number of such fibers that one filesystem can use, it is possible to ensure that there are always some fibers left for other filesystems to use.</p>
+<p>Only NFSv2 and NFSv3 traffic is throttled. All other protocols, including CIFS and NFSv4, are unaffected by throttling.</p>
+<p>A throttle class defines how one or more filesystems are to be restricted. A filesystem that has a mapping to a throttle class  will be constrained by the corresponding throttle class attributes. A filesystem that is unmapped will not be affected at all. As an example, an administrator might choose to prevent a filesystem that resides on slow storage from using more than a specified fraction of the processing fibers. That would guarantee that a certain number of such fibers are exclusively available for other, presumably faster or more critical, filesystems.</p>
+<h2>THROTTLE CLASS</h2>
+<p>A Throttle Class defines a number of attributes that are used when determining the level of resources that a filesystem may use. All filesystems mapped to the same throttle class are allocated the same resource limits independently: the limits are not shared between the various filesystems. For example, if throttle class X specifies a fiber percentage of 80% and filesystems FS1 and FS2 are both mapped to X, then FS1 is permitted to try to use 80% of the processing fibers as is FS2.</p>
+<p>The number of fibers that a filesystem can use concurrently is specified as a percentage which is then converted internally to an absolute number based on how many processing fibers the system is configured to use.</p>
+<p>Throttle classes are managed with 'per-fs-throttle-class-create', 'per-fs-throttle-class-delete' and 'per-fs-throttle-class-set'. They can be viewed with 'per-fs-throttle-class-list'</p>
+<h2>MAPPING</h2>
+<p>A mapping defines the Throttle Class that a given filesystem will use. This mapping is consulted when a filesystem is mounted and the attributes of the Throttle Class at that time are used to set limits on resource usage by that filesystem.</p>
+<p>Mappings are managed with 'per-fs-throttle-map-fs' and 'per-fs-throttle-unmap-fs'. They can be viewed with 'per-fs-throttle-map-list'</p>
+<h2>EXAMPLES</h2>
+<p>To prevent filesystem FS1 from using more than 80% of the available processing fibers:</p>
+<pre>per-fs-throttle-class-create DEPT1                 # create the throttle class
+per-fs-throttle-class-set --percentage 80 DEPT1    # specify the % of fibers permitted
+per-fs-throttle-map-fs FS1 DEPT1                   # map FS1 to this throttle class
+per-fs-throttle-enable                             # enable PFST if necessary
+</pre>
+<p></p>
+<p>To subsequently apply the same restrictions to FS2 do:</p>
+<pre>per-fs-throttle-map-fs FS2 DEPT1                   # map FS2 to the same throttle class
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Dev/per-fs-throttle-class-create.html">per-fs-throttle-class-create</a> <a href="../Dev/per-fs-throttle-class-delete.html">per-fs-throttle-class-delete</a> <a href="../Dev/per-fs-throttle-class-list.html">per-fs-throttle-class-list</a> <a href="../Dev/per-fs-throttle-class-set.html">per-fs-throttle-class-set</a> <a href="../Dev/per-fs-throttle-disable.html">per-fs-throttle-disable</a> <a href="../Dev/per-fs-throttle-enable.html">per-fs-throttle-enable</a> <a href="../Dev/per-fs-throttle-map-fs.html">per-fs-throttle-map-fs</a> <a href="../Dev/per-fs-throttle-map-list.html">per-fs-throttle-map-list</a> <a href="../Dev/per-fs-throttle-show.html">per-fs-throttle-show</a> <a href="../Dev/per-fs-throttle-status.html">per-fs-throttle-status</a> <a href="../Dev/per-fs-throttle-unmap-fs.html">per-fs-throttle-unmap-fs</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

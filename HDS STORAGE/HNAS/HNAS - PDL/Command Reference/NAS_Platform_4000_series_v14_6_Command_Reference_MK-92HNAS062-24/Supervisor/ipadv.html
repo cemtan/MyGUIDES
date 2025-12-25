@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ipadv</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ipadv</h1>
+<p>Report/set advanced IP configuration</p>
+<h1>Syntax</h1>
+<pre>ipadv 	 [-p &lt;interface&gt;] [-a &lt;timeout&gt;] [-r &lt;time&gt;] [-i on|off]
+	 [-s on|off] [-o &lt;mtu&gt;] [-k on|off] [-t &lt;timeout&gt;]
+	 [-m &lt;tcpmtu&gt;] [-n &lt;othermtu&gt;] [-x init|create|delete|list|show-all] [-d]
+</pre>
+
+<h1>Description</h1>
+<p>The ipadv command permits manipulation of IP parameters. Some of these parameters can be set on a per-interface basis, the rest are global settings.</p>
+<p>To create a specific configuration for an interface use "-x create -p &lt;interface&gt;" Note that an interface-specific configuration must be created before specific values can be set for that interface, the interface-specific configuration can be created prior to creating the interface.</p>
+<p>To delete an interface-specific configuration use "-x delete -p &lt;interface&gt;"</p>
+<p>A global setting applies to all interfaces, including VLAN interfaces, except those for which a specific configuration exists. Settings for the parent aggregation interface do <strong>not</strong> apply to the associated VLAN interfaces. To apply an MTU setting only to a specific VLAN interface it is necessary to create a specific configuration for the full interface name of the VLAN as shown by ifconfig. So, for example, to affect the MTU for VLAN 17 on ag2, create a specific configuration for ag2-vlan0017 and set the desired values for the VLAN interface; a configuration for ag2 will not affect traffic over ag2-vlan0017 and will not have the desired effect.</p>
+<p>The following options are available:</p>
+<dl>
+<dt><strong>-a, --arpcachetimeout &lt;timeout&gt;</strong></dt>
+<dd><p>Changes ARP cache timeout to the specified number of seconds. The valid range is 50 to 600 seconds.</p></dd>
+<dt><strong>-r, --ipreassemtim &lt;time&gt;</strong></dt>
+<dd><p>Changes the IP reassembly timer to the specified number of seconds. The valid range is 1 to 300 seconds.</p></dd>
+<dt><strong>-i, --ignoreicmpecho on|off</strong></dt>
+<dd><p>Ignores or acts on ICMP echo requests. This may be configured on a specific interface.</p></dd>
+<dt><strong>-s, --ignoreicmpredirect on|off</strong></dt>
+<dd><p>Ignores or acts on ICMP redirects.</p></dd>
+<dt><strong>-o, --offsubnetmtu &lt;mtu&gt;</strong></dt>
+<dd><p>Sets IP MTU off-subnet transmits to the specified number of bytes. The valid range is 68 to 9600 bytes, however some interfaces may further limit the effective MTU value. For IPv6 traffic the effective MTU will be 1280 bytes when this option is configured to be less than 1280. This may be configured on a specific interface.</p></dd>
+<dt><strong>-k, --keepTCPalive on|off</strong></dt>
+<dd><p>Enables or disables TCP keep alive.</p></dd>
+<dt><strong>-t, --timeTCPkeepalive</strong></dt>
+<dd><p>Sets the TCP timeout timer to specified number of seconds which must be atleast 900 seconds.</p></dd>
+<dt><strong>-m, --tcpmtu &lt;tcpmtu&gt;</strong></dt>
+<dd><p>Sets the IP MTU used for transmission of TCP packets. The valid range is 68 to 9600 bytes, however some interfaces may further limit the effective MTU value. For IPv6 traffic the effective MTU will be 1280 bytes when this option is configured to be less than 1280. This may be configured on a specific interface.</p></dd>
+<dt><strong>-n, --othermtu &lt;othermtu&gt;</strong></dt>
+<dd><p>Sets the IP MTU used for transmission of non-TCP packets. The valid range is 68 to 9600 bytes, however some interfaces may further limit the effective MTU value. For IPv6 traffic the effective MTU will be 1280 bytes when this option is configured to be less than 1280. This may be configured on a specific interface.</p></dd>
+<dt><strong>-d, --default</strong></dt>
+<dd><p>Restores the default IP Advanced configuration. Must be the only option used.</p></dd>
+<dt><strong>-p, --aggportname &lt;interface-name&gt;</strong></dt>
+<dd><p>interface-name on which to act.</p></dd>
+<dt><strong>-x, --xtraaction</strong></dt>
+<dd><p>Specifies an extra action to take (init, create, delete, list, show-all).</p></dd>
+</dl>
+<p>Note that settings are not applied to eth0, eth1 or aggregate Linux interfaces (e.g. eth-ag1).</p>
+<h1>Examples</h1>
+<pre>To set a value globally:
+    Change the ARP cache timeout to 65 seconds:
+    ipadv -a 65
+</pre>
+<p></p>
+<pre>To create a specific configuration for interface ag1:
+    ipadv -x create -p ag1
+</pre>
+<p></p>
+<pre>To set a specific value for a specific interface:
+    Ignore ICMP Echo requests on ag1:
+    ipadv -p ag1 -i off
+</pre>
+<p></p>
+<pre>To delete a specific configuration for interface ag1:
+    ipadv -x delete -p ag1
+</pre>
+<p></p>
+<pre>To show the current global configuration settings and the default values:
+    ipadv
+</pre>
+<p></p>
+<pre>To show the current configuration settings for interface ag1:
+    ipadv -p ag1
+</pre>
+<p></p>
+<pre>To set the MTU to 9000 for TCP on VLAN 17 on interface ag2:
+    ipadv -x create -p ag2-vlan0017
+    ipadv -m 9000 -p ag2-vlan0017
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/ifconfig.html">ifconfig</a> <a href="../Supervisor/ipeng.html">ipeng</a> <a href="../Topic/vlan-interfaces.html">vlan-interfaces</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-dump-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-dump-cod</h1>
+<p>Show the span and filesystem config on a system drive</p>
+<h1>Syntax</h1>
+<pre>sd-dump-cod [-d | --denied] [-t | --terse] (span | fs | chunk | allcod) &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+Alias:       dcod
+</pre>
+
+<h1>Description</h1>
+<p>'sd-dump-cod' is a low-level command that lists Cod in a form that your support provider can read.  Cod is described in the 'cod' man page.</p>
+<p>For the first parameter, specify the kind of Cod you wish to see: 'span', 'fs' or 'chunk'.  To see all three kinds of cod, specify 'allcod'.</p>
+<p>For the second parameter, specify one or more SDs.  The syntax is described in the 'sd-spec' man page.</p>
+<p>Specifying the --denied switch lets the command run on an SD to which access has been denied.  This lets you inspect Cod without allowing access to the SD and potentially loading the Cod into memory.</p>
+<p>The --terse switch dumps the chunk table more concisely.  It has no effect on other types of Cod.</p>
+<h1>Examples</h1>
+<pre>sd-dump-cod span 7
+</pre>
+<p></p>
+<p>Dumps the span Cod on SD 7.</p>
+<pre>sd-dump-cod --terse allcod 13
+</pre>
+<p></p>
+<p>Dumps all three Cod structures on SD 13.  The chunk table is dumped in a relatively concise format.</p>
+<pre>sd-dump-cod span 4-7
+</pre>
+<p></p>
+<p>Dumps the span Cod from SDs 4, 5, 6 and 7.</p>
+<pre>sd-dump-cod fs Accounts
+</pre>
+<p></p>
+<p>Dumps the filesystem catalog for each SD in span 'Accounts'.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/sd-dump-encroachment-area.html">sd-dump-encroachment-area</a> <a href="../Supervisor/sd-dump-unloadable-cod.html">sd-dump-unloadable-cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-filesystem-cod.html">span-list-filesystem-cod</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

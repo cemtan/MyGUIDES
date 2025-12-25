@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>chassis-drive-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>chassis-drive-status</h1>
+<p>Display the chassis drive status</p>
+<h1>Syntax</h1>
+<pre>chassis-drive-status 
+</pre>
+
+<h1>Description</h1>
+<p>The system hardware includes hard disk drives on which the server software and firmware images are loaded. These drives are configured into RAID 1 volumes for resiliency.</p>
+<p>This command displays a summary of the current status and percentage usage of each volume. Where the volume does not have an associated filesystem mounted such as a swap volume, the usage figures are donated by - entries.</p>
+<p>Note: This command does not display information about storage connected to the Fiber channel ports of the system.</p>
+<p>Status values:</p>
+<dl>
+<dt><strong>Unknown</strong></dt>
+<dd><p>No status information is available</p></dd>
+<dt><strong>Good</strong></dt>
+<dd><p>Volume is fault tolerant and all members are synchronized.</p></dd>
+<dt><strong>Degraded</strong></dt>
+<dd><p>One member of the volume has failed.</p></dd>
+<dt><strong>Invalid</strong></dt>
+<dd><p>The volume has only a single member.</p></dd>
+<dt><strong>Rebuilding</strong></dt>
+<dd><p>The volume is being rebuilt. The volume is not fault tolerant until the rebuild completes.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>$ chassis-drive-status
+chassis-drive-status
+Device  Status        % Used  Size (4k blks) Used (4k blks) % Rebuild
+------  ------------  ------  -------------- -------------- ------------
+0       Good          29      3846436        1124784        Synchronized
+1       Good          62      12302144       7681668        Synchronized
+2       Good          -       -              -              Synchronized
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/chassis-drive-clean-configuration.html">chassis-drive-clean-configuration</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

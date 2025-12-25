@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>cifs</h1>
+
+<h1>Description</h1>
+<p>CIFS (Common Internet File System) is a file serving protocol that's used predominantly by Microsoft Windows. This man page describes how to configure the server to allow clients to access its file systems over CIFS. It assumes that the CIFS service has been licensed and started.</p>
+<h2>Authentication</h2>
+<p>In most cases, it will be necessary for users connecting to the server over CIFS to be authenticated before they're permitted to access any data. The process that's used to configure the server to enable user authentication is described below. However, in some cases it may be necessary to bypass user authentication altogether. In this case, all users that access the server over CIFS will be 'squashed' to the user NT AUTHORITY\Anonymous Logon. If this is what's needed, use the following command to disable user authentication:</p>
+
+<p><strong>cifs-auth off</strong></p>
+
+<p>Otherwise, ensure that user authentication is enabled by running the following command. This is the default, and recommended, setting:</p>
+
+<p><strong>cifs-auth on</strong></p>
+
+<h2>CIFS Names</h2>
+<p>With authentication enabled, the server is able to authenticate domain users. A <strong>domain</strong>, as used by Microsoft Windows, is a collection of objects, including users, groups and computers, that belong to an organization. Each domain has one or more <strong>domain controllers</strong>, which are responsible for managing the users, groups, computers and policies in the domain, as well as being responsible for user authentication. Importantly, when a domain user wishes to access the server over CIFS, the server must check the user's authenticity by communicating with a domain controller in the domain.</p>
+<p>Before this communication can take place, the server must be registered as a computer in the domain. To achieve this, a CIFS name must be added. A CIFS name is the name that will identify the server in the domain when it's accessed over CIFS. Two modes of operation are supported - ADS mode, for use when the domain controller supports Active Directory, and NT4 mode, for use otherwise.</p>
+<p>To add an ADS mode CIFS name, use the following command. You will be prompted for the name and password of a user that has rights to add computers into the domain.</p>
+
+<p><strong>cifs-name add -m ads -a &lt;domain controller&gt; &lt;name to add&gt;</strong></p>
+
+<p>To add an NT4 mode CIFS name, use the following command. You must also create a computer account on the domain controller with the same name because, unlike ADS mode names, NT4 mode names cannot be added to the domain controller's configuration automatically.</p>
+
+<p><strong>cifs-name add -m nt4 -d &lt;domain&gt; &lt;name to add&gt;</strong></p>
+
+<h2>Connecting to a Domain Controller</h2>
+<p>The server is able to automatically discover domain controllers in its domain using three different methods - DNS, WINS and NetBIOS name broadcasts. Alternatively, if none of these auto-discovery methods can be used, domain controllers can also be configured manually by using the following command:</p>
+
+<p><strong>cifs-dc add &lt;domain controller&gt;</strong></p>
+
+<p>The domain controllers that are known to the server can be displayed using the following command:</p>
+
+<p><strong>cifs-dc list</strong></p>
+
+<p>The server regularly polls the domain controllers in its domain and measures the response time of each poll. Based on these response time measurements, it selects its 'preferred' domain controller and connects to it. The response time measurements can be displayed using the following command:</p>
+
+<p><strong>cifs-dc list -v</strong></p>
+
+<p>The status of the connection to the server's preferred domain controller can be displayed using the following command:</p>
+
+<p><strong>cifs-dc get</strong></p>
+
+<h2>Shares</h2>
+<p>A <strong>share</strong> provides an access point into a file system. To create a share, use the following command:</p>
+
+<p><strong>cifs-share add &lt;share name&gt; &lt;file-system&gt; &lt;path on file system&gt;</strong></p>
+
+<p>Once a share has been added, a CIFS client can map a drive to it using a UNC name of the form:</p>
+
+<p><strong>\\&lt;cifs name&gt;\&lt;share name&gt;</strong></p>
+
+<h2>Troubleshooting</h2>
+<p>CIFS connection problems should be investigated using the following command:</p>
+
+<p><strong>trouble cifs</strong></p>
+
+<p>In addition to this, if the server is unable to set up a connection to a domain controller, the following command may prove useful:</p>
+
+<p><strong>cifs-dc-errors</strong></p>
+
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-auth.html">cifs-auth</a> <a href="../Supervisor/cifs-dc.html">cifs-dc</a> <a href="../Supervisor/cifs-name.html">cifs-name</a> <a href="../User/cifs-saa.html">cifs-saa</a> <a href="../User/cifs-share.html">cifs-share</a> <a href="../User/cifs-stats.html">cifs-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

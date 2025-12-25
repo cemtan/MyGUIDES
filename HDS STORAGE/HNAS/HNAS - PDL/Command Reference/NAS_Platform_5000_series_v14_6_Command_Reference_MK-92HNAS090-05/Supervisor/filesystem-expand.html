@@ -1,0 +1,245 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-expand</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>filesystem-expand</h1>
+<p>Allocate more space to a filesystem</p>
+<h1>Syntax</h1>
+<pre>filesystem-expand (--by &lt;GiB&gt; | --to &lt;GiB&gt;) [--round (down|nearest|incrementally|up)] [--tier &lt;tier&gt;] [--accept-less] [--heed-confinement] [--storage-is-lightly-loaded] [--on-stripeset &lt;zero-based-stripeset-number&gt;] &lt;filesystem1/filesystem2/filesystem3...&gt;
+Alias:       expfs
+</pre>
+
+<h1>Description</h1>
+<p>Makes filesystems larger by allocating more space from the host span.</p>
+<p>Specify exactly one of these switches:</p>
+<dl>
+<dt><strong>--to, -t</strong></dt>
+<dd><p>Specifies the new size of each filesystem or tier.  (On a tiered filesystem, specify the new size of the tier specified by the --tier switch; other tiers are not expanded, and their capacity is not taken into account.)</p></dd>
+<dt><strong>--by, -b</strong></dt>
+<dd><p>Specifies the amount of space you want to add to each filesystem or tier.  (On a tiered filesystem, only the tier specified by the --tier switch is expanded.)</p></dd>
+</dl>
+<p>Capacities are specified in gibibytes, where one GiB is 2**30 bytes.  They need not be whole numbers.</p>
+<p>Filesystems cannot be shrunk.  The only way to reclaim the extra space is by deleting the filesystem.</p>
+<p>Normally, filesystems will automatically expand themselves when they are nearly full.  'filesystem-expand' is most useful</p>
+<ul>
+<li>When auto-expansion has been prevented or restricted by the 'span-confine' and 'filesystem-confine' commands,</li>
+<li>When you are about to create a large file, such as a database, on an existing filesystem, or</li>
+<li>On configurations where auto-expansion is disabled, such as on an HDP-resident span when 'span-hdp-preallocation no' is in force.  Other configurations that disable auto-expansion are described below.</li>
+</ul>
+<h2>CONTROLLING WHICH SPACE IS ALLOCATED</h2>
+<p>If the span's system drives have been placed into tiers, the --tier or -T switch is mandatory.  It specifies the tier from which the new space will be allocated.  If there is insufficient space on the tier you specify, expansion will not spill over to another tier: instead, the expansion will fail or be truncated, depending on whether --accept-less has been used.</p>
+<p>If the span is not tiered, the --tier switch must not be used.</p>
+<p>One consequence of these rules is that a single 'filesystem-expand' command cannot expand both tiered and untiered filesystems.  Use one command (with --tier) for the tiered filesystems and another command (without --tier) for the others.</p>
+<p>It is occasionally desirable to allocate new space from a particular stripeset.  (A new stripeset is created each time a span is created or expanded; stripesets can be displayed by 'span-list -s'.)  The 'filesystem-expand' command has an --on-stripeset switch that enables the user to direct expansion on to a specified stripeset.  Even if this stripeset runs out of free chunks, expansion does not spill on to other stripesets: it either fails or is truncated, depending on whether --accept-less has been used.</p>
+<p>The --on-stripeset switch should be used as rarely as possible, because it impairs the chunk allocator's ability to optimize performance and filesystem scalability.  It is nearly always better to leave the chunk allocator to choose chunks automatically.  However, certain storage configurations require --on-stripeset on any span or tier that includes multiple stripesets:</p>
+<ul>
+<li>A span on HDP DP-Vols when 'span-hdp-preallocation no' is in force;</li>
+<li>A span or tier residing on multiple UVM DDM pools when 'span-uvm-thin-provisioning yes' is in force;</li>
+<li>A span or tier residing on multiple compressed HDP pools.</li>
+</ul>
+<p>In these cases, filesystem scalability will be maximised if you either allocate large amounts of space during each expansion or perform several consecutive expansions of one filesystem on the same stripeset before moving to another stripeset.  Conversely, allocating too much space from one stripeset will impair load-balancing between stripesets.  Allocating (for example) 64 chunks to a given filesystem before moving to another stripeset is similar to leaving the run bias at 64 (as described in 'span-tune-allocator') and omitting the --on-stripeset switch.  A value of 64 is recommended if you wish to be able to expand filesystem to 60,000 chunks each.</p>
+<p>All configurations that require --on-stripeset will also disable auto-expansion, because auto-expansion cannot specify a stripeset.</p>
+<p>If you use --on-stripeset, you must omit --tier, even if the span is tiered.  Since each stripeset is in a single tier, specifying a stripeset will also imply a tier.</p>
+<h2>CONTROLLING HOW MUCH SPACE IS ALLOCATED.</h2>
+<p>The space on each stripeset is divided into chunks, as described in the 'chunk' man page.  When you create or expand a filesystem, the server always allocates a whole number of chunks.  This means you may get slightly more or less space than you expect.  You can exercise finer control by using the --round or -r switch to select one of four rounding modes:</p>
+<dl>
+<dt><strong>--round down</strong></dt>
+<dd><p>Never allocates more space than you specify.  Use it when free space is tight and you want to prevent a filesystem from growing larger than you expect.</p></dd>
+<dt><strong>--round nearest</strong></dt>
+<dd><p>Expands the filesystem as closely as possible to the size you specify.</p></dd>
+<dd><p>This is the default rounding mode if you say '--to'.</p></dd>
+<dt><strong>--round incrementally</strong></dt>
+<dd><p>Similar to '--round nearest', but always allocates at least one chunk.  Avoids the risk that the 'filesystem-expand' command will do nothing because you didn't ask for enough space.</p></dd>
+<dd><p>This is the default rounding mode if you say '--by'.</p></dd>
+<dd><p>It works only with '--by'; if you use it with '--to', the server assumes you mean '--round nearest'.</p></dd>
+<dt><strong>--round up</strong></dt>
+<dd><p>Allocates at least as much space as you specify.  Use it when you have a large database or other data set of known size that has to fit on the filesystem.</p></dd>
+</dl>
+<p>Rounding modes' names can be abbreviated: you can say 'ne' instead of 'nearest', for example.</p>
+<p>Chunk sizes should normally be kept much smaller than a typical filesystem, so that discrepancies of less than half a chunk are unimportant.  When a new span is created, the default chunk size is usually a good choice.  When chunks are small, the --round switch is rarely needed.</p>
+<h2>OTHER OPTIONS</h2>
+<p>'filesystem-expand' offers two further options:</p>
+<dl>
+<dt><strong>--accept-less, -l</strong></dt>
+<dd><p>By default, the command will either allocate as much space as you request or do nothing at all.  The --accept-less switch makes the command allocate as much space as it can if the expansion request cannot be fully satisfied.  On a tiered span, --accept-less does not cause expansion to spill from one tier on to another.</p></dd>
+<dt><strong>--heed-confinement, -c</strong></dt>
+<dd><p>By default, 'filesystem-expand' ignores any confining capacity that you have set up with the 'filesystem-confine' command.  This switch makes 'filesystem-expand' keep to the same limits as auto-expansion.  As a result, the command will fail in circumstances where auto-expansion would fail, such as when the span is confined or when the span resides on DP-Vols and 'span-hdp-preallocation no' is in force.</p></dd>
+</dl>
+<h2>EXPANDING MULTIPLE FILESYSTEMS</h2>
+<p>A single 'filesystem-expand' command can expand any number of filesystems.  On the command line, separate their names with slashes, not with spaces.  There is no requirement for them all to reside on the same span or HDP pool or to be bound to the same EVS.</p>
+<p>'filesystem-expand' will expand the filesystems in alphabetical order, regardless of the order in which you specify them on the command line.  This ordering will be significant if an earlier expansion uses up space needed by a later one.  Failure of one expansion will not cause 'filesystem-expand' to abandon later expansions.</p>
+<h2>MANUAL EXPANSION VERSUS AUTO-EXPANSION</h2>
+<p>Rather than expanding a filesystem by hand, it is usually better to leave it small and let it auto-expand as it fills with data.  See 'filesystem-confine' for a way to limit auto-expansion.  Auto-expansion has the following benefits:</p>
+<ul>
+<li>It is not necessary to commit real storage until it is actually needed; until that point, you can always change your mind.  Recall that a filesystem cannot be shrunk.</li>
+<li>It is not necessary to predict exactly how much space will be needed.</li>
+<li>The server can auto-expand the filesystem on to storage that had not been provisioned when the filesystem was originally created.  This expansion helps to balance the load across all available storage.</li>
+<li>In the event of an imbalance between stripesets -- perhaps because some other filesystem is deleted or directed expansion is used -- the server can use subsequent auto-expansion of any filesystem to heal the imbalance, balancing the load across stripesets as evenly as possible.</li>
+</ul>
+<p>An application that checks for free space before running may seem to be incompatible with auto-expansion: it will fail because the filesystem is small, unaware that the filesystem can automatically expand as data is written.  In such cases, use 'filesystem-thin' and 'filesystem-confine' to report artificially large filesystem capacities to protocol clients while still letting filesystems expand on demand.</p>
+<p>Auto-expansion is disabled in any configuration where a manual expansion would require --on-stripeset.</p>
+<h2>IF THE FILESYSTEM RESIDES ON AN HDP POOL</h2>
+<p>By default, the server performs pre-allocation writes on HDP, but these writes can be disabled (and later re-enabled) by the 'span-hdp-preallocation' command.  The behavior of the server depends on whether pre-allocation writes are enabled or not.</p>
+<h3>If pre-allocation writes are enabled</h3>
+<p>'filesystem-expand' will never expand on to an HDP pool that has too little physical disk space.  If the span is spread across multiple HDP pools, and as long as you don't use --on-stripeset, the command will automatically choose one or more HDP pools that have sufficient space (just as auto-expansion does).</p>
+<p>Even if the HDP pool is thinly provisioned, expanding the filesystem will allocate real disk space at once.  It is not possible to return this space to the HDP pool without deleting the filesystem.  This pre-allocation is an important part of the mechanism that ensures that the server can always predict the free space on the HDP pool and allocate space safely.</p>
+<p>(If another filesystem has been deleted and the chunks it has vacated still occupy real disk space, filesystem expansion will reuse those chunks in preference to chunks that have never been used or which were once used but have been unmapped.  As a result, the amount of space used on the HDP pool may not increase when you create a filesystem.  See the 'hdp' man page.)</p>
+<p>Pre-allocating space improves reliability by ensuring that the pool cannot run out of physical disk space during a write operation.  However, pre-allocation takes time.  As a result, the maximum size of a single expansion is limited.  If necessary, 'filesystem-expand' will automatically perform a series of expansions until the required capacity has been achieved.  At any point, you can stop after the current expansion by pressing any key.</p>
+<p>Large expansions of this type should be performed only when the storage is not heavily loaded (especially with writes), formatting, zero-initializing recently unmapped chunks or rebuilding after a disk failure.  Therefore, 'filesystem-expand' will prompt you to supply the --storage-is-lightly-loaded switch if you ask for a large expansion, and will not proceed without it.</p>
+<p>Because space is pre-allocated at once, do not expand a filesystem on a recently created or expanded HDP pool.  If you inadvertently use more space than has currently been formatted, no data will be lost, but I/O may become so slow that the span fails.</p>
+<h3>If pre-allocation writes are disabled</h3>
+<p>Expanding a filesystem does <strong>not</strong> cause the server to write any data to the newly allocated chunks, and therefore the free space on the HDP pool will not fall until some time later, at the moment when the server actually writes data to the new chunks.  This time is unpredictable; it depends (among other things) on how much free space is on the file system and how fast new data is being written.  It essential for the administrator to understand that free space on a DP pool will fall later, without notice, and not to rely on indications of free space alone when deciding whether a DP pool has enough space to support a planned filesystem-expansion.</p>
+<p>Where they exist, the server prefers vacated chunks -- chunks used in other filesystems that have since been deleted and recycled -- because it is likely that those chunks are already mapped to real disk space, and it is more economical to reuse that space than to demand new space.</p>
+<p>It is unwise to allocate space on a recently created or expanded HDP pool.  The server is unlikely to write data to the new chunks immediately but, if it writes data faster than the new space can be formatted, the system will experience performance problems that might extend as far as temporarily failing the span.</p>
+<p>Auto-expansion is disabled.  It is your responsibility to expand file systems manually before they become too full and to ensure that the HDP pools you choose always have enough space to accommodate all the data that will be written after expansion takes place.  The 'span-hdp-preallocation' man page gives important guidelines for calculating free space.</p>
+<p>Filesystem-level thin provisioning is still available via 'filesystem-thin', but the administrator is responsible for manually expanding filesystems.  The confining capacity set by 'filesystem-confine' merely controls the capacity reported to protocol clients.</p>
+<h1>Examples</h1>
+<pre>server:$ filesystem-expand --to 1200 Marketing
+Allocated 151GiB. The filesystem's new capacity is 1200GiB.
+</pre>
+<p></p>
+<pre>Span Projects is 11% full.
+server:$
+</pre>
+<p></p>
+<p>Expands the filesystem called 'Marketing' to about 1200GiB.</p>
+<pre>server:$ filesystem-expand --by 100 Accounts
+Allocated 99.5GiB. The filesystem's new capacity is 879GiB.
+</pre>
+<p></p>
+<pre>Span Projects is 19% full.
+server:$
+</pre>
+<p></p>
+<p>Adds about 100GiB to filesystem 'Accounts'.</p>
+<pre>server:$ filesystem-expand --by 400 --round down Engineering
+Allocated 398GiB. The filesystem's new capacity is 2099GiB.
+</pre>
+<p></p>
+<pre>Span Projects is 38% full.
+server:$
+</pre>
+<p></p>
+<p>Adds up to 400GiB, but no more, to filesystem 'Engineering'.</p>
+<pre>server:$ filesystem-expand --by 1200 --round up Mail
+Allocated 1027GiB. The filesystem's new capacity is 2525GiB.
+</pre>
+<p></p>
+<pre>Span Projects is 62% full.
+server:$
+</pre>
+<p></p>
+<p>Makes space for a new 1TiB database on filesystem 'Mail'.  (The administrator has added more than 1TiB because, for best performance, a file system should never be close to 100% full.)</p>
+<p>The following example demonstrates expansion on a tiered span:</p>
+<pre>server:$ span-list -f projects
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Projects               Yes   92%    10715  0,1,2,3;4,5,6,7                  90%
+   Tier 0: capacity    2679GiB; free:    2625GiB ( 97%)
+   Tier 1: capacity    8036GiB; free:    7290GiB ( 90%)
+   fs Video                UnMnt, EVS    1, cap    800, warn  90%, conf below
+      Tier 0: capacity      54, unconfined
+      Tier 1: capacity     746, unconfined
+</pre>
+<p></p>
+<pre>server:$ filesystem-expand --tier 0 --by 20 video
+Allocated 19.9GiB. The filesystem's new capacity is 820GiB.
+</pre>
+<p></p>
+<pre>Tier 0 of span Projects is 2% full.
+server:$ filesystem-expand --tier 1 --by 250 video
+Allocated 250GiB. The filesystem's new capacity is 1070GiB.
+</pre>
+<p></p>
+<pre>Tier 1 of span Projects is 12% full.
+server:$ span-list -f projects
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Projects               Yes   90%    10715  0,1,2,3;4,5,6,7                  90%
+   Tier 0: capacity    2679GiB; free:    2605GiB ( 97%)
+   Tier 1: capacity    8036GiB; free:    7040GiB ( 87%)
+   fs Video                UnMnt, EVS    1, cap   1070, warn  90%, conf below
+      Tier 0: capacity      74, unconfined
+      Tier 1: capacity     996, unconfined
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>If you specify multiple filesystems, 'filesystem-expand' displays their names before expanding them:</p>
+<pre>server:$ filesystem-expand --by 30 alpha/bravo/charlie
+</pre>
+<p></p>
+<pre>Filesystem Alpha:
+Allocated 29.53GiB.  The filesystem's capacity is 210GiB.
+</pre>
+<p></p>
+<pre>Span Foo is 12% full.
+</pre>
+<p></p>
+<pre>Filesystem Bravo:
+Allocated 29.53GiB.  The filesystem's capacity is 210GiB.
+</pre>
+<p></p>
+<pre>Span Foo is 12% full.
+</pre>
+<p></p>
+<pre>Filesystem Charlie:
+Allocated 29.53GiB.  The filesystem's capacity is 190GiB.
+</pre>
+<p></p>
+<pre>Span Foo is 13% full.
+server:$ filesystem-expand --to 250 charlie/bravo/alpha
+</pre>
+<p></p>
+<pre>Filesystem Alpha:
+Allocated 40.36GiB.  The filesystem's capacity is 250GiB.
+</pre>
+<p></p>
+<pre>Span Foo is 13% full.
+</pre>
+<p></p>
+<pre>Filesystem Bravo:
+Allocated 40.36GiB.  The filesystem's capacity is 250GiB.
+</pre>
+<p></p>
+<pre>Span Foo is 14% full.
+</pre>
+<p></p>
+<pre>Filesystem Charlie:
+Allocated 60.05GiB.  The filesystem's capacity is 250GiB.
+</pre>
+<p></p>
+<pre>Span Foo is 15% full.
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-tune-allocator.html">span-tune-allocator</a> <a href="../Supervisor/span-uvm-thin-provisioning.html">span-uvm-thin-provisioning</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

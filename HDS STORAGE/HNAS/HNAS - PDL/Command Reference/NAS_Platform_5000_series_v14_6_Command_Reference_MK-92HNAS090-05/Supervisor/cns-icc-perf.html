@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cns-icc-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cns-icc-perf</h1>
+<p>Display ICC link response times</p>
+<h1>Syntax</h1>
+<pre>cns-icc-perf [-d|--disable] [-e|--enable] [-f &lt;freq&gt;|--frequency &lt;freq&gt;] [-i|--include-offline-nodes] [-r|--reset] [-s|--summary]
+</pre>
+
+<h1>Description</h1>
+<p>The cns-icc-perf command displays an indication of the performance of the inter-cluster connect (ICC) that's used to transport CNS requests between servers in a cluster.</p>
+<p>Each node in the cluster sends a periodic 'echo' to each other node and records the response times locally. This command displays those performance measurements, as well as configuring the behavior of the periodic echo as required.</p>
+<p>Usage:</p>
+<pre>cns-icc-perf [OPTION...]
+</pre>
+<p></p>
+<dl>
+<dt><strong>--disable, -d</strong></dt>
+<dd><p>Disable the periodic echo that's used to measure the performance of the ICC link.</p></dd>
+<dt><strong>--enable, -e</strong></dt>
+<dd><p>Enable the periodic echo that's used to measure the performance of the ICC link (default).</p></dd>
+<dt><strong>--frequency, -f &lt;freq&gt;</strong></dt>
+<dd><p>Set the frequency at which performance measurements are taken. The &lt;freq&gt; argument is the time in seconds between each measurement. The value must be between 1 and 3600. The default is 10.</p></dd>
+<dt><strong>--include-offline-nodes, -i</strong></dt>
+<dd><p>Include nodes in the output that are currently off line, but for which historical response time measurements exist.</p></dd>
+<dt><strong>--reset, -r</strong></dt>
+<dd><p>Reset the statistics.</p></dd>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>Only display a summary.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-back-up-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-back-up-cod</h1>
+<p>Create a file containing the span and filesystem Cod for one span</p>
+<h1>Syntax</h1>
+<pre>span-back-up-cod [--flash] [--compact] &lt;span-instance-name&gt; [&lt;filename&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Takes an integrated Cod backup (ICB) of a span, for later use with 'span-restore-cod'.  Cod backups are explained in the 'cod' man page.</p>
+<p>The --no-event switch suppresses the event that is normally logged when a Cod backup is taken.  It is intended for clients, such as the SMU, that take regular Cod backups.</p>
+<p>The --compact switch produces a smaller ICB that differs from a normal ICB in three ways:</p>
+<ul>
+<li>Releases older than 11.2 supported only 1,023 chunks per filesystem and 16,384 chunks per span.  Normally, if a span and its filesystems are within these limits, the server produces an ICB that uses a bulkier Cod schema (format) that is compatible with these older releases.  With --compact, the chunk table unconditionally uses a newer, more compact schema that is usable only by release 11.2 and above.  However, passing a compact ICB through the current release's Cod Converter will revert to the older, bulkier schema if the span and its filesystems contain few enough chunks for use with older releases.  It is therefore safe to store Cod backups in compact form even if extreme backwards-compatibility is a requirement.</li>
+<li>Normally, the header of an ICB contains a list of the filesystems contained within the ICB.  This list is displayed by 'cod-backup-list' and 'cod-backup-dump', but has no other purpose.  With --compact, the ICB will have an empty filesystem list, and the two commands that list Cod backups will initially say that the ICB contains no filesystems.  However, the ICB will function normally in all other respects, and 'span-restore-cod' will still load filesystems in the normal way.</li>
+<li>Normally, an ICB contains a list of SDs' device IDs and Luids (as displayed by 'sd-luids-list') for all the SDs on the system.  With --compact, only the SDs used in the span being backed up appear in this list; SDs in other spans and any unspanned SDs will not appear in the list.  This omission does not prevent the ICB from functioning normally.</li>
+</ul>
+<p>If you run 'span-back-up-cod' from ssc, it will use the ssc file system by default, creating a Cod backup file in the current directory on the machine running the ssc client unless you specify some other directory.  To use the SSFS file system, supply the --ssfs or -F switch.  In all environments other than ssc, the command always uses the SSFS file system.</p>
+<h2>IF YOU USE THE SSC FILE SYSTEM</h2>
+<p>If you don't specify an ICB filename, the server will construct a default filename based on the span instance name and permanent ID, a timestamp, and the filename extension '.cod'.</p>
+<h2>IF YOU USE THE SSFS FILE SYSTEM</h2>
+<p>Specifying a filename is mandatory, because the default filename is too long for the SSFS file system.</p>
+<p>By default, the file is created on the SSFS file system of the cluster node running the Admin Service.  To create it on another server, use the syntax detailed in the 'ssfs' man page.</p>
+<h1>Examples</h1>
+<pre>span-back-up-cod Accounts Accounts.cod
+</pre>
+<p></p>
+<pre>span-back-up-cod Engineering
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/cod-backup-dump.html">cod-backup-dump</a> <a href="../Supervisor/cod-backup-list.html">cod-backup-list</a> <a href="../Supervisor/sd-back-up-cod.html">sd-back-up-cod</a> <a href="../Supervisor/sd-restore-cod.html">sd-restore-cod</a> <a href="../Supervisor/span-list-filesystem-cod.html">span-list-filesystem-cod</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a> <a href="../Topic/ssfs.html">ssfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

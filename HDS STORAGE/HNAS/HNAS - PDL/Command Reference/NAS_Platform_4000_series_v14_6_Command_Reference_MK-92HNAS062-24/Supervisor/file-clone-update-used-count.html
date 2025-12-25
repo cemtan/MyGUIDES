@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>file-clone-update-used-count</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>file-clone-update-used-count</h1>
+<p>Update all clone files to record the number of unique used blocks.</p>
+<h1>Syntax</h1>
+<pre>file-clone-update-used-count [-f &lt;file-system&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This tool walks all the clones in a mounted file system, calculating the number of used blocks uniquely owned by each clone and recording this value in the 'BlockCount' metadata field.</p>
+<p>This command will fail if there are files currently queued for background deletion.  Retry when the "df" command reports that there is nothing queued for deletion.</p>
+<p>After this command completes, run file-clone-delete-redundant-snapshot-files to delete any redundant snapshot files that were not queued for deletion because this command was running.</p>
+<h2>Option</h2>
+<dl>
+<dt><strong>-f, --file-system &lt;file system name&gt;</strong></dt>
+<dd><p>The file system to walk through to find clones and update their 'BlockCount' metadata field. If this option is not specified, the command falls back to the file system currently selected. (This is the file system set by the 'selectfs' command.) If no file system is currently selected, the command will fail.</p></dd>
+</dl>
+<h2>Background</h2>
+<p>Note that the metadata part of a file traditionally contains a 'BlockCount' field that stores the number of sparse blocks uniquely owned by the file.  However, this field can be used to store the number of used (i.e., allocated) blocks uniquely owned by the file. These two states of the 'BlockCount' field are defined as the sparse/used count modes of the object, respectively. The two states are supported by the sparse metadata feature.</p>
+<p>Support for sparse metadata creation is cluster-wide enabled by default in release 12.0 and later.</p>
+<p>Once enabled, the feature handles the block count modes as follows.</p>
+<p>1. All new non-clone files will be created in the used count mode.</p>
+<p>2. All old non-clone files created before the sparse metadata feature was enabled will be updated to the used count mode upon their first modification.</p>
+<p>3. Creating a new clone C from an existing non-clone file F, where F is in sparse count mode, will cause both F and C to be converted to the used count mode.</p>
+<p>4. Creating a new clone Y from an existing clone X will cause Y to inherit the block count mode of X. Specifically, all new clones created from existing clones that are in sparse count mode will remain in the same sparse count mode.</p>
+<p>Consequently,</p>
+<p>(a) If a file system is formatted while sparse metadata support is enabled, all files (non-clones and clones) will be in used count modes. Therefore, there is no need to run the 'file-clone-update-used-count' command.</p>
+<p>(b) If a file system was formatted and clones were created before sparse metadata support was enabled (e.g. in a release before 12.0), it is necessary to run the 'file-clone-update-used-count' command to convert all clones to used count mode. Note, however, the tool does not provide a block count mode downgrade capability. Once an object is promoted to the used count mode, it is locked in this mode forever. The tool will fail immediately if run while the sparse-metadata feature is disabled.</p>
+<p>The conversion tool works by building up a list of all clones in the file system, then walking the list, displaying the status of every clone and updating any clone that is in sparse count mode.</p>
+<p>Note that background truncation will be disabled temporarily on the file system that is being updated by file-clone-update-used-count. An event will be raised at the start and finish of the conversion process to tell the status of background truncation. If conversion is interrupted (e.g. unmount, CTRL-C), the tool will be aborted and will not resume automatically on remount.</p>
+<h1>Examples</h1>
+<p>1. To find out which file systems can be upgraded:</p>
+<pre>       $ df
+         ID  Label      Size                                           Used  Snapshots  Reduction           Avail  Thin              FS Type
+       ----  -----  --------  ---------------------------------------------  ---------  ---------  --------------  ----  -------------------
+       1024    fs1  3.906 GB                                 2.113 GB (54%)   0 B (0%)         NA  1.793 GB (46%)    No  4 KB,WFS-2,128 DSBs
+       1025    fs2  7.844 GB  6.757 GB (86%) (2.034 GB queued for deletion)   0 B (0%)         NA  1.087 GB (14%)    No  4 KB,WFS-2,128 DSBs
+       1026    fs3  3.906 GB                                    Not mounted   0 B (0%)         NA  1.796 GB (46%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<p>2. The command cannot run on fs3 because it is unmounted:</p>
+<pre>       $ file-clone-update-used-count -f fs3
+       file-clone-update-used-count: Failed: Can't disable background snapshot processing: File system not found
+</pre>
+<p></p>
+<p>The file system was not found because the command searched fs3 from mounted file systems.</p>
+<p>3. The command cannot run on fs2 because it has deletion pending:</p>
+<pre>       $ file-clone-update-used-count -f fs2
+       file-clone-update-used-count: Failed: Can't disable background snapshot processing: Delete pending
+</pre>
+<p></p>
+<p>4. The command can run on fs1:</p>
+<pre>       $ file-clone-update-used-count -f fs1
+</pre>
+<p></p>
+<pre>   It can be run in the background as follows:
+</pre>
+<p></p>
+<pre>       $ nohup file-clone-update-used-count -f fs1
+</pre>
+<p></p>
+<p>5. Output of command (4) if run to successful completion:</p>
+<pre>       Information: File clone: Background deletion of snapshot files has been disabled on filesystem fs1.
+       Information: file-clone-update-used-count on file system fs1: Started updating used block counts of clones.
+       update/fs1: SnapshotFile:
+       update/fs1:   FileHandle[000000000000400b002642ef6826ffffffffffffffffffff]
+       update/fs1:   WfsHandle[objectNumber=16395,reuseCount=2507503,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=0]]
+       update/fs1:         Unique Used Count: 3
+       update/fs1:   References:
+       update/fs1:     Clone: object 16393, path = "/c0":
+       update/fs1:         Unique Used Count: 0
+       update/fs1:     SnapshotFile: object 16400, FileHandle[0000000000004010002642f06826ffffffffffffffffffff:
+       update/fs1:         Unique Used Count: 1
+       update/fs1: .......... (lines omitted for brevity) ..........
+       update/fs1:
+       update/fs1: UPDATE SUMMARY:
+       update/fs1:    Snapshot file objects updated : 449
+       update/fs1:    File clones updated           : 450
+       update/fs1:    Status : Success
+       update/fs1:    All clones that needed update have been updated successfully to used count mode
+       Information: file-clone-update-used-count on file system fs1: Completed successfully.
+       Information: File clone: Background deletion of snapshot files has been enabled on filesystem fs1
+</pre>
+<p></p>
+<p>Note the two information-level events raised at the start and another two at the end of the run.</p>
+<p>6. Output of command (4) if interrupted by unmounting update/fs1:</p>
+<pre>       update/fs1: .......... (lines omitted for brevity) ..........
+       update/fs1:
+       file-clone-update-used-count: Failed to iterate snapshot files: File system not mounted
+       update/fs1:
+       update/fs1: UPDATE SUMMARY:
+       update/fs1:    Snapshot file objects updated : 375
+       update/fs1:    File clones updated           : 246
+       update/fs1:    Status : VolumeNotMounted
+       update/fs1:    Action : Remount the file system and rerun the command 'file-clone-update-used-count'
+       file-clone-update-used-count: Failed: File system not mounted
+       Warning: file-clone-update-used-count on file system fs1: Failed because the file system has been unmounted
+       Information: File clone: Background deletion of snapshot files has been enabled on filesystem fs1
+</pre>
+<p></p>
+<p>7. Output of command (4) if aborted by CTRL-C:</p>
+<pre>       update/fs1: .......... (lines omitted for brevity) ..........
+       update/fs1:
+       Terminated
+       update/fs1:
+       update/fs1: UPDATE SUMMARY:
+       update/fs1:    Snapshot file objects updated : 206
+       update/fs1:    File clones updated           : 372
+       update/fs1:    Status : Cancelled
+       file-clone-update-used-count: Failed: Cancelled
+       Warning: file-clone-update-used-count on file system fs1: Failed (Cancelled)
+       Information: File clone: Background deletion of snapshot files has been enabled on filesystem fs1
+</pre>
+<p></p>
+<p>Note the "Warning" event when the conversion is not completed for any reason. In this case, rerun the command as many times as needed to update all remaining clones to used block mode.</p>
+<p>8. After successful conversion on fs1, run:</p>
+<pre>       $ file-clone-delete-redundant-snapshot-files fs1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../Topic/file-clone.html">file-clone</a> <a href="../Supervisor/file-clone-delete-redundant-snapshot-files.html">file-clone-delete-redundant-snapshot-files</a> <a href="../Dev/nohup.html">nohup</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

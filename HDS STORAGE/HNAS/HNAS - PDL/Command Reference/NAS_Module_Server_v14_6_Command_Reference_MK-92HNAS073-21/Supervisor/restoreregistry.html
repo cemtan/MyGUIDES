@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>restoreregistry</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>restoreregistry</h1>
+<p>Restore the registry file from the current directory</p>
+<h1>Syntax</h1>
+<pre>restoreregistry [--verbose] [--ignore-duplicate-values] [--ignore] [--admin] [--evs &lt;evs-id&gt;] [--file &lt;filename&gt;] [--confirm]
+</pre>
+
+<h1>Description</h1>
+<p>Uses SSC to restore a server's registry configuration files from a backup copy on a client system. SSC needs to use the node hosting the Admin Service on clustered systems. The node hosting the Admin Service can be found using 'evs list -t admin' command.</p>
+<p>The server's (or cluster's) current configuration will be replaced with the backup copy. The cluster mode of the target system must match that of the registry being restored - i.e. a clustered configuration may only be restored to a clustered system and a Single Node configuration may only be restored to a Single Node system. When the Admin Service registry is restored, the target system's cluster name, node names, quorum device configuration and the Admin Service IPs, along with the internal UUIDs identifying the cluster, its nodes and the Admin Service are retained. Licenses are also retained, as a license is usually required for the restore and having to apply it twice would be tedious. All other existing configuration data is discarded and instead restored from the registry backup copy. Note that license keys will not operate correctly if the registry is restored to a different server system. See the System Administration Manual for more information.</p>
+<p>All file serving EVSs that will be restored must be deleted prior to the restore. After restoring the whole registry or restoring the Admin Service, the server (or cluster) will be rebooted.</p>
+<p>When the cluster has rebooted it will update the configuration of the block component to match the restored registry. The items updated in the block configuration are system information, DNS servers, DNS domain and search order, SMTP server and from address, SNMP and email alert notifications, server time zone and NTP servers.  This can take up to several minutes to complete and during that time, no other updates to these configuration settings are permitted.  Any errors that occur during the update of block configuration are recorded in the event log.  Failed updates are not retried.</p>
+<p>This command should only be used in rare scenarios like disaster recovery and migration of existing storage to a new HNAS cluster; contact your support provider first.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Display extra information</p></dd>
+<dt><strong>-e, --evs &lt;evs-id&gt;</strong></dt>
+<dd><p>Restore file for a specific evs only</p></dd>
+<dt><strong>-i, --ignore</strong></dt>
+<dd><p>This option allows the restoring of a registry with duplicate key names. The first entry found is kept. This option may be useful when migrating from a multi-board platform to a single-board platform. Consult with your support provider before using this option as an understanding of the platform-dependent differences in registry semantics is required.</p></dd>
+<dt><strong>-d, --ignore-duplicate-values</strong></dt>
+<dd><p>This option allows the restoring of a registry with duplicate key names but identical values. The first entry found is kept. This option is the same as above but slightly safer as duplicate key names are only ignored if the values are the same. This may not work in all scenarios. Consult with your support provider before using this option as an understanding of the platform-dependent differences in registry semantics is required.</p></dd>
+<dt><strong>-a, --adminevs</strong></dt>
+<dd><p>This option allows the restoring of the Admin Service registry when migrating from a multi-board platform to a single-board platform. In all other cases, the default operation is to restore the whole registry including Admin Service. Consult with your support provider before using this option as an understanding of the platform-dependent differences in registry semantics is required.</p></dd>
+<dt><strong>-f, --file &lt;filename&gt;</strong></dt>
+<dd><p>Restore from the named file instead of the default, "registry.tgz".</p></dd>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>Do not require user confirmation.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>This example restores the full registry configuration including Admin Service. All file serving EVSs must be deleted before running the command. The cluster will reboot after the restore process is complete.</p>
+<pre>linux:~/tmp$ssc 192.168.43.70
+</pre>
+<p></p>
+<pre>Console
+Server name : MYSERVER
+MAC ID : 10-A7-2D-49-D2-F5
+server:$ restoreregistry -f mybackup.tgz
+Wrote 9.25 KB (9475 B) in 31 ms at 298 KB/s (305645 B/s).
+The restoration will modify the Admin Vnode, a reboot will be required to apply the changes.
+Do you want to continue?(Y/N)[N]:y
+Configuration file(s) restored and variables reloaded successfully.
+Now rebooting.
+</pre>
+<p></p>
+<p>This example restores the configuration of EVS 12 from the backup file registry.tgz. EVS 12 must be deleted before running the command.</p>
+<pre>linux:~/tmp$ssc 192.168.43.71
+</pre>
+<p></p>
+<pre>Console
+Server name : MYSERVER
+MAC ID : 10-A7-2D-49-D2-F5
+server:$ restoreregistry -e 12
+Wrote 34.36 KB (35182 B) in 41 ms at 838 KB/s (858097 B/s)
+Configuration file(s) restored and variables reloaded successfully
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/backupregistry.html">backupregistry</a> <a href="../User/evs.html">evs</a> <a href="../Supervisor/reboot.html">reboot</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

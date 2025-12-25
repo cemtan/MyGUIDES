@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>vlan</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>vlan</h1>
+<p>Display/Remove VLANs (deprecated)</p>
+<h1>Syntax</h1>
+<pre>vlan [show [vlan#]] | remove vlan# [net-addr[/prefix-length] net-mask] | remove-all
+</pre>
+
+<h1>Description</h1>
+<p>Note - this command is deprecated - use vlan-interface-create and associated commands instead.</p>
+<p>The vlan command manipulates the VLAN tables.  It is used to view or modify the VLAN membership of individual IP subnets. Each subnet can belong to at most one VLAN. When a VLAN is defined, the server expects tagged traffic on that VLAN and will ignore/discard untagged traffic. One should, therefore, never configure a VLAN on the server for a native VLAN, even if it is a part of the 802.1q trunk.</p>
+<p>Without any options, the vlan command displays the contents of the VLAN tables.</p>
+<p>To display VLAN information:</p>
+<pre>vlan
+</pre>
+<p></p>
+<p>To remove an IP subnet from a VLAN:</p>
+<pre>vlan remove &lt;tag&gt; &lt;net-addr&gt;[/prefix-length] [&lt;net-mask&gt;]
+</pre>
+<p></p>
+<p>where:</p>
+<dl>
+<dt><strong>&lt;tag&gt;</strong></dt>
+<dd><p>is the VLAN tag that will be used for all transmitted traffic and expected for all received traffic,</p></dd>
+<dt><strong>&lt;net-addr&gt;[/prefix-length]</strong></dt>
+<dd><p>is the IP subnet, and</p></dd>
+<dt><strong>&lt;net-mask&gt;</strong></dt>
+<dd><p>is the mask corresponding to the IP subnet.</p></dd>
+<dd><p>One of (but not both of) prefix-length or net-mask must be supplied.</p></dd>
+</dl>
+<p>To remove all subnets from a specific VLAN:</p>
+<pre>vlan remove &lt;tag&gt;
+</pre>
+<p></p>
+<p>Note that MTU values can be set for a specific VLAN interface using ipadv.</p>
+<h1>Examples</h1>
+<p>To remove the 192.0.2.0/24 network from VLAN 22:</p>
+<pre>vlan remove 22 192.0.2.0 255.255.255.0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ipadv.html">ipadv</a> <a href="../Supervisor/vlan-interface-create.html">vlan-interface-create</a> <a href="../Supervisor/vlan-interface-delete.html">vlan-interface-delete</a> <a href="../Supervisor/vlan-interface-delete-all.html">vlan-interface-delete-all</a> <a href="../Supervisor/vlan-interface-show.html">vlan-interface-show</a> <a href="../Topic/vlan-interfaces.html">vlan-interfaces</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

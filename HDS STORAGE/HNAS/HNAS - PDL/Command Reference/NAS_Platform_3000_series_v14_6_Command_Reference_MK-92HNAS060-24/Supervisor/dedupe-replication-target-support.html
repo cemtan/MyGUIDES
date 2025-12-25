@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dedupe-replication-target-support</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>dedupe-replication-target-support</h1>
+<p>Enable or disable support for deduplication on replication target filesystems</p>
+<h1>Syntax</h1>
+<pre>dedupe-replication-target-support [--enable | --disable]
+</pre>
+
+<h1>Description</h1>
+<p>Enable or disable support for deduplication on replication target filesystems.</p>
+<p>If enabled (the default) then deduplication can be performed on replication target filesystems that have been configured with dedupe support.</p>
+<p>If disabled, then deduplication will not be performed on any replication target filesystem regardless of their individual configurations.</p>
+<p>Deduplication of replication targets is not supported on HNAS-3080, HNAS-3090, HNAS-4020, or HNAS-4040 systems.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--enable</strong></dt>
+<dd><p>Enable support for deduplication on replication target filesystems.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>Disable support for deduplication on all replication target filesystems.</p></dd>
+</dl>
+<p>If neither the enable or disable option is specified, the current setting is displayed.</p>
+<h1>Examples</h1>
+<pre>$: dedupe-replication-target-support --enable
+Support for deduplication on replication target filesystems is enabled
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/dedupe-queue-add.html">dedupe-queue-add</a> <a href="../Topic/deduplication.html">deduplication</a> <a href="../Supervisor/format.html">format</a> <a href="../Supervisor/fs-convert-to-support-dedupe.html">fs-convert-to-support-dedupe</a> <a href="../Supervisor/fs-dedupe-status-get.html">fs-dedupe-status-get</a> <a href="../Supervisor/fs-dedupe-status-set.html">fs-dedupe-status-set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

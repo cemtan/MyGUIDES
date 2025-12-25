@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-dump-device-state</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>scsi-dump-device-state</h1>
+<p>Dump state information about a device or all devices</p>
+<h1>Syntax</h1>
+<pre>scsi-dump-device-state &lt;Device ID | -a --all&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Displays debug troubleshooting information about the internal server state of a storage device or all storage devices attached to the server. The information output by this command is for use by engineering and services to troubleshooting storage issues and should not be required in normal operation.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>&lt;Device ID&gt;</strong></dt>
+<dd><p>Device ID of the disk or tape for which the information will be displayed.</p></dd>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Displays the information for all devices attached to the system.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Show the state information for device 0:</p>
+<pre>$ scsi-dump-device-state 0
+ Dumping Disk ID 0 status :
+ m_dev_reported_status : 0
+ m_current_dev_status : LU_STATE_OK
+ m_pre_init_averaged_dev_status : LU_STATE_OK
+ m_averaged_dev_status : LU_STATE_OK
+ m_device_failed : false
+ m_device_fail_strg "No SCSI failure logged"
+ m_polling_state : 0x1
+ m_recover_device_failed : false
+ m_current_ready_status 0x0
+ m_dev_discovery_completed : true
+ m_write_protect_status WP_READ_WRITE
+ m_deletion_in_progress : false
+ m_not_reported : false
+ m_recover_called : false
+ m_open_requests = 1
+ m_reinitialise_request : false
+ m_force_nexus_refresh : true
+ m_dev_has_been_deleted : false
+ m_licensed_dev_event_proc_running : false
+ is_licensed : true
+ m_known_lu : true
+ m_do_check_all_ports_discovered : false
+ m_do_check_all_ports_discovered_ref_cnt = 0
+ m_open_failed_cnt = 0
+ m_check_connection_active = 0
+ m_generate_open_failure_diagnostic_pending : false
+ m_in_use_counter = 0
+ m_nexus_list_lock users = 0 writers 0
+ have_fatal_error : false
+ is_vendor_specific_info_valid : true
+ update_nexus_connection_info contents : size 0
+ m_averaged_state cur on state true
+ has_completed_initialisation : true
+ is_check_connection_active() : false
+ m_connectivity_check_handled : true
+ Disk ID 0 usable nexus list has 2 nexuses : 0[p0],1[p1]
+ Dev details :
+  inquiry_details_not_consistent() : false
+  inquiry_details_consistent() : true
+  m_dev_details_manager.fw_rev_changed() : false
+  m_dev_details_manager.fw_rev_update_time_expired() : false
+  inquiry_details_valid_but_not_consistent : false
+ MirrorStatusManager
+    m_retry_cnt = 0
+    m_update_mirror_status_request_cnt = 0
+    m_get_current_mirror_status_active = false
+    m_refresh_mirror_status_nexus_response_cnt = 0
+    m_pending_mirror_status = MIRROR_STATE_UNKNOWN
+    m_mirror_status = MIRROR_STATE_PRIMARY_OR_SOLO
+    m_mirror_type_id "" size 0
+ InRecovery_t::m_recover_cnt 0
+ InRecovery_t::m_recovery_active false
+ Nexus port 0 : status = 5
+     m_in_use_counter = 0
+     m_dev_reporting_fatal_status_refresh_cnt = 0
+     m_fatal_error : false
+     m_fatal_error_vendor_specific : false
+     m_vendor_specific_polling_active : false
+     reset exp cnt = 0
+     InitialisingStatus_t : state 2
+     InitialisingStatus_t : m_consistency_checking : false
+     InitialisingStatus_t : m_consistency_checking_failed : false
+     InitialisingStatus_t : m_init_retries =  0
+     InitialisingStatus_t : m_disconnect : false
+     m_initialisation_active : false
+     m_initialisation_polling : false
+     m_mirror_status : MIRROR_STATE_PRIMARY_OR_SOLO
+     m_write_protected : WP_READ_WRITE
+     m_initialising_error : false
+     m_initialised        : true
+     m_last_status_check_result OK
+     m_check_connection_cached_status 5
+     m_nexus_status.current_on_state : true
+     m_is_not_supported : false
+     m_was_not_reported : false
+     m_update_mirror_status_active : false
+ Nexus port 1 : status = 5
+     m_in_use_counter = 0
+     m_dev_reporting_fatal_status_refresh_cnt = 0
+     m_fatal_error : false
+     m_fatal_error_vendor_specific : false
+     m_vendor_specific_polling_active : false
+     reset exp cnt = 0
+     InitialisingStatus_t : state 2
+     InitialisingStatus_t : m_consistency_checking : false
+     InitialisingStatus_t : m_consistency_checking_failed : false
+     InitialisingStatus_t : m_init_retries =  0
+     InitialisingStatus_t : m_disconnect : false
+     m_initialisation_active : false
+     m_initialisation_polling : false
+     m_mirror_status : MIRROR_STATE_PRIMARY_OR_SOLO
+     m_write_protected : WP_READ_WRITE
+     m_initialising_error : false
+     m_initialised        : true
+     m_last_status_check_result bus reset
+     m_check_connection_cached_status 5
+     m_nexus_status.current_on_state : true
+     m_is_not_supported : false
+     m_was_not_reported : false
+     m_update_mirror_status_active : false
+ m_device_number valid 1  = ""  size 0
+ media_check_failed : false
+ is_media_check_open_failure : false
+ m_status_update_outstanding : false
+ m_get_device_num_active users =0
+ ScsiReadWriteHandler
+    m_changed_controller = false
+    m_last_mc_time = 2011-05-17 09:54:15+01:00
+    m_port_status_changed_time : 2011-05-17 09:54:11+01:00
+    m_last_bus_reset_time : 2011-05-17 09:54:11+01:00
+    m_use_short_timeout : true
+    m_state_usable : true
+    m_notify_state_is_usable : true
+    m_command_data_map size 0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-dump-mc-status.html">scsi-dump-mc-status</a> <a href="../Supervisor/scsi-dump-port-state.html">scsi-dump-port-state</a> <a href="../Supervisor/scsi-dump-rack-info.html">scsi-dump-rack-info</a> <a href="../Supervisor/scsi-dump-rack-states.html">scsi-dump-rack-states</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

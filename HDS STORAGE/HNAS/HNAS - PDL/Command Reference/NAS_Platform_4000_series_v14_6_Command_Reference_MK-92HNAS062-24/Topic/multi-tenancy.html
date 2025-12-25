@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>multi-tenancy</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>multi-tenancy</h1>
+
+<h1>Description</h1>
+<p>This manual page explains multi-tenancy, the ability to support multiple logically separate serving environments, known as tenants, on a single physical server or cluster.</p>
+<p>In a multi-tenant environment a tenant is built up from a set of EVSs. Each of these EVSs has its own complete and separate environment which is configured as required e.g. network interfaces, routing and security aspects.  In this respect, multi-tenancy can be considered an extension of evs-security. By having EVSs with duplicated configuration, the different EVSs become part of a shared serving environment, allowing more than one EVS to be logically grouped as a tenant.</p>
+<p>In a typical multi-tenant environment individual tenant EVSs are likely to be configured to use different sub-nets or virtual LANs.  In the latter case, it is possible that address ranges will be duplicated and the same IP address will refer to completely different hosts.</p>
+<p>To enable multi-tenancy, the server requires a valid "EVS Security" license.</p>
+<h2>Scope of system configuration</h2>
+<p>Modules which are controlled by evs-security, e.g. DNS and WINS, share their configuration between multi-tenancy and individual evs-security environments.  If you are switching an already configured system to or from multi-tenancy you should consider the effects of this scoping.  For example, if you enable multi-tenancy on a system where some EVSs are configured with individual evs-security, those EVSs will retain those settings which are part of their evs-security controlled configuration.  EVSs which are configured with global evs-security will have new unconfigured configuration settings for all items.  See evs-security for full details of configuration which is controlled by it.</p>
+<p>When multi-tenancy is enabled, existing routes are propagated to existing EVSs. If new EVSs are added after multi-tenancy is enabled, their routing tables will be unpopulated, and will need to be configured.</p>
+<p>To disable multi-tenancy, all EVSs must be deleted in advance.</p>
+<p>All other modules have separate configuration settings dependent on whether multi-tenancy is enabled or not and any settings applied when multi-tenancy is enabled will not be applied when it is disabled and vice-versa.</p>
+<p>When multi-tenancy is enabled, the following features or services cannot be in use or enabled:</p>
+<dl>
+<dt><strong>* NetBIOS</strong></dt>
+<dd><p>If enabled, it will be disabled automatically when multi-tenancy is enabled.</p></dd>
+<dt><strong>* Cluster namespaces</strong></dt>
+<dd><p>If present, multi-tenancy cannot be enabled.</p></dd>
+<dt><strong>* Administrative services via EVS IP addresses</strong></dt>
+<dd><p>An EVSs IP address cannot be used by ssc or similar services to manage the server. '<code>mscfg</code>''s evsipaddr option will have no effect when multi-tenancy is enabled.</p></dd>
+</dl>
+<h2>Overlapping IP addresses</h2>
+<p>With multi-tenancy enabled, the same IP address may be used on multiple EVSs. The overlap must though meet the following constraints:</p>
+<ul>
+<li>The same IP address isn't used by the same EVS more than once</li>
+<li>The same IP address isn't used by the same interface more than once</li>
+</ul>
+<h2>Enabling of multi-tenancy</h2>
+<p>When enabling multi-tenancy, the server will have EVSs in one of the following combinations. This dictates what will be seen when multi-tenancy is enabled. Where possible, it is recommended that multi-tenancy is enabled prior to creating EVSs.</p>
+<dl>
+<dt><strong>* No EVSs are present</strong></dt>
+<dd><p>In this case, multi-tenancy would be enabled, and the EVSs would be configured manually thereafter. No configuration that would be available in global configuration will be utilised by EVSs subsequently created.</p></dd>
+<dd><p>To enable, call '<code>multi-tenancy-enable</code>'.</p></dd>
+<dt><strong>* EVSs present, and in individual mode</strong></dt>
+<dd><p>This is where the server will have appropriate configuration for services such as DNS configured on a per-EVS basis. When enabled, multi-tenancy will continue to utilise the configuration available within a per-EVS context. With the exception of the termination of any active connection at the time of the enabling, no loss of service would occur.</p></dd>
+<dd><p>To enable, call '<code>multi-tenancy-enable</code>'.</p></dd>
+<dt><strong>*  EVSs present, and in global mode</strong></dt>
+<dd><p>This is where the server is still using shared configuration between the EVSs. As utilising this global configuration in a multi-tenant environment may not be what is required, all EVSs must be converted to individual security mode prior to enabling multi-tenancy. When converting to individual security, the EVS will need to have its configuration updated to meet the requirements of that EVS, such as adding DNS settings. Refer to the '<code>individual-security-affected-commands</code>' man page for more information.</p></dd>
+<dd><p>To enable multi-tenancy, assuming only 1 EVS is present</p></dd>
+</dl>
+<pre>    evs disable -e 1
+    evs-security individual -e 1
+    evs enable -e 1
+    multi-tenancy-enable
+</pre>
+<p></p>
+<dl>
+<dt><strong>* EVSs present, in both individual and global modes</strong></dt>
+<dd><p>In this configuration, globally configured EVSs would have to be converted to individual security as described above. At that point, multi-tenancy can be enabled</p></dd>
+<dd><p>To enable multi-tenancy, assuming only EVS 4 is globally configured</p></dd>
+</dl>
+<pre>    evs disable -e 4
+    evs-security individual -e 4
+    evs enable -e 4
+    multi-tenancy-enable
+</pre>
+<p></p>
+<h2>Applies To Tenant commands</h2>
+<p>Some commands are listed in their "Applies To" manual section as applying to a "Tenant". For systems with multi-tenancy enabled these commands must be run within the context of a tenant EVS and will affect only that tenant EVS.  For systems where multi-tenancy is not enabled the command will have a global effect regardless of whether it is run in the context of an EVS or not.</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../User/evs-security.html">evs-security</a> <a href="../Supervisor/evsipaddr.html">evsipaddr</a> <a href="../Topic/individual-security-affected-commands.html">individual-security-affected-commands</a> <a href="../Supervisor/multi-tenancy-disable.html">multi-tenancy-disable</a> <a href="../Supervisor/multi-tenancy-enable.html">multi-tenancy-enable</a> <a href="../Supervisor/multi-tenancy-show.html">multi-tenancy-show</a> <a href="../Supervisor/route-gateway-add.html">route-gateway-add</a> <a href="../Supervisor/route-host-add.html">route-host-add</a> <a href="../Supervisor/route-mtu-add.html">route-mtu-add</a> <a href="../Supervisor/route-net-add.html">route-net-add</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

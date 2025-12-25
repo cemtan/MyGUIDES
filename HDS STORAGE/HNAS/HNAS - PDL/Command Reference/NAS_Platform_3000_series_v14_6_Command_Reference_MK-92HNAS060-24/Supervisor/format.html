@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>format</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>format</h1>
+<p>Formats the specified file system.</p>
+<h1>Syntax</h1>
+<pre>format [--confirm] [--non-strict-worm|--strict-worm] [--override-pdm] [--replication-target] [--multi-tier-leaf-onodes-on-tier-one] [--usage-based-quotas] [--dsb-count &lt;DSB count&gt;] [--dedupe-supported  [--disable-dedupe]] -b &lt;block size&gt; &lt;file-system&gt;
+Dev-level options: [--force-enhanced-bitmap-resiliency | --force-standard-bitmap-resiliency]
+</pre>
+
+<h1>Description</h1>
+<p>The format command will format the specified file system using the specified block size.  Supported file system block sizes are 4KB and 32KB.  Any data stored on the specified file system will be lost. The command will prompt for confirmation unless the --confirm option is used.</p>
+<p>If an existing file system is being reformatted, it may be participating in a data migration path.  Formatting one side of a data migration path may result in unexpected loss of data for the other volume.  If the file system to be formatted is currently unmounted (as required by 'format'), then any paths that have been established can only be detected if the corresponding volume(s) are mounted.  Format will try to detect data migration dependencies from currently mounted volumes and if found, will issue a warning and prevent the format. If an existing file system is being reformatted it may have a virtualization path configured. Format will also detect any virtualization paths for the file system and if found, will issue a warning and prevent the format. Nevertheless, format may proceed, breaking any migration dependencies and deleting any virtualization paths, by using the '--override-pdm' flag.</p>
+<p>After a file system has been formatted, the method of writing updated data blocks may be changed from the default using the wfs-user-data-write-policy command.</p>
+<p>Note: When formatting a tiered file system, tier 0 must comprise at least 1/400th of the file system's total space in order to safely accommodate the initial metadata. If this is not the case, the format attempt will fail.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>Don't ask for confirmation.</p></dd>
+<dt><strong>-b, --block-size</strong></dt>
+<dd><p>Specify the block size in KiB.</p></dd>
+<dt><strong>--dsb-count</strong></dt>
+<dd><p>Specify the dynamic super block count for the file system. The value specified in the wfs-2-default-dsb-count configuration variable is used by default (initially set to 128).</p></dd>
+<dt><strong>--non-strict-worm</strong></dt>
+<dd><p>Create a non-strict WORM file system that can be reformatted.</p></dd>
+<dt><strong>--strict-worm</strong></dt>
+<dd><p>Create a strict WORM file system that cannot be reformatted or deleted.</p></dd>
+<dd><p>Neither of the WORM options can be used if the host span is in snapshot mode.</p></dd>
+<dt><strong>--override-pdm</strong></dt>
+<dd><p>Override any data-migration dependencies.</p></dd>
+<dt><strong>--replication-target</strong></dt>
+<dd><p>Format the file system for use as a target for object replication.</p></dd>
+<dt><strong>--multi-tier-leaf-onodes-on-tier-one</strong></dt>
+<dd><p>Rather than placing all metadata on tier zero, leaf onodes of regular files are placed on tier one. This will reduce tier zero usage, at the expense of slower access times. This option is only valid on multi tier file systems.</p></dd>
+<dt><strong>--usage-based-quotas</strong></dt>
+<dd><p>Instead of charging against file size, the quota system charges against the number of data blocks files are using. In the case of sparse files, there can be a large difference between file size and on disk usage. This option is not supported on read-cache or replication targets (where the quota mode will be replicated from the source file system)</p></dd>
+<dt><strong>--dedupe-supported</strong></dt>
+<dd><p>Format the file system with support for dedupe. Dedupe will be automatically enabled.</p></dd>
+<dd><p>Note that a WORM file system can be formatted with --dedupe-supported but deduplication cannot be performed on it.</p></dd>
+<dd><p>If the dedupe service is in the auto-enable state (automatically enabled on demand), the command will attempt to enable (start) the dedupe service if there are sufficient free resources. If the attempt fails, the format command does not fail but will raise an event to advise users to check the resource-config commands (e.g. resource-config-show, etc) for details of the system state and how to ensure the dedupe service can be started.</p></dd>
+<dd><p>Deduplication of replication target file systems is available from release 13.6 onwards. See the 'deduplication' concept man page for details on system compatibility.</p></dd>
+<dt><strong>--disable-dedupe</strong></dt>
+<dd><p>This option is applicable only when --dedupe-supported is specified. By default dedupe is automatically enabled if the '--dedupe-supported' option is specified for a non-WORM file system. Use this option to prevent the non-WORM file system from being scheduled for dedupe, even though its format supports it. For a WORM file system dedupe is always disabled whether or not this option is specified.</p></dd>
+</dl>
+<p>On a set of storage-based snapshots, it is not necessary for all versions of a file system to be formatted with the same options.  After Snapshot A is copied to Snapshot B, B's file systems will contain the same data and be formatted with the same options as A's, regardless of the way they were originally formatted.  If A's file systems are formatted before the copy is performed, B's file systems will automatically end up formatted; they should not be manually reformatted, or all the data they contain will be destroyed.</p>
+<h1>Examples</h1>
+<p>Format a file system using a 32KB block size, skipping the confirmation prompt:</p>
+<pre>  format --confirm -b 32 fs0
+</pre>
+<p></p>
+<p>Format a file system using a 4KB block size, ignoring any data migration paths that may currently exist:</p>
+<pre>  format -b 4 --override-pdm fs1
+</pre>
+<p></p>
+<p>Format a file system with 32 DSBs using a 4KB block size:</p>
+<pre>  format --dsb-count 32 -b 4 fs2
+</pre>
+<p></p>
+<p>Format a 4KB block size file system with dedupe support:</p>
+<pre>  format -b 4 --dedupe-supported fs2
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fs-dedupe-status-get.html">fs-dedupe-status-get</a> <a href="../Supervisor/fs-dedupe-status-set.html">fs-dedupe-status-set</a> <a href="../Supervisor/fs-quota-mode.html">fs-quota-mode</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Supervisor/replication-target-convert-to-read-write-fs.html">replication-target-convert-to-read-write-fs</a> <a href="../Supervisor/replication-target-revert-from-read-write-fs.html">replication-target-revert-from-read-write-fs</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Supervisor/wfs-user-data-write-policy.html">wfs-user-data-write-policy</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

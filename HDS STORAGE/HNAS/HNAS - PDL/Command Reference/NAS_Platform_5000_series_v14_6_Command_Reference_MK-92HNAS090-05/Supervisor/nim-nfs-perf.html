@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nim-nfs-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>nim-nfs-perf</h1>
+<p>Show nim nfs perf performance statistics</p>
+<h1>Syntax</h1>
+<pre>nim-nfs-perf [-s|--summary] [-f|--file-system &lt;file_system|*|+&gt;] [-o|--operation &lt;nfs_operation|*|+&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This man page describes a class of commands that show certain per-X (for example, per protocol) statistics.  Protocol operations include all requests received by the node whether they are processed in software, hardware or CNS redirected to another node.  Incoming CNS redirected operations (received via the ICC link) are not included.  The 4 commands listed below show the currently available commands, more are expected to be added in the future.</p>
+<dl>
+<dt><strong>nim-nfs-perf</strong></dt>
+<dd><p>Shows response times of individual NFS operations (NFSv2/3 only) and compound NFS operations (NFSv4 only)</p></dd>
+<dt><strong>nim-nfs-bytes-transferred</strong></dt>
+<dd><p>Shows bytes transferred per NFS operation</p></dd>
+<dt><strong>nim-cifs-perf</strong></dt>
+<dd><p>Shows response times of individual CIFS operations (SMB1/2) and compound CIFS operations (SMB2 only)</p></dd>
+<dt><strong>nim-cifs-bytes-transferred</strong></dt>
+<dd><p>Shows bytes transferred per CIFS operation</p></dd>
+</dl>
+<p>Supported options:</p>
+<dl>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>Show summary statistics (i.e. don't show histograms)</p></dd>
+</dl>
+<p>Supported "per-X" options:</p>
+<dl>
+<dt><strong>--file-system, -f &lt;file system&gt;</strong></dt>
+<dd><p>Select file system.  Either name or volume number may be used.</p></dd>
+<dt><strong>--operation, -o &lt;operation&gt;</strong></dt>
+<dd><p>Select a specific operation.  This has to be a numeric opcode.</p></dd>
+</dl>
+<p>For the "per-X" options, use * to show statistics for all of those entities.  Use + to show a summary for those entities.</p>
+<p>The default value for each of these options will be "*" for the most important aspect, and "+" for the others, i.e. roll up most of the "per-X" parameters and detail the most significant one.</p>
+<h1>Examples</h1>
+<p>Show NFS performance for all operations</p>
+<pre>server:$ nim-nfs-perf -o +
+</pre>
+<p></p>
+<p>Accumulating statistics over all values of 'file_system' Accumulating statistics over all values of 'nfs_operation'</p>
+<pre>Samples=    3209  Total=    690 ms  Av=210 us  Max=49.9 ms
+</pre>
+<p></p>
+<pre>      2184|     #
+      1092|     #
+       546| #   #
+       273| #   #
+       136|###  #
+        68|###  #
+        34|#### #
+        17|######
+         8|######     #
+         4|######     #
+         2|######     # #
+         1|###### #   # #
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          10u 160 3ms 40 655 10s 2.8m 45m
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

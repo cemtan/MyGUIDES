@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mse-run</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>mse-run</h1>
+<p>Empower the target command to resolve macros and escape sequences in its context before running</p>
+<h1>Syntax</h1>
+<pre>... | mse-run [(--delay-target-stdout|-d) | (--delay-target-stdout-stderr|-D)]
+	[--escape-char|-e &lt;default @, 0 to disable&gt;]
+	[--macro-symbol|-m &lt;default %, 0 to disable&gt;]
+	[--global-env|-g | --local-env|-l | --inherited-env|-i | --shared-env|-s] [--env-id|-V &lt;mse id&gt;] [--library-id|-I &lt;libid&gt;]
+	&lt;target command name&gt; [&lt;argument1&gt;] [&lt;argument2&gt;] ... [&lt;argumentN&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command/filter is a wrapper to run a target command such that all macros and escape sequences in the command line appear to be resolved in the context of the target command. As a result, the number of arguments to the target command is unchanged after all macros and escape sequences are resolved.</p>
+<h2>Options</h2>
+<p>All mse-run's options have the same names and meanings as described in the 'mse' man page. These options are known as environment options. Their descriptions are reproduced below for easy reference.</p>
+<dl>
+<dt><strong>--delay-target-stdout, -d</strong></dt>
+<dd><p>Save the standard output of the target command in a buffer, and then display it only after the target command exits.</p></dd>
+<dt><strong>--delay-target-stdout-stderr, -D</strong></dt>
+<dd><p>Save the standard output and standard error of the target command in a buffer, and then display it only after the target command exits.</p></dd>
+<dt><strong>--escape-char, -e &lt;character&gt;</strong></dt>
+<dd><p>Change the escape character to the specified character. This character can be specified as a single ASCII character or a hex character code between 0 and 0xFF. The default is to support escape sequences where the escape character is '@'. This character is chosen to minimize conflicts with Linux shells when the command is run over ssc.</p></dd>
+<dd><p>Note that support for escape sequences is disabled if the specified character is '0' (digit 0).</p></dd>
+<dt><strong>--macro-symbol, -m &lt;character&gt;</strong></dt>
+<dd><p>Change the macro symbol to the specified character. This character can be specified as a single ASCII character or a hex character code between 0 and 0xFF. The default macro symbol is the percent sign (%). All variables preceded by a macro symbol will be resolved even if they are enclosed in single quotes.</p></dd>
+<dd><p>Note that support for macro tokens is disabled if the specified character is '0' (digit 0).</p></dd>
+<dt><strong>--global-env, -g</strong></dt>
+<dd><p>Specify that the command uses the global MSEV (list of minishell environment variables in the global minishell environment) when creating or modifying variables. However, it still has access to all BALI shell environment variables (BSEV). When the command needs to get the value of a variable, it always searches in the following order: (1) the global MSEV, and (2) the BSEV.</p></dd>
+<dt><strong>--local-env, -l</strong></dt>
+<dd><p>Specify that the command creates its own minishell environment from scratch and uses this environment to store its new or modified variables. However, it still has access to all variables in the global minishell environment and the BALI environment. When the command needs to get the value of a variable, it always searches in the following order: (1) its current MSEV (local), (2) the global MSEV, and finally (3) the BSEV.</p></dd>
+<dt><strong>--inherited-env, -i</strong></dt>
+<dd><p>Specify that the command creates a copy of an existing minishell environment whose id is specified by --env-id. The command will use this copy to store new and modified variables for its own use. However, it still has access to all BALI shell environment variables (BSEV) When the command needs to get the value of a variable, it always searches in the following order: (1) its current MSEV, (2) the global MSEV, and finally (3) the BSEV.</p></dd>
+<dt><strong>--shared-env, -s</strong></dt>
+<dd><p>Specify that the command shares, or uses, an existing minishell environment whose environment id is specified by --env-id. All commands that share this minishell environment will see all changes modified by each other. This option is the default.</p></dd>
+<dt><strong>--env-id, -V &lt;eid of an existing MSEV&gt;</strong></dt>
+<dd><p>Advanced option, mainly used by the minishell framework. Recall that the list of minishell variables is assigned an id called eid, which is the address of the list in memory. The eid value can be retrieved by the %.eid macro in the context of the current mse command.</p></dd>
+<dd><p>This option is meaningful only when option --inherit-env or --shared-env is specified. It specifies the eid of an existing minishell environment for the current command to share with or inherit from. By default, if --env-id is not specified, the eid value is assumed to be zero. A zero eid value represents the global minishell environment.</p></dd>
+<dt><strong>--library-id, -I &lt;libid of existing library&gt;</strong></dt>
+<dd><p>Advanced option, mainly used by the minishell framework. It specifies the library id of an existing library for the current mse-run command to use. This id can be retrieved by the %.libid macro in the context of the current mse-run command.</p></dd>
+</dl>
+<p>The 'mse' man page provides complete information on .libid, .eid, and other parameters mentioned in this man page. If the environment type option (-g, -l, -i, -s) is not specified and if the --env-id option is not specified, the command defaults to using the global minishell environment. Variables in the global minishell environment can be managed with the mse-env, mse-set, and mse-unset commands.</p>
+<p>Note that mse-run supports some target commands that are not BALI commands. At the present time it supports the three built-in minishell environment commands named myenv, myenv-set, myenv-unset. These commands behave exactly like the BALI commands mse-env, mse-set, and mse-unset, respectively, except that they deal with variables in the current minishell environment that mse-run is using. For more information, see the mse man page.</p>
+<h2>Exit code</h2>
+<p>The mse-run command records two types of error codes in the following minishell global environment variable.</p>
+<p>1. Exit code due to error in the mse-run command alone. This includes errors in parsing the command arguments or launching the target command.</p>
+<pre>      RC_SPECIFIC_TO_MSE_RUN = "SUCCESS" | "SYNTAX" | "FAILED"
+</pre>
+<p></p>
+<p>2. Exit code due to error in runing the target command:</p>
+<pre>      RC_SPECIFIC_TO_MSE_RUN_TARGET = "SUCCESS" | "SYNTAX" | "FAILED"
+</pre>
+<p></p>
+<h2>Differences between mse and mse-run</h2>
+<p>The main difference between the mse command and the mse-run command is how macros and escape sequences are resolved. If mse is used, they are resolved in the context of mse. If mse-run is used, the macros and escape sequences appear to be resolved in the context of the command that is run by mse-run. This command is known as the target command of mse-run.</p>
+<p>This can be best illustrated by the following examples.</p>
+<pre>  1. The "touch" command can handle multiple files on the same command line:
+         $ rm x*
+         $ touch x1 x2 x3
+         $ ls x*               # see 3 files
+         x1
+         x2
+         x3
+</pre>
+<p></p>
+<pre>  2. Define an environment variable xyz with the value equal to "x1 x2 x3".
+         $ mse-set xyz "x1 x2 x3"
+</pre>
+<p></p>
+<pre>  3. Run "touch" with mse:
+         $ rm x*
+         $ mse touch %xyz
+         $ ls x*               # see 3 files
+         x
+         y
+         z
+</pre>
+<p></p>
+<pre>  4. Run "touch" with mse-run:
+         $ rm x*
+         $ mse-run touch %xyz
+         $ ls x*               # see only 1 file
+         x1 x2 x3
+</pre>
+<p></p>
+<p>The mse result in (3) is due to the fact that the mse command resolves all macros and escape sequences before launching the resulting command line in BALI:</p>
+<pre>    - First, 'touch %xyz' is resolved into 'touch x y z'
+    - Then mse executes the resulting command line, i.e., touch x y z.
+</pre>
+<p></p>
+<p>Thus, the touch command sees 3 arguments and knows it has to create 3 files.</p>
+<p>The mse-run result in (4) is due to the fact that the mse-run command behaves as if</p>
+<pre>    - The mse-run command passed the argument %xyz as is to the "touch" command.
+    - The touch command resolved %xyz in its context.
+    - Thus, the touch command sees only one argument and knows it has to create only one file.
+</pre>
+<p></p>
+<p>Therefore, the general rule is as follows:</p>
+<pre>   - If the target command has to resolve macros and escapes, then
+     add 'mse-run' (with appropriate options) before the command line.
+</pre>
+<p></p>
+<pre>   - If macros and escapes have to be resolved before running the target
+     command, then add 'mse' before the command line.
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>1. Add mse-run before any BALI command line to make it understand macros and escape sequences</p>
+<pre>          $ mse-set file 'my weekly report.txt'
+          $ rm %file                    # (a) - wrong
+          $ mse-run rm %file            # (b) - correct
+</pre>
+<p></p>
+<p>Note that the rm command does not support macros and escape sequences. Hence, example (a) means the rm command is trying to delete a file whose name consists of 5 literal characters "%file", which is not what we wanted.</p>
+<p>In example (b), the "%file" token appears as a second argument to the mse-run command, which supports macros and escape sequences. Thus, %file is resolved in the mse-run context, then the result is passed as a single token to the target command 'rm'. Thus, 'rm' sees the same number of arguments before and after macro expansion. The net effect is as if 'rm' resolved all macros in the arguments following 'rm' in its context.</p>
+<p>Use mse-run is the best solution to enable support for escapes and macros in any BALI command without actually modifying the command code.</p>
+<p>2. Use mse-run as a replacement for ssrun</p>
+<p>To this end consider the following example:</p>
+<pre>   - Suppose there is a file called "Joe's report".
+   - We want to see the size (ls -l "Joe's report") and then cat it
+     immediately as follows:
+</pre>
+<p></p>
+<pre>          $ ls -l "Joe's book"; cat "Joe's book"
+</pre>
+<p></p>
+<p>The commands above are simple enough and no one would want to make them complicated. However, we are going to make them complicated to illustrate the powerful capability of mse-run.</p>
+<p>Suppose it is desirable to use ssrun to execute the two commands. To this end, we need to enclose them in quotes, but ssrun will fail with syntax error:</p>
+<pre>          $ ssrun -c "ls -l "Joe's book"; cat "Joe's book""   # syntax error
+          $ ssrun -c 'ls -l "Joe's book"; cat "Joe's book"'   # syntax error
+</pre>
+<p></p>
+<p>If we can escape the two apostrophes, everything would be fine:</p>
+<pre>          $ ssrun -c 'ls -l "Joe@qs book"; cat "Joe@qs book"'
+</pre>
+<p></p>
+<p>Unfortunately, this fails because ssrun does not support escapes and macros. To solve this problem, simply add 'mse-run' before the BALI command name:</p>
+<pre>          $ mse-run ssrun -c 'ls -l "Joe@qs book"; cat "Joe@qs book"'
+</pre>
+<p></p>
+<p>The escape sequences and macros will appear as if they were resolved by ssrun although the 'ssrun' code has not been modified to support them.</p>
+<p>Note that the best solution would be to replace 'ssrun' with 'mse' in the first place:</p>
+<pre>          $ mse 'ls -l "Joe@qs book"; cat "Joe@qs book"'  # OK
+</pre>
+<p></p>
+<p>But the key point here is to exercise 'mse-run' with 'ssrun' as a place holder for any arbitrary BALI command.</p>
+<p>In summary, mse-run is designed for simplicity and ease of use:</p>
+<pre>      - First, type the original command line as usual.
+      - Then add 'mse-run' before the target command name.
+      - Finally, run it.
+</pre>
+<p></p>
+<p>3. To avoid concurrent resource access by multiple commands</p>
+<p>Consider this example:</p>
+<pre>   $ path-to-object-number --hex -f fs1 /file1 | strtoken --run check-objstore -f fs1 -o %1
+</pre>
+<p></p>
+<p>This command chain fails because both commands path-to-object-number and check-objstore cannot be run concurrently on the same file system.  There are many ways to avoid this error.</p>
+<p>a. Use command substitution of mse-run</p>
+<pre>      $ mse-run echo "%(path-to-object-number --hex -f fs1 /file1)"  | strtoken --run check-objstore -f fs1 -o %1
+   or
+      $ mse-run check-objstore -f fs1 -o "%(path-to-object-number --hex -f fs1 /file1)"
+</pre>
+<p></p>
+<p>b. Use the mse command interpreter (available since software version 12.3)</p>
+<pre>   - Use command substitution of mse
+</pre>
+<p></p>
+<pre>        $ mse check-objstore -f fs1 -o "%(path-to-object-number --hex -f fs1 /file1)"
+</pre>
+<p></p>
+<pre>   - Run two mse commands
+</pre>
+<p></p>
+<pre>        $ mse 'objnum ::=. path-to-object-number --hex -f fs1 /file1'
+        $ mse 'check-objstore -f fs1 -o %objnum'
+</pre>
+<p></p>
+<pre>     This method works because mse variables are stored, by default, in a global minishell
+     environment, which is persistent until server's restart. To clean up:
+</pre>
+<p></p>
+<pre>        $ mse-unset objnum   # or 'mse-unset --all' to delete all mse variables
+</pre>
+<p></p>
+<pre>   - Run a single mse command to execute two separate statements
+</pre>
+<p></p>
+<pre>        $ mse --local-env 'objnum ::=. path-to-object-number --hex -f fs1 /file1; check-objstore -f fs1 -o %objnum'
+</pre>
+<p></p>
+<pre>     Note that no cleanup of 'objnum' is needed because mse is run in a local
+     minishell environment, which is destroyed when the mse command exits.
+</pre>
+<p></p>
+<p>c. Use the following new features starting with software version 13.4.5105</p>
+<pre>   - Run mse-run with option -d|-delay-target-stdout
+</pre>
+<p></p>
+<pre>       $ mse-run -d path-to-object-number --hex -f fs1 /file1 | strtoken --run check-objstore -f fs1 -o %1
+</pre>
+<p></p>
+<pre>   - Specify a pathname to the check-objstore command directly
+</pre>
+<p></p>
+<pre>       $ check-objstore -f fs1 -o /file1
+</pre>
+<p></p>
+<p>4. Use mse-run as a filter</p>
+<p>Most of BALI commands cannot be run directly as a filter. Using the mse-run wrapper they can behave as filter. For example, to rename all .txt files to .txt.saved files:</p>
+<pre>    $ ls *.txt
+    a.txt
+    b.txt
+</pre>
+<p></p>
+<pre>    $ ls *.txt | mse-run mv %.__ %.__.saved
+    $ ls
+    a.txt.saved
+    b.txt.saved
+</pre>
+<p></p>
+<p>This example has used the built-in macro %.__ (two underscores) to accomplish the feat. This macro represents the standard input text line with the newline removed. For more information, see the 'mse' man page.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/check-objstore.html">check-objstore</a> <a href="../../Topic/macro-support.html">macro-support</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Dev/mse-abort.html">mse-abort</a> <a href="../../Dev/mse-config.html">mse-config</a> <a href="../../Topic/mse-env.html">mse-env</a> <a href="../../Dev/mse-run.html">mse-run</a> <a href="../../Filter/Dev/mse-set.html">mse-set</a> <a href="../../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../../Supervisor/path-to-object-number.html">path-to-object-number</a> <a href="../../Topic/quoted-text.html">quoted-text</a> <a href="../../User/ssrun.html">ssrun</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,1000 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>Command Line Reference</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<table border="0" cellpadding="10" bgcolor="white">
+<tr><td><img alt="" src="logo.gif"></td>
+<td align="center">
+<h3>NAS Module Command Line Reference<br>(Release 15.0)</h3>
+</td>
+</tr>
+</table>
+<p>The Command Line Interface (CLI) can be accessed in any of the following ways:</p>
+<ul>
+<li>Using Secure Shell (SSH) to connect into the NAS server through the SMU.</li>
+<li>Using SSH to directly connect into the NAS server.</li>
+<li>Using the SSC utility, available for Windows and Linux.</li>
+</ul>
+<p>These utilities allow you to access the CLI, which then requires that you log in before issuing commands.
+Contact Customer Support for the login details.</p>
+<p>Refer to the System Access Guide for more information about using the utilities listed above.</p>
+<hr>
+<h2>Command Line Reference</h2>
+<p>Click on a man page name to view additional reference information.</p>
+<h3>Topics</h3>
+<p>The following table lists topics that are functional areas or concepts relevant to the NAS server, but are not, in themselves, commands. These topics provide information relating to one or more commands, file service protocols, or technologies used by the NAS server. Click on a topic link to view the man page for that topic.</p>
+<blockquote>
+<table border="2" cellpadding="4" cellspacing="2">
+<tr>
+<td>
+<b>
+Topic
+</b>
+</td>
+</tr>
+<tr>
+<td>
+<a name=aggregate-linux-interfaces>
+</a>
+<a href="./Topic/aggregate-linux-interfaces.html">aggregate-linux-interfaces</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cacls-fields>
+</a>
+<a href="./Topic/cacls-fields.html">cacls-fields</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=check-space-trackers>
+</a>
+<a href="./Topic/check-space-trackers.html">check-space-trackers</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=chunk>
+</a>
+<a href="./Topic/chunk.html">chunk</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cifs>
+</a>
+<a href="./Topic/cifs.html">cifs</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cluster-interfaces>
+</a>
+<a href="./Topic/cluster-interfaces.html">cluster-interfaces</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cluster-node-route>
+</a>
+<a href="./Topic/cluster-node-route.html">cluster-node-route</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cod>
+</a>
+<a href="./Topic/cod.html">cod</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console>
+</a>
+<a href="./Topic/console.html">console</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style>
+</a>
+<a href="./Topic/console-prompt-style.html">console-prompt-style</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-default-set>
+</a>
+<a href="./Topic/console-prompt-style-default-set.html">console-prompt-style-default-set</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-set>
+</a>
+<a href="./Topic/console-prompt-style-set.html">console-prompt-style-set</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-show>
+</a>
+<a href="./Topic/console-prompt-style-show.html">console-prompt-style-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cow>
+</a>
+<a href="./Topic/cow.html">cow</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=dedupe-schedule>
+</a>
+<a href="./Topic/dedupe-schedule.html">dedupe-schedule</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=deduplication>
+</a>
+<a href="./Topic/deduplication.html">deduplication</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=encroachment>
+</a>
+<a href="./Topic/encroachment.html">encroachment</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=evs-specifier>
+</a>
+<a href="./Topic/evs-specifier.html">evs-specifier</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=external-migration>
+</a>
+<a href="./Topic/external-migration.html">external-migration</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=file-clone>
+</a>
+<a href="./Topic/file-clone.html">file-clone</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=filesystem-specifier>
+</a>
+<a href="./Topic/filesystem-specifier.html">filesystem-specifier</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=filesystem-thresholds>
+</a>
+<a href="./Topic/filesystem-thresholds.html">filesystem-thresholds</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=hdp>
+</a>
+<a href="./Topic/hdp.html">hdp</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=heap_markers>
+</a>
+<a href="./Topic/heap_markers.html">heap_markers</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=hti>
+</a>
+<a href="./Topic/hti.html">hti</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=individual-security-affected-commands>
+</a>
+<a href="./Topic/individual-security-affected-commands.html">individual-security-affected-commands</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=kill-quotas>
+</a>
+<a href="./Topic/kill-quotas.html">kill-quotas</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=ldap>
+</a>
+<a href="./Topic/ldap.html">ldap</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=macro-support>
+</a>
+<a href="./Topic/macro-support.html">macro-support</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=migration-cloud>
+</a>
+<a href="./Topic/migration-cloud.html">migration-cloud</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mmb-memory>
+</a>
+<a href="./Topic/mmb-memory.html">mmb-memory</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mount-point-access-configuration>
+</a>
+<a href="./Topic/mount-point-access-configuration.html">mount-point-access-configuration</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mse-env>
+</a>
+<a href="./Topic/mse-env.html">mse-env</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mse-functions>
+</a>
+<a href="./Topic/mse-functions.html">mse-functions</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mse-unit-testing>
+</a>
+<a href="./Topic/mse-unit-testing.html">mse-unit-testing</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=multi-tenancy>
+</a>
+<a href="./Topic/multi-tenancy.html">multi-tenancy</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=ndmp-devices>
+</a>
+<a href="./Topic/ndmp-devices.html">ndmp-devices</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=offset-and-length>
+</a>
+<a href="./Topic/offset-and-length.html">offset-and-length</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=per-fs-throttle>
+</a>
+<a href="./Topic/per-fs-throttle.html">per-fs-throttle</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=quoted-text>
+</a>
+<a href="./Topic/quoted-text.html">quoted-text</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=regex-options>
+</a>
+<a href="./Topic/regex-options.html">regex-options</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=replication-recovery-task-log-events>
+</a>
+<a href="./Topic/replication-recovery-task-log-events.html">replication-recovery-task-log-events</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config>
+</a>
+<a href="./Topic/resource-config.html">resource-config</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-apply>
+</a>
+<a href="./Topic/resource-config-apply.html">resource-config-apply</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-maximum-safe-heap-show>
+</a>
+<a href="./Topic/resource-config-maximum-safe-heap-show.html">resource-config-maximum-safe-heap-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-show>
+</a>
+<a href="./Topic/resource-config-show.html">resource-config-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-test>
+</a>
+<a href="./Topic/resource-config-test.html">resource-config-test</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-consumer-list>
+</a>
+<a href="./Topic/resource-consumer-list.html">resource-consumer-list</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-memory-total-show>
+</a>
+<a href="./Topic/resource-memory-total-show.html">resource-memory-total-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-memory-uncommitted-show>
+</a>
+<a href="./Topic/resource-memory-uncommitted-show.html">resource-memory-uncommitted-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=rest-server>
+</a>
+<a href="./Topic/rest-server.html">rest-server</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=routing>
+</a>
+<a href="./Topic/routing.html">routing</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=routing-by-evs>
+</a>
+<a href="./Topic/routing-by-evs.html">routing-by-evs</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-group>
+</a>
+<a href="./Topic/sd-group.html">sd-group</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-ids>
+</a>
+<a href="./Topic/sd-ids.html">sd-ids</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-queue-depth>
+</a>
+<a href="./Topic/sd-queue-depth.html">sd-queue-depth</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-spec>
+</a>
+<a href="./Topic/sd-spec.html">sd-spec</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=site>
+</a>
+<a href="./Topic/site.html">site</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=snapshots>
+</a>
+<a href="./Topic/snapshots.html">snapshots</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=snmp>
+</a>
+<a href="./Topic/snmp.html">snmp</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=space-constraint>
+</a>
+<a href="./Topic/space-constraint.html">space-constraint</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=space-tracker>
+</a>
+<a href="./Topic/space-tracker.html">space-tracker</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=span-fmd-compression>
+</a>
+<a href="./Topic/span-fmd-compression.html">span-fmd-compression</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=ssfs>
+</a>
+<a href="./Topic/ssfs.html">ssfs</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=storage-based-mirror>
+</a>
+<a href="./Topic/storage-based-mirror.html">storage-based-mirror</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=storage-based-snapshot>
+</a>
+<a href="./Topic/storage-based-snapshot.html">storage-based-snapshot</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=storage-based-snapshot-label>
+</a>
+<a href="./Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=tier>
+</a>
+<a href="./Topic/tier.html">tier</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=tree-clone>
+</a>
+<a href="./Topic/tree-clone.html">tree-clone</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=tree-delete>
+</a>
+<a href="./Topic/tree-delete.html">tree-delete</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=unified-management-ip-address>
+</a>
+<a href="./Topic/unified-management-ip-address.html">unified-management-ip-address</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=units>
+</a>
+<a href="./Topic/units.html">units</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=uvm>
+</a>
+<a href="./Topic/uvm.html">uvm</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=vlan-interfaces>
+</a>
+<a href="./Topic/vlan-interfaces.html">vlan-interfaces</a>
+</td>
+
+</tr>
+</table>
+</blockquote>
+<br>
+<h3>Commands</h3>
+<p>The following table lists NAS server commands. The information in the man page for each command describes the command, shows the command syntax, and may also provide examples and/or links to other relevant information. Click on a command name link to view the man page for that command.</p>
+<p>By default, the table is sorted by command name in alphabetical order.  Click on the Privilege Level column heading to group the commands by privilege level.  When commands are grouped by privilege level, they are sorted by name in alphabetical order.  To sort all commands by name (regardless of privilege level), click the Command column heading.</p>
+<blockquote>
+<table border="2" cellpadding="4" cellspacing="2">
+<tr>
+<td>
+<b>
+Command
+</b>
+</td>
+<td>
+<b>
+<a href="Filter/User-by-level.html">Privilege Level</a>
+</b>
+</td>
+<td>
+<b>
+Description
+</b>
+</td>
+</tr>
+<tr>
+<td>
+<a name=apropos>
+</a>
+<a href="./Any/apropos.html">apropos</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Search command names and descriptions and man pages
+</td>
+</tr>
+<tr>
+<td>
+<a name=exit>
+</a>
+<a href="./Any/exit.html">exit</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Exit the current shell
+</td>
+</tr>
+<tr>
+<td>
+<a name=getmacid>
+</a>
+<a href="./Any/getmacid.html">getmacid</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Report the MAC ID
+</td>
+</tr>
+<tr>
+<td>
+<a name=help>
+</a>
+<a href="./Any/help.html">help</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Show command help
+</td>
+</tr>
+<tr>
+<td>
+<a name=login>
+</a>
+<a href="./Any/login.html">login</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Login to console
+</td>
+</tr>
+<tr>
+<td>
+<a name=logout>
+</a>
+<a href="./Any/logout.html">logout</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Logout from the console
+</td>
+</tr>
+<tr>
+<td>
+<a name=whoami>
+</a>
+<a href="./Any/whoami.html">whoami</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Display name of user currently logged in
+</td>
+</tr>
+</table>
+</blockquote>
+<br>
+<h3>Filters</h3>
+<p>The following table lists "filter" commands which can be used along with some of the NAS server commands listed in the previous table. A filter command is a secondary command added to a NAS server command using the command redirection pipe character (|). The filter command reads the NAS server command's output, performs post-processing on it, then writes the resulting output. Filter commands divide, rearrange, or extract portions of the information that passes through them, and are used to sort, view, and select parts of a NAS server command output.</p>
+<blockquote>
+<table border="2" cellpadding="4" cellspacing="2">
+<tr>
+<td>
+<b>
+Command
+</b>
+</td>
+<td>
+<b>
+<a href="Filter/User-by-level.html">Privilege Level</a>
+</b>
+</td>
+<td>
+<b>
+Description
+</b>
+</td>
+</tr>
+<tr>
+<td>
+<a name=devnull>
+</a>
+<a href="./Filter/User/devnull.html">devnull</a>
+</td>
+<td>
+User
+</td>
+<td>
+Swallow all output
+</td>
+</tr>
+<tr>
+<td>
+<a name=grep>
+</a>
+<a href="./Filter/User/grep.html">grep</a>
+</td>
+<td>
+User
+</td>
+<td>
+Print lines matching a pattern
+</td>
+</tr>
+<tr>
+<td>
+<a name=head>
+</a>
+<a href="./Filter/User/head.html">head</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show just the first part of output
+</td>
+</tr>
+<tr>
+<td>
+<a name=hexdump>
+</a>
+<a href="./Filter/User/hexdump.html">hexdump</a>
+</td>
+<td>
+User
+</td>
+<td>
+Hex dump
+</td>
+</tr>
+<tr>
+<td>
+<a name=less>
+</a>
+<a href="./Filter/User/less.html">less</a>
+</td>
+<td>
+User
+</td>
+<td>
+Pause output every page
+</td>
+</tr>
+<tr>
+<td>
+<a name=mail>
+</a>
+<a href="./Filter/User/mail.html">mail</a>
+</td>
+<td>
+User
+</td>
+<td>
+Mail command output
+</td>
+</tr>
+<tr>
+<td>
+<a name=more>
+</a>
+<a href="./Filter/User/more.html">more</a>
+</td>
+<td>
+User
+</td>
+<td>
+Pause output every page
+</td>
+</tr>
+<tr>
+<td>
+<a name=nop>
+</a>
+<a href="./Filter/User/nop.html">nop</a>
+</td>
+<td>
+User
+</td>
+<td>
+Copy input unchanged
+</td>
+</tr>
+<tr>
+<td>
+<a name=sort>
+</a>
+<a href="./Filter/User/sort.html">sort</a>
+</td>
+<td>
+User
+</td>
+<td>
+Sort lines
+</td>
+</tr>
+<tr>
+<td>
+<a name=sstee>
+</a>
+<a href="./Filter/User/sstee.html">sstee</a>
+</td>
+<td>
+User
+</td>
+<td>
+Write to console and file
+</td>
+</tr>
+<tr>
+<td>
+<a name=tail>
+</a>
+<a href="./Filter/User/tail.html">tail</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show just the last part of output
+</td>
+</tr>
+<tr>
+<td>
+<a name=treacle>
+</a>
+<a href="./Filter/User/treacle.html">treacle</a>
+</td>
+<td>
+User
+</td>
+<td>
+Slow output down
+</td>
+</tr>
+<tr>
+<td>
+<a name=txt2html>
+</a>
+<a href="./Filter/User/txt2html.html">txt2html</a>
+</td>
+<td>
+User
+</td>
+<td>
+Minimal text-to-HTML filter
+</td>
+</tr>
+<tr>
+<td>
+<a name=unzip>
+</a>
+<a href="./Filter/User/unzip.html">unzip</a>
+</td>
+<td>
+User
+</td>
+<td>
+Decompress
+</td>
+</tr>
+<tr>
+<td>
+<a name=wc>
+</a>
+<a href="./Filter/User/wc.html">wc</a>
+</td>
+<td>
+User
+</td>
+<td>
+Print the number of newlines, words, and bytes
+</td>
+</tr>
+<tr>
+<td>
+<a name=zip>
+</a>
+<a href="./Filter/User/zip.html">zip</a>
+</td>
+<td>
+User
+</td>
+<td>
+Compress
+</td>
+</tr>
+</table>
+</blockquote>
+<br>
+<p>&nbsp;</p>
+<hr>
+<p>Part: MK-92HNAS073-27</p>
+</body>
+</html>

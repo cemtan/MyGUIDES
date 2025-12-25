@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>new-battery-fitted</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>new-battery-fitted</h1>
+<p>Set the relevant fields in the Serial EEPROM for a new battery</p>
+<h1>Syntax</h1>
+<pre>new-battery-fitted &lt;--field|--factory&gt; --confirm
+</pre>
+
+<h1>Description</h1>
+<p>Updates the battery fitted date in the MCP serial eeprom. Will also mark the battery for a conditioning cycle, which will be triggered next time the chassis monitor is started.</p>
+<p>Parameters:</p>
+<dl>
+<dt><strong>--field</strong></dt>
+<dd><p>Specify this option when fitting a new battery in the field. This will ensure the battery-fitted-date is set immediately and a conditioning cycle will be triggered next time the chassis monitor is started.</p></dd>
+</dl>
+<dl>
+<dt><strong>--factory</strong></dt>
+<dd><p>Specify this option when fitting a new battery in the factory. This will not set the battery-fitted-date immediately, it will be set next time the chassis monitor is started. A conditioning cycle will also be triggered next time the chassis monitor is started.</p></dd>
+</dl>
+<dl>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Confirm command is to be run</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>new-battery-fitted --field --confirm
+</pre>
+<p></p>
+<p>New battery fitted to the server in the field.</p>
+<pre>new-battery-fitted --factory --confirm
+</pre>
+<p></p>
+<p>New battery fitted to the server in the factory.</p>
+<h1>See Also</h1>
+<p><a href="../Dev/eeprom.html">eeprom</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

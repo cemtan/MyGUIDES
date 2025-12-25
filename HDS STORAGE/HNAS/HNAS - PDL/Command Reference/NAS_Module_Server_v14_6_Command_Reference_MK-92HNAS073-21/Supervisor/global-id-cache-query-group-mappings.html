@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>global-id-cache-query-group-mappings</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>global-id-cache-query-group-mappings</h1>
+<p>List changes in group mappings cache since &lt;counter&gt;</p>
+<h1>Syntax</h1>
+<pre>global-id-cache-query-group-mappings &lt;counter&gt;
+</pre>
+
+<h1>Description</h1>
+<p>There are a number of objects on the NAS server which are tracked and cached based on a globally unique identifier.  There are a series of caches of these globally unique identifiers which are used to identify when individual objects have been changed in some way, i.e. added, updated, or deleted.  For each of these caches there is a counter which increments each time an entry is made in the cache. This command is used to find out what if any entries have been added to the cache since the user supplied counter, in the context of the current evs.</p>
+<p>Note that the counter does not start from zero and although it increments by one each time, each increment may well apply to only one evs.  Any changes that do not apply to the current evs will not be shown.  Hence we can use global-id-cache-dump to see that there have definitely been changes since the supplied cache counter value but we will not receive any changes on running this command if none of those changes relate to the current evs.</p>
+<h2>SYNTAX</h2>
+<pre>global-id-cache-query-group-mappings &lt;cache counter value&gt;
+</pre>
+<p></p>
+<p>where &lt;cache counter value&gt; is a 64 bit number retrieved using global-id-counter-dump.</p>
+<h1>Examples</h1>
+<p>Display all cache entries applying to this evs since the supplied cache counter value:</p>
+<pre>global-id-cache-query-group-mappings 132748621551501317
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/global-id-cache-dump.html">global-id-cache-dump</a> <a href="../Supervisor/global-id-cache-query-export.html">global-id-cache-query-export</a> <a href="../Supervisor/global-id-cache-query-quota.html">global-id-cache-query-quota</a> <a href="../Supervisor/global-id-cache-query-share.html">global-id-cache-query-share</a> <a href="../Supervisor/global-id-cache-query-user-mappings.html">global-id-cache-query-user-mappings</a> <a href="../Supervisor/global-id-counter-dump.html">global-id-counter-dump</a> <a href="../Supervisor/global-id-map-dump.html">global-id-map-dump</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>primary-group-disable-saving</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>primary-group-disable-saving</h1>
+<p>Disables automatic saving of the user-to-primary group table</p>
+<h1>Syntax</h1>
+<pre>primary-group-disable-saving 
+</pre>
+
+<h1>Description</h1>
+<p>The primary-group- commands manage the local user-to-primary-group table.</p>
+<dl>
+<dt><strong>primary-group-delete &lt;user SID&gt;...</strong></dt>
+<dd><p>Delete a user-to-primary group mapping</p></dd>
+<dt><strong>primary-group-delete-all --confirm</strong></dt>
+<dd><p>Delete all user-to-primary group mappings</p></dd>
+<dt><strong>primary-group-disable-saving</strong></dt>
+<dd><p>Disables automatic saving of the user-to-primary group table</p></dd>
+<dt><strong>primary-group-list [&lt;user SID&gt;...]</strong></dt>
+<dd><p>List the user-to-primary group table</p></dd>
+<dt><strong>primary-group-save</strong></dt>
+<dd><p>Saves the user-to-primary group table immediately and synchronously</p></dd>
+<dt><strong>primary-group-set &lt;user SID&gt; &lt;primary group SID&gt;</strong></dt>
+<dd><p>Overrides the user's default group and confers upon them membership of that group</p></dd>
+</dl>
+<p>A user's primary group is used for two purposes. Firstly, it determines the default group for files they create. Secondly, the user is also considered to belong to the primary group for access control decisions. Note that the user remains a member of their original primary group, for access control decisions, even when their default group has been changed with primary-group-set.</p>
+<p>As with the localgroup command, the primary-group- commands don't allow new users or groups to be created.  They just allow existing users and groups to be associated.  However, and again like the localgroup command, a user's primary group can be overridden using a Unix group SID. This allows a Windows user's default group, which is often Domain Users, to be overridden with the default group of an equivalent Unix user, which is often a more specific group.  This can be particularly useful in situations where Windows users need to access directory trees that are primarily Unix-secured.</p>
+<p>The "Forced Groups" local group provides an alternative mechanism for achieving a similar goal. See the "localgroup" man page for a discussion of how to choose between the two approaches.</p>
+<p>The &lt;user&gt; and &lt;primary group&gt; SID can each be specified in a number of forms. One commonly used form is "&lt;domain&gt;\&lt;user name within domain&gt;", like "Unix user\1001". Another supported form is numeric, like S-1-77-0-1001.</p>
+<p>primary-group-set won't map the users or groups that you give it to a different security model before adding them to the table. primary-group-list won't map the table's contents to a different security model before displaying it. The only mappings that are done are name to SID mappings. Other than that, the SIDs will appear exactly as entered. However, when constructing credentials for a user, both the original SID and any mapped user SIDs are looked up in the primary-group table. So either Windows or Unix SIDs may be used as keys for this table. The order in which the Windows and Unix SIDs are looked up is not defined but, even if that were not the case, it would usually be inadvisable to risk inconsistency by using two records with different keys for the same user.</p>
+<p>Saving of primary group updates is automatic by default but delayed by a few seconds in case another update arrives. primary-group-save does not return until persistence is ensured. Before release 5.0, extant credentials were synchronously reassessed when saving took place. This now happens in the background (and even if primary-group-disable-saving is in effect). Where it is important to ensure that changes have been activated, the credentials-reassess command is now required. connection -v all and credentials-list can be used to inspect the extant credentials. Newly created credentials always use the latest copy of the primary group table.</p>
+<p>Disabling saving during batch updates used to be a significant performance win, especially in clusters. The automatic deferral of saving on each update obsoletes primary-group-disable-saving, which may be removed in a future release. primary-group-save retains some small utility for scripted testing scenarios where a reboot or migration of the target EVS is issued immediately after a primary group update. primary-group-save has the side effect of re-enabling automatic saving.</p>
+<p>In release 5.0, both CIFS credentials and NFS credentials are affected. In earlier releases, behavior varied according to the security on the file being accessed.</p>
+<h1>Examples</h1>
+<pre>$ primary-group-list
+$ primary-group-set "Unix user\1234" "Unix group\1234"
+$ primary-group-list
+Unix user\1234 (S-1-77-0-1234):
+  Unix group\1234 (S-1-77-1-1234)
+$ primary-group-delete "Unix user\1234"
+$ primary-group-list
+$ primary-group-delete "Unix user\1234"
+Failed to find Unix user\1234 (S-1-77-0-1234) in primary group table.
+$ primary-group-delete-all --confirm
+$ primary-group-save
+$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/connection.html">connection</a> <a href="../Supervisor/credentials-list.html">credentials-list</a> <a href="../Supervisor/credentials-reassess.html">credentials-reassess</a> <a href="../Supervisor/give-domain-administrators-local-administrator-rights.html">give-domain-administrators-local-administrator-rights</a> <a href="../Supervisor/local-group-disable-saving.html">local-group-disable-saving</a> <a href="../Supervisor/local-group-save.html">local-group-save</a> <a href="../User/localgroup.html">localgroup</a> <a href="../Supervisor/primary-group-delete.html">primary-group-delete</a> <a href="../Supervisor/primary-group-delete-all.html">primary-group-delete-all</a> <a href="../User/primary-group-list.html">primary-group-list</a> <a href="../Supervisor/primary-group-save.html">primary-group-save</a> <a href="../Supervisor/primary-group-set.html">primary-group-set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

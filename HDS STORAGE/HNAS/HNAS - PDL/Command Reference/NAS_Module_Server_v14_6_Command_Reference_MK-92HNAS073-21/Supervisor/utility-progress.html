@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>utility-progress</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>utility-progress</h1>
+<p>Display the progress of one or more utilities running on the either the supplied file system, the currently selected file system, or all file systems</p>
+<h1>Syntax</h1>
+<pre>utility-progress [-f &lt;file-system&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>utility-progress gives an indication of the progress of the one or more utilities. Each generated report is appropriate to the utility it pertains to. The report is sent to console it was invoked on.</p>
+<p>The progress as a percentage may give erratic results if a file system only contains a few very large directories, or if the Free Root Onodes list is unusually large in the case of checkfs.</p>
+<p>Note: utility-progress may be run with the file system mounted or unmounted.</p>
+<p>NOTE: This command supersedes the following obsolete commands:   checkfs-progress   check-directory-progress   fixfs-progress</p>
+<h1>Examples</h1>
+<p>To check the progress of the utility running on file system myFS:</p>
+<pre>utility-progress -f myFS
+</pre>
+<p></p>
+<p>To check the progress of all running utilities:</p>
+<pre>utility-progress
+</pre>
+<p></p>
+<p>NOTE: When invoked without arguments, this command will run on the cluster node hosting the currently selected EVS. The progress for all the utilities running on all the EVSs hosted on that cluster node will be reported.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

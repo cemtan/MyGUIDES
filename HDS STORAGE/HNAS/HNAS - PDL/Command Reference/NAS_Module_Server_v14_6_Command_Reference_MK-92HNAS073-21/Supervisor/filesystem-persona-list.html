@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-persona-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>filesystem-persona-list</h1>
+<p>Lists the personas of the specified file system.</p>
+<h1>Syntax</h1>
+<pre>filesystem-persona-list &lt;file-system&gt; [-a | --all-file-systems]
+</pre>
+
+<h1>Description</h1>
+<p>Display the persona represented by each snapshot on a file system.</p>
+<p>All snapshots have a persona, but they only become important on replication target file systems (or file systems that were previously replication target file systems and have since been promoted to read/write). On a normal file system the persona of a snapshot simply specifies the file system and snapshot themselves. On a replication target file system the persona specifies the source file system and snapshot that the snapshot on the replication target corresponds to.</p>
+<p>Understanding which snapshot on a replication target corresponds to a particular snapshot on the source is important when deciding which snapshot to roll back to during a replication recovery. This is especially true when a policy is using snapshot rules with larger queue sizes, as then there may be many snapshots to choose from.</p>
+<dl>
+<dt><strong>&lt;file-system&gt;</strong></dt>
+<dd><p>The file system to display the personas of.</p></dd>
+<dt><strong>-a, --all-file-systems</strong></dt>
+<dd><p>Display the personas for all file systems in the evs in context.</p></dd>
+</dl>
+<h2>OUTPUT FORMAT</h2>
+<p>The command will output a table, each row of which describes a snapshot in the file system. Each table row has two columns.</p>
+<dl>
+<dt><strong>Snapshot Name</strong></dt>
+<dd><p>The name of the snapshot.</p></dd>
+<dt><strong>Persona</strong></dt>
+<dd><p>This column contains the most useful information about the persona of the snapshot. The set of information shown for a file system depends on the file system's role. Should more detail be required, the complete set of persona information can be displayed with <code>filesystem-persona-read</code>.</p></dd>
+<dl>
+<dt><strong>Replication target file systems</strong></dt>
+<dd><p>In this case the <strong>Persona</strong> column contains the following fields, separated by commas and in the order listed:</p></dd>
+<ul>
+<li>The name of the source file system that was replicated into the target file system in this snapshot. Shown as <code>Filesystem label</code> in the <code>filesystem-persona-read</code> output.</li>
+<li>The source file system snapshot name that was replicated into the target file system in this snapshot. Shown as <code>Snapshot label</code> in the <code>filesystem-persona-read</code> output.</li>
+<li>The source file system snapshot number that was replicated into the target file system in this snapshot. Shown as <code>Snapshot ID</code> in the <code>filesystem-persona-read</code> output.</li>
+<li>The time of snapshot creation. Shown as <code>Snapshot time</code> in the <code>filesystem-persona-read</code> output.</li>
+<li>The type of replication (either <code>Full</code> or <code>Incremental</code>) that created this snapshot. Shown as <code>Object replication type</code> in the <code>filesystem-persona-read</code> output.</li>
+<li>The end status of the replication that created this snapshot. Shown as <code>Persona status</code> in the <code>filesystem-persona-read</code> output. On a replication target the status will be either <code>ReplicationTargetComplete</code> or <code>ReplicationTargetIncomplete</code>.</li>
+</ul>
+<dt><strong>Non replication target file systems</strong></dt>
+<dd><p>In this case the <strong>Persona</strong> column contains the following fields, separated by commas and in the order listed:</p></dd>
+<ul>
+<li>The name of the file system. Shown as <code>Filesystem label</code> in the <code>filesystem-persona-read</code> output.</li>
+<li>The value which would be shown as <code>Persona status</code> in the <code>filesystem-persona-read</code> output. On a non replication target file system this will always be <code>NonReplicationTarget</code>.</li>
+</ul>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>The following example shows the listing of personas of the file systems that are the source and target of a replication, after a single full replication using automatic snapshots. Here <code>filesystem-persona-list</code> is used twice, once for each file system specifically:</p>
+<pre>  $ filesystem-persona-list replication_source_fs
+  Snapshot Name              Persona
+  -------------------------- ---------------------------------------------------------------------------------------------------------------
+  AUTO_SNAPSHOT_cb3e9756-5cff-11d7-9008-2ddc7e1244b5_1 "replication_source_fs", NonReplicationTarget
+  LIVE                       "replication_source_fs", NonReplicationTarget
+  $ filesystem-persona-list replication_target_fs
+  Snapshot Name              Persona
+  -------------------------- ---------------------------------------------------------------------------------------------------------------
+  AUTO_SNAPSHOT_TARGET_1     "replication_source_fs", "AUTO_SNAPSHOT_cb3e9756-5cff-11d7-9008-2ddc7e1244b5_1", 139, 2021-06-09 08:19:44+01:00, Full, ReplicationTargetComplete
+  LIVE                       "replication_source_fs", "AUTO_SNAPSHOT_cb3e9756-5cff-11d7-9008-2ddc7e1244b5_1", 139, 2021-06-09 08:19:44+01:00, Full, ReplicationTargetComplete
+</pre>
+<p></p>
+<p>This example shows the listing of personas of all file systems on the evs in context. In this case, there are only two file systems, which are the source and target of a replication using snapshot rules at both source and target and where there has been multiple incremental replications:</p>
+<pre>  $ filesystem-persona-list -a
+  replication_source_fs:
+  Snapshot Name              Persona
+  -------------------------- ---------------------------------------------------------------------------------------------------------------
+  2021-06-09_0910+0100.src_rule "replication_source_fs", NonReplicationTarget
+  2021-06-09_0909+0100.src_rule "replication_source_fs", NonReplicationTarget
+  2021-06-09_0908+0100.src_rule "replication_source_fs", NonReplicationTarget
+  2021-06-09_0907+0100.src_rule "replication_source_fs", NonReplicationTarget
+  2021-06-09_0906+0100.src_rule "replication_source_fs", NonReplicationTarget
+  LIVE                       "replication_source_fs", NonReplicationTarget
+  replication_target_fs:
+  Snapshot Name              Persona
+  -------------------------- ---------------------------------------------------------------------------------------------------------------
+  2021-06-09_0910+0100.tgt_rule "replication_source_fs", "2021-06-09_0910+0100.src_rule", 229, 2021-06-09 09:10:28+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0909+0100.tgt_rule "replication_source_fs", "2021-06-09_0909+0100.src_rule", 224, 2021-06-09 09:09:23+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0908+0100.tgt_rule "replication_source_fs", "2021-06-09_0908+0100.src_rule", 219, 2021-06-09 09:08:18+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0907+0100.tgt_rule "replication_source_fs", "2021-06-09_0907+0100.src_rule", 214, 2021-06-09 09:07:13+01:00, Incremental, ReplicationTargetComplete
+  2021-06-09_0906+0100.tgt_rule "replication_source_fs", "2021-06-09_0906+0100.src_rule", 209, 2021-06-09 09:06:08+01:00, Incremental, ReplicationTargetComplete
+  LIVE                       "replication_source_fs", "2021-06-09_0910+0100.src_rule", 229, 2021-06-09 09:10:28+01:00, Incremental, ReplicationTargetComplete
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-aux-persona-read.html">filesystem-aux-persona-read</a> <a href="../Supervisor/filesystem-persona-read.html">filesystem-persona-read</a> <a href="../Supervisor/replication-policy-create.html">replication-policy-create</a> <a href="../Supervisor/replication-recovery-task-submit.html">replication-recovery-task-submit</a> <a href="../User/snapshot-list.html">snapshot-list</a> <a href="../Supervisor/snapshot-recover-fs.html">snapshot-recover-fs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

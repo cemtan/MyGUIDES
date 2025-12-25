@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>si-superflush-statistics</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>si-superflush-statistics</h1>
+<p>Display superflush statistics</p>
+<h1>Syntax</h1>
+<pre>si-superflush-statistics [-r] [ -a | [-g] [ { -d | -s } [&lt;identifier&gt;] | [-d|-s] -f ] ]
+</pre>
+
+<h1>Description</h1>
+<p>Display or reset superflush statistics. Statistics are maintained globally, for each system drive, and for performance-info-report's current file system of interest (if any).</p>
+<dl>
+<dt><strong><code>-f</code>, <code>--filesystem</code></strong></dt>
+<dd><p>Display or reset superflush statistics for performance-info-report's currently selected file system.</p></dd>
+<dt><strong><code>-s</code>, <code>--span</code></strong></dt>
+<dd><p>With <code>-f</code>, equivalent to <code>-d</code>. Otherwise the identifier, if present, should be a span label, and all the system drives in that span are selected; if no identifier is given, select all SDs from all spans.</p></dd>
+<dt><strong><code>-d</code>, <code>--system-drive</code></strong></dt>
+<dd><p>With <code>-f</code>, select all the SDs in the span hosting that file system, in addition to the file system. Otherwise the identifier, if present, should be a system drive ID; if no identifier is given, select all SDs with superflush configured.</p></dd>
+<dt><strong><code>-g</code>, <code>--global</code></strong></dt>
+<dd><p>Select the global statistics. This is the default if none of <code>-f</code> <code>-s</code> <code>-d</code> is used.</p></dd>
+<dt><strong><code>-a</code>, <code>--all</code></strong></dt>
+<dd><p>Display or reset all available superflush statistics.</p></dd>
+<dt><strong><code>-r</code>, <code>--reset</code></strong></dt>
+<dd><p>Reset the selected statistics instead of displaying them.</p></dd>
+</dl>
+<p><strong>NB</strong>: Per-SD statistics are normally not gathered and will therefore be reported as 0. You must enable them using enhanced-perf-stats; counts will accumulate from that point.</p>
+<p>Only a lower bound is available for the global and FS individual buffer flushes counts. This also affects calculation of the proportion of stripe set flushed buffers. (When enhanced statistics gathering is enabled, per-SD counts will be added together to give an accurate global count.)</p>
+<h1>Examples</h1>
+<p>Show the global statistics:</p>
+<pre>si-superflush-statistics
+</pre>
+<p></p>
+<p>Show statistics for SD 3:</p>
+<pre>si-superflush-statistics -d 3
+</pre>
+<p></p>
+<p>Show statistics for every SD with superflush configured and the global statistics:</p>
+<pre>si-superflush-statistics -g -d
+</pre>
+<p></p>
+<p>Reset statistics for all SDs in span "Archive":</p>
+<pre>si-superflush-statistics -r -s Archive
+</pre>
+<p></p>
+<p>Reset all superflush statistics:</p>
+<pre>si-superflush-statistics -r -a
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/enhanced-perf-stats.html">enhanced-perf-stats</a> <a href="../Supervisor/performance-info-report.html">performance-info-report</a> <a href="../Supervisor/sd-set.html">sd-set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

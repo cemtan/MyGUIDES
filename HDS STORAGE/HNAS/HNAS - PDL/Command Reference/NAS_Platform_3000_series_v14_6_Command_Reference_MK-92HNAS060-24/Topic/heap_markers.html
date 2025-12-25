@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>heap_markers</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>heap_markers</h1>
+
+<h1>Description</h1>
+<p>This man page explains heap markers. A heap marker is a field on each block of the heap.</p>
+<p>Heap markers can be used to examine heap usage within certain time ranges. In particular, heap markers replace the inexact "elbow" finding (see 'heap-density') with an exact view of the blocks allocated since the point ten minutes after boot. These blocks are typically of interest in cases of heap fragmentation, and finding them accurately should improve diagnosis.</p>
+<p>Note that heap exhaustion is usually obvious enough to be diagnosed without any attempt at filtering the post-boot allocations from the boot-time ones, while heap fragmentation is subtle enough that a plausible but slightly inaccurate elbow finding can cause some difficulty.</p>
+<p>The heap marker rules are:</p>
+<ul>
+<li>Heap marker values range from zero to seven.</li>
+<li>Newly allocated blocks are marked zero.</li>
+<li>At the end of boot time, all allocated blocks are marked seven.</li>
+<li>Ten minutes after boot, all allocated blocks marked zero are marked six. Then the hour counter is set to zero and an hourly timer is started.</li>
+<li>When the timer fires, the hour counter is incremented.</li>
+<p>If the hour counter is twenty-four, it is reset to zero; then all allocated blocks marked four are marked five and all allocated blocks marked three are marked four.</p>
+<p>Then all allocated blocks marked two are marked three and all allocated blocks marked zero are marked two.</p>
+<li>It is not difficult to derive the age limits on allocated blocks with a given marker value, but it is confusing enough that I think it worth documenting here.</li>
+
+<p>When a block is allocated, it receives marker value zero.</p>
+
+<p>It should be clear that a block with marker value zero is no older than one hour.</p>
+
+<p>Some time in the next hour, the timer fires, and the block gets swept to marker value two.</p>
+<p>Its age at this point is between zero (it got allocated just before the sweep) and one hour (it got allocated just after the previous sweep).</p>
+<p>For the following hour, the block has marker value two.</p>
+
+<p>Thus, blocks with marker value two can have ages between zero (we allocated the block, it was immediately swept, and then we checked) and two hours (we allocated the block just after a sweep, and are checking just before the second sweep).</p>
+
+<p>On the next sweep, the block is swept to marker value three.</p>
+<p>It is an hour after the prior sweep, so the block is now between one and three hours old as it is swept.</p>
+<p>But it will stay with marker value three until the following daily sweep.</p>
+
+<p>The minimum age of a block with marker value three is thus one hour: it was allocated, immediately swept to marker two, an hour later it was swept to marker three, and then we checked.</p>
+<p>The maximum age of a block with marker three is harder. A maximum age marker two block is swept to marker three, so it is two hours old. It will stay with marker three until the next daily sweep. The longest that could be is if it was swept into marker three on a daily sweep. In that case, it will stay with marker three for twenty-four hours before the next daily sweep. Thus twenty-six hours is the limit.</p>
+
+<p>On the next daily sweep, the block is swept to marker value four.</p>
+
+<p>The earliest a block can be swept to marker four is an hour after it is swept into marker three, so the youngest block with marker four could be two hours old.</p>
+<p>A block will keep marker four for twenty-four hours, as it is swept to marker five on the next daily sweep.</p>
+<p>The oldest a block could be with marker four is thus fifty hours, as the block could be the oldest in marker value three when it is swept to marker value four, where it stays for twenty-four hours.</p>
+
+<p>On the next daily sweep, the block is swept to its permanent home with marker five.</p>
+
+<p>The youngest a block with marker value five could be is twenty-six hours, as the youngest block with marker value four is inexorably swept to marker five twenty-four hours later.</p>
+<p>There is no upper age limit for marker value five: blocks stay there until the system is rebooted.</p>
+<li>Thus, blocks marked five are at least twenty-six hours old, blocks marked four are between two and fifty hours old, blocks marked three are between one and twenty-six hours old, blocks marked two are under two hours old (but could be quite new), and blocks marked zero are under an hour old.</li>
+<li>Marker value one is used by development in internal testing, and is available for other testing in the field.</li>
+</ul>
+<p>The heap marker is not cleared when an allocated block is freed, so there may be non-zero marker values on free blocks. However, free blocks are coalesced when possible, with the coalesced block keeping the marker value from the first of the two blocks, so looking at heap markers on free blocks is probably not very useful.</p>
+<p>Various commands allow filtering on heap markers.  The available options are:</p>
+<ul>
+<li>--marker &lt;n&gt;</li>
+
+<p>Selects blocks with heap marker exactly &lt;n&gt;.</p>
+
+<li>--marker-ne &lt;n&gt;</li>
+
+<p>Selects blocks with any heap marker except &lt;n&gt;.</p>
+
+<li>--marker-ge &lt;n&gt;</li>
+
+<p>Selects blocks with heap marker greater than or equal to &lt;n&gt;.</p>
+
+<li>--marker-lt &lt;n&gt;</li>
+
+<p>Selects blocks with heap marker less than &lt;n&gt;.</p>
+
+</ul>
+<h1>Examples</h1>
+<h2>Get the VPtrs for post-boot allocations:</h2>
+<pre>server$ heap-vptr --marker-lt 6
+...
+4 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;unsigned long const, RCPtr&lt;ddns::RegistrationMachine, RCPtrTraits&lt;ddns::RegistrationMachine, ddns::RegistrationMachine*, ddns::RegistrationMachine&amp;&gt; &gt; &gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005DD4C50)
+4 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;int const, FanMonitorInfo*&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000060CEBD0)
+5 HeapVPtrAllocationHeader&lt;unsigned int, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005C4E4F0)
+5 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;unsigned long const, FSLimits&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000006794B30)
+5 HeapVPtrAllocationHeader&lt;bossock::SocketTask*, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000070CD010)
+6 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;unsigned long const, LocalFSLimits&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000060647F0)
+32 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;unsigned int&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005E06230)
+35 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;maths::Wrapping&lt;unsigned int&gt; const, PolledTimerImplementation*&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000071A4430)
+37 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;boost::posix_time::ptime const, boost::intrusive_ptr&lt;alarms::Alarm&gt; &gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000007291770)
+45 HeapVPtrAllocationHeader&lt;char, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005C35B50)
+There were 242 allocated blocks starting with a vptr of which only 178 were displayed.
+There were 9 allocated blocks starting without a vptr, making for a total of 251 allocated blocks.
+server$
+</pre>
+<p></p>
+<h2>Examine the allocations from a given command (high level)</h2>
+<pre># Note that any blocks which are allocated between the two calls to
+# heap-change-marker will be seen in the output.  Thus, repeating the test
+# and using heap-vptr-diffs to compare the output may be useful.
+</pre>
+<p></p>
+<pre># Clear out marker values zero and one.
+server$ heap-change-marker --marker-lt 2 2
+</pre>
+<p></p>
+<pre># Run the command.
+&lt;your test here&gt;
+</pre>
+<p></p>
+<pre># Move any newly allocated blocks to marker value one and then look at them.
+server$ heap-change-marker --marker 0 1
+server$ heap-vptr --marker 1
+1 HeapVPtrAllocationHeader&lt;Sib::Fc::ExchangeControlBlock*, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x000000000680CB70)
+1 HeapVPtrAllocationHeader&lt;Sib::Fc::UlpExchangeControlBlock*, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x000000000681EE70)
+1 HeapVPtrAllocationHeader&lt;Sib::Scsi::LuScsiCommandQueueManager::QueueEntry_t, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000068787B0)
+2 HeapVPtrAllocationHeader&lt;unsigned int, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005C4E4F0)
+3 HeapVPtrAllocationHeader&lt;char, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005C35B50)
+4 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;int const, FanMonitorInfo*&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000060CEBD0)
+7 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;boost::posix_time::ptime const, boost::intrusive_ptr&lt;alarms::Alarm&gt; &gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000007291770)
+8 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;maths::Wrapping&lt;unsigned int&gt; const, PolledTimerImplementation*&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x00000000071A4430)
+16 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;unsigned int&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x0000000005E06230)
+There were 43 allocated blocks starting with a vptr, all of which were displayed.
+There were 4 allocated blocks starting without a vptr, making for a total of 47 allocated blocks.
+server$
+</pre>
+<p></p>
+<h2>Examine the allocations from a given command (in detail)</h2>
+<pre># Note that any blocks which are allocated between the two calls to
+# heap-change-marker will be seen in the output.
+</pre>
+<p></p>
+<pre># Clear out marker values zero and one.
+server$ heap-change-marker --marker-lt 2 2
+</pre>
+<p></p>
+<pre># Run the command.
+&lt;your test here&gt;
+</pre>
+<p></p>
+<pre># Move any newly allocated blocks to marker value one and then look at them.
+server$ heap-change-marker --marker 0 1
+server$ heap-safety off
+Heap safety checking is off.
+Heap commands are likely to temporarily reduce the responsiveness
+of the server to a sufficient extent that the node would be
+deemed dead by any cluster peers.
+You have chosen to disable the checking - you are responsible!
+server$ heap-blocks --dump --marker 1
+...
+memory block @ 0x00007FD12D123910 length 144 B (in-use)
+memory block @ 0x00007FD12D123910 length 144 B
+  Marker       : 1
+  Prev-in-use  : 1
+  Prev pointer : (invalid as previous block is in-use)
+  Next pointer : 0x00007FD12D1239A0
+</pre>
+<p></p>
+<pre>0x00007fd12d123910 : D0 38 12 2D D1 7F 00 00 A3 39 12 2D D1 7F 00 00 : .8.-.....9.-....
+0x00007fd12d123920 : 0x000000000574C350      00 6E 74 20 4D 61 6E 61 : P.t......nt Mana
+                     vtable for HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;NTSecurity::SIDGroup&gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;ByteAllocatorInterfaceReferenceWithoutDefaultConstructor, ByteAllocatorInterfaceSetLabel&gt; &gt;+0x10
+0x00007fd12d123930 : 38 D2 2D 24 D1 7F 00 00 58 D9 54 2D D1 7F 00 00 : 8.-$....X.T-....
+0x00007fd12d123940 : E8 DE 43 2E D1 7F 00 00 6C 69 65 6E 74 42 61 73 : ..C.....lientBas
+0x00007fd12d123950 : 65 3A 3A 73 65 6E 64 28 42 6F 61 72 64 54 79 70 : e::send(BoardTyp
+0x00007fd12d123960 : 65 2C 20 4D 61 6E 61 67 65 6D 65 6E 74 52 65 71 : e, ManagementReq
+0x00007fd12d123970 : 75 65 73 74 49 64 29 28 39 2C 20 49 46 43 4F 4E : uestId)(9, IFCON
+0x00007fd12d123980 : 46 49 47 5F 46 49 4E 44 5F 4E 45 58 54 5F 49 4E : FIG_FIND_NEXT_IN
+Dump was limited to 128 bytes.
+...
+</pre>
+<p></p>
+<pre>Total size: 2.438 KB (2496 B)
+server$ heap-safety on
+Heap safety checking is on.
+server$
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/heap-density.html">heap-density</a> <a href="../Supervisor/heap-vptr.html">heap-vptr</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

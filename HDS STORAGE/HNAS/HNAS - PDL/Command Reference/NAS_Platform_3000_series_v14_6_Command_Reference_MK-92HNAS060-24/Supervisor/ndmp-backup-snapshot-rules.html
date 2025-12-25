@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-backup-snapshot-rules</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>ndmp-backup-snapshot-rules</h1>
+<p>Show or set the snapshot rules to be used when backing up object replication targets</p>
+<h1>Syntax</h1>
+<pre>ndmp-backup-snapshot-rules -f &lt;fs label&gt; [-l &lt;0-10&gt; [ -r &lt;snapshot rule&gt; ]] [ -j]
+</pre>
+
+<h1>Description</h1>
+<p>It is only possible to perform an NDMP backup of a file system that is mounted as a replication-target if a snapshot rule is specified. The usual way of doing this is to have the backup application provide a snapshot rule name via the NDMP environment variable NDMP_BLUEARC_USE_SNAPSHOT_RULE. However, If the backup application does not support HNAS specific NDMP environment variables then this command is an alternative way of specifying the snapshot rule name.</p>
+<p>If an NDMP backup operation is attempted on a replication-target with no explicit NDMP_BLUEARC_USE_SNAPSHOT_RULE set then a look up table will be queried. If an entry is found then the snapshot rule name from this entry will be used. If an entry is not found then the backup operation will be failed.</p>
+<p>It is important to note that the snapshot rule name provided to this command is not validated as the snapshot rule name can be changed. If the specified snapshot rule is not found when attempting a backup, the operation will fail.</p>
+<p>To delete a rule set the value to an explicitly empty string.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--file-system|-f</strong></dt>
+<dd><p>Filesystem label.</p></dd>
+<dt><strong>--level|-l</strong></dt>
+<dd><p>Backup level, 0-10. If neither this or snapshot-rule are specified then the rules for all levels are displayed.</p></dd>
+<dt><strong>--snapshot-rule|-r</strong></dt>
+<dd><p>The snapshot rule. If not specified then the rule(s) for the level(s) specified are listed.</p></dd>
+<dt><strong>--json|-j</strong></dt>
+<dd><p>Produce the output in JSON format.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>List all levels for a filesystem :</p>
+<pre>$ mercury2n7[mercury2n7-s]:$ ndmp-backup-snapshot-rules -f fs
+snapshot rule for level 0 backups of fs is level_0_rule
+snapshot rule for level 1 backups of fs is level_1_rule
+snapshot rule for level 2 backups of fs is level_2_rule
+snapshot rule for level 3 backups of fs is level_3_rule
+snapshot rule for level 4 backups of fs is level_4_rule
+snapshot rule for level 5 backups of fs is level_5_rule
+snapshot rule for level 6 backups of fs is level_6_rule
+snapshot rule for level 7 backups of fs is level_7_rule
+snapshot rule for level 8 backups of fs is level_8_rule
+snapshot rule for level 9 backups of fs is level_9_rule
+snapshot rule for level 10 backups of fs is level_10_rule
+</pre>
+<p></p>
+<p>The same report in JSON format :</p>
+<pre>$ ndmp-backup-snapshot-rules -f fs -j
+{ "fs": "fs", "levelRules": [{ "level": 0, "rule": "level_0_rule" }, { "level": 1, "rule": "level_1_rule" }, { "level": 2, "rule": "level_2_rule" }, { "level": 3, "rule": "level_3_rule" }, { "level": 4, "rule": "level_4_rule" }, { "level": 5, "rule": "level_5_rule" }, { "level": 6, "rule": "level_6_rule" }, { "level": 7, "rule": "level_7_rule" }, { "level": 8, "rule": "level_8_rule" }, { "level": 9, "rule": "level_9_rule" }, { "level": 10, "rule": "level_10_rule" }]}
+</pre>
+<p></p>
+<p>Set a rule :</p>
+<pre>$ ndmp-backup-snapshot-rules -f fs -l 8 -r level_8_rule
+snapshot rule for level 8 backups of fs is level_8_rule
+</pre>
+<p></p>
+<p>Display a single rule :</p>
+<pre>$ ndmp-backup-snapshot-rules -f fs -l 9
+snapshot rule for level 9 backups of fs is level_9_rule
+</pre>
+<p></p>
+<p>Delete a rule :</p>
+<pre>$ ndmp-backup-snapshot-rules -f fs -l 9 -r ""
+snapshot rule for level 9 backups of fs is not set
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-history.html">ndmp-history</a> <a href="../Supervisor/ndmp-option.html">ndmp-option</a> <a href="../Supervisor/replication-policy-create.html">replication-policy-create</a> <a href="../Supervisor/replication-policy-delete.html">replication-policy-delete</a> <a href="../Supervisor/replication-policy-list.html">replication-policy-list</a> <a href="../Supervisor/replication-policy-modify.html">replication-policy-modify</a> <a href="../Supervisor/snapshot-rule-create.html">snapshot-rule-create</a> <a href="../Supervisor/snapshot-rule-delete.html">snapshot-rule-delete</a> <a href="../User/snapshot-rule-list.html">snapshot-rule-list</a> <a href="../Supervisor/snapshot-rule-modify.html">snapshot-rule-modify</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

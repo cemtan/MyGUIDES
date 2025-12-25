@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>storage-based-mirror</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>storage-based-mirror</h1>
+
+<h1>Description</h1>
+<p>This man page does not refer to a specific command.  It explains the server's support for storage-based mirroring.  If you do not have mirrored storage, you need not read this page.</p>
+<h2>OVERVIEW</h2>
+<p>Some storage can improve resiliency by maintaining two or more copies of the data written by the server.  The administrator uses a storage configurator such as Storage Navigator or Hitachi Command Suite to make mirrored copies of all the system drives (SDs) in a span; the administrator licenses (allows access to) the mirrored SDs; then the server is instructed to detect the mirror relationships, or, occasionally, the administrator types them in by hand.</p>
+<p>Once this initial configuration has been carried out, the server can respond to storage failover without manual intervention.  The span becomes unhealthy, and file systems are unmounted, as soon as any primary SD fails or becomes secondary; the span becomes healthy, and file systems become mountable, as soon as the server sees a complete set of primary SDs and no unexpected primary--primary relationships.  The server can also, optionally, warn if any secondary SD fails and failover becomes impossible.  You have the option of allowing or forbidding partial failovers, in which the server mounts file systems on a mixture of production and backup storage.  And the system allows more exotic configurations, such as mounting two copies of the same file system on different clusters.</p>
+<h2>TERMINOLOGY</h2>
+<p>When mirror relationships are in place, the storage automatically mirrors all data from SDs that it calls <strong>P-Vols</strong> to SDs of the same capacity called <strong>S-Vols</strong>, causing no overhead on the server.</p>
+<p>The server deals not with P-Vols and S-Vols but with <strong>primary</strong> and <strong>secondary</strong> SDs.  In most circumstances, a primary SD is the same thing as a P-Vol and a secondary SD is the same thing as an S-Vol.  The two exceptions are:</p>
+<ul>
+<li>If storage-based snapshots are used, V-Vols (SDs on which snapshots of spans reside) are also considered to be primary SDs, in that the server mounts file systems on them; but this is largely academic, because storage-based snapshots and storage-based mirrors cannot be used together on the same span.  See the 'storage-based-snapshot' man page.</li>
+<li>During a disaster, P-Vols may be destroyed.  The administrator will place the mirror relationships into a special SSWS state.  In this one unique situation, the administrator <strong>pegs</strong> the surviving S-Vols to make the server treat them as primary SDs and perform I/O to them.</li>
+</ul>
+<p>The server always does I/O to primary SDs and never to secondaries, although it is capable of reporting and warning about secondary SDs' statuses.</p>
+<p>The commands described here support mirrors of four kinds:</p>
+<ul>
+<li>A <strong>synchronous</strong> mirror, such as TrueCopy, copies data as soon as the server writes it.  In a healthy system, P-Vols and S-Vols have identical contents.  If the P-Vols are lost, the server can fail over to the secondaries with a break in service but with no loss of data.</li>
+<li>An <strong>asynchronous</strong> mirror, such as TrueCopy Extended Distance, copies data from P-Vols to S-Vols at fixed times or on demand.  Failover will discard all writes since data was last mirrored.  However, an asynchronous mirror needs less bandwidth than a synchronous mirror and may offer improved performance.</li>
+<li>A <strong>near-synchronous</strong> mirror, such as Hitachi Universal Replicator (HUR), copies data from P-Vols to S-Vols as soon as possible, but not instantaneously.  Failover typically discards some recently written data, but less than with an asynchronous mirror.  A near-synchronous mirror offers the same bandwidth and performance advantages as an asynchronous mirror.</li>
+<p>ShadowImage works in this way if mirrored pairs are kept synchronized.</p>
+<li>A <strong>copy-on-write</strong> mirror, such as Hitachi CoW, efficiently stores one or more snapshots of each SD.  The server does not usually fail over to these snapshots; instead, snapshots can efficiently be copied back to the SDs used by the server.  The advantages of CoW are its efficient use of disk space (since snapshots are stored as deltas against the primary storage) and the speed with which a snapshot can be created.</li>
+<p>ShadowImage works in this way when its point-in-time snapshot capability is used.</p>
+</ul>
+<p>This man page does not discuss the use of CoW snapshots in which multiple snapshots of a span are visible at once and multiple snapshots of a file system are mounted simultaneously.  For that, see the 'storage-based-snapshot' man page.  Storage-based mirrors cannot be set up on a span that is in snapshot mode.</p>
+<p>In addition, GAD mirrors do not use the commands described here.  It is not necessary to configure GAD mirror relationships into the server.  GAD failovers, unlike those with many other mirroring products, are non-disruptive and do not require file systems to be unmounted.</p>
+<p>To distinguish clearly between SDs during failover, we refer not only to primary and secondary SDs but also to <strong>production</strong> and <strong>backup</strong> SDs.  Production SDs are used for everyday work; backup SDs are used if the production SDs should ever fail or whenever the administrator wishes to test the failover procedure.  In normal use, production SDs are P-Vols and treated as primary and backup SDs are S-Vols and treated as secondary.  Typically, after a disaster occurs, the administrator takes steps to make the server treat the server treat the backup SDs as primaries and do I/O to them.  This involves either swapping mirror roles so that the production SDs become P-Vols or moving the mirror relationships into the SSWS state and temporarily pegging the S-Vols as primaries.</p>
+<h2>PROCEDURES</h2>
+<p>This section explains how to set up and use storage-based mirrors.</p>
+<p>Whenever these procedures mention a storage configurator, they are referring to a product such as Storage Navigator or Hitachi Command Suite or perhaps a script using Horcm commands.</p>
+<h3>Configuration</h3>
+<p>Mirrors can be configured at any time: before the file systems are first mounted, or on a mature system whose resiliency need to be increased.  Any mounted file systems can stay mounted.</p>
+<p>If you are setting up a CoW mirror and you do not plan to mount file systems on snapshot SDs, or if your storage does not offer that facility, skip steps 2 to 5.</p>
+<ol>
+<li>Use your storage configurator to select a mirroring type (synchronous, asynchronous, etc.) and set up P-Vols and S-Vols.  If mirrors are asynchronous, near-synchronous or CoW, place all the new mirror relationships into a single consistency group per span, so that the S-Vols always form a coherent point-in-time snapshot of the P-Vols.</li>
+<p>Wait until mirrors have completely synchronized.  This may take many hours.  Your storage configurator will be able to report progress.</p>
+<li>If the S-Vols are intended for use on the same cluster as the P-Vols, use the server's 'sd-list' command to check that both primary and secondary SDs are healthy and visible to the server.  Use 'sd-allow-access' to license (grant the server permission to use) all the SDs, including the S-Vols.</li>
+<ul>
+<li>If the P-Vols are intended for use on one cluster and the S-Vols on another, license on each cluster only the SDs to which that that cluster is connected.</li>
+<li>In an advanced setup with more than two copies of the data, license only two copies: the primary SDs and the SDs to which you wish this server to fail over.</li>
+<li>In advanced setup with two or more copies of the data, where one copy will be mounted by a different cluster, license just two copies: the primary SDs and the SDs on which the other cluster will mount file systems.  The other cluster's SDs will be unlicensed in a separate step.</li>
+</ul>
+<p>Do not license more than two copies of the data.  This system does not permit more than two-way failover.  (There can be any number of copies of the data, but only two copies of each span can be loaded and only two copies of each file system can be mounted.)</p>
+<li>Provided that only the P-Vols and one set of S-Vols have been licensed and both are visible to the same server, you can use 'sd-mirror-prepare' and 'sd-mirror-detect' to instruct the server to detect the mirror relationships set up in step 1.</li>
+<p>If the P-Vols are visible to one cluster and the S-Vols to another cluster, use 'sd-mirror-remotely' instead.</p>
+<p>In exceptional circumstances, you may need to configure mirror relationships into the server by hand.  'sd-metadata' can help to identify relationships; with Hitachi storage, 'sd-list --raid-names' can display the same identifiers that storage configurators use to identify SDs.  In complex configurations, set up relationships with the S-Vols that this or some other cluster will eventually access -- even if those are not the S-Vols with an immediate mirror relationship to the P-Vols.</p>
+<p>The two SDs in a mirror relationship must be in the same tier, or both must be in no tier at all.</p>
+<li>If mirrors are not synchronous, or if you wish to forbid partial failovers for any other reason, use 'span-set-site-id' to place the production SDs at site 1 and the backup SDs at site 2.  The 'site' man page has a full explanation.  There is no need for the two copies of the data to be geographically separate.</li>
+<p>Although it is not mandatory, we recommend the use of SD sites even with synchronous mirrors, because the server can respond to SD failovers faster than Storage Navigator can fail over all the SDs in a large span.  Without SD sites, the result is a series of partial failovers, as the server repeatedly tries to mount file systems on a mixture of production and backup SDs.</p>
+<li>If the file systems on the S-Vols are to be mounted by another cluster:</li>
+<dl>
+<dt><strong>a.</strong></dt>
+<dd><p>On the production cluster, which is connected to the P-Vols, use 'span-add-cluster-uuid' to add the remote cluster's UUID to the span, so that each cluster can mount its own copy of the file systems.</p></dd>
+<dt><strong>b.</strong></dt>
+<dd><p>Mounting the same copy of the file systems on two clusters would cause data-loss.  So, on the production cluster, unlicense the S-Vols using 'span-deny-access --secondaries'.  Zone your switches to ensure that each cluster can see only its own SDs.  No SD should be visible to both clusters.</p></dd>
+<dt><strong>c.</strong></dt>
+<dd><p>If necessary, synchronize mirrors, so that the secondary SDs contain Cod that includes both clusters' UUIDs.</p></dd>
+<dt><strong>d.</strong></dt>
+<dd><p>Break the mirror relationship nearest to the remote cluster, making its SDs into simplex P-Vols.</p></dd>
+<dt><strong>e.</strong></dt>
+<dd><p>Walk to the second cluster.  Use 'sd-allow-access' to license the second cluster's SDs.  That cluster should now be able to mount its copy of the file systems.  Ensure that, on the backup cluster, you do not license the production cluster's SDs.</p></dd>
+</dl>
+<p>For reasons discussed below, mounting two copies of a file system usually requires an intermediate third copy.</p>
+</ol>
+<p>The following procedures explain how to use the mirror you have set up.</p>
+<h3>Updating an asynchronous or CoW mirror</h3>
+<p>There is no need to unmount file systems.  After ensuring that all the mirror relationships in the span are in a single consistency group, simply use your storage configurator to take or update a copy of the data.  This action is usually scripted and run from a cron job.</p>
+<h3>Updating a synchronous mirror</h3>
+<p>Synchronous mirrors are automatically updated every time the server writes to primary storage.  No manual procedure is needed.</p>
+<h3>Clean failover and failback on a straightforward mirror</h3>
+<p>Failing over is useful as a test procedure or in order to minimize disruption while production storage is under maintenance.  It always involves brief loss of service.</p>
+<ol>
+<li>Unmount all file systems on the span you wish to fail over.</li>
+<li>Use your storage configurator to make sure that the S-Vols contain an up-to-date copy of the data on the P-Vols.  If relationships are synchronous, this will simply entail ensuring that relationships are healthy; otherwise, it may mean running an update command or script.</li>
+<li>Use your storage configurator to promote the current S-Vols to the primary role and demote the current P-Vols to the secondary role.</li>
+<li>Wait a few tens of seconds until 'pn all span-list' shows that the span is healthy again throughout the cluster.</li>
+<li>Remount file systems.</li>
+</ol>
+<p>To fail back, repeat the procedure.</p>
+<h3>Recovering from the loss of production SDs in a straightforward mirror</h3>
+<p>If production SDs are lost while file systems are mounted, follow these steps:</p>
+<ol>
+<li>If you do not wish to mount file systems at once, use the 'automount' command to disable automount.</li>
+<li>Use your storage configurator to break the mirror relationships if the production SDs no longer exist, or to promote the backup SDs to primaries if the production SDs exist but have failed.  If, as a result, mirror relationships move into the SSWS state and the surviving SDs remain as S-Vols, use 'sd-peg' to make the server treat them as primaries.  Remember to unpeg them (by pegging them back to the default role) as soon as the SSWS state is resolved.</li>
+<li>After a few tens of seconds, the span will become healthy.  'pn all span-list' will confirm it.  If automount is enabled, file systems should mount automatically.  If they do not, or if automount is disabled, use 'mount' to mount them.  Before doing so, depending on the extent of storage trauma and the urgency of bringing file systems back online, you may wish to use 'check-directory' to confirm that the backup file systems are intact.</li>
+<p>The next step depends on whether the mirrors are synchronous.</p>
+<ul>
+<li>If mirrors are synchronous then, as soon as you mount file systems on your backup SDs, the server will replay any uncommitted writes held in NVRAM, and the data on the production SDs must be considered out of date.  If at all possible, avoid manually discarding NVRAM data during your recovery procedure, because it will result in the loss of writes that the server has acknowledged to clients but not yet written to disk.  (This is a general rule.)</li>
+<li>If mirrors are near-synchronous or asynchronous, the data on disk is likely to be too old to permit NVRAM data to be replayed.  In addition, recent changes to Cod (such as filesystem expansions) may not have been copied to the backup SDs.  Start, therefore, by rescanning the Cod: 'sd-rescan-cod &lt;span-instance-name&gt;'.  Next, try to mount file systems.  If they will not mount in the usual way, it will be necessary to discard NVRAM data and then mount by force.  Some recent writes will be lost.</li>
+</ul>
+<li>Once file systems are mounted, either repair your existing production SDs or create new mirrored SDs for eventual use as production SDs; synchronize; then schedule an orderly failback.  Re-enable automount.</li>
+</ol>
+<h3>CoW copyback</h3>
+<p>CoW systems differ from others: instead of failing over from primary SDs to secondaries, the administrator copies the contents of an old snapshot to the production SDs.  If the P-Vols are lost, S-Vols cannot be used for recovery, because S-Vols are stored as deltas against the P-Vols.  Recovery is therefore used for recovery from an application-level problem, such as a virus attack or an unwanted database update, rather than to recuperate from physical damage to the storage.</p>
+<ol>
+<li>Unmount all file systems on the span.</li>
+<li>Use your storage configurator to copy <strong>all</strong> the SDs in one snapshot over <strong>all</strong> the SDs in the span.  If the source SDs are not in a single point-in-time snapshot of the span, or if some production SDs are updated and some not, data will be lost.</li>
+<li>On the server, use 'sd-rescan-cod &lt;span-instance-name&gt;' to reload the Cod, which may have changed.</li>
+<li>Use 'mount' to mount file systems.</li>
+</ol>
+<h3>Removing a single mirror relationship, keeping the span intact</h3>
+<p>This procedure is useful for replacing a failing secondary SD.  Coupled with a clean failover and failback, it can also be used to replace a failing primary SDs without data-loss.</p>
+<ol>
+<li>When the mirror relationship is broken in a later step, the server will load Cod from it.  The Cod will be inconsistent with the updated Cod on the rest of the span, and will cause severe events to be logged.  To avoid these events, use 'sd-span-cod-reads' to instruct the server not to load Cod for a few minutes.</li>
+<li>Use 'sd-mirror S P=none', where S is the span's instance name and P is the device ID of the P-Vol, to instruct the server to remove the S-Vol from the span.</li>
+<li>Use your storage configurator to break the mirror relationship.</li>
+<li>Do one of the following:</li>
+<ul>
+<li>Use your storage configurator to delete the failing SD, and then use the server's 'sd-forget' command to remove it from the registry.</li>
+<li>Use the server's 'sd-deny-access' command to unlicense the failing SD.</li>
+<li>Use the server's 'sd-wipe-cod-signature' command to erase the Cod signature on the failing SD.</li>
+</ul>
+<li>Use 'sd-span-cod-reads --resume' to tell the server to resume loading Cod.</li>
+</ol>
+<p>It is usual to set up a new mirror SD and then use either 'sd-mirror-prepare' and 'sd-mirror-detect' or 'sd-mirror' to incorporate it into the span, as detailed above.</p>
+<h3>Removing all mirror relationships, keeping the span intact</h3>
+<p>This procedure is useful if you wish to replace all the backup SDs in a span.</p>
+<ol>
+<li>To prevent the server from trying to load Cod from the S-Vols in a later step, use 'span-deny-access --secondaries'.</li>
+<li>To remove the mirror relationships from the span, use 'span-break-mirrors'.</li>
+<li>Use your storage configurator to break the mirror relationships.</li>
+<li>Do one of the following:</li>
+<ul>
+<li>Use your storage configurator to delete or reinitialize the former S-Vols, leaving the production SDs intact.</li>
+<li>Use the server's 'sd-wipe-cod-signature --danger-ignore-sd-licensing' command to erase the Cod signatures on the former S-Vols, so that they do not confuse the server.</li>
+<li>Use 'sd-span-cod-reads --resume' to tell the server to resume loading Cod.</li>
+</ul>
+</ol>
+<p>If you wish to reuse the former S-Vols on this cluster, you can now use 'sd-allow-access' to relicense them.</p>
+<h3>Mounting two copies of the data on different clusters</h3>
+<p>This configuration is useful for performing off-line data mining on recent copies of live data.  The configuration looks like this:</p>
+<ul>
+<li>Site A contains Cluster A and Storage A.</li>
+<li>Site B has Cluster B, Storage B1 and Storage B2.  Between B1 and B2 is a very high-bandwidth mirror link (typically, ShadowImage or TrueCopy); B1 and B2 may in fact be in the same storage subsystem.  The mirror relationship between B1 and B2 is broken during office hours.  Cluster B loads spans from, and mounts file systems on, Storage B2.  No cluster is connected to Storage B1.</li>
+<li>Between Storage A and Storage B1 is a mirror relationship over a medium- or high-bandwidth link: typically, TrueCopy, TrueCopy ED or HUR.</li>
+</ul>
+<p>To bring Cluster B up to date with Cluster A:</p>
+<ol>
+<li>If the mirror between Storage A and Storage B1 is asynchronous, or near-synchronous, synchronize it.  Only changed blocks will be copied across the WAN, and so the time taken will be acceptable.  If the mirror between A and B1 is synchronous, this step is unnecessary, but more bandwidth will be required between the two sites in order to maintain acceptable performance at Site A.</li>
+<li>On Cluster B, use 'span-prepare-for-resync'.</li>
+<li>Remake the broken mirror relationship between Storage B1 and Storage B2.  Because of the high-bandwidth link between these two sets of storage, the time taken to perform the update will be acceptable, but synchronization will not be instantaneous.</li>
+<li>Once synchronisation is complete, break the mirror link between B1 and B2, bringing B1 and B2 back into the simplex state.  B2 now has a copy of the data on B1, which in turn is a copy of the data that was on A at the start of step 1.</li>
+<li>On Cluster B, use 'span-reload-after-resync'.</li>
+</ol>
+<p>If Cluster B were to mount file systems on Storage B1, it would write to the storage, even if file systems were mounted read-only.  These writes would make it impossible to do an incremental update over the link between Sites A and B.  However, the fast link between B1 and B2 makes a complete resynchronization realistic.  This is why three copies of the data are needed.</p>
+<h3>Tolerating primary--primary relationships</h3>
+<p>If you use your storage configurator to break one or more mirror relationships, the server will see both production and backup SDs as primary.  Not knowing which SDs to use, it will fail the span.</p>
+<p>On most systems, this behaviour is desirable.  However, on certain complex systems such as the one described above, where the 'backup' SDs belong to another cluster and can legitimately be primary, the main cluster must not fail the span.  Using 'span-deny-access --secondaries' will make the server ignore backup SDs even if they become primary.  It will also make it impossible for the server to fail over to those backup SDs.</p>
+<h3>Deciding whether to warn about secondary SDs</h3>
+<p>On most configurations, the server will warn (via the event log and the 'trouble' command) if S-Vols become unhealthy or uncontactable, such that failover is impossible.  On some advanced systems, such as when the S-Vols belong to another cluster, these warnings are undesirable.  The following commands instruct the server not to warn about S-Vols in the span on which you run them:</p>
+<ul>
+<li>span-deny-access --primaries</li>
+<li>span-deny-access --secondaries</li>
+</ul>
+<p>The following commands instruct the server to warn about S-Vols in the span on which you run them:</p>
+<ul>
+<li>span-allow-access</li>
+<li>span-break-mirrors</li>
+<li>sd-mirror (if used to break all the mirror relationships in the span)</li>
+</ul>
+<p>Should you ever find a reason to license all the SDs in a span but not warn about the health of backup SDs, use 'sd-allow-access' instead of 'span-allow-access'.</p>
+<p>A mirrored span is always healthy as long as it has a complete set of licensed, primary, healthy SDs and no unexpected primary--primary relationships.  (A P-P relationship is expected and will be ignored if only one of the SDs is licensed.)  If you have set up SD sites (see above) then all the primary SDs must be in the same site.  There is specifically no requirement for the secondary SDs to be healthy; they need not even still exist.</p>
+<h3>Dealing with SSWS</h3>
+<p>If production SDs are lost, recovery of the data on the backups SDs may leave them as S-Vols and put the mirror relationship into a state called SSWS.  Uniquely, SSWS causes the S-Vols to become writable.  But the server is unable to detect this state, and will treat the S-Vols as secondary SDs in the usual way, refusing to perform I/O to them.</p>
+<p>For the duration of the SSWS state, use the server's 'sd-peg' command to override SDs' normally-determined roles and make it treat S-Vols as primary SDs.  Be sure to remove the peg using 'sd-peg --default-role' as soon as the SSWS state ends: in all states not involving SSWS, the server should be allowed to detect SDs' mirror roles for itself.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/automount.html">automount</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/mount.html">mount</a> <a href="../User/nvpages.html">nvpages</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../Supervisor/sd-forget.html">sd-forget</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-mirror-remotely.html">sd-mirror-remotely</a> <a href="../Supervisor/sd-peg.html">sd-peg</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-span-cod-reads.html">sd-span-cod-reads</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-allow-access.html">span-allow-access</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../Supervisor/span-prepare-for-resync.html">span-prepare-for-resync</a> <a href="../Supervisor/span-reload-after-resync.html">span-reload-after-resync</a> <a href="../Supervisor/span-set-site-id.html">span-set-site-id</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/tier.html">tier</a> <a href="../Supervisor/trouble.html">trouble</a> <a href="../Supervisor/unmount.html">unmount</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

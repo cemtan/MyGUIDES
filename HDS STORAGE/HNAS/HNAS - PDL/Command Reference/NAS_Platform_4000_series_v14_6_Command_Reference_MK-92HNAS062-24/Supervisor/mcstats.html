@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mcstats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>mcstats</h1>
+<p>List stats about management calls to, from and within this cluster node</p>
+<h1>Syntax</h1>
+<pre>mcstats [--incoming | -i] [--outgoing -o] [--reset | -r] [(--max-rows | -m) &lt;number&gt;] [(--sort-by | -s) &lt;string&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This man page contains wide command output.  You may wish to widen your console window and/or use 'man -n' to reduce the use of indenting.</p>
+<p>When one of the server's subsystems needs to ask another subsystem to do something, it uses a mechanism called a 'management call'.  The 'mcstats' command prints statistics about calls made and/or served by a particular server.</p>
+<p>Each different function that a subsystem can request has its own name and ID.  'mcstats' groups its statistics by ID.  You can thus find out about a particular call ID, but not about the individual occasions on which it was called.</p>
+<p>The --incoming or -i switch shows calls served by the server.  The --outgoing or -o switch shows calls made by the server.  If neither switch is supplied, the command displays both incoming and outgoing calls.  Note that many calls are looped back -- served by the same machine that issues them -- and that such calls will appear in both tables.</p>
+<p>By default, each table is listed in descending order of call frequency, so that calls made most often appear first.  The --sort switch can be used to change this order.  Follow it with one or more lower-case letters from the following list:</p>
+<dl>
+<dt><strong>a</strong></dt>
+<dd><p>Average time taken by a successful call</p></dd>
+<dt><strong>b</strong></dt>
+<dd><p>Average time taken by a failed call</p></dd>
+<dt><strong>c</strong></dt>
+<dd><p>Number of successful and failed calls combined</p></dd>
+<dt><strong>f</strong></dt>
+<dd><p>Number of failed calls.</p></dd>
+<dt><strong>h</strong></dt>
+<dd><p>Number of calls throttled -- delayed at the client side to reduce short-term load on the server side</p></dd>
+<dt><strong>m</strong></dt>
+<dd><p>Maximum time taken by any successful call</p></dd>
+<dt><strong>n</strong></dt>
+<dd><p>Maximum time taken by any failed call</p></dd>
+<dt><strong>s</strong></dt>
+<dd><p>Number of successful calls</p></dd>
+<dt><strong>t</strong></dt>
+<dd><p>Total time taken by all successful calls</p></dd>
+<dt><strong>u</strong></dt>
+<dd><p>Time taken by all failed calls</p></dd>
+</dl>
+<p>Using an upper-case letter will sort the list into ascending, rather than descending, order.</p>
+<p>The --max-rows switch, followed by a positive integer, limits the number of calls listed in each table.  By default, the command lists every call made since the last reset or reboot.</p>
+<p>The --reset switch resets statistics after printing them.  It can be useful for seeing which calls are made in a certain period of time.  (More precisely, it atomically gathers and resets statistics and then prints the statistics it gathered; so a series of 'mcstats --reset' commands is guaranteed not to miss any calls.)</p>
+<h1>Examples</h1>
+<p>The following command shows the ten management calls served most frequently by cluster node 1; where two calls have been made the same number of times, it sorts by the total time those calls have taken.</p>
+<pre>server:$ pn 1 mcstats --max 10 --incoming --sort-by ct
+</pre>
+<p></p>
+<pre>Incoming calls:
+</pre>
+<p></p>
+<pre>Call                                      Nr successes  Total succ time/sec  Ave succ time/sec  Max succ time/sec  Nr failures  Total fail time/sec  Ave fail time/sec  Max fail time/sec  Nr thrott
+----------------------------------------  ------------  -------------------  -----------------  -----------------  -----------  -------------------  -----------------  -----------------  ---------
+SSFS_READ                                         6415                4.482              0.000              0.238            0                0.000              0.000              0.000          0
+GET_NAME                                          1626                1.563              0.000              0.008            0                0.000              0.000              0.000          0
+TITAN_ENUM_NVRAM_PAGE_USAGE                        836               28.560              0.034              0.100            0                0.000              0.000              0.000          0
+CLUSTER_GET_VNODE_INFO                             699                0.037              0.000              0.002           65                0.009              0.000              0.001          0
+NISCLIENT_REMOVE_ALL_STALE_STATICS                  10                0.007              0.000              0.001          640                0.486              0.000              0.004          0
+NISCLIENT_MARK_ALL_STATICS_STALE                    10                0.006              0.000              0.001          640                0.484              0.000              0.012          0
+CLUSTER_GET_ALL_PNODES                             615                0.041              0.000              0.002            2                0.000              0.000              0.000          0
+NISCLIENT_GET_CONFIG_VALUE                         593                0.526              0.000              0.003            0                0.000              0.000              0.000          0
+IDMAN_GET_ALL2                                     420                5.879              0.013              5.161            0                0.000              0.000              0.000          0
+CLUSTER_SEND_BRPC                                  376                3.004              0.007              0.371            0                0.000              0.000              0.000          0
+server:$
+</pre>
+<p></p>
+<p>The information printed is:</p>
+<dl>
+<dt><strong>Call</strong></dt>
+<dd><p>The name of the management call</p></dd>
+<dt><strong>Nr successes</strong></dt>
+<dd><p>The number of time the call ran successfully</p></dd>
+<dt><strong>Total succ time/sec</strong></dt>
+<dd><p>Total time taken by all successful calls, in seconds.  Note that it is possible for multiple calls to run at once; so more than one minute's run-time can accrue in one minute of real time.</p></dd>
+<dt><strong>Ave succ time/sec</strong></dt>
+<dd><p>Average time taken by a successful call, in seconds</p></dd>
+<dt><strong>Max succ time/sec</strong></dt>
+<dd><p>The longest time that any single instance of this call has taken to run successfully</p></dd>
+<dt><strong>Nr failures</strong></dt>
+<dd><p>Number of failed calls.  Note that a large number of failed calls is not, in itself, a problem.  A failed call can be caused by something as innocuous as bad parameters being passed to a console command, or by a routine check on the state of some resource.</p></dd>
+<dt><strong>Total fail time/sec</strong></dt>
+<dd><p>Time taken by all failed calls, in seconds</p></dd>
+<dt><strong>Ave fail time/sec</strong></dt>
+<dd><p>Average time taken by a failed call, in seconds</p></dd>
+<dt><strong>Max fail time/sec</strong></dt>
+<dd><p>The longest time that any single instance of this call has taken to fail</p></dd>
+<dt><strong>Nr thrott</strong></dt>
+<dd><p>The number of times this call has been throttled; always zero for incoming calls</p></dd>
+</dl>
+<p>An individual instance of a call is not counted in the statistics until it returns.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/mclist.html">mclist</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

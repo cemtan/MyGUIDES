@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>snapshot-deleter-queue</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>snapshot-deleter-queue</h1>
+<p>Show work on the deleter queue</p>
+<h1>Syntax</h1>
+<pre>snapshot-deleter-queue [&lt;file system&gt;] [--verbose]
+</pre>
+
+<h1>Description</h1>
+<p>This command displays the snapshot deleter's current work queue, including snapshots undergoing or queued for deletion.</p>
+<dl>
+<dt><strong>&lt;file system&gt;</strong></dt>
+<dd><p>Show snapshots on the specified file system only.</p></dd>
+<dt><strong>--verbose</strong></dt>
+<dd><p>Shows details of each snapshot including deletion progress, if available. Snapshot deletion progress is only available for block-based snapshots.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ snapshot-deleter-queue fs1
+ 1 registered volume(s), namely: 11
+ 1 modifiable volume(s), namely: 11
+</pre>
+<p></p>
+<pre>Number of views on modifiable volumes that are awaiting or undergoing deletion is 1
+</pre>
+<p></p>
+<pre>"snap1" on fs1
+</pre>
+<p></p>
+<pre>Dumped 1 of 1
+</pre>
+<p></p>
+<pre>No bitmap-scrubbable volumes
+ No root-onode-scrubbable volumes
+ No restorable volumes
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/snapshot-list.html">snapshot-list</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

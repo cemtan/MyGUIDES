@@ -1,0 +1,442 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>df</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>df</h1>
+<p>Display disk utilization by file systems</p>
+<h1>Syntax</h1>
+<pre>df [-f &lt;file-system&gt; | -a] [-k] [-h] [-A] [-s] [-i]
+</pre>
+
+<h1>Description</h1>
+<p>Report file system space usage. Usage information is displayed for all file systems on all EVSs if the command is executed in the context of the Admin Service, or the --all option is used (and there is more than one EVS). When executed in the context of a specific EVS without the --all option, space usage for all file systems in the EVS context will be displayed. The output can be further narrowed by using the -f option to request information about a single file system.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>Displays disk utilization for the named file system only.</p></dd>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Displays disk utilization for all file systems on all EVSs.</p></dd>
+<dt><strong>-i, --include-vol-number</strong></dt>
+<dd><p>Displays the volume number of the file system in addition to its volume ID.</p></dd>
+<dt><strong>-k, --kilobytes</strong></dt>
+<dd><p>By default all capacities are displayed in reasonable units for the quantities involved. Use this option to force all capacities to be displayed in kilobytes.</p></dd>
+<dt><strong>-h, --html</strong></dt>
+<dd><p>Add HTML formatting.  Internally used by the server.</p></dd>
+<dt><strong>-A, --ajfs-totals</strong></dt>
+<dd><p>By default file systems are displayed individually. In the case of AJFS file systems the total capacity and free-space for that file system is the combination of all the file systems adjoined to the master. Use this option to show AJFS master file systems totals combinatorially.</p></dd>
+<dt><strong>-s, --show-committed</strong></dt>
+<dd><p>Display committed disk space utilization; that is disk space utilization including sparsely allocated blocks regardless of true sparse files setting.</p></dd>
+</dl>
+<p>df displays a table showing the amount of disk space available on each file system. For tiered file systems, two additional rows will be displayed displaying usage details for each tier.</p>
+<p>The values displayed are:</p>
+<dl>
+<dt><strong>ID</strong></dt>
+<dd><p>The ID of the file system.</p></dd>
+<dt><strong>VolNo</strong></dt>
+<dd><p>The volume number of the file system. By default this value is not displayed unless option -i is specified.</p></dd>
+<dt><strong>Label</strong></dt>
+<dd><p>The label of the file system.</p></dd>
+<dt><strong>EVS</strong></dt>
+<dd><p>The ID of the EVS to which the file system is assigned. This value will be displayed if the command is executed either in the context of the Admin Service or with the --all switch, and there is more than one EVS.</p></dd>
+<dt><strong>Size</strong></dt>
+<dd><p>The formatted capacity of the file system.</p></dd>
+<dd><p>Note that the server can report a lower value for file system size to protocol clients. See the EXAMPLES section for details.</p></dd>
+<dt><strong>Used</strong></dt>
+<dd><p>The amount (and percentage) of formatted capacity used by live and snapshot data. If any files are queued for deletion by the background truncator, the total size of files awaiting deletion will be shown. If a file system is not mounted, the usage value will not be displayed - instead the current state of the file system will be shown.</p></dd>
+<dd><p>The sparse blocks are counted towards the total used capacity unless 'true-sparse-files' is enabled.</p></dd>
+<dd><p>If the current state shows "Not determined", it means that the file system software has not accessed the underlying storage to determine the file system state and usage figures. This may be because the storage is inaccessible, or that the file system has failed a number of times in succession and it has been deemed too unstable to access.</p></dd>
+<dd><p>If a file system utility is running (for example checkfs or fixfs), the Used column will indicate such a utility is running.</p></dd>
+<dt><strong>Committed</strong></dt>
+<dd><p>See --show-committed.</p></dd>
+<dt><strong>Snapshots</strong></dt>
+<dd><p>The amount (and percentage) of formatted capacity used by snapshots. If the file system is a read cache it will not contain snapshots, and this field will state "Read Cache". On file systems that support dedupe, the space used by snapshots can exceed the formatted capacity of file system size due to block sharing through dedupe. To avoid confusion this field will also state "NA" for file systems that support dedupe.</p></dd>
+<dt><strong>Reduction</strong></dt>
+<dd><p>The amount of data that has been reduced. This is meaningful only for file systems that support packing or dedupe, or both. The reduced data is calculated as logical used space minus physical used space. Every block that is referenced more than once, be that because of dedupe or packing, will contribute one reduced block for every additional reference. The percentage is the absolute reduction divided by the sum of absolute reduction and the used capacity (from the 'Used' column) without any sparse blocks included and multiplied the whole by 100. Please refer to the 'Reduction %' calculation equation provided below.</p></dd>
+<dd><p>Note that unless 'true-sparse-files' is enabled, sparse blocks are counted towards the total used capacity reported in the 'Used' column. Also, note that the dedupe process begins by taking a temporary snapshot of the file system and then dedupes it. This extra snapshot consumes space and hence distorts the various amounts reported in the 'df' output. When the dedupe job is completed, the snapshot will be deleted, and the amounts reported in the 'df' output will be adjusted accordingly.</p></dd>
+</dl>
+<pre>                                       Absolute reduction
+        Reduction % =  --------------------------------------------------  X 100
+                       Absolute reduction + Used capacity - Sparse blocks
+</pre>
+<p></p>
+<dl>
+<dt><strong>Avail</strong></dt>
+<dd><p>The amount of formatted capacity available for further data, also known as free space. This amount is the difference between the formatted capacity reported under the Size column and the amount of used space reported under the Used column.</p></dd>
+<dd><p>Note that the server can report a lower value for free space to protocol clients. See the EXAMPLES section for details.</p></dd>
+<dt><strong>Thin</strong></dt>
+<dd><p>A flag indicating whether thin provisioning is enabled for this file system, as described in the 'filesystem-thin' man page.  (This is different from the storage-level thin provisioning described in 'hdp'.)</p></dd>
+<dt><strong>FS Type</strong></dt>
+<dd><p>File system characteristics. These are listed in one row in a single column (see EXAMPLES below). Characteristics include:</p></dd>
+<dl>
+<dt><strong>Block Size</strong></dt>
+<dd><p>4KB or 32KB.</p></dd>
+<dt><strong>ro</strong></dt>
+<dd><p>Displayed if the file system has been mounted read-only.</p></dd>
+<dt><strong>syslocked</strong></dt>
+<dd><p>Displayed if the file system has been syslocked.</p></dd>
+<dt><strong>WORM / non-strict WORM</strong></dt>
+<dd><p>Displayed if the file system is WORM or non-strict WORM.</p></dd>
+<dt><strong>File system type</strong></dt>
+<dd><p>WFS-2</p></dd>
+<dt><strong>DSB count</strong></dt>
+<dd><p>For WFS-2 file systems, the DSB count is shown.</p></dd>
+<dt><strong>replication target</strong></dt>
+<dd><p>Displayed if the file system is being used as the target for high speed replication.</p></dd>
+<dt><strong>NDMP recovery target</strong></dt>
+<dd><p>Displayed if the file system is mounted to recover a file system image from tape.</p></dd>
+<dt><strong>read resiliency</strong></dt>
+<dd><p>The file system is mounted in a mode that will tolerate on disk errors for read-only operations</p></dd>
+<dt><strong>write resiliency</strong></dt>
+<dd><p>The file system is mounted in a mode that will tolerate on disk errors for read and write operations</p></dd>
+<dt><strong>AJFS</strong></dt>
+<dd><p>The file system is an adjoined file system master.</p></dd>
+<dt><strong>dedupe enabled</strong></dt>
+<dd><p>The file system supports dedupe and dedupe is enabled for the file system.</p></dd>
+<dt><strong>dedupe supported</strong></dt>
+<dd><p>The file system supports dedupe, but dedupe is disabled for the file system.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<h2>A. Running df command on server</h2>
+<pre>server:$ df
+</pre>
+<p></p>
+<pre>  ID  Label     Size           Used    Snapshots     Reduction          Avail  Thin                              FS Type
+----  -----  -------  -------------  -----------  ------------  -------------  ----  -----------------------------------
+1024    FS1  5.68 GB  2.16 GB (38%)           NA      0 B (0%)  3.51 GB (62%)    No   4 KB,WFS-2,128 DSBs,dedupe enabled
+1025    FS2  9.66 GB  2.51 GB (26%)   40 KB (0%)            NA  7.15 GB (74%)    No                  4 KB,WFS-2,128 DSBs
+1026    FS3  9.66 GB    Not mounted   20 KB (0%)            NA  7.15 GB (74%)   Yes                  4 KB,WFS-2,128 DSBs
+1070    FS7  4.98 GB  2.43 GB (49%)           NA  67.0 MB (3%)  2.55 GB (51%)    No  32 KB,WFS-2,128 DSBs,dedupe enabled
+</pre>
+<p></p>
+<pre>server:$ df -i
+</pre>
+<p></p>
+<pre>  ID  VolNo  Label     Size           Used    Snapshots     Reduction          Avail  Thin                              FS Type
+----  -----  -----  -------  -------------  -----------  ------------  -------------  ----  -----------------------------------
+1024      0    FS1  5.68 GB  2.16 GB (38%)           NA      0 B (0%)  3.51 GB (62%)    No   4 KB,WFS-2,128 DSBs,dedupe enabled
+1025      1    FS2  9.66 GB  2.51 GB (26%)   40 KB (0%)            NA  7.15 GB (74%)    No                  4 KB,WFS-2,128 DSBs
+1026      2    FS3  9.66 GB    Not mounted   20 KB (0%)            NA  7.15 GB (74%)   Yes                  4 KB,WFS-2,128 DSBs
+1070     46    FS7  4.98 GB  2.43 GB (49%)           NA  67.0 MB (3%)  2.55 GB (51%)    No  32 KB,WFS-2,128 DSBs,dedupe enabled
+</pre>
+<p></p>
+<pre>server:$ df -k
+</pre>
+<p></p>
+<pre>  ID  Label         Size              Used      Snapshots      Reduction             Avail  Thin                              FS Type
+----  -----  -----------  ----------------    -----------  -------------  ----------------  ----  -----------------------------------
+1024    FS1     5955584 KB  2267468 KB (38%)           NA      0 KB (0%)  3688116 KB (62%)    No   4 KB,WFS-2,128 DSBs,dedupe enabled
+1025    FS2    10125312 KB  2632268 KB (26%)   40 KB (0%)             NA  7493044 KB (74%)    No                  4 KB,WFS-2,128 DSBs
+1026    FS3    10125312 KB       Not mounted   20 KB (0%)             NA  7493044 KB (74%)   Yes                  4 KB,WFS-2,128 DSBs
+1070    FS7     5226496 KB  2537372 KB (49%)           NA  68576 KB (3%)  2689124 KB (51%)    No  32 KB,WFS-2,128 DSBs,dedupe enabled
+</pre>
+<p></p>
+<pre>server:$ df -k -f FS2
+</pre>
+<p></p>
+<pre>  ID  Label         Size              Used   Snapshots  Reduction             Avail  Thin              FS Type
+----  -----  -----------  ----------------  ----------  ---------  ----------------  ----  -------------------
+1025    FS2  10125312 KB  2632268 KB (26%)  40 KB (0%)         NA  7493044 KB (74%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>server:$ df --all
+</pre>
+<p></p>
+<pre>  ID     Label  EVS    Size           Used     Snapshots     Reduction           Avail  Thin                              FS Type
+----  --------  --- -------  -------------  ------------  ------------  --------------  ----  -----------------------------------
+1024       FS1    1 5.68 GB  2.16 GB (38%)            NA      0 B (0%)  3.51 GB (62%)     No   4 KB,WFS-2,128 DSBs,dedupe enabled
+1025       FS2    1 9.66 GB  2.51 GB (26%)    40 KB (0%)            NA   7.15 GB (74%)    No                  4 KB,WFS-2,128 DSBs
+1026       FS3    1 9.66 GB    Not mounted    20 KB (0%)            NA   7.15 GB (74%)   Yes                  4 KB,WFS-2,128 DSBs
+1027       FS4    2 20.5 GB  9.25 GB (45%)    5 GB (10%)            NA  11.25 GB (55%)    No                  4 KB,WFS-2,128 DSBs
+        Tier 0         5 GB     1 GB (20%)   300 MB (6%)            NA      4 GB (80%)
+        Tier 1      15.5 GB  8.25 GB (53%)  4.7 GB (30%)            NA   7.25 GB (47%)
+1070       FS7    1 4.98 GB  2.36 GB (47%)            NA  67.0 MB (3%)   2.62 GB (53%)    No  32 KB,WFS-2,128 DSBs,dedupe enabled
+</pre>
+<p></p>
+<pre>server:$ df --ajfs-totals
+</pre>
+<p></p>
+<pre>  ID        Label     Size           Used  Snapshots  Reduction          Avail  Thin                    FS Type
+----  -----------  -------  -------------  ---------  ---------  -------------  ----  -------------------------
+1024  ajfs_master    79 GB  41.7 GB (53%)   0 B (0%)   0 B (0%)  37.3 GB (47%)    No  32 KB,WFS-2,128 DSBs,AJFS
+1025     ajfs_fs0  19.8 GB  7.76 GB (39%)   0 B (0%)   0 B (0%)  12.0 GB (61%)    No       32 KB,WFS-2,128 DSBs
+1026     ajfs_fs1  19.8 GB  18.4 GB (93%)   0 B (0%)   0 B (0%)   1.35 GB (7%)    No       32 KB,WFS-2,128 DSBs
+1027     ajfs_fs2  19.8 GB  7.75 GB (39%)   0 B (0%)   0 B (0%)  12.0 GB (61%)    No       32 KB,WFS-2,128 DSBs
+1028     ajfs_fs3  19.8 GB  7.77 GB (39%)   0 B (0%)   0 B (0%)  12.0 GB (61%)    No       32 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<h2>B. File system space reported to protocol clients</h2>
+<p>In general, the server can report different values for file system capacity and free space to protocol clients based on various constraints such as live file system's severe limit, user/group quotas, vivol quota, and certain global settings.</p>
+<h2>1. Compare space reported by server's df command and protocol clients</h2>
+<p>The server's df command always reports the true capacity and true free space based on the file system formatted capacity.  For instance,</p>
+<pre>      server:$ df -f fs0
+</pre>
+<p></p>
+<pre>        ID  Label    Size           Used  Snapshots  Reduction           Avail  Thin              FS Type
+      ----  -----  ------  -------------  ---------  ---------  --------------  ----  -------------------
+      1024    fs0  500 GB  22.81 GB (5%)   0 B (0%)         NA  477.2 GB (95%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>      server:$ dsb -f fs0 | grep 'File system size'
+      File system size in blocks       : 131072000 (0x7d00000)
+</pre>
+<p></p>
+<p>Thus, df reports as follows:</p>
+<pre>        Size: formatted capacity = (131072000 blocks) * (4096 bytes/block) / (1024*1024*1024 bytes/GB) = 500 GB
+        Avail: true free space  = (true formatted capacity) - (used space) = 500 - 22.8 = 477.2 GB
+</pre>
+<p></p>
+<p>In the following we will discuss file system capacity reported to protocol clients because the amount of free space can be easily derived from it based on the amount of used space. To simplify the discussion, let's consider a Linux-based NFS client. To this end, assume the root file system of fs0 is exported as an NFS export named 'myfs0', and user 'joe' mounts it at /home/joe/myfs0 on his Linux client.</p>
+<p>Case 1. Protocol clients can report the same amounts as the server's df command if the live file system has a soft, or zero, severe limit</p>
+<p>By default, file systems are formatted with a soft severe limit.  We can verify it and find out what the client's df command reports.</p>
+<pre>      server:$ fs-usage fs0 | head 6
+</pre>
+<p></p>
+<pre>      Live File System:
+               Warning : 90
+               Severe  : 97
+               Reset   : 80
+      Allow the live file system to exceed the severe limit
+</pre>
+<p></p>
+<pre>      client:$ df -h | grep -e Filesystem -e myfs0
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             500G   23G  478G   5% /home/joe/myfs0
+</pre>
+<p></p>
+<p>Thus, the client reports the same 500-GB capacity as the server's df command. The reason for the server to report this figure to protocol clients is that the user can exceed the severe limit and access the entire root file system of fs0.</p>
+<p>Case 2. Protocol clients can report lower amounts if the live file system has a hard severe limit</p>
+<p>Let's change the severe level to a hard limit and see what the client's df command reports.</p>
+<pre>      server:$ fs-usage -a disallow fs0 | head 6
+</pre>
+<p></p>
+<pre>      Live File System:
+               Warning : 90
+               Severe  : 97
+               Reset   : 80
+      Do not allow the live file system to exceed the severe limit
+</pre>
+<p></p>
+<pre>      client:$ df -h | grep -e myfs0
+      192.168.43.152:/myfs0               485G   23G  463G   5% /home/joe/myfs0
+</pre>
+<p></p>
+<p>Thus, the client reports a reduced capacity equal to 97% of fs0's formatted capacity: 0.97*500 = 485 GB. The reason for the server to report this figure to protocol clients is that the user cannot use more than 97% of fs0's formatted capacity, and hence, myfs0 appears to him to have only 485-GB capacity.</p>
+<p>Case 3. Protocol clients can report different space amounts if quotas are imposed</p>
+<pre>      server:$ quota get --user joe fs0 | head 4
+      Type            : Explicit
+      Target          : User: joe
+      Usage           : 9 GB
+        Limit         : 50 GB (Hard)
+</pre>
+<p></p>
+<pre>      server:$ set user-quotas-visible           # query the status of this variable
+      Variable 'user-quotas-visible' not found
+</pre>
+<p></p>
+<pre>      server:$ set user-quotas-visible true
+</pre>
+<p></p>
+<pre>      client:$ df -h | grep -e myfs0
+      192.168.43.152:/myfs0                50G  9.0G   41G  18% /home/joe/myfs0
+</pre>
+<p></p>
+<p>In this case the client reports the user's usage limit of 50 GB as the capacity. The reason for the server to report this figure to protocol clients is that the user cannot exceed his hard quota of 50 GB, and hence, myfs0 appears to him to have have only 50-GB capacity.</p>
+<p>We can continue with more cases but it is high time to stop to explain how the capacity of a CIFS share or NFS export is calculated.</p>
+<h3>2. How does the server calculate the file system capacity for protocol clients?</h3>
+<p>When a directory tree or a vivol is exported and mounted as a CIFS share or an NFS export, protocol clients will treat it as a file system, and hence can report its file system capacity, used space, and free space. These amounts are calculated by the server based on certain limits and conditions.</p>
+<p>a. There are five limits listed below along with a summary of server commands to show or set them.</p>
+<pre>   L1. File system's formatted capacity, which is defined as the file system size
+       - To show: df -f &lt;file-system&gt;
+       - To set:  filesystem-create &lt;span-instance-name&gt; &lt;new-filesystem-base-name&gt; &lt;size-in-GiB&gt;
+</pre>
+<p></p>
+<pre>   L2. Live file system's severe limit
+       - To show: fs-usage &lt;file-system&gt;
+       - To set soft|hard limit:  fs-usage -f livefs --severe &lt;num percent&gt; -a allow|disallow &lt;file-system&gt;
+</pre>
+<p></p>
+<pre>   L3. User/group quotas on file system; e.g.,
+       - To show: quota get --user|--group &lt;[domain\]name&gt; &lt;file-system&gt;
+       - To set:  quota add|mod --user|--group &lt;[domain\]name&gt; --usage-limit &lt;num[K|M|G|T|P|E]&gt; [--usage-hard-limit &lt;yes|no&gt;] ... &lt;file-system&gt;
+</pre>
+<p></p>
+<pre>   L4. User/group quotas on vivol; e.g.,
+       - To show: quota get --user|--group &lt;[domain\]name&gt; &lt;file-system&gt; &lt;vivol-name&gt;
+       - To set:  quota add|mod --user|--group &lt;[domain\]name&gt; --usage-limit &lt;num[K|M|G|T|P|E]&gt; [--usage-hard-limit &lt;yes|no&gt;] ... &lt;file-system&gt; &lt;vivol-name&gt;
+</pre>
+<p></p>
+<pre>   L5. Vivol quota
+       - To show:  quota get &lt;file-system&gt; &lt;vivol-name&gt;
+       - To set:   quota add|mod --usage-limit &lt;num[K|M|G|T|P|E]&gt; [--usage-hard-limit &lt;yes|no&gt;] .... &lt;file-system&gt; &lt;vivol-name&gt;
+</pre>
+<p></p>
+<p>In general, only hard usage limits can constrain file system capacity; soft usage limits cannot prevent users from using more space than the limit.</p>
+<p>b. There are two conditions that the limits above are subject to:</p>
+<pre>   C1. Variable 'user-quotas-visible'
+          - To include hard limits on user/group quotas in the calculation: set user-quotas-visible true
+          - To ignore user/group quotas: set user-quotas-visible false
+       The default value of the variable is false; i.e., ignore user/group quotas in the calculation of capacity.
+</pre>
+<p></p>
+<pre>   C2. Option to report capacity based solely on vivol quota
+       This option is disabled by default when a vivol is created. To enable/disable this option:
+          fs-space-reporting-based-solely-on-vivol-quota --on|--off &lt;file-system&gt; &lt;vivol-name&gt;
+</pre>
+<p></p>
+<p>If option C2 is enabled, all hard limits defined in L1 to L4 are ignored; only the limit defined in L5 is reported as file system capacity. Note that this is the only case where the usage limit can be hard or soft.</p>
+<p>If option C2 is disabled, the server calculates the capacities based on one hard limit at a time, starting from L1 to L5. The minimum value will then be sent to protocol clients as the file system capacity.</p>
+<h3>3. More client's space reporting examples</h3>
+<p>Suppose the server has the following:</p>
+<pre>   - file system 'fs0' with L1 = 500-GB formatted capacity is exported as an NFS export named 'myfs0'
+   - fs0 has a severe limit of L2 = 97 percent of formatted capacity
+   - vivol named 'vivol0' is created on file system fs0 and is exported as an NFS export named 'myvivol0'
+   - user 'joe' has a usage quota of L3 = 50 GB on fs0
+   - user 'joe' has a usage quota of L4 = 20 GB on vivol0
+   - fs0 has 22.8 GB used, of which Joe uses a total of 9 GB: 2 GB on vivol0 and 7 GB outside vivol0
+   - vivol0 has no vivol quota defined
+   - variable 'user-quotas-visible' is false
+   - fs0 has option C2 disabled
+</pre>
+<p></p>
+<p>3.1 Suppose all limits L2-L5 are soft.</p>
+<pre>      server:$ df -f fs0
+</pre>
+<p></p>
+<pre>        ID  Label    Size           Used  Snapshots  Reduction           Avail  Thin              FS Type
+      ----  -----  ------  -------------  ---------  ---------  --------------  ----  -------------------
+      1024    fs0  500 GB  22.81 GB (5%)   0 B (0%)         NA  477.2 GB (95%)    No  4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             500G   23G  478G   5% /home/joe/myfs0
+      192.168.43.152:/myvivol0          500G   23G  478G   5% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>Because all limits are soft, they do not constrain the capacities of myfs0 and myvivol0.</p>
+<p>3.2. Suppose limit L2 is hard, L3-L4 can be hard or soft.</p>
+<p>In this case the capacities are equal to 0.97*500 = 485 GB because L3 and L4 are irrelevant if variable 'user-quotas-visible' is false.</p>
+<pre>      server:$ fs-usage -a disallow fs0    # making L2 hard
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             485G   23G  463G   5% /home/joe/myfs0
+      192.168.43.152:/myvivol0          485G   23G  463G   5% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>3.3. Suppose limit L2 is hard and variable 'user-quotas-visible' is true</p>
+<pre>      server:$ set user-quotas-visible true
+</pre>
+<p></p>
+<p>a. If L3 and L4 are soft, we get the same result as shown in 3.2:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit no fs0
+      server:$ quota mod --user joe --usage-hard-limit no fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             485G   23G  463G   5% /home/joe/myfs0
+      192.168.43.152:/myvivol0          485G   23G  463G   5% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>b. If L3 and L4 are hard:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit yes fs0
+      server:$ quota mod --user joe --usage-hard-limit yes fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0              50G  9.0G   41G  18% /home/joe/myfs0
+      192.168.43.152:/myvivol0           20G  2.0G   18G  10% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>The capacity of myfs0 is 50 GB, which is the minimum of {50 GB, 485 GB, 500 GB}. The capacity of myvivol0 is 20 GB, which is the minimum of {20 GB, 50 GB, 485 GB, 500 GB}. This set contains the 50-GB limit of fs0 because vivol0 resides on fs0.</p>
+<p>c. If L3 is soft and L4 is hard:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit no fs0
+      server:$ quota mod --user joe --usage-hard-limit yes fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             485G   23G  463G   5% /home/joe/myfs0
+      192.168.43.152:/myvivol0           20G  2.0G   18G  10% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>The capacity of myvivol0 is 20 GB, which is the minimum of {20 GB, 485 GB, 500 GB}.</p>
+<p>d. If L3 is hard and L4 is soft:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit yes fs0
+      server:$ quota mod --user joe --usage-hard-limit no fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0              50G  9.0G   41G  18% /home/joe/myfs0
+      192.168.43.152:/myvivol0           50G  9.0G   41G  18% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>The capacity of myfs0 is 50 GB, which is the minimum of {50 GB, 485 GB, 500 GB}. The capacity of myvivol0 is 50 GB, which is the minimum of {50 GB, 485 GB, 500 GB} because vivol0 resides on fs0.</p>
+<p>3.4. Suppose vivol0 is limited by a vivol quota of L5 = 100 GB.</p>
+<pre>      server:$ quota add --usage-limit 100G fs0 vivol0   # hard limit by default
+</pre>
+<p></p>
+<p>a. If L3 and L4 are soft:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit no fs0
+      server:$ quota mod --user joe --usage-hard-limit no fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             485G   23G  463G   5% /home/joe/myfs0
+      192.168.43.152:/myvivol0          100G  5.0G   95G   5% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>The capacity of myvivol0 is 100 GB, which is the minimum of {100 GB, 485 GB, 500 GB}.</p>
+<p>b. If L3 and L4 are hard:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit yes fs0
+      server:$ quota mod --user joe --usage-hard-limit yes fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0              50G  9.0G   41G  18% /home/joe/myfs0
+      192.168.43.152:/myvivol0           20G  2.0G   18G  10% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>The capacity of myfs0 is 50 GB, which is the minimum of {50 GB, 485 GB, 500 GB}. The capacity of myvivol0 is 100 GB, which is the minimum of {20 GB, 50 GB, 100 GB, 485 GB, 500 GB}.</p>
+<p>c. If L3 is soft and L4 is hard:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit no fs0
+      server:$ quota mod --user joe --usage-hard-limit yes fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0             485G   23G  463G   5% /home/joe/myfs0
+      192.168.43.152:/myvivol0           20G  2.0G   18G  10% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>Thus, the capacity of myvivol0 is 20 GB, which is the minimum of {20 GB, 100 GB, 485 GB, 500 GB}.</p>
+<p>d. If L3 is hard and L4 is soft:</p>
+<pre>      server:$ quota mod --user joe --usage-hard-limit yes fs0
+      server:$ quota mod --user joe --usage-hard-limit no fs0 vivol0
+      client:$ df -h | grep -e Filesystem -e my
+      Filesystem                        Size  Used Avail Use% Mounted on
+      192.168.43.152:/myfs0              50G  9.0G   41G  18% /home/joe/myfs0
+      192.168.43.152:/myvivol0           50G  9.0G   41G  18% /home/joe/myvivol0
+</pre>
+<p></p>
+<p>Thus, the capacity of myvivol0 is constrained the most by Joe's hard quota on fs0, which is the minimum of {50 GB, 100 GB, 485 GB, 500 GB}.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/dsb.html">dsb</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-syslock.html">filesystem-syslock</a> <a href="../Supervisor/filesystem-sysunlock.html">filesystem-sysunlock</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/fs-space-reporting-based-solely-on-vivol-quota.html">fs-space-reporting-based-solely-on-vivol-quota</a> <a href="../User/fs-usage.html">fs-usage</a> <a href="../Topic/hdp.html">hdp</a> <a href="../User/quota.html">quota</a> <a href="../Supervisor/true-sparse-files.html">true-sparse-files</a> <a href="../User/virtual-volume.html">virtual-volume</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

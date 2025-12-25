@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-pool-limits</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>ndmp-pool-limits</h1>
+<p>Set or display NDMP process pool limits</p>
+<h1>Syntax</h1>
+<pre>ndmp-pool-limits {[-u] | [-p|--preallocate &lt;number-to-preallocate&gt;] [-m|--maximum &lt;max-number-to-allocate&gt;]} [-v] [&lt;pool-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>NDMP pools are resources held within a physical node that are used in one or more of:</p>
+<ul>
+<li>NDMP tape backups and recoveries</li>
+<li>Replications configured through the SMU</li>
+<li>Data Migrations controlled through the SMU or migration file lists</li>
+<li>File system copies invoked by the adc application</li>
+</ul>
+<p>For each pool there are configurable limits which indicate how many objects will be preallocated when the physical node is booted and the maximum number of objects that may be allocated on that physical node. The different types of objects included in pools are described in section Pooled Objects and the limits associated with each pool are described in Option Parameters and Pool Limits.</p>
+<p>Note that although these limits apply separately to each physical node, changes to the limits are propagated to all physical nodes in the cluster. It is not possible to set different limit values on different physical nodes in the same cluster.</p>
+<p>It is not usually necessary to change the default limits set by the system. However, there are cases where some modification might be useful. See section Potential Uses for details.</p>
+<p>The objects involved correspond to processes on the system and each takes up a moderately large amount of space (about 200KB). The pools are used to ensure that these objects are not being continually allocated from and freed to the heap as such activity tends to cause heap fragmentation. When a pool object is needed it is either taken from the currently available pool of free objects or allocated from the heap. The allocation will fail if the maximum pool limit has been reached or if the heap is currently fragmented. When an object is no longer needed it is freed back to the pool of free objects for later reuse.</p>
+<h2>Option Parameters and Pool Limits</h2>
+<p>The command can display or set the limits associated with a pool. Issuing the command without options will list the available pools. A pool name must be supplied if setting new limits. The following options are provided:</p>
+
+<p>{ -p | --preallocate } &lt;number-to-preallocate&gt;</p>
+
+
+<p>The number of objects to allocate at boot time. This will have no effect until the next time the node is rebooted.</p>
+
+
+<p>{ -m | --maximum } &lt;max-number-to-allocate&gt;</p>
+
+
+<p>The maximum number of objects that can be allocated. If this is lower than the number currently allocated, excess objects will be freed provided that they are currently not in use. (Note there is a system limit which gives an upper limit to this setting - see below for details.)</p>
+
+
+<p>{ -u | --unset }</p>
+
+
+<p>Unset previously specified limits and reinstate the system defaults.</p>
+
+
+<p>{ -v | --verbose }</p>
+
+
+<p>If the command is issued without setting any new values it will show the currently configured limits. If the verbose option is set then the command also shows the number of objects currently allocated and the number in use. It also shows the system default settings and the system limit.</p>
+
+<p>By default the preallocation limits are set to zero or a low value so that the resources are not taken on systems where they are not used. However, this does mean that attempts to allocate resources may happen when the node is already busy. This may result in failure to allocate objects if the heap is fragmented. Allocation of a large number of these resources at a single time may also contribute to heap fragmentation. If it is known that a large number of a particular resource will be allocated then it may help to preallocate the resources.</p>
+<p>The default maximum settings are usually large enough to cover normal usage on the node. They are also set low enough to stop these resources taking an unreasonably large portion of the system resources. Attempts to exceed the default limits normally show something is not working properly and the limit acts in a fail-safe manner to avoid more widespread disruption. Where a system is required to run an unusually large number of processes the limits may be increased. There is a system limit which provides an absolute limit.</p>
+<h2>Pooled Objects</h2>
+<p>When setting pool limits, the name of the pool must be provided as the single positional parameter. The pool names may be displayed by issuing the command with no parameters.</p>
+<p>The following pools are affected by this command:</p>
+<ul>
+<li>session: These processes correspond to connections between the NDMP client and the node. There is one session associated with a local tape backup. Otherwise there is one session for each end of a replication, data migration, adc copy or 3-way tape backup/recovery. Additionally, backup applications use NDMP sessions to poll the status of tape drives. Settings: preallocate limit = 0, max allocation limit = 50, system_limit = 200</li>
+<li>slave-session: These processes are used in tape backups and recoveries where cluster namespace paths are used. They are only needed where the node which hosts the real file system associated with the CNS path is different from the node which is doing the NDMP file system processing. Settings: preallocate limit = 0, max allocation limit = 24, system_limit = 64</li>
+<li>readahead-process: These are processes used in tape backups and at the source end of replications, data migrations and adc copies. They pre-read directory tree entries in order to improve performance. Settings: preallocate limit = 0, max allocation limit = 80 , system_limit = 200</li>
+<li>subtask-process: These processes are used in replications and adc file system copies where Additional Connections are used. Each additional connection requires a subtask-process at the source end and one at the destination. Settings: preallocate limit = 0, max allocation limit = 80, system_limit = 200</li>
+<li>tape-device: Each tape device that may be accessed by an EVS on this node has an associated tape device process. Settings: preallocate limit = 0, max allocation limit = 60, system_limit = 120</li>
+<li>changer-device: Each media changer device that may be accessed by an EVS on this node has an associated changer device process. Settings: preallocate limit = 0, max allocation limit = 10, system_limit = 10</li>
+</ul>
+<h2>Potential Uses</h2>
+<ul>
+<li>Where it is known that a large number of certain processes will be used, it is a good idea to ensure that those processes are preallocated. This means that they will always be available. Also this will reduce the tendency to fragment the heap. Particularly good candidates for this action are the readahead-process pool and the subtask-process pool.</li>
+<li>Where the current maximum limit is insufficient to allow deliberately scheduled actions then the limit may be increased up to the system limit.</li>
+<li>As an emergency measure, the maximum limit of a pool may be reduced to free heap space. This will only work if there are processes which are not currently active. (This will not work on the readhead-process pool where the processes remain active permanently.)</li>
+</ul>
+<h1>Examples</h1>
+<pre>ndmp-pool-limits -v
+</pre>
+<p></p>
+
+<p>This command lists the pools along with all the possible settings.</p>
+
+<pre>ndmp-pool-limits -p 60 readahead-process
+</pre>
+<p></p>
+<pre>ndmp-pool-limits -p 30 subtask-process
+</pre>
+<p></p>
+
+<p>These commands set the preallocation limits for readahead processes and subtask processes. These might be suitable settings if there will be three concurrent replications copying from this node with additional connections set to 10 and readahead processes set to 20. The commands will have no effect until the next reboot.</p>
+
+<pre>ndmp-pool-limits -m 60 session
+</pre>
+<p></p>
+
+<p>This command increases the number of NDMP sessions available. This could be used if there were to be 30 simultaneous adc copies between different file systems on the local node.</p>
+
+<pre>ndmp-pool-limits -m 0 subtask-process
+</pre>
+<p></p>
+
+<p>This command could be used in an emergency to free subtask processes that are no longer in use.</p>
+
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndp-dump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>ndp-dump</h1>
+<p>dumps ndp</p>
+<h1>Syntax</h1>
+<pre>ndp-dump 
+</pre>
+
+<h1>Description</h1>
+<p>The ndp-dump command displays internal NDP tables maintained in accordance with RFC4861. There are three tables that we maintain:</p>
+<dl>
+<dt><strong>Neighbors</strong></dt>
+
+<p>The neighbor table provides information on what MAC address we'll use when sending to an on-link IPv6 address.</p>
+
+<dt><strong>Routers</strong></dt>
+
+<p>The router table provides the IPv6 address of routers that have been discovered.</p>
+
+<dt><strong>Prefixes</strong></dt>
+
+<p>The prefix table provides information about what prefixes are on link.</p>
+
+<dt><strong>Per Link Data</strong></dt>
+
+<p>The per link data table provides information about the value of the retransmission timer, valid lifetime, preferred lifetime and hop limit for each IPv6 capable interface.</p>
+
+</dl>
+<p>Both the discovered routers and prefixes are propagated to the routing module.</p>
+<h1>Examples</h1>
+<p>To display the internal NDP tables:</p>
+<pre>server:$ ndp-dump
+neighbors:
+eth0: fe80::224:14ff:feb7:cc13 resolves to 00-24-14-b7-cc-13 reachability: Stale
+eth1: fe80::224:14ff:feb7:cc13 resolves to 00-24-14-b7-cc-13 reachability: Stale
+ag1: fe80::224:14ff:feb7:cc13 resolves to 00-24-14-b7-cc-13 reachability: Stale
+routers:
+eth0: address: fe80::224:14ff:feb7:cc13 mtu: 1500 lifetime: 1800s
+eth1: address: fe80::224:14ff:feb7:cc13 mtu: 1500 lifetime: 1800s
+ag1: address: fe80::224:14ff:feb7:cc13 mtu: 1500 lifetime: 1800s
+prefixes:
+eth0: prefix: fdca:f995:220a:480::/64 valid lifetime: 2592000s preferred lifetime: 604800s
+eth1: prefix: fdca:f995:220a:480::/64 valid lifetime: 2592000s preferred lifetime: 604800s
+ag1: prefix: fdca:f995:220a:480::/64 valid lifetime: 2592000s preferred lifetime: 604800s
+per link data:
+eth0: reachable time: 20100ms base reachable time: 30000ms retransmission time: 1000ms hop limit: 64
+eth1: reachable time: 20100ms base reachable time: 30000ms retransmission time: 1000ms hop limit: 64
+ag1: reachable time: 23010ms base reachable time: 30000ms retransmission time: 1000ms hop limit: 64
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndp-flush.html">ndp-flush</a> <a href="../User/route.html">route</a> <a href="../Supervisor/router-dump.html">router-dump</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

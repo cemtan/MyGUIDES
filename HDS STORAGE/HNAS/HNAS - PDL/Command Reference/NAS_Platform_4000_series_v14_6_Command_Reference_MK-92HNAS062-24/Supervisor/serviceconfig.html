@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>serviceconfig</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>serviceconfig</h1>
+<p>Configure or show services allowed</p>
+<h1>Syntax</h1>
+<pre>serviceconfig [&lt;service&gt; {disable | enable}]
+service = cifs | nfs | ftp | iscsi | cns | readcache
+</pre>
+
+<h1>Description</h1>
+<p>Display or alter whether services are enabled or disabled.</p>
+<p>serviceconfig [&lt;service&gt; {disable | enable}]</p>
+<p>Where &lt;service&gt; can be 'cifs', 'nfs', 'ftp' 'cns' or 'iscsi' or 'readcache'</p>
+<h1>Examples</h1>
+<pre>server:$ serviceconfig ftp disable
+Service FTP is disabled - Stopping
+FTP service configuration is disabled
+server:$ serviceconfig
+Service     Enabled?
+NFS         Y
+FTP         N
+CIFS        Y
+ISCSI       Y
+CNS         Y
+server:$ serviceconfig nfs
+NFS Service Configuration
+service enabled
+server:$ serviceconfig ftp enable
+Starting service FTP
+FTP service configuration is enabled
+server:$
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../User/licensekey.html">licensekey</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

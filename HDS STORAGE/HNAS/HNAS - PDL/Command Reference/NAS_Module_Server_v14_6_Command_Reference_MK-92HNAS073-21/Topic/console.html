@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>console</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>console</h1>
+
+<h1>Description</h1>
+<p>The command interpreter is loosely modeled on the Unix shell.</p>
+<h2>Grammar overview</h2>
+<pre>START ::= LIST
+</pre>
+<p></p>
+<pre>LIST ::= SUBLIST [; SUBLIST]
+</pre>
+<p></p>
+<pre>SUBLIST ::= PIPE [("&amp;&amp;"|"||") SUBLIST]
+</pre>
+<p></p>
+<pre>PIPE ::= COMMAND ["|" SIMPLE_COMMAND]
+</pre>
+<p></p>
+<pre>COMMAND ::= "{" LIST "}"
+</pre>
+<p></p>
+<pre>COMMAND ::= SIMPLE_COMMAND
+</pre>
+<p></p>
+<pre>SIMPLE_COMMAND ::= WORD [WORD]
+</pre>
+<p></p>
+<p>An unquoted # character introduces a comment that continues to the end of the line.</p>
+<h2>Quoting</h2>
+<p>Quoting of arguments containing meta-characters can be done with single quotes ('like this') or double quotes ("like this"). Our command interpreter makes fewer distinctions between the two forms than Unix shells. One Unix-like distinction is that variable interpolation is only performed with the double quoted form, for example:</p>
+<pre>server:$ selectfs fs3
+Current selected file system: fs3, number(1)
+server:$ snapshot-create --file-system "$FS_LABEL" snap
+server:$
+</pre>
+<p></p>
+<p>Unknown variables cause an error:</p>
+<pre>server:$ snapshot-create --file-system "$FS" snap
+Invalid interpolation (unknown variable name 'FS') here:
+snapshot-create --file-system "$FS" snap
+                                 ^
+server:$
+</pre>
+<p></p>
+<p>The dev-level env command can be used to set, clear or list these variables. In particular, these variables are console-specific, unlike the cluster-wide variables managed by the "set" command. Note some commands can create/update their own variables (e.g., FS_LABEL by selectfs, REPETITION by repeat).</p>
+<p>Shell-like escaping with \ is not supported.  Backslash escaping turns out to be unpopular amongst MS Windows users because of their UNC paths.  Given that the two most common uses of it on Unix -- ensuring tab-completion always results in readable well-formed strings, and escaping the ';' needed by find(1) -- aren't relevant to us, we don't implement it.</p>
+<p>Quoting with embedded C escapes using $'string' should work fine.  We support \b, \f, \n, \r, \t, \\, \', and \".  We also support byte escapes with \xHH and Unicode escapes with \uHHHH.  Representing Unicode supplementary characters requires two consecutive Unicode escapes.  (Note that bash(1) doesn't support Unicode escapes, but Java and C++ do.)</p>
+<p>The bash(1) escape sequences we don't support are \a, \e, \v, \nnn (octal byte escapes), and \cx.</p>
+<h2>Built-ins</h2>
+<p>There are no built-in commands.  Unlike in previous releases, "exit" is now a true command rather than a built-in.</p>
+<h2>Key bindings</h2>
+<p>The following Unix-like key bindings are supported:</p>
+<dl>
+<dt><strong>control-A</strong></dt>
+<dd><p>Move to the beginning of the line.</p></dd>
+<dt><strong>control-E</strong></dt>
+<dd><p>Move to the end of the line.</p></dd>
+<dt><strong>control-K</strong></dt>
+<dd><p>Kill the text from point to the end of the line.</p></dd>
+<dt><strong>control-L</strong></dt>
+<dd><p>Refresh the current line.</p></dd>
+<dt><strong>control-U</strong></dt>
+<dd><p>Kill backwards from point to the start of the line.</p></dd>
+<dt><strong>control-W</strong></dt>
+<dd><p>Kill the word before point.</p></dd>
+<dt><strong>control-left</strong></dt>
+<dd><p>Move backwards to the start of the previous word.</p></dd>
+<dt><strong>control-right</strong></dt>
+<dd><p>Move forwards to the end of the next word.</p></dd>
+<dt><strong>up</strong></dt>
+<dd><p>Search backwards through the history for the next line, starting with the characters typed so far.</p></dd>
+<dt><strong>down</strong></dt>
+<dd><p>Search forwards through the history for the next line, starting with the characters typed so far.</p></dd>
+<dt><strong>tab</strong></dt>
+<dd><p>Tab-complete; only works on command/filter names.</p></dd>
+<dt><strong>backspace</strong></dt>
+<dd><p>Remove the character before the cursor.</p></dd>
+<dt><strong>del</strong></dt>
+<dd><p>Remove the character after the cursor.</p></dd>
+</dl>
+<h2>Character encoding</h2>
+<p>The console line editor assumes UTF-8. By default, however, typed input that's not printable ASCII will be represented as $''-quoted escape sequences.  That is, if you type or paste in καλιμερα, it will appear as this rather lengthy sequence:</p>
+<p>$'\xce'$'\xba'$'\xce'$'\xb1'$'\xce'$'\xbb'$'\xce'$'\xb9'$'\xce'$'\xbc'$'\xce'$'\xb5'$'\xcf'$'\x81'$'\xce'$'\xb1'</p>
+<p>If you echo that sequence, though, it will appear -- assuming a UTF-8 terminal emulator -- correctly as καλιμερα.  See QUOTING above for full details of escaping.</p>
+<p>To use UTF-8 input without escaping:</p>
+<pre>set consoleShouldEscapeTopBitSetInput false
+</pre>
+<p></p>
+<p>As always with "set", the effect is cluster-wide and persistent. It takes effect immediately but only on newly created consoles (eg new SSC connections).</p>
+<h2>Command syntax</h2>
+<p>Our command syntax is based on Unix.</p>
+<p>The guidelines in this section apply to most commands, but exceptions exist.</p>
+<p>Many commands accept switches (which modify the way a command works), arguments (which provide data for the command to work on), or both.  Switches and arguments are separated by spaces.</p>
+<p>Canonically, switches appear before arguments.  However, for most commands (generally, those that do not take a variable number of arguments), switches can appear anywhere on the command line.  This freedom can produce more natural command syntax.</p>
+<p>A switch is preceded by a double dash.  It can be abbreviated to any unambiguous form.  If the switch requires an argument, the argument follows the switch, separated by a space.</p>
+<p>A switch may have a single-character shortcut, which is preceded by a single dash.  Short switches can take arguments in the same way as long switches.  The space between the switch and its argument is optional.</p>
+<p>A short switch that takes no argument can be merged with the immediately following short switch: between the two switches, there should be no dash and no space.</p>
+<p>Switch names, in both long and short forms, are case-sensitive.  Arguments may or may not be.</p>
+<p>A double dash "--" standing alone indicates that all following words are to be understood as arguments, even if they start with one or more dashes.  Words appearing before the double dash are not affected and, if they start with dashes, will be interpreted as switches in the usual way.</p>
+<p>The order in which arguments appear is significant; the order of the switches on a line is usually not.</p>
+<p>To specify a numeric parameter in hex, precede it with "0x" and no intervening space.  To use octal, precede the number with a leading 0.  To use decimal, omit any prefix (except in the case of a very few commands, which assume you mean hex by default).  Thus "0x100" means 256, "0100" means 64, "100" just means 100, and "08" will be rejected.</p>
+<p>To see the syntax of a specific command, run 'help', specifying the name of the command in question.</p>
+<p>'help' will display names for positional parameters.  These names can be used as switches; in that case, they can be given in any order and optionally abbreviated as usual.</p>
+<h1>Examples</h1>
+<h2>Shell</h2>
+<pre>  server:$ echo \\hello\world
+  \\hello\world
+  server:$ echo '\\hello\world'
+  \\hello\world
+  server:$ echo $'\\hello\world'
+  Invalid escape here:
+  echo $'\\hello\world'
+                 ^
+  server:$ echo $'\\hello\world
+  Invalid escape here:
+  echo $'\\hello\world
+                 ^
+  server:$ echo $'\\hello\\world
+  No end to quoted string which started here:
+  echo $'\\hello\\world
+       ^
+  server:$ echo $'hello\rworld'
+  world
+  server:$ echo $'hel\x1b[31mlo wo\x1b[0mrld'
+  hel&lt;font color="red"&gt;lo wo&lt;/font&gt;rld
+  server:$ echo hel$'\x1b[32m'lo world$'\x1b[0'm
+  hel&lt;font color="green"&gt;lo world&lt;/color&gt;
+  server:$
+</pre>
+<p></p>
+<h2>Command syntax</h2>
+<p>A command taking two arguments:</p>
+<pre>span-create Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>A command taking two switches and two arguments:</p>
+<pre>span-create --allow-access --mirror Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Abbreviating long switch names:</p>
+<pre>span-create --allo --mir Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Using short switch names:</p>
+<pre>span-create -a -m Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Merging short switch names:</p>
+<pre>span-create -am Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Using a switch with an argument:</p>
+<pre>span-create --tier 1 Accounts 0,2,5,9,13-18
+span-create -t 1 Accounts 0,2,5,9,13-18
+span-create -t1 Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Merging switch names and one argument:</p>
+<pre>span-create -amt1 Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Using a double dash to specify a label that starts with a dash, while also using a switch before the double dash:</p>
+<pre>span-create -t1 -- -Accounts 0,2,5,9,13-18
+</pre>
+<p></p>
+<p>Using a double dash to prevent a negative number from being interpreted as a switch:</p>
+<pre>span-tier Accounts -- -1
+</pre>
+<p></p>
+<p>Discovering the syntax of the 'span-create' command:</p>
+<pre>help span-create
+</pre>
+<p></p>
+<p>Moving a switch to the end of the command for more natural syntax:</p>
+<pre>filesystem-expand --by 100 Engineering
+filesystem-expand Engineering --by 100
+</pre>
+<p></p>
+<p>The same 'span-rename' command expressed three ways, first using positional arguments in the usual way, and then specifying explicit, abbreviated switch names:</p>
+<pre>span-rename Departments Teams
+span-rename --from Departments --to Teams
+span-rename --to Teams --from Departments
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Any/apropos.html">apropos</a> <a href="../Any/help.html">help</a> <a href="../User/man.html">man</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/selectfs.html">selectfs</a> <a href="../Supervisor/set.html">set</a> <a href="../User/ssrun.html">ssrun</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

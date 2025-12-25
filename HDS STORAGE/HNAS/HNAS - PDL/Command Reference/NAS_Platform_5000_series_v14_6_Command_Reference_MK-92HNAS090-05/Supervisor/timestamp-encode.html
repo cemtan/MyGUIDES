@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>timestamp-encode</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>timestamp-encode</h1>
+<p>Convert human-readable date and time to a 32-bit or 64-bit Unix time integer</p>
+<h1>Syntax</h1>
+<pre>timestamp-encode [--nanosecond-resolution] [--hex] {--date yyyy-mm-dd --time hh:mm:ss[.fraction][+|-hh:mm] } | { --iso-format yyyy-mm-ddThh:mm:ss[.fraction][+|-hh:mm] }
+</pre>
+
+<h1>Description</h1>
+<p>This command converts a file system timestamp in human-readable form to a 32-bit or 64-bit Unix time integer value.</p>
+<p>It should be pointed out that conversion of date time strings to integer values and vice versa is also supported in the 'strtoken' filter and built-in functions that can be specified in the 'calculate' command.</p>
+<p>For the purpose of this command, a 32-bit Unix time value is the number of seconds since midnight of 1970/01/01 and a 64-bit Unix time value is defined as follows:</p>
+<pre>   - the high-order 32-bit value is the number of seconds since midnight of 1970/01/01.
+   - the low-order 32-bit value contains the number of nanoseconds in the second fraction.
+</pre>
+<p></p>
+<p>Note that the human-readable timestamp has 100-nanosecond resolution. Thus, when it is converted to Unix time value, the result also has 100-nanosecond resolution.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--nanosecond-resolution, -n</strong></dt>
+<dd><p>If this option is specified, display the Unix time value as a 64-bit integer with 100-nanosecond resolution. Otherwise, display the Unix time value as a 32-bit integer with one-second resolution.</p></dd>
+<dt><strong>--hex, -h</strong></dt>
+<dd><p>Display the Unix time value in hex. If this option is not specified, the Unix time value is displayed in decimal.</p></dd>
+<dt><strong>--date, -d &lt;yyyy-mm-dd&gt;</strong></dt>
+<dd><p>Specify the date in the form of yyyy-mm-dd such as -d 2015-08-20. If --date is not specified, the date string is assumed to be "1970-01-01".</p></dd>
+<dt><strong>--time, -t &lt;hh:mm:ss[.fraction][+|-hh:mm]&gt;</strong></dt>
+<dd><p>Specify the time string in the 24-hour format where hh is the hour number from 0 to 23, mm is the minute number from 0 to 59, ss is the integer number of seconds from 0 to 60 (60 to support leap second). The fractional part of a second appears after a decimal point with at most nanosecond resolution, i.e., at most 9 decimal digits. The GMT time offset is specified at the end of the string as +hh:mm or -hh:mm. If the GMT time offset is not specified, it will be assumed to be "+00:00".</p></dd>
+<dd><p>If --time is not specified, the time string is assumed to be "00:00:00+00:00"</p></dd>
+<dt><strong>--iso-format, -i  &lt;yyyy-mm-dd&gt;T&lt;hh:mm:ss[.fraction][+|-hh:mm]&gt;</strong></dt>
+<dd><p>Specify the date and time in ISO 8601 format. In this format, the string starts with a date string of the form yyyy-mm-dd, then 'T', then a time string as described in the --time option.</p></dd>
+</dl>
+<p>Note that if --iso-format is specified, options --date and --time cannot be specified and vice versa.</p>
+<h1>Examples</h1>
+<p>1. Convert a human-readable file system timestamp to 32-bit Unix time in decimal:</p>
+<pre>   $ timestamp-encode --date 2015-08-16 --time 21:01:31-07:00
+   1439784091
+</pre>
+<p></p>
+<pre>   $ timestamp-encode --iso-format 2015-08-16T21:01:31-07:00
+   1439784091
+</pre>
+<p></p>
+<pre>   $ timestamp-encode --iso-format 2015-08-16T21:01:31.326712334-07:00
+   1439784091
+</pre>
+<p></p>
+<p>2. Convert a human-readable timestamp to 32-bit Unix time in hex:</p>
+<pre>   $ timestamp-encode --hex --date 2015-08-16 --time 21:01:31-07:00
+   0x55d15c9b
+</pre>
+<p></p>
+<p>3. Specify --nano to convert a human-readable timestamp to 64-bit time in decimal:</p>
+<pre>   $ timestamp-encode --nano --date 2015-08-16 --time 21:01:31-07:00
+   6183825584146087936
+</pre>
+<p></p>
+<p>4. Same as (3) but display in hex:</p>
+<pre>   $ timestamp-encode --hex --nano --date 2015-08-16 --time 21:01:31-07:00
+   0x55d15c9b00000000
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Filter/Dev/calculate.html">calculate</a> <a href="../Filter/Dev/strtoken.html">strtoken</a> <a href="../Supervisor/timestamp-decode.html">timestamp-decode</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

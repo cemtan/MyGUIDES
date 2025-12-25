@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sswrdata</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sswrdata</h1>
+<p>Write/Append data to a flash file</p>
+<h1>Syntax</h1>
+<pre>... | sswrdata [--force|--append] &lt;filename&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This filter reads data from the standard input and writes back to a flash file.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>&lt;filename&gt;</strong></dt>
+<dd><p>Name of the file to write to. Note that this is not a pathname.</p></dd>
+<dt><strong>--force, -f</strong></dt>
+<dd><p>By default, the command writes data to a new file if no options are specified and, hence, fails if the file already exists. Specifying --force to force the command to overwrite the existing file. This option has no effect if the file does not exist.</p></dd>
+<dt><strong>--append, -a</strong></dt>
+<dd><p>Append data to the end of the specified file. If the file does not exist, create a new file and write data to it.</p></dd>
+</dl>
+<p>Options --force and --append are mutually exclusive.</p>
+<p>Note that if the target file is in the current selected file system, use the wrdata filter instead.</p>
+<h2>Run as a command</h2>
+<p>Note that wrdata can be run as a command with the following syntax:</p>
+<pre>    sswrdata [--force|--append] [--newline|-n] [--escape-char|-e &lt;char&gt;] [--macro-symbol|-m &lt;char&gt;] [(--data|-d &lt;text&gt;)|--eof &lt;marker&gt;] &lt;pathname&gt;
+</pre>
+<p></p>
+<p>The two options --force and --append have the same meaning as the filter counterpart. The other new arguments are as follows.</p>
+<dl>
+<dt><strong>--data &lt;text&gt;</strong></dt>
+<dd><p>Specifies data to write to the file.</p></dd>
+<dt><strong>--eof &lt;marker&gt;</strong></dt>
+<dd><p>Specifies that the data to write to the file consists of all lines immediately following the command line until the line that contains one end-of-file marker, i.e., &lt;marker&gt;, alone. This line and the newline preceding it will be discarded.</p></dd>
+<dd><p>Note that if sswrdata is used in an mse script, this option has different behavior depending on how the option name is specified (see Section C8.3.6 of the mse man page for explanation and examples).</p></dd>
+<dd><p>If the full spelling "--eof" is specified, the option will be processed in the context of the mse command, and hence, all the data must be specified below the sswrdata command line.</p></dd>
+<dd><p>If the partial spelling "--eo" is specified, the option will be processed in the context of the sswrdata command. Thus, the user has to enter the data interactively every time the mse script is run.</p></dd>
+<dt><strong>--escape-char, -e &lt;char&gt;</strong></dt>
+<dd><p>Specifies the escape character for use to resolve escape sequences in the data to be written to the file. By default, there is no escape character defined.</p></dd>
+<dt><strong>--macro-symbol, -m &lt;char&gt;</strong></dt>
+<dd><p>Specifies the macro symbol character for use to resolve all macros in the data to be written to the file. By default, there is no macro symbol character defined.</p></dd>
+<dt><strong>--newline|-n</strong></dt>
+<dd><p>Append a newline to the input text before writing to the file.</p></dd>
+</dl>
+<h2>Reserved files</h2>
+<p>The following files cannot be overwritten or modified:</p>
+<pre>   * Filenames with suffixes: .tar, .tgz, .gz, .bz2, .zip, .swp
+</pre>
+<p></p>
+<pre>   * File names:
+         startup.scr
+</pre>
+<p></p>
+<pre>   * Filenames starting with prefixes:
+         boot_disk_data
+         ErrorDB
+         ErrorPolicyPolicyDb
+         event.log
+         hardware.data
+         i2cevent.log
+         last_good_mmb_memory_size
+         management.log
+         telc.data
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>1. Save the list of files in the current working directory to a flash file:</p>
+<pre>   $ cd /mydir
+   $ ls -l | sswrdata filelist.txt
+</pre>
+<p></p>
+<p>2. Append the list of files in another directory:</p>
+<pre>   $ cd subdir
+   $ ls -l | sswrdata -a filelist.txt
+</pre>
+<p></p>
+<p>3. Note that the same flash file cannot be read (e.g. by sscat) and written (e.g. by sswrdata) at the same time:</p>
+<pre>   $ sscat file1.txt | sswrdata -f file1.txt
+   Failed to open file 'file1.txt': Flash file resource busy
+</pre>
+<p></p>
+<p>4. Note the mse command can also be used to write data to a flash file:</p>
+<pre>   $ cd /mydir
+   $ ls -l | mse -c -w filelist1.txt -y -R 3 "%%.___"
+</pre>
+<p></p>
+<p>The "%%.___" token represents the raw line from the standard input of the 'mse' command. Thus, examples 1 and 4 should produce the same output.</p>
+<p>5. The 'mse' filter is advantageous in that the input line can be changed before writing to the file. For example, we can prepend each line with "Found file: " as follows:</p>
+<pre>   $ ls -l | mse -c -w filelist2.txt -y -R 3 "Found file: %%.___"
+</pre>
+<p></p>
+<p>6. Using sswrdata with large binary files</p>
+<pre>   $ obj-read mydata --nbytes 0 --binary | sswrdata --force mydata
+</pre>
+<p></p>
+<p>or</p>
+<pre>   $ cat mydata --length 0 --binary | sswrdata --force mydata
+</pre>
+<p></p>
+<p>Note that option --binary is needed to flush the standard output frequently.</p>
+<p>7. Run sswrdata as a command</p>
+<pre>   server:$ sswrdata --newline --data "Hello there!" --force file.txt
+   server:$ sswrdata --newline --data "How are you?" --append file.txt
+   server:$ sscat file.txt
+   Hello there!
+   How are you?
+   server:$
+</pre>
+<p></p>
+<p>Alternatively, the same result can be obtained by:</p>
+<pre>   server:$ sswrdata --force --eof END file.txt
+   Hello there!
+   How are you?
+</pre>
+<p></p>
+<pre>   END
+</pre>
+<p></p>
+<p>Recall that the "END" marker and the newline preceding it (i.e., the blank line) will be removed from the input text. Without the blank line, the result will be as follows:</p>
+<pre>   server:$ sscat file.txt
+   Hello there!
+   How are you?server:$
+</pre>
+<p></p>
+<p>8. How does 'sswrdata --eof' work in an mse script?</p>
+<p>Note that when "sswrdata --eof" is used in an mse script, the --eof option must be the last option before the file name. This option behaves differently as follows</p>
+<p>8.1 Specify full option name, --eof, to avoid interactive data entry</p>
+<pre>   server:$ sscat test.scr
+   sswrdata --force --eof END file.txt
+   Hello there!
+   How are you?
+</pre>
+<p></p>
+<pre>   END
+</pre>
+<p></p>
+<pre>   server:$ mse -f test.scr
+   server:$ sscat file.txt
+   Hello there!
+   How are you?
+   server:$
+</pre>
+<p></p>
+<p>8.2 Specify partial option name, --eo, to allow interactive data entry</p>
+<pre>   server:$ sscat test1.scr
+   echo Enter data followed by END marker to stop:
+   sswrdata --force --eo END file1.txt
+   echo Done with writing data to file1.txt
+</pre>
+<p></p>
+<pre>   server:$ mse -f test1.scr
+   Enter data followed by END marker to stop:
+   Hello there!
+   How are you?
+</pre>
+<p></p>
+<pre>   END
+   Done with writing data to file1.txt
+</pre>
+<p></p>
+<pre>   server:$ sscat file1.txt
+   Hello there!
+   How are you?
+   server:$
+</pre>
+<p></p>
+<p>9. How does 'sswrdata --eof' work in an ssrun script?</p>
+<p>The ssrun command does not process the --eof option to any commands. Thus, the --eof option is always processed by the sswrdata command and the user has to enter data interactively when running an ssrun script.</p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/cat.html">cat</a> <a href="../../Filter/User/hexdump.html">hexdump</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Supervisor/obj-read.html">obj-read</a> <a href="../../Dev/sswrdata.html">sswrdata</a> <a href="../../Filter/Dev/strtransform.html">strtransform</a> <a href="../../Filter/Dev/wrdata.html">wrdata</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

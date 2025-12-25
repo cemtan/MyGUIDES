@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nis-gid-number-from-group-name</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nis-gid-number-from-group-name</h1>
+<p>test nisclient::api::GidFromGroup</p>
+<h1>Syntax</h1>
+<pre>nis-gid-number-from-group-name user
+Alias:       nis-gid-from-group
+Alias:       NisGidFromGroup
+</pre>
+
+<h1>Description</h1>
+<p>The nis-uid-number-from-user-name, nis-user-name-from-uid-number, nis-gid-number-from-group-name and nis-group-name-from-gid-number commands are used to check translations from names and groups to user IDs and group IDs respectively and vice-versa.</p>
+<p>The RFC 2307 LDAP schema uses "uid" to mean "user name" and "cn" to mean "group name".  Generally, in this product, "uid" and "gid" are used to mean "uid number" and "gid number", as can be seen in the output from these commands.</p>
+<p>At most one matching entry is returned.  A status of OK_NOT_FOUND means that the directory services server had no matching entries.  Failure to contact the directory services server is typically reported as NO_BOUND_SERVER.</p>
+<h1>Examples</h1>
+<pre>server:$ nis-user-name-from-uid-number 9000
+nisclient::api::NameFromUid() failed, status = NO_BOUND_SERVER
+server:$ nis-user-name-from-uid-number 90000
+nisclient::api::NameFromUid() failed, status = OK_NOT_FOUND
+server:$ nis-user-name-from-uid-number 9000
+nisclient::api::NameFromUid(9000, name) gives name = Test9000
+server:$ nis-uid-number-from-user-name Test9000
+nisclient::api::UidFromName(Test9000, uid) gives uid = 9000
+server:$ nis-group-name-from-gid-number 1000
+nisclient::api::GroupFromGid(1000, name) gives name = group1000
+server:$ nis-gid-number-from-group-name group1000
+nisclient::api::GidFromGroup(group1000, gid) gives gid = 1000
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ldap-schema.html">ldap-schema</a> <a href="../Supervisor/nis-group-name-from-gid-number.html">nis-group-name-from-gid-number</a> <a href="../Supervisor/nis-uid-number-from-user-name.html">nis-uid-number-from-user-name</a> <a href="../Supervisor/nis-user-name-from-uid-number.html">nis-user-name-from-uid-number</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

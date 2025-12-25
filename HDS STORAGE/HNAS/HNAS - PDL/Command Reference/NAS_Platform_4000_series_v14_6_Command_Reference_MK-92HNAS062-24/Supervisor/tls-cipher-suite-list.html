@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tls-cipher-suite-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>tls-cipher-suite-list</h1>
+<p>Lists the cipher suites that are enabled. Specify any filters after the command, when none are specified all cipher suites will be shown.</p>
+<h1>Syntax</h1>
+<pre>tls-cipher-suite-list {&lt;cipher-suite&gt; | &lt;cipher-suite-component&gt;}
+</pre>
+
+<h1>Description</h1>
+<p>The <strong>tls-cipher-suite-[enable,disable,default]</strong> commands are used to enable, disable or reset the enabled cipher suites to the defaults respectively.</p>
+<p>The <strong>tls-cipher-suite-list</strong> command lists the enabled and disabled cipher suites. To list specific TLSv1.3 cipher suites, specify their names in a colon (":") separated list after the command. To list cipher suites for TLSv1.2 and below, specify a cipher list after the command. The format of the cipher list is described at: <em>https://www.openssl.org/docs/man1.1.1/man1/ciphers.html#CIPHER-LIST-FORMAT</em>.</p>
+<h2>Warning:</h2>
+<p>Running <strong>tls-cipher-suite-[enable,disable,default]</strong> will <em>automatically</em> cause the HTTPS server used for server management to restart. Any clients currently connected to it <em>will lose their connection</em> and will need to reconnect.</p>
+<p>This forces clients to connect using the desired SSL/TLS version and cipher suite.</p>
+<h2>SSL/TLS Versions:</h2>
+<p>Depending on which SSL/TLS versions are enabled using <strong>tls-version-set</strong> only some of the enabled cipher suites here will be usable.</p>
+<p>For example there are new cipher suites that only work in TLSv1.3. Older cipher suites cannot be used for TLSv1.3 connections and the new ones cannot be used for TLSv1.2 (or older) connections.</p>
+<p>Note that many cipher suites are upwards compatible. So if you disable TLSv1.1, it does not mean that cipher suites introduced with TLSv1.1 will be unavailable in higher TLS versions.</p>
+<h2>SSL/TLS Certificate Implications:</h2>
+<p>The cipher suites you choose to enable or disable will affect the SSL/TLS certificates you will be able to use.</p>
+<p>Every certificate will require a certain key agreement algorithm. This algorithm is also part of a cipher suite. So for example if all cipher suites that specify RSA are disabled then certificates that are using RSA as the key agreement algorithm will not be usable.</p>
+<p>When no cipher suites that implement a specific key agreement algorithm are enabled a warning will be shown after the command has run.</p>
+<h2>Enabled cipher suites may not be used:</h2>
+<p>Because a cipher suite is enabled does not mean that it will (or can) be used. A server and client will use the most preferred suite that both are capable of using.</p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Specify this argument to confirm that you want to change the settings. When not specified a dry-run will be performed where no settings are changed.</p></dd>
+<dt><strong>--all</strong></dt>
+<dd><p>Specify this argument to enable all the possible cipher suites.</p></dd>
+</dl>
+<h1>Examples</h1>
+<dl>
+<dt><strong>tls-cipher-suite-disable --confirm ECDHE-ECDSA-AES128-CCM</strong></dt>
+<dd><p>Will disable the cipher suite `ECDHE-ECDSA-AES128-CCM' if it is enabled. If it is disabled nothing will happen.</p></dd>
+<dd><p>Note that the HTTPS server will still be restarted.</p></dd>
+<dt><strong>tls-cipher-suite-enable --confirm ECDHE-ECDSA-AES128-CCM</strong></dt>
+<dd><p>Will enable the cipher suite `ECDHE-ECDSA-AES128-CCM' if it is disabled. If it is enabled nothing will happen.</p></dd>
+<dd><p>Note that the HTTPS server will still be restarted.</p></dd>
+<dt><strong>tls-cipher-suite-disable --confirm ECDHE-RSA-AES256-SHA ECDHE-RSA-AES128-SHA ECDHE-RSA-AES128-SHA256</strong></dt>
+<dd><p>Disable multiple cipher suites in one command.</p></dd>
+<dt><strong>tls-cipher-suite-enable --confirm ECDHE-RSA-AES256-SHA ECDHE-RSA-AES128-SHA</strong></dt>
+<dd><p>Enable multiple cipher suites in one command.</p></dd>
+<dt><strong>tls-cipher-suite-enable TLS_AES_128_CCM_8_SHA256</strong></dt>
+<dd><p>Will do nothing as <strong>--confirm</strong> was not specified.</p></dd>
+<dt><strong>tls-cipher-suite-enable --confirm --all</strong></dt>
+<dd><p>Enables all cipher suites that are available.</p></dd>
+<dt><strong>tls-cipher-suite-list</strong></dt>
+<dd><p>List the status all the enabled and disabled cipher suites. Cipher suites without encryption or authentication are not listed and are always disabled.</p></dd>
+<dt><strong>tls-cipher-suite-list PSK</strong></dt>
+<dd><p>List that status of all cipher suites that use PSK.</p></dd>
+<dt><strong>tls-cipher-suite-list DHE ECDHE-PSK-CHACHA20-POLY1305</strong></dt>
+<dd><p>List the status of all cipher suites that use DHE and also list the status of the cipher suite ECDHE-PSK-CHACHA20-POLY1305</p></dd>
+<dt><strong>tls-cipher-suite-list TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_8_SHA256</strong></dt>
+<dd><p>List the status of the two specified TLSv1.3 cipher suites.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/tls-cipher-suite-default.html">tls-cipher-suite-default</a> <a href="../Supervisor/tls-cipher-suite-disable.html">tls-cipher-suite-disable</a> <a href="../Supervisor/tls-cipher-suite-enable.html">tls-cipher-suite-enable</a> <a href="../Supervisor/tls-version-list.html">tls-version-list</a> <a href="../Supervisor/tls-version-set.html">tls-version-set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

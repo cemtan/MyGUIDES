@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-quota-mode</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>fs-quota-mode</h1>
+<p>Query/change the quota mode of a WFS-2 file system</p>
+<h1>Syntax</h1>
+<pre>fs-quota-mode -f &lt;file system&gt; [--usage-based | --file-size-based]
+</pre>
+
+<h1>Description</h1>
+<p>This command can be used to query/change the quota mode of a file system.</p>
+<p>There are two quota modes:</p>
+<dl>
+<dt><strong>File based</strong></dt>
+<dd><p>This mode charges the file size of a file to quotas. For example, if a file has a length of 1GiB, then 1GiB of usage will be charged to the appropriate quotas. This is the default when a new file system is created.</p></dd>
+<dt><strong>Usage based</strong></dt>
+<dd><p>This mode charges the on disk usage of a file to quotas. For example, if a sparse file has a length of 1GiB, but has only written to 100KiB of that file, then 100KiB will be charged to the quota. Only user data blocks are charged to the quota - metadata associated with the file is not charged.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>The name of the file system we wish to query/set the quota mode on.</p></dd>
+<dt><strong>--usage-based</strong></dt>
+<dd><p>Switch to using usage based quotas.</p></dd>
+<dt><strong>--file-size-based</strong></dt>
+<dd><p>Switch to using file size based quotas.</p></dd>
+</dl>
+<p>To change the quota mode the file system must be unmounted. On the next mount, quota usage will be recomputed. This is called space-tracker reconstruction, and events are raised when space tracker reconstruction is scheduled and when it completes. Quotas will not be accurate whilst reconstruction is ongoing.</p>
+<p>The file system quota mode is reported as a value of the "File system feature flags" in the output of the dsb command, which is included in showall.txt. If the flags contains the string "FileSystemFeature_UsageBasedQuotas", the file system uses usage-based quota. If this string is absent, the file system uses file-size based quotas.</p>
+<h1>Examples</h1>
+<pre># Switch to using usage based quotas
+server:$ fs-quota-mode -f fs0 --usage-based
+File system fs0 is using usage based quotas
+</pre>
+<p></p>
+<pre># Switch to using file size based quotas
+server:$ fs-quota-mode -f fs0 --file-size-based
+File system fs0 is using file size based quotas
+</pre>
+<p></p>
+<pre># Query the current mode
+server:$ fs-quota-mode -f fs0
+File system fs0 is using file size based quotas
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../User/quota.html">quota</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

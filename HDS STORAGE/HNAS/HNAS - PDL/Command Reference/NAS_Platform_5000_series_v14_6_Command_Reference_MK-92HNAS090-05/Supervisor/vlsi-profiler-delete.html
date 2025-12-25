@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>vlsi-profiler-delete</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>vlsi-profiler-delete</h1>
+<p>Remove a state machine from automated vlsi profiling.</p>
+<h1>Syntax</h1>
+<pre>vlsi-profiler-delete &lt;chip&gt; &lt;stateMachine&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to remove a state machine from those "eligible for profiling" for the automated vlsi-profiler.</p>
+<p>Note that once a state machine is removed from the list, the time since it was last profiled will be lost. This means a state machine that is deleted and then re-added is eligible for profiling instantly, even if the 30 minute wait time between profiles has not passed.</p>
+<p>To remove a state machine, both the chip name and state machine name must be supplied.</p>
+<h1>Examples</h1>
+<p>Remove the "seeq" state machine from NIBRX:</p>
+<pre>vlsi-profiler-delete nibrx seeq
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fdp-load.html">fdp-load</a> <a href="../Supervisor/fsa-load.html">fsa-load</a> <a href="../Supervisor/mbi-load.html">mbi-load</a> <a href="../Supervisor/mfb-load.html">mfb-load</a> <a href="../Supervisor/nibrx-load.html">nibrx-load</a> <a href="../Supervisor/nibtcp-load.html">nibtcp-load</a> <a href="../Supervisor/nibtx-load.html">nibtx-load</a> <a href="../Supervisor/nicc-load.html">nicc-load</a> <a href="../Supervisor/nvi-load.html">nvi-load</a> <a href="../Supervisor/obj-load.html">obj-load</a> <a href="../Supervisor/si-load.html">si-load</a> <a href="../Supervisor/tdp-load.html">tdp-load</a> <a href="../Supervisor/vlsi-profiler-add.html">vlsi-profiler-add</a> <a href="../Supervisor/vlsi-profiler-add-chip.html">vlsi-profiler-add-chip</a> <a href="../Supervisor/vlsi-profiler-delete-all.html">vlsi-profiler-delete-all</a> <a href="../Supervisor/vlsi-profiler-list.html">vlsi-profiler-list</a> <a href="../Supervisor/vlsi-profiler-supported-list.html">vlsi-profiler-supported-list</a> <a href="../Supervisor/vlsi-profiler-threshold-set.html">vlsi-profiler-threshold-set</a> <a href="../Supervisor/vlsi-profiler-threshold-show.html">vlsi-profiler-threshold-show</a> <a href="../Supervisor/wdir-load.html">wdir-load</a> <a href="../Supervisor/wfile-load.html">wfile-load</a> <a href="../Supervisor/wlog-load.html">wlog-load</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

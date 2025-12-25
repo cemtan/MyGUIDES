@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>user-authenticate</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>user-authenticate</h1>
+<p>Authenticates a network user and reports their credentials</p>
+<h1>Syntax</h1>
+<pre>user-authenticate [-b|--base64-args] [-i|--interactive] [-u|--report-unix-credentials [-j|--json]] [-s|--no-nis-auth | -t|--no-nt-auth] [-v|--verbose] user password
+</pre>
+
+<h1>Description</h1>
+<p>Authenticates a network user and reports their credentials.</p>
+<p>Authentication attempts are made in turn against each supported authentication mechanism, stopping when one succeeds or every mechanism has been tried.  Currently supported authentication mechanisms are NT and NIS.</p>
+<p>N.B. This command does not authenticate "management" users that are configured with the "user" command.</p>
+<dl>
+<dt><strong>-b, --base64-args</strong></dt>
+<dd><p>Specifies that the user and password fields are base64 encoded.</p></dd>
+<dt><strong>-i, --interactive</strong></dt>
+<dd><p>Causes the password to be prompted for interactively.</p></dd>
+<dt><strong>-u, --report-unix-credentials</strong></dt>
+<dd><p>Map the user's credentials (which might contain NT, NFSv4 or Kerberos principals) to Unix credentials.  If the user or primary group principal can't be mapped to a Unix user/group, the anonymous Unix user/group will be reported.</p></dd>
+<dt><strong>-j, --json</strong></dt>
+<dd><p>Report a JSON object containing the authentication status, and if successful, the user's Unix credentials.</p></dd>
+<dt><strong>-s, --no-nis-auth</strong></dt>
+<dd><p>Don't attempt a NIS authentication.</p></dd>
+<dt><strong>-t, --no-nt-auth</strong></dt>
+<dd><p>Don't attempt an NT authentication.</p></dd>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Report per authentication mechanism status and timing information.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>$ user-authenticate -u test .test
+Successfully authenticated: test
+uid=1150(test) gid=504(software) groups=516(development),1010(bk)
+</pre>
+<p></p>
+<pre>$ user-authenticate test .test
+Successfully authenticated: test
+      user (and defaultOwner)             : Unix: test (1150)
+      primaryGroup (and defaultGroup)     : Unix: software (504), NT: CORP\software (S-1-5-21-1108458615-1438261056-3862480270-4402)
+      enabled features                    : owner read/write bypass, owner granted unix owner rights bypass
+      disabled features                   : authenticated, administrator, backup operator, root user, root bypass, access bypass, syslock bypass, virus scanner
+      rightsGrantedThroughSecurityModel   : 0x1120080 = ReadControl | Synchronize | AccessSACL | FileReadAttributes
+      rightsGrantedThroughGroupMembership : 0x0
+      externallyConferredGroups           :
+      internallyConferredGroups           :
+        SID : Everyone (S-1-1-0), Attributes : 4
+        SID : NT AUTHORITY\NETWORK (S-1-5-2), Attributes : 4
+        SID : Unix group\516 (S-1-77-1-516), Attributes : 4
+        SID : Unix group\1010 (S-1-77-1-1010), Attributes : 4
+        SID : NFSv4 group\NETWORK@ (S-1-79-8-1465140558-1078678095), Attributes : 4
+        SID : NFSv4 group\EVERYONE@ (S-1-79-9-1380275781-1162760025-64), Attributes : 4
+        SID : CORP\development (S-1-5-21-1108458615-1438261056-3862480270-4403), Attributes : 4
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/user-authenticate-stats.html">user-authenticate-stats</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

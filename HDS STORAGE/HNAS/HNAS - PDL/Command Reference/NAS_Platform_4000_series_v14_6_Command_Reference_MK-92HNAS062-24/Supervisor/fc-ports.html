@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-ports</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>fc-ports</h1>
+<p>Print remote FC port info</p>
+<h1>Syntax</h1>
+<pre>fc-ports [-p | --port &lt;address&gt;][-u | --ulp][-v | --verb][-a | --all][hport no]
+Alias:       ports
+</pre>
+
+<h1>Description</h1>
+<p>Display summary or verbose information about all the FC remote ports discovered by the server. The ports list may be filtered by host port number, remote port address or ULP sessions. The "state" column shows the current session state. The possible states are:</p>
+<dl>
+<dt><strong>OFFLINE :</strong></dt>
+<dd><p>The session does not have a valid FC address for the remote port, the port has either been unplugged or is not responding.</p></dd>
+<dt><strong>POLLING :</strong></dt>
+<dd><p>The session has a valid FC address for the remote port but the port is not responding to FC commands. The server sends a LOGO command to the port every 10 seconds for a period of 2 minutes. If the port does not respond in this time it is marked offline. In some circumstances, the remote port will not allow the server to log in to it because LUN security has been enabled. In this case, the server attempts to login to the remote port every 30secs so that a change in security policy will be detected.</p></dd>
+<dt><strong>INACTIVE :</strong></dt>
+<dd><p>The remote port does not support port login (The usual state if the port is an initiator).</p></dd>
+<dt><strong>DISCOVERY :</strong></dt>
+<dd><p>The session enters this state while it is logging in; it should be transitory</p></dd>
+<dt><strong>PENDING :</strong></dt>
+<dd><p>The session enters this state if the session was ACTIVE and the FC link has gone down or in the fabric case if an RSCN is received for a particular target port. It can also occur as the result of SNS polling in the fabric case. If the session status is revalidated successfully, the session will go back to the ACTIVE state, else it will go to DISCOVERY,OFFLINE or POLLING state.</p></dd>
+<dt><strong>ACTIVE :</strong></dt>
+<dd><p>The session enters this state when it has successfully logged in to the remote port (PLOGI).</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong>-p --port &lt;address&gt;</strong></dt>
+<dd><p>Show remote port(s) with this FC address (hex) only.</p></dd>
+<dt><strong>-u</strong></dt>
+<dd><p>Show ULP sessions (SCSI target ports) only.</p></dd>
+<dt><strong>-v</strong></dt>
+<dd><p>Show verbose info on each port.</p></dd>
+<dt><strong>hport no</strong></dt>
+<dd><p>Show remote ports discovered by this server host port only.</p></dd>
+<dt><strong>-a</strong></dt>
+<dd><p>Show all FC remote ports. By default, fabric Domain Controller addresses (0xFFFCxx) are not displayed as the server has no interest in them.</p></dd>
+</dl>
+<p>With no parameters the command prints summary info on all remote ports.</p>
+<h1>Examples</h1>
+<p>To print summary information on remote ports for host port 1:</p>
+<pre>fc-ports 1
+</pre>
+<p></p>
+<p>To print summary information for all remote ports on address 6103EF on host port 1:</p>
+<pre>fc-ports -p 6103EF 1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-hports.html">fc-hports</a> <a href="../Supervisor/fc-nodes.html">fc-nodes</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

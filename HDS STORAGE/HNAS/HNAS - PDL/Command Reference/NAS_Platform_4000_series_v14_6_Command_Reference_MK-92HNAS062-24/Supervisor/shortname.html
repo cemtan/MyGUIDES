@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>shortname</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>shortname</h1>
+<p>Enable/disable DOS short name generation</p>
+<h1>Syntax</h1>
+<pre>shortname [-g on | off] [-p on | off]
+</pre>
+
+<h1>Description</h1>
+<p>The shortname command is used to configure the generation of short names.</p>
+<p>Legacy applications sometimes can't handle names longer than 8.3 characters (i.e. 8 characters, then an optional dot and an optional 3 extension characters). However, most of today's file names are longer than this. Therefore, in order to allow such applications to operate correctly, short names are created for files whose names are longer than 8.3 characters.</p>
+<p>As an example, consider a file named, "New Microsoft Word Document.doc". Its name is longer than 8.3 characters, so a short name will be created for it. The short name will be "NEWM~H27.DOC".</p>
+<p>In addition to helping legacy applications access files, short names are also used for file name compatibility purposes. If a file name cannot be returned to a network client for whatever reason, its short name is returned instead.</p>
+<p>For example, consider that an NFS client creates a file named, "new\file". The '\' character isn't valid in CIFS file names, as it's used as the path separator. So, if a CIFS client accesses this file, its short name, "NEWF~NOG", will be returned instead of its long name.</p>
+<p>Generation of short names for compatibility purposes is always enabled, as it's required for correct operation. However, generation of short names for file names longer than 8.3 characters can be disabled if necessary. This may result in a small performance gain, but should only be done if no applications rely on the presence of short names.</p>
+<p>Usage:</p>
+<p>shortname [OPTION...]</p>
+<dl>
+<dt><strong>-g, --global (on|off)</strong></dt>
+<dd><p>Enable/disable generation of short names for all files whose names are longer than 8.3.</p></dd>
+<dt><strong>-p, --posix (on|off)</strong></dt>
+<dd><p>Enable/disable generation of short names for files whose names are longer than 8.3 and that were created by POSIX (taken to mean NFS, FTP, etc.) clients.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>migration-cloud</h1>
+
+<h1>Description</h1>
+<p>This page describes the Data Migrator Cloud Option.</p>
+<p>This feature was introduced to extend the capabilities of Data Migrator to object storage visible on a remote, secure network. Data Migrator in the past focused on migration to local adjoined file systems or network targets on a LAN.</p>
+<p>While much of the new functionality resembles existing Data Migrator infrastructure, certain new objects are required to specify and manage cloud storage. This page summarizes the several commands to configure and manage a cloud target.</p>
+<p>These objects are as follows:</p>
+<dl>
+<dt><strong>Account</strong></dt>
+<dd><p>An account specifies the user credentials for uploading and downloading files from cloud storage. Optionally a URL of the target can be specified for private clouds.</p></dd>
+<dt><strong>Destination</strong></dt>
+<dd><p>Within the account created above, specify a path within the cloud storage to store migrated files. This destination is cloud-specific, whereby it might be a directory path, a "bucket", or other object unique to the particular cloud. In all cases, however, the destination must exist prior to configuring a destination so that the user does not accidentally send files to an unknown location.</p></dd>
+<dt><strong>Path</strong></dt>
+<dd><p>A file system configured for Data Migrator, including Cloud Option, must be configured with a path to which all files will be migrated. In the case of Cloud Option, the path is the name of the Destination created above.</p></dd>
+<dt><strong>Rule</strong></dt>
+<dd><p>Data Migrator Cloud Option uses the same rule syntax as existing Data Migrator, and these rules can be configured on the CLI as well as the SMU. The rules define which files to migrate.</p></dd>
+<dt><strong>Policy</strong></dt>
+<dd><p>Data Migrator Cloud Option uses policies similar to existing Data Migrator. Policies link a file system to a set of rules, and policies must be configured to run on a schedule.</p></dd>
+<dt><strong>Schedule</strong></dt>
+<dd><p>A schedule defines when to run a policy, such as daily or weekly. In addition, a migration policy can be run on demand as well.</p></dd>
+</dl>
+<p>Finally, also like Data Migrator, once a migration job completes a history and a report will be associated with it that the user can use to determine status and list of files migrated.</p>
+<h1>Examples</h1>
+<p>Here is an example of using Data Migrator Cloud Option on a server. Consider the following situation:</p>
+<ul>
+<li>User manages Hitachi Content Platform (HCP) and has created a namespace called namespace.tenant.example.com with user user-name.</li>
+<li>Within this namespace user wishes to migrate files from HNAS file system 'homefs' on EVS 1 to '/homefs' folder on HCP</li>
+<li>User wishes to migrate all Powerpoint (*.pptx) files that have not been accessed in over a month when the free space of the file system reaches 33%</li>
+<li>The migration job is to be run daily at 2:00 a.m. and can last no more than 4 hours.</li>
+</ul>
+<p>To configure Cloud Migrator to achieve the above objectives, the following commands can be used:</p>
+<p>migration-cloud-service-enable</p>
+<p>migration-cloud-account-create --account-name HNAS-HCPtarget --credentials-key user-name --vendor HCP --server-name namespace.tenant.example.com</p>
+<p>migration-cloud-destination-create homefs --account-name HNAS-HCPtarget --path-at-destination homefs</p>
+<p>evs-select 1</p>
+<p>migration-add-external-path --source homefs --type cloud --name homefs --target homefs</p>
+<p>migration-cloud-rule-create pptrule --rule "INCLUDE (&lt;FILENAME *.pptx&gt; AND &lt;INACTIVE_OVER 30&gt; AND &lt;UNCHANGED_OVER 30&gt;)"</p>
+<p>migration-cloud-policy-create pptpolicy --source-fs-label homefs --external-path homefs --rule:threshold pptrule:33</p>
+<p>migration-cloud-schedule-create pptpolicy weekly --next-run 2012-10-06T02:00:00 --max-duration 04:00</p>
+<p>The status of the jobs can be monitored with the command:</p>
+<p>migration-cloud-history-list --verbose --recent --policy-name-or-id pptpolicy</p>
+<p>The actual list of files migrated can be accessed via the SMU by navigating to the particular schedule in the Data Migration pages.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-cloud-account-create.html">migration-cloud-account-create</a> <a href="../Supervisor/migration-cloud-account-delete.html">migration-cloud-account-delete</a> <a href="../Supervisor/migration-cloud-account-list.html">migration-cloud-account-list</a> <a href="../Supervisor/migration-cloud-account-modify.html">migration-cloud-account-modify</a> <a href="../Supervisor/migration-cloud-cleanup.html">migration-cloud-cleanup</a> <a href="../Supervisor/migration-cloud-cleanup-cancel-all.html">migration-cloud-cleanup-cancel-all</a> <a href="../Supervisor/migration-cloud-cleanup-cancel-fs.html">migration-cloud-cleanup-cancel-fs</a> <a href="../Supervisor/migration-cloud-destination-create.html">migration-cloud-destination-create</a> <a href="../Supervisor/migration-cloud-destination-delete.html">migration-cloud-destination-delete</a> <a href="../Supervisor/migration-cloud-destination-list.html">migration-cloud-destination-list</a> <a href="../Supervisor/migration-cloud-destination-modify.html">migration-cloud-destination-modify</a> <a href="../Supervisor/migration-cloud-history-clear.html">migration-cloud-history-clear</a> <a href="../Supervisor/migration-cloud-history-list.html">migration-cloud-history-list</a> <a href="../Supervisor/migration-cloud-policy-create.html">migration-cloud-policy-create</a> <a href="../Supervisor/migration-cloud-policy-delete.html">migration-cloud-policy-delete</a> <a href="../Supervisor/migration-cloud-policy-list.html">migration-cloud-policy-list</a> <a href="../Supervisor/migration-cloud-policy-modify.html">migration-cloud-policy-modify</a> <a href="../Supervisor/migration-cloud-rule-create.html">migration-cloud-rule-create</a> <a href="../Supervisor/migration-cloud-rule-delete.html">migration-cloud-rule-delete</a> <a href="../Supervisor/migration-cloud-rule-delete-all.html">migration-cloud-rule-delete-all</a> <a href="../Supervisor/migration-cloud-rule-list.html">migration-cloud-rule-list</a> <a href="../Supervisor/migration-cloud-rule-modify.html">migration-cloud-rule-modify</a> <a href="../Supervisor/migration-cloud-schedule-create.html">migration-cloud-schedule-create</a> <a href="../Supervisor/migration-cloud-schedule-delete.html">migration-cloud-schedule-delete</a> <a href="../Supervisor/migration-cloud-schedule-list.html">migration-cloud-schedule-list</a> <a href="../Supervisor/migration-cloud-schedule-modify.html">migration-cloud-schedule-modify</a> <a href="../Supervisor/migration-cloud-schedule-run-now.html">migration-cloud-schedule-run-now</a> <a href="../Supervisor/migration-cloud-schedule-stop-now.html">migration-cloud-schedule-stop-now</a> <a href="../Supervisor/migration-cloud-service-disable.html">migration-cloud-service-disable</a> <a href="../Supervisor/migration-cloud-service-enable.html">migration-cloud-service-enable</a> <a href="../Supervisor/migration-cloud-service-mode-set.html">migration-cloud-service-mode-set</a> <a href="../Supervisor/migration-cloud-service-mode-show.html">migration-cloud-service-mode-show</a> <a href="../Supervisor/migration-cloud-service-status.html">migration-cloud-service-status</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

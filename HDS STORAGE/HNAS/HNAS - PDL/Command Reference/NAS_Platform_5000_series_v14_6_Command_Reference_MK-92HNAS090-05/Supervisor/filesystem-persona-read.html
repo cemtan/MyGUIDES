@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-persona-read</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>filesystem-persona-read</h1>
+<p>Reads the filesystem persona object in the specified filesystem and snapshot</p>
+<h1>Syntax</h1>
+<pre>filesystem-persona-read &lt;file-system&gt; [&lt;snapshot&gt;] [-a | --all-file-systems]
+</pre>
+
+<h1>Description</h1>
+<p>Display the detailed contents of a persona on the specified file system snapshot.</p>
+<p>All snapshots have a persona, but they only become important on replication target file systems (or file systems that were previously replication target file systems and have since been promoted to read/write). On a normal file system the persona of a snapshot simply specifies the file system and snapshot themselves. On a replication target file system the persona specifies the source file system and snapshot that the snapshot on the replication target corresponds to.</p>
+<p>Inspecting the persona contents can be useful in diagnosing replication problems or when trying to identify the exact replication source file system, snapshot and replication run that created a specific snapshot on a replication target file system.</p>
+<p>The command can be run on file systems that are not replication targets. The output in that case is generally less interesting unless the file system in question was a replication target that has since been promoted to a read/write file system. In such a scenario <code>filesystem-aux-persona-read</code> may also be useful.</p>
+<dl>
+<dt><strong>&lt;file-system&gt;</strong></dt>
+<dd><p>The file system for which persona details should be displayed.</p></dd>
+<dt><strong>&lt;snapshot&gt;</strong></dt>
+<dd><p>The snapshot for which persona details should be displayed. If no snapshot is specified the persona details of the LIVE file system will be displayed</p></dd>
+<dt><strong>-a, --all-file-systems</strong></dt>
+<dd><p>Display the LIVE persona for each of the file systems in the evs in context. If this option is specified then the persona for the LIVE state of each file system will be displayed.</p></dd>
+</dl>
+<h2>OUTPUT FORMAT</h2>
+<p>The command output shows the values of each of the fields in the persona object. The majority of fields are self-explanatory, but in a few cases further explanation is helpful:</p>
+<dl>
+<dt><strong>Persona status</strong></dt>
+<dd><p>One of:</p></dd>
+<ul>
+<li><strong>Invalid</strong>: Signifies improper use of the persona object.</li>
+<li><strong>NonReplicationTarget</strong>: The persona object was not written to by replication (i.e. the file system is not a replication target).</li>
+<li><strong>ReplicationTargetIncomplete</strong>: The persona object was written to by replication, and the replication is incomplete.</li>
+<li><strong>ReplicationTargetComplete</strong>: The persona object was written to by replication, and the replication is complete.</li>
+</ul>
+<dt><strong>Object replication type</strong></dt>
+<dd><p>Either <code>Full</code> or <code>Incremental</code></p></dd>
+<dt><strong>Snapshot time, Object replication start time, Object replication end time</strong></dt>
+<dd><p>A value of <code>1970-01-01 01:00:00+01:00</code> indicates that the field has not been set. This is normal for personas on non replication target file systems.</p></dd>
+<dt><strong>Local config object number, Source config object number</strong></dt>
+<dd><p>The config objects are used to carry file system metadata from the source to the target file system. To allow copying original source metadata in tertiary replications (replicating from A to B and then B to C) multiple objects are used. The object used for each role is determined automatically when a replication is run.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display the persona details of snapshot <code>2021-06-09_0908+0100.tgt_rule</code> on <code>replication_target_fs</code>:</p>
+<pre>  $ filesystem-persona-read replication_target_fs 2021-06-09_0908+0100.tgt_rule
+  Persona Object Contents [
+  Cluster UUID                    : bb0b8308-60d0-11d0-9000-2ddc7e1244b5
+  Unique volume ID                : 0x1244fafffd4672c0
+  Filesystem label                : "replication_source_fs"
+  Snapshot ID                     : 219
+  Snapshot label                  : "2021-06-09_0908+0100.src_rule"
+  Snapshot time                   : 2021-06-09 09:08:18+01:00
+  Object replication start time   : 2021-06-09 09:08:18+01:00
+  Object replication end time     : 2021-06-09 09:08:18+01:00
+  Persona status                  : ReplicationTargetComplete
+  Object replication type         : Incremental
+  Objects changed                 : 2
+  Data transferred/bytes          : 262220
+  Local config object number      : 17(CONFIG_OBJECT_B)
+  Source config object number     : 16(CONFIG_OBJECT_A)
+  ] Persona Object Contents
+</pre>
+<p></p>
+<p>Display the persona details for each of the LIVE file systems in the evs in context:</p>
+<pre>  $ filesystem-persona-read --all
+  replication_source_fs:
+  Persona Object Contents [
+  Cluster UUID                    : 00000000-0000-0000-0000-000000000000
+  Unique volume ID                : 0x1244fafffd4672c0
+  Filesystem label                : "replication_source_fs"
+  Snapshot ID                     : 0
+  Snapshot label                  : ""
+  Snapshot time                   : 1970-01-01 01:00:00+01:00
+  Object replication start time   : 1970-01-01 01:00:00+01:00
+  Object replication end time     : 1970-01-01 01:00:00+01:00
+  Persona status                  : NonReplicationTarget
+  Object replication type         : None
+  Objects changed                 : 0
+  Data transferred/bytes          : 0
+  Local config object number      : 16(CONFIG_OBJECT_A)
+  Source config object number     : 17(CONFIG_OBJECT_B)
+  ] Persona Object Contents
+</pre>
+<p></p>
+<pre>
+</pre>
+<p></p>
+<pre>  replication_target_fs:
+  Persona Object Contents [
+  Cluster UUID                    : bb0b8308-60d0-11d0-9000-2ddc7e1244b5
+  Unique volume ID                : 0x1244fafffd4672c0
+  Filesystem label                : "replication_source_fs"
+  Snapshot ID                     : 229
+  Snapshot label                  : "2021-06-09_0910+0100.src_rule"
+  Snapshot time                   : 2021-06-09 09:10:28+01:00
+  Object replication start time   : 2021-06-09 09:10:28+01:00
+  Object replication end time     : 2021-06-09 09:10:28+01:00
+  Persona status                  : ReplicationTargetComplete
+  Object replication type         : Incremental
+  Objects changed                 : 2
+  Data transferred/bytes          : 262220
+  Local config object number      : 17(CONFIG_OBJECT_B)
+  Source config object number     : 16(CONFIG_OBJECT_A)
+  ] Persona Object Contents
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-aux-persona-read.html">filesystem-aux-persona-read</a> <a href="../Supervisor/filesystem-persona-list.html">filesystem-persona-list</a> <a href="../Supervisor/replication-policy-create.html">replication-policy-create</a> <a href="../Supervisor/replication-recovery-task-submit.html">replication-recovery-task-submit</a> <a href="../User/snapshot-list.html">snapshot-list</a> <a href="../Supervisor/snapshot-recover-fs.html">snapshot-recover-fs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>quorumd</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>quorumd</h1>
+<p>Add, remove and show the quorum device for a cluster</p>
+<h1>Syntax</h1>
+<pre>quorumd add &lt;name | ipaddr&gt; | remove | show
+</pre>
+
+<h1>Description</h1>
+<p>The quorumd command adds, removes and shows the quorum device for a cluster.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>add &lt;name | ipaddr&gt;</strong></dt>
+<dd><p>Adds a quorum device to a cluster. The quorum device can be specified by the DNS name or IP address. Adding by name determines the quorum device IP using a subnet broadcast.</p></dd>
+<dt><strong>remove</strong></dt>
+<dd><p>Removes the quorum device from the cluster. Use this command to remove a quorum device that was added using the add command.</p></dd>
+<dt><strong>show</strong></dt>
+<dd><p>Shows the quorum device information for the cluster.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>quorumd add 10.4.1.1
+quorumd add quorumdev
+quorumd remove
+quorumd show
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../User/cluster-show.html">cluster-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

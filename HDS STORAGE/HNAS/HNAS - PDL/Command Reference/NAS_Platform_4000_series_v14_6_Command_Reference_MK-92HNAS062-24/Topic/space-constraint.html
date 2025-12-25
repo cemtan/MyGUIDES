@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>space-constraint</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>space-constraint</h1>
+
+<h1>Description</h1>
+<p>This dev-level command dumps the contents of the space constraints file of the quota subsystem.</p>
+<p>The space constraints file contains various quota limits and thresholds for each user or group, for the entire file system or for a virtual volume. These parameters are known as constraints, which are configured by the 'quota add|mod' command.</p>
+<h2>Option</h2>
+<dl>
+<dt><strong>-v|--volume-number &lt;volume number&gt;</strong></dt>
+<dd><p>Specifies the volume number of the file system. If omitted, the current selected file system is used.</p></dd>
+<dd><p>The volume number can be determined by the 'df -i' command.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To show the space constraints of file system named 'fs':</p>
+<p>a) Find out volume number of 'fs'</p>
+<pre>   $ df -i
+</pre>
+<p></p>
+<pre>     ID  VolNo    Label    Size            Used  Snapshots  Reduction           Avail  Thin               FS Type
+   ----  -----  -------  ------  --------------  ---------  ---------  --------------  ----  --------------------
+   1026      2  Span0FS   18 GB     Not mounted   0 B (0%)         NA   15.6 GB (87%)    No  32 KB,WFS-2,128 DSBs
+   1028      4       fs   18 GB  5.096 GB (28%)   0 B (0%)         NA   12.9 GB (72%)    No   4 KB,WFS-2,128 DSBs
+   1029      5     test  108 GB     Not mounted   0 B (0%)         NA  105.6 GB (98%)    No   4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<p>b) Dump the constraints</p>
+<pre>   $ space-constraint --volume-number 4
+   signature    : Qcnt
+   record id    : 1024
+   tag          : 0
+   sid          : Unix user\0 (S-1-77-0-0)
+   quota type   : UserQuota
+   explicit     : true
+   event state  : 0x47
+   usage        : 3.332 MB (3493888 B)
+     limit      : 3.271 MB (3430008 B)
+     warning    : 0 B
+     panic      : 0 B
+     reset      : 167.5 KB (171500 B)
+   nfiles       : 6
+     limit      : 0
+     warning    : 0
+     panic      : 0
+     reset      : 0
+   num trackers : 2
+   modified     : 2019-11-21 02:19:55.588316915+00:00
+   global id    : 2a3e5c98-a012-11d5-9003-c823a07ccaa1
+   version      : 1
+   address      : 0x00007F6576570000
+</pre>
+<p></p>
+<pre>   signature    : Qcnt
+   record id    : 2569
+   tag          : 0
+   sid          : Unix user\1246 (S-1-77-0-1246)
+   quota type   : UserQuota
+   explicit     : true
+   event state  : 0x0
+   usage        : 0 B
+     limit      : 3.271 MB (3430008 B)
+     warning    : 0 B
+     panic      : 0 B
+     reset      : 167.5 KB (171500 B)
+   nfiles       : 0
+     limit      : 0
+     warning    : 0
+     panic      : 0
+     reset      : 0
+   num trackers : 0
+   modified     : 2019-11-21 02:19:55.592360678+00:00
+   global id    : 2a3efa90-a012-11d5-9005-c823a07ccaa1
+   version      : 1
+   address      : 0x00007F65765701D0
+</pre>
+<p></p>
+<p>Note the output also contains internal bookkeeping information for developer's use. The space constraints file is binary, which begins with a header followed by constraint records of fixed size. Each record begins with a 'Qcnt' signature. The record id is the byte offset of the record data from the start of the file. The tag field is the virtual volume tag. If zero, the constraints are for the entire file system. The address field is the memory address of an internal quota data structure.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Topic/check-space-trackers.html">check-space-trackers</a> <a href="../Topic/kill-quotas.html">kill-quotas</a> <a href="../User/quota.html">quota</a> <a href="../Dev/space-constraint.html">space-constraint</a> <a href="../Topic/space-tracker.html">space-tracker</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

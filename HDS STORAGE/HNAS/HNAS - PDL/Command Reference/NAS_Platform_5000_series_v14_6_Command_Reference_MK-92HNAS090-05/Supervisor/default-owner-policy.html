@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>default-owner-policy</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>default-owner-policy</h1>
+<p>Set default owner policy</p>
+<h1>Syntax</h1>
+<pre>default-owner-policy [NT|creator]
+</pre>
+
+<h1>Description</h1>
+<p>The default-owner-policy command allows you to configure strict compatibility with Windows' policy for setting the owner of newly created files.</p>
+<p>If the default owner policy is set to "NT", then files created by members of the NAS server's local administrators group (as configured by, for example, the "localgroup add Administrators" command) will be owned, by default, by the local administrators group (BUILTIN\Administrators).  The default setting for the default owner policy is "creator".  With this setting, newly created files will, by default, be owned by the creating user, even if that user is a member of the local administrators group.</p>
+<p>Particularly when inter-operating with NFS and user quotas, we find that the "creator" policy is more useful.</p>
+<p>The setting is persistent and takes immediate effect, across the current EVS security context (cluster-wide or per-EVS).</p>
+<p>If the applicable security-mode (for the virtual volume, file system, EVS or cluster) is Unix, which is the default, then the server does not store the default owner as a Windows SID.  Instead, it has to be translated to a Unix uid.  In the default configuration or when there is otherwise no mapping configured, this mapping will fail and the file's owner will become uid 0, conventionally known as "root".  (This means that the creator cannot even change the permissions, as they are not root.  If the owner defaulted to "nobody" (conventionally uid 65534) instead of "root", then every other unmapped user would have full control over the file.)</p>
+<h1>Examples</h1>
+<pre>server$ default-owner-policy
+default, shared security context: Using "creator" default owner policy.
+server$ default-owner-policy NT
+default, shared security context: Using "NT" default owner policy.
+server$ default-owner-policy
+default, shared security context: Using "NT" default owner policy.
+server$ default-owner-policy creator
+default, shared security context: Using "creator" default owner policy.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/localgroup.html">localgroup</a> <a href="../Supervisor/security-mode.html">security-mode</a> <a href="../Supervisor/user-mappings-add.html">user-mappings-add</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

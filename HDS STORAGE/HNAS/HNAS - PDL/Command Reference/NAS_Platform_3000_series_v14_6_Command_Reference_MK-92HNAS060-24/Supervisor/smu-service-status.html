@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>smu-service-status</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>smu-service-status</h1>
+<p>Report the SMU service status.</p>
+<h1>Syntax</h1>
+<pre>smu-service-status 
+</pre>
+
+<h1>Description</h1>
+<p>Display the status of the SMU service.</p>
+<p>SMU service status is reported as 'running' when both webserver and database are running. If webserver is not running but database is, SMU service status will be reported as 'database running'. If webserver is running but database is not, SMU service status will be reported as 'enabled'.</p>
+<p>Note: smu-service-restart will restart the entire SMU service (webserver and database).</p>
+<p>The SMU might be disabled if the command smu-service-disable has been run, or if a registry, backed up when the SMU was disabled, is restored to the server.</p>
+<p>When the server is being managed by an external SMU, it is expected that the embedded SMU will have been disabled, but this is an optional step.</p>
+<p>The SMU will always be disabled when the server is configured as a cluster, and it will not be possible to enable it.</p>
+<h1>Examples</h1>
+<pre>smu-service-status
+</pre>
+<p></p>
+<pre>     The SMU status is: running
+</pre>
+<p></p>
+<pre>          or
+</pre>
+<p></p>
+<pre>     The SMU status is: database running
+</pre>
+<p></p>
+<pre>          or
+</pre>
+<p></p>
+<pre>     The SMU status is: enabled
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/smu-get-diagnostic.html">smu-get-diagnostic</a> <a href="../Supervisor/smu-service-disable.html">smu-service-disable</a> <a href="../Supervisor/smu-service-enable.html">smu-service-enable</a> <a href="../Supervisor/smu-service-restart.html">smu-service-restart</a> <a href="../Supervisor/smu-uninstall.html">smu-uninstall</a> <a href="../Supervisor/smu-version.html">smu-version</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

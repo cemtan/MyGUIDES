@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>read-ahead</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>read-ahead</h1>
+<p>Set read ahead</p>
+<h1>Syntax</h1>
+<pre>read-ahead [--file-system &lt;file system&gt;] [--disable | --enable | --default | [ [--forced &lt;default:enable:disable&gt;] [--quick-start &lt;default:enable:disable&gt;] [--hard &lt;default:enable:disable&gt;] [--chunk-size &lt;size&gt;] [--max-read-ahead &lt;distance&gt;] [--vlsi &lt;default:enable:disable&gt;] ] ]
+</pre>
+
+<h1>Description</h1>
+<p>The read-ahead command is used to configure read ahead settings to improve streaming read performance of large files. Read ahead can be set cluster wide or per file system.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-f, --file-system &lt;file system&gt;</strong></dt>
+<dd><p>Apply settings to an individual file system. If this option is not specified then settings are applied to the cluster wide configuration.</p></dd>
+<dt><strong>--forced &lt;default:enable:disable&gt; (default is disabled)</strong></dt>
+<dt><strong>--quick-start &lt;default:enable:disable&gt; (default is enabled)</strong></dt>
+<dd><p>The forced and quick start options enable two types of speculative read ahead. If neither setting is enabled, the server will only read ahead if it determines that the client is performing streaming reads (the current read request region follows the previous read request region). Enabling the forced option will cause the server to always read ahead on every read request. The quick-start option has the same effect, but the initial read ahead is smaller, resulting in less overhead when performing random access on files.</p></dd>
+<dt><strong>--hard &lt;default:enable:disable&gt; (default is enabled)</strong></dt>
+<dd><p>Controls whether the hardware is allowed to drop read ahead requests if read queues are heavily loaded. Enabled means the hardware cannot drop requests.</p></dd>
+<dt><strong>--vlsi &lt;default:enable:disable&gt; (default is enabled, on supported hardware platforms)</strong></dt>
+<dd><p>Controls whether read ahead region calculation is performed by the hardware. This option is intended for use by your support provider.</p></dd>
+<dt><strong>--chunk-size &lt;size&gt; | default (default is 32KiB)</strong></dt>
+<dd><p>Specifies how much to read ahead by. The configured chunk size is added to the clients read request length to determine the actual amount to read ahead.</p></dd>
+<dt><strong>--max-read-ahead &lt;distance&gt; | default (default is 2MiB)</strong></dt>
+<dd><p>Specifies how far to read ahead. It's not worth reading ahead too far (you just end up with data filling up the sector cache that the client won't access for some time). Ideally, you should read ahead far enough to compensate for disk read latency.</p></dd>
+<dt><strong>--default</strong></dt>
+<dd><p>If applied to the cluster wide config (no file system specified) this sets all cluster wide read ahead setting back to factory defaults. If applied to a file system this sets the file system to use the current cluster wide settings.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>Disables read ahead. The chunk size parameter is used internally to control whether read ahead is disabled.  'read-ahead --disable' is equivalent to 'read-ahead --chunk-size 0'. This means the previous value of chunk size will be lost when read ahead is subsequently enabled. All other fields are preserved.</p></dd>
+<dt><strong>--enable</strong></dt>
+<dd><p>Enables read ahead by resetting the chunk size to use the system default. 'read-ahead --enable' is equivalent to 'read-ahead --chunk-size default'.</p></dd>
+</dl>
+<p>If no options are specified, the current read ahead settings are shown (either cluster wide, a file systems if the --file-system option is specified).</p>
+<p>All options can be set to "default". If setting cluster wide settings, the default option configures the setting to the system default. If setting per file system settings, then setting an option to default will cause that setting to use the cluster wide setting.</p>
+<h1>Examples</h1>
+<p>Configure cluster wide settings to use a 3MiB max read ahead and 8KiB chunk size:</p>
+<pre>read-ahead --max-read-ahead 3M --chunk-size 8K
+</pre>
+<p></p>
+<p>Configure the file system 'fs1' to use a 2MiB max read ahead:</p>
+<pre>read-ahead --file-system fs1 --max-read-ahead 2M
+</pre>
+<p></p>
+<p>Reconfigure the file system 'fs1' to use the cluster wide configuration for max read ahead:</p>
+<pre>read-ahead --file-system fs1 --max-read-ahead default
+</pre>
+<p></p>
+<p>Disable read ahead on 'fs2':</p>
+<pre>read-ahead --file-system fs2 --disable
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nfsv4-public-filehandle</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>nfsv4-public-filehandle</h1>
+<p>nfsv4 public filehandle</p>
+<h1>Syntax</h1>
+<pre>nfsv4-public-filehandle 
+	nfsv4-public-filehandle set &lt;pseudo-filesystem path&gt;
+	nfsv4-public-filehandle unset
+	nfsv4-public-filehandle show
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to manage the nfsv4 public file handle.  By default the public file handle is equivalent to the pseudo file system root.</p>
+<p>nfsv4-public-filehandle [show | unset | set &lt;pseudo-fs path&gt;]</p>
+<h1>Examples</h1>
+<pre>nfsv4-public-filehandle set /export1
+</pre>
+<p></p>
+<pre>nfsv4-public-filehandle show
+</pre>
+<p></p>
+<pre>Current public file handle: /export1
+</pre>
+<p></p>
+<pre>nfsv4-public-filehandle unset
+</pre>
+<p></p>
+<pre>nfsv4-public-filehandle show
+</pre>
+<p></p>
+<pre>Current public file handle: /
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

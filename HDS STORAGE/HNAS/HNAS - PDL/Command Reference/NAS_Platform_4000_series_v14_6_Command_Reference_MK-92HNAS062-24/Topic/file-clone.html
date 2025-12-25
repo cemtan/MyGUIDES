@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>file-clone</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>file-clone</h1>
+
+<h1>Description</h1>
+<p>File cloning is a mechanism for quickly creating copies of a file.  The new file(s) share the source file's user data blocks, instead of being allocated their own redundant copies.  Metadata (such as file times, security, etc) and named data streams are not copied/shared.  A file cloning operation should complete almost instantaneously, regardless of the size of the source file.</p>
+<p>Immediately after a file has been cloned, the storage cost of both files is 1x the size of the source file, rather than the usual 2x for a regular "deep" copy.  It should be noted however that as the files diverge from their "Snapshot File" object (see below) this cost saving diminishes, and could eventually become negative.  In the extreme case where the source file and new file are both completely re-written, the storage cost becomes 3x.  For this reason, file cloning may not be suitable for scenarios where substantial divergence is a possibility.  See the File Cloning Mechanism section for further details.</p>
+<h2>Quotas</h2>
+<p>Quotas do not take into account any block sharing between a file and its clones.  The size of a new clone is charged to the associated quotas.</p>
+<h2>File Cloning Mechanism</h2>
+<p>When a file is cloned an object representing a point-in-time snapshot of the file's user data is created.  This "Snapshot File" object takes ownership of all the user data blocks that the source file currently owns.  The source file and new file become dependent on the Snapshot File; they will (only) own blocks that are subsequently modified.</p>
+<p>If a file previously used in a cloning operation is modified and then cloned again, a new Snapshot File is created which takes ownership of the modified user data blocks.  The new Snapshot File becomes dependent on the previous Snapshot File.  The source file and new file become dependent on the new Snapshot File (and implicitly, the previous Snapshot File).</p>
+<p>Generally, a Snapshot File and the user data blocks it owns are not released until after all the files that depend on it are deleted.  There are two scenarios in which a Snapshot File with an extant dependent will be removed (releasing any blocks the Snapshot File doesn't share with the dependent):</p>
+<ol>
+<li>A Snapshot File's list of dependents is reduced to a single file (e.g. after deleting the latest clone of a file).</li>
+<li>A Snapshot File not dependent on another Snapshot File has its list of dependents reduced to a single Snapshot File (e.g. after deleting the oldest clone of a file).</li>
+</ol>
+<p>Note that if file system snapshots are present, the removal of the Snapshot File may cause an increase in file system usage. The extra space, which may be up to the size of the Snapshot File, will get freed as file system snapshots are deleted.</p>
+<p>Snapshot File objects are not exposed in the file system directory tree and their lifetime is managed automatically by the file system.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/file-clone-create.html">file-clone-create</a> <a href="../Supervisor/file-clone-delete-redundant-snapshot-files.html">file-clone-delete-redundant-snapshot-files</a> <a href="../Supervisor/file-clone-report-block-sharing.html">file-clone-report-block-sharing</a> <a href="../Supervisor/file-clone-stat.html">file-clone-stat</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

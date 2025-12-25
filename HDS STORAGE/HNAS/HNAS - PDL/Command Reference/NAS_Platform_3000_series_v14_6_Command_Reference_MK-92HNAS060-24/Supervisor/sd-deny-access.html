@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-deny-access</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sd-deny-access</h1>
+<p>Unlicense (deny access to) one or more system drives</p>
+<h1>Syntax</h1>
+<pre>sd-deny-access &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The server will not let you create a new span on a system drive (SD) or load an existing span from an SD until you have allowed access to the SD.  Allowing access to an SD is often called licensing the SD.</p>
+<p>'sd-deny-access' prevents the server or cluster from using the SD in any way.  The SD will, however, continue to appear in the output of commands such as 'sd-list', and can be relicensed by the 'sd-allow-access' command.</p>
+<p>Never allow access to an SD that is being used by another server or cluster or a foreign server.  If transferring ownership of an SD from one server or cluster to another, always deny access on the old owner before allowing access on the new owner.</p>
+<p>You cannot deny access to an SD that's used in a span (unless the SD is in a primary--primary mirror relationship), because it would force the span offline.  Use 'span-deny-access' for a way to deny access to all a span's SDs in a single operation, but first read that command's man page to understand its other side effects.</p>
+<p>You can deny access to several SDs with a single command; see the 'sd-spec' man page.</p>
+<h1>Examples</h1>
+<pre>sd-deny-access 0-3
+</pre>
+<p></p>
+<p>Denies access to SDs 0, 1, 2 and 3.</p>
+<pre>sd-deny-access !Accounts
+</pre>
+<p></p>
+<p>Denies access to all SDs that aren't used in span 'Accounts' or, if 'Accounts' is a filesystem, all SDs that aren't used in its host span.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

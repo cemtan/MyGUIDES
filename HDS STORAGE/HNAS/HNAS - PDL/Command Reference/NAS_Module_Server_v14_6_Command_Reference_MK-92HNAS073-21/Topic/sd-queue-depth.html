@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-queue-depth</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-queue-depth</h1>
+
+<h1>Description</h1>
+<p>This man page explains SD queue depth.  Tuning SD queue depth can sometimes improve the performance of a system, but the default settings will normally work well and need not be changed in order to make a system work reliably.</p>
+<h2>INTRODUCTION</h2>
+<p>The server does not send one I/O command to an SD, wait for it to complete, send the next I/O, and so on.  Instead, it maintains a queue of pending commands at the storage.  This queue brings a number of performance advantages:</p>
+<ul>
+<li>There is no dead time while an SD waits for something to do.</li>
+<li>The storage can execute multiple commands in parallel.  It can execute two or more concurrent reads from different physical disks in the same SD; and, if the SD is an HDP DP-Vol, the storage can execute two concurrent writes to different underlying media.</li>
+<li>On magnetic disks, the storage can use elevator seeking to reduce the average amount of time spent waiting for head-movement and platter rotation between each I/O and the next.</li>
+<li>On flash drives, the storage can concurrently use multiple NAND flash channels on the same drive.</li>
+<li>On flash drives, visibility of several adjacent write commands can help the storage to reduce write amplification (a phenomenon caused by the need for the drive to erase and rewrite a region that is larger than a typical write operation).</li>
+<li>Seeing several adjacent writes at once can help the storage to reduce the cost of parity generation.</li>
+</ul>
+<p>Some, but not all, of these advantages are also available from write-back caching.</p>
+<p>The queue depth for an SD is the number of commands that the server will send to that SD if enough workload is applied to the server.  Any I/Os in excess of this number will queue up inside the server.</p>
+<p>Knowing the type of the storage array, the server automatically determines the minimum, default and maximum queue depth for each SD.  These figures are hard-coded for each array type and cannot be changed.  However, within the limits set by the maximum and minimum, the user can choose a custom queue depth for each SD, overriding the default.</p>
+<p>Storage usually imposes other limits, beside the per-SD maximum.  For example, most Hitachi storage imposes a maximum number of commands at each target port, as well as a recommended maximum at each SD.  The server always honors these other limits, which cannot be configured by the user.  If necessary, the queue depth for all SDs on a target port will be reduced pro rata in order to satisfy a per-port limit.</p>
+<p>Each SD used by the server forms part of a span, which in turn holds one or more file systems.  The available queue depth for an SD is shared among all the servers that have mounted one or more of the file systems on the span.  For example, if the span's file systems are all mounted on the same server and the SD's queue depth is 32, all 32 parallel commands are available to that one server.  If the file systems are mounted on four different servers, each server can use only eight parallel commands.  If most of the I/O load for that span is concentrated on one or two file systems, some of the available queue depth will be wasted.  Therefore, provided that you have several spans, consider binding each span's file systems to a single EVS, or organizing EVSs in such a way that each span's file systems are normally mounted on a single server.  Then balance the load across all available servers by using each server to mount or more spans' file systems.</p>
+<h2>HOW TO MANAGE QUEUE DEPTH</h2>
+<p>'sd-list --scsi' displays the minimum, default and maximum queue depths for the storage array type.  It also shows the queue depth that has been configured, if any, and the resulting queue depth that the server will use (the configured queue depth, falling back to the default), subject to other limits.</p>
+<p>'devinfo -a' shows the queue depth that has actually been used.  If values shown here are unexpectedly low, it may be because other limits (such as a per-target-port limit) have been reached before the per-SD limit, or it may be because protocol clients have not applied enough workload to the server for back-end queue depths to reach the limit.</p>
+<p>'sd-set --queue-depth' configures a custom queue depth for one or more SDs, or removes the custom setting and returns to the default.</p>
+<h2>HOW TO ALLOCATE THE AVAILABLE QUEUE DEPTH</h2>
+<p>If the total available queue depth is limited, allocate more to performance-critical SDs based on fast disks than to SDs that reside on lower-cost disks and are not performance-critical.</p>
+<p>Use as many target ports as possible, so as to make available as much queue depth as possible.  Make each SD available through several target ports, not only to enable the server to balance throughput, but also to help it balance queue depth.  Within a given storage array, try to balance the requested queue depth across all target ports; the best way to achieve this is to make every SD available through the same set of target ports and to leave the server to balance the load automatically.  Otherwise, if cluster node 1 uses one target port to access an SD and cluster node 2 uses another, one cluster node may be able to allocate more queue depth than another, and therefore experience higher performance, when using that SD.</p>
+<p>For the same reason, all the SDs in a stripeset should be presented on the same set of host ports.  (A stripeset consists of all the SDs you specify when you  create or expand a span.)  Otherwise, some of the SDs in a stripeset may have more available queue depth than others and, because the server performs I/O to all these SDs in parallel, the extra queue depth available to some SDs will not be used as efficiently as it should.</p>
+<p>In releases up to 12.3, which lacked per-SD queue-depth configuration, parity groups residing on flash drives were often divided into eight SDs in order to increase the available queue depth.  Where this division has been carried out, give each SD as much queue depth as a magnetic SD.  On flash parity groups that have not been divided up in this way, each SD should be given about eight times as much queue depth as a magnetic SD.</p>
+<h2>INTERACTION WITH UVM</h2>
+<p>UVM virtualizes SDs presented by a remote storage array, presenting them to the server as if they were hosted locally.</p>
+<p>'sd-set --queue-depth' controls the queue depth that the server uses when sending commands to the local storage array, but not the queue depth that the local storage array uses when relaying those commands to the remote storage array.  To configure that, use your storage configurator.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/devinfo.html">devinfo</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Topic/uvm.html">uvm</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

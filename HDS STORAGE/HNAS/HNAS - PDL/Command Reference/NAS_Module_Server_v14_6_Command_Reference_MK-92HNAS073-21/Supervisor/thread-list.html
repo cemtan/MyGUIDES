@@ -1,0 +1,752 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>thread-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>thread-list</h1>
+<p>Lists current threads</p>
+<h1>Syntax</h1>
+<pre>thread-list [-a] [-d] [-e] [-i] [-m] [-r] [-s] [-l]
+Alias:       ps
+</pre>
+
+<h1>Description</h1>
+<p>The thread-list command, also known as ps, displays a list of extant threads on the current board.  It has many options for controlling which threads are listed and how the output is formatted.</p>
+<p>With no options, thread-list produces a list of all threads, on the current board, which have not terminated.  The list has nine columns:</p>
+<p>The "Id" is used to specify the thread to various console commands, most of whose names start with "thread-".</p>
+<p>The "Name" is a human readable description of the main (or at least current) purpose of the thread.  There may be several threads with the same name.  This is perfectly desirable if they share a common purpose, particularly if they are part of a pool of threads used for carrying out the same tasks.</p>
+<p>The "State" gives a concise indication of roughly what the thread is currently doing.  The utility is that it quickly lets you home in on the most interesting threads, although sometimes it can be useful to search for threads with a particular state.  The first part of the state field is made up by a subset of single characters from the set listed by thread-list -l (ell for "list").  This is sometimes followed by extra information in parentheses, such as the name of the file system which is being accessed by the thread.</p>
+<p>The "State" field is often short but can be quite long.  In the thread-list output, long State entries are truncated and terminated with a +, to indicate truncation.  An unabbreviated version of this field is displayed, among other places, by the thread-stack-trace command.</p>
+<p>The "Mill %" tells you how much processing power has been consumed by this thread since thread-list -r or reboot.  If the thread has used a non-zero amount of time but less than 0.01%, its usage will be displayed as "~0.00".  This is useful when a thread is making progress but very slowly, as the reason for progress being slow is unlikely to be the same as the reason why progress has halted.</p>
+<p>The three stack-related columns show the current amount of free space on the thread's stack, the "low water mark" of that figure and the application-visible size of the stack.  The "-LWM" shows the nearest this thread has been to running out of stack - the lower the number, the closer we are to danger.  There is a large safety margin below the applicable-visible end of the stack, with the result that it's possible for "-LWM" to go negative with no ill effect.  This is intended to be scary enough to cause a bug to be raised.  The "-Free" figure is occasionally useful when trying to determine which threads from a pool are blocked in the same place and so which one is doing something different.  That one is inevitably more interesting.  "-Free" and "-LWM" will both be zero if the thread has not had its stack allocated yet.  This happens if a thread has never been run, which implies that it's in the "C" state.  Two classes of threads have non-default stack sizes, both for probably obsolete reasons, and if it weren't for those, we could lose the last, "-Size", column.  "-Free" and "-LWM" are both in bytes whereas "-Size", which is always a round number, is in KB for the sake of clarity and to allow us to display more columns on screen.</p>
+<p>The scheduler has three primitives, Wake, Block and Yield.  The last two columns, "Blocks" and "Yields", count the number of these calls that each thread has made.  When a thread calls Block, it isn't scheduled until another thread calls Wake on it.  When a thread calls Yield, it goes to the back of the ready queue.</p>
+<p>thread-list -a (for "active") lists the "active" threads.  This is the most useful option, to the point that a case could be made for making it the default.  The scheduler has a notion of a thread being "active" when it has some work to do.  This is a higher level notion than that of being ready to run.  A thread may be waiting for input or a response, ie not ready to run, while still being active.  Only when the application controlling the thread has no work to do on that thread should the thread be marked as idle.</p>
+<p>thread-list -d (for "debugging") lists just crashed threads.  This is only useful within Engineering, via the serial console.</p>
+<p>thread-list -e (for "every") includes threads which have terminated (but whose memory hasn't been deallocated).</p>
+<p>thread-list -i (for "idle") displays just the last line of the output, giving the time attributable to "Total unsuccessful polls".  In the main body of the thread-list listing, some threads have an additional line attributing time to "unsuccessful polls".  This is the closest the software gets to being idle - polling the VLSI and finding nothing to do.</p>
+<p>thread-list -l (for "list") decodes the meanings of the individual letters which go to make up the first part of the State field.  Some of these letters, which are case sensitive, are board-type specific, although there are a core set which are the same on each board.</p>
+<p>thread-list -m (for "memory") displays the range of accessible stack addresses for each thread.  The table is sorted by stack address and appears in this format:</p>
+<pre>server$ thread-list -m
+Id  Name                    Accessible stack addresses
+==  ====                    ==========================
+1   idle thread             [0x10f25000, 0x10f44000)
+...
+197 cache: flush            [0x2379e000, 0x237bd000)
+server$
+</pre>
+<p></p>
+<p>thread-list -r (for "reset"), as previously mentioned, resets all the time statistics and the block and yield counts to zero.  The stack "-LWM" statistic is calculated by searching for the first four bytes in the stack which don't contain the "\x73\x74\x63\x6b" fill pattern ("stck" in ASCII), so this isn't reset by thread-list -r.</p>
+<p>thread-list -s (for "summarize") summarizes statistics for threads with the same name.  The Id and State columns are misleading when multiple threads' statistics have been summarized so, in that situation, they are given the value "-".  The Mill %, Blocks and Yields columns are totalled for all threads with the same name.  The displayed value for each of the Stack "columns" is the minimum value across all threads with the same name.</p>
+<h1>Examples</h1>
+<p>Don't rely on these lists of the state values supported by thread-list -l - no-one will keep them up-to-date:</p>
+<pre>server(NIM):$ thread-list -l
+The state field can have the following values:
+  C ... created but not run
+  D ... in debugger
+  F ... frozen
+  I ... idle/boring
+  J ... owns global vnodes lock
+  R ... ready to run
+  T ... preempted by timer
+  W ... waiting
+  X ... exited (but not deleted) (only shown with thread-list -e)
+  Z ... owns rf cache lock
+  j ... waiting for global vnodes lock
+  r ... would be ready to run if we were not debugging
+  z ... waiting for rf cache lock
+server(NIM):$
+server(FSA):$ thread-list -l
+The state field can have the following values:
+  A ... waiting for checkpoint atomicity write lock
+  C ... created but not run
+  D ... in debugger
+  E ... owns exclusive file system lock
+  F ... frozen
+  G ... owns mount manager mutex
+  I ... idle/boring
+  K ... task is deadlocked
+  L ... waiting for Cluster node fs operation write lock
+  M ... owns volume manager lock
+  N ... waiting for snapshot views write lock
+  P ... waiting for checkpoint to complete
+  R ... ready to run
+  S ... owns shared file system lock
+  T ... preempted by timer
+  V ... waiting for virus scan manager write lock
+  W ... waiting
+  X ... exited (but not deleted) (only shown with thread-list -e)
+  Y ... waiting for iSCSI logical unit manager write lock
+  Z ... owns rf cache lock
+  a ... waiting for checkpoint atomicity read lock
+  e ... waiting for exclusive file system lock
+  g ... waiting for mount manager mutex
+  l ... waiting for Cluster node fs operation read lock
+  m ... waiting for volume manager lock
+  n ... waiting for snapshot views read lock
+  p ... Waiting for sim dirty cache page count to fall below threshold
+  r ... would be ready to run if we were not debugging
+  s ... waiting for shared file system lock
+  v ... waiting for virus scan manager read lock
+  x ... waiting for free nvram pages
+  y ... waiting for iSCSI logical unit manager read lock
+  z ... waiting for rf cache lock
+server(FSA):$
+server(SIM):$ thread-list -l
+The state field can have the following values:
+  C ... created but not run
+  D ... in debugger
+  F ... frozen
+  I ... idle/boring
+  R ... ready to run
+  T ... preempted by timer
+  W ... waiting
+  X ... exited (but not deleted) (only shown with thread-list -e)
+  Z ... owns rf cache lock
+  r ... would be ready to run if we were not debugging
+  z ... waiting for rf cache lock
+server(SIM):$
+</pre>
+<p></p>
+<p>Don't look for the state meaning "running".  The thread you are interested in is never running.  The only thread running is the one executing the "thread-list" command.  We didn't used to even have a state for the running thread (it now appears as "@").  There is no thread State which in and of itself is bad, except "D", which cannot be observed except in Engineering configurations.</p>
+<p>"IW" is the commonest value, meaning idle and waiting.  "R" meaning "ready" is common on a busy system.  "r" is sometimes seen against many threads in Engineering.  This means that the thread would be ready except that it's not being run because we are debugging another thread.</p>
+<pre>server$ thread-list
+</pre>
+<p></p>
+<pre>Id                         Name State Mill % Stack-Free   -LWM  -Size   Blocks   Yields
+--- ---------------------------- ----- ------ ---------- ------ ------ -------- --------
+  1                  idle thread    IC  31.69      65264  65152  64 KB        0        0
+  2             GT-64260A serial     W  ~0.00      65232  65072  64 KB        1        0
+  3             GT-64260A serial     W  ~0.00      65232  63552  64 KB       13        0
+  4                    gdb fiber    IW  ~0.00      64992  62896  64 KB        1        0
+  6           GssApiTokenService    IW  ~0.00      65136  64976  64 KB        1        0
+  7                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+  8           FSLocationReloader    IW  ~0.00      64768  58256  64 KB       11        0
+  9     RPCGSSContextCacheWorker    IW  ~0.00      65216  65056  64 KB        1        0
+ 10              Blocking timers    IW  ~0.00      65024  63584  64 KB     1810      525
+ 11              Blocking timers    IW  ~0.00      65024  60848  64 KB     1804      524
+ 12              Blocking timers    IW  ~0.00      65024  64128  64 KB     1840      524
+ 13                VnodeMounter0    IW  ~0.00      65216  50752  64 KB       30        2
+ 14                   CFSUtility    IW  ~0.00      65216  65056  64 KB        1        0
+ 15                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 16                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 17                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 18                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 19                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 20                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 21                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 22                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 23                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 24                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 25                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 26                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 27                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 28                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 29                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 30                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 31                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 32                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 33                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 34                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 35                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 36                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 37                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 38                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 39                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 40                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 41                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 42                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 43                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 44                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 45                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 46                    CFSWorker    IW  ~0.00      65200  65040  64 KB        1        0
+ 47     AsyncCVLReverseMigration    IW  ~0.00      65216  65056  64 KB        1        0
+ 48          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 49          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 50          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 51          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 52          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 53          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 54          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 55          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 56          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 57          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 58          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 59          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 60          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 61          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 62          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 63          DLM Callback Worker    IW  ~0.00      65136  64976  64 KB        1        0
+ 64         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 65         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 66         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 67         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 68         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 69         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 70         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 71         DLM Transport Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 72           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 73           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 74           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 75           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 76           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 77           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 78           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 79           DLM Receive Worker    IW  ~0.00      65200  65040  64 KB        1        0
+ 81                      netbios     C   0.00          0      0  64 KB        0        0
+ 82             ftp audit logger    IW  ~0.00      65120  64960  64 KB        1        0
+ 83                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 84                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 85                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 86                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 87                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 88                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 89                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 90                     ftp task    IW  ~0.00      65200  65040  64 KB        1        0
+ 91                  ftp manager    IW  ~0.00      64944  64784  64 KB        1        0
+ 92                    ftp timer    IW  ~0.00      65136  64976  64 KB        2        0
+ 93     AsyncFilesystemExpansion    IW  ~0.00      65216  65056  64 KB        1        0
+ 94    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+ 95    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+ 96    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+ 97    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+ 98    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+ 99    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+100    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+101    ReadCacheStreamCopyWorker    IW  ~0.00      65184  65024  64 KB        1        0
+102 ReadCacheSnapshotInvalidator    IW  ~0.00      64672  64512  64 KB        1        0
+103      tcp: fast retransmitter    IW  ~0.00      65104  64944  64 KB        1        0
+104   iSCSI Logical Unit Creator    IW  ~0.00      64816  64656  64 KB        1        0
+105     iSNS Registration Worker    IW  ~0.00      65168  63824  64 KB        2        0
+106          Non-blocking timers    IW  ~0.00      65024  63680  64 KB     1244      780
+107              mappings commit    IW  ~0.00      65024  64864  64 KB       10        0
+108             mappings refresh    IW  ~0.00      65024  64864  64 KB        7        0
+109             mappings refresh    IW  ~0.00      65216  65056  64 KB        1        0
+111            Mirroring enabler    IW  ~0.00      65024  64176  64 KB       10        4
+112               Oplock breaker     C   0.00          0      0  64 KB        0        0
+113           Connection timeout    IW  ~0.00      65104  64944  64 KB        1        0
+114          PseudoFSLimitsCache    IW  ~0.00      65136  53536  64 KB        7        0
+115             PseudoFSReloader    IW  ~0.00      64768  64608  64 KB        2        0
+116           SpaceTrackerReCtor    IW  ~0.00      65216  65056  64 KB        1        0
+117           Remote server poll    IW  ~0.00      65024  60000  64 KB        9        1
+118           Remote server poll    IW  ~0.00      65024  50160  64 KB        6        1
+119           Remote server poll    IW  ~0.00      65024  64864  64 KB        2        0
+120           Remote server poll    IW  ~0.00      65216  65056  64 KB        1        0
+121            DC Poll Completer    IW  ~0.00      65088  64928  64 KB        1        0
+122               DC Poll Reaper    IW  ~0.00      65056  64896  64 KB       20        0
+123     Snapshot deletion worker    IW  ~0.00      65216  52416  64 KB        4        0
+124     Snapshot deletion worker    IW  ~0.00      65216  53328  64 KB        4        0
+125     Snapshot deletion worker    IW  ~0.00      65216  53328  64 KB        4        0
+126     Snapshot deletion worker    IW  ~0.00      65216  53328  64 KB        4        0
+127     Snapshot deletion worker    IW  ~0.00      65216  53328  64 KB        4        0
+128     Snapshot deletion worker    IW  ~0.00      65216  52416  64 KB        4        0
+129     Snapshot deletion worker    IW  ~0.00      65216  53344  64 KB        4        0
+130     Snapshot deletion worker    IW  ~0.00      65216  53328  64 KB        4        0
+131              Virus Scan Ping    IW  ~0.00      65056  64896  64 KB        4        0
+132                 NVRAM poller    IW  ~0.00      65104  60768  64 KB      498        0
+133      WFS background truncate    IW  ~0.00      65040  64880  64 KB        1        0
+134                 WfsPingFiber    IW  ~0.00      64992  64032  64 KB        9        0
+135            bs::board_trigger    IW  ~0.00      64928  60608  64 KB       13        0
+136             event log filter    IW  ~0.00      65136  64928  64 KB       59        0
+138                RunLevelSlave    IW  19.28     130704  97584 128 KB     3195   913439
+140            Statistics Logger    IW  ~0.00      65168  64688  64 KB        7        0
+141                          arp    IW  ~0.00      65200  62448  64 KB     1601     2059
+142          GzipHeader consumer    IW  ~0.00      64784  64592  64 KB        1        0
+143           GT-64260A Ethernet     W   0.11      65232  62304  64 KB    11900      494
+144           GT-64260A Ethernet     W  ~0.00      65232  64640  64 KB       20        0
+145               task destroyer    IW  ~0.00      65200  64864  64 KB        3        0
+146             benchmark fiber1     C   0.00          0      0  64 KB        0        0
+147             benchmark fiber2     C   0.00          0      0  64 KB        0        0
+149          FSB Battery Monitor    IW  ~0.00      65152  64944  64 KB       11        0
+152          Temperature sensors    IW   0.03      65136  60544  64 KB       22        0
+153             heap diagnostics    IW  ~0.00      65120  64960  64 KB        1        0
+154          pending NIF monitor    IW  ~0.00      65056  64848  64 KB       76        0
+156                 cache: flush    IW  ~0.00      65136  63712  64 KB        9        0
+157                    NDP async    IW  ~0.00      65120  64960  64 KB        4        0
+158                 bossock task     R  ~0.00      65104  61872  64 KB 10979240 44838990
+              unsuccessful polls        28.02
+159                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+160                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+161                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+162                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+163                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+164                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+165                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+166                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+167                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+168                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+169                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+170                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+171                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+172                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+173                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+174                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+175                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+176                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+177                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+178                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+179                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+180                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+181                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+182                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+183                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+184                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+185                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+186                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+187                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+188                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+189                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+190                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+191                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+192                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+193                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+194                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+195                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+196                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+197                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+198                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+199                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+200                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+201                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+202                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+203                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+204                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+205                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+206                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+207                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+208                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+209                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+210                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+211                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+212                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+213                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+214                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+215                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+216                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+217                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+218                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+219                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+220                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+221                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+222                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+223                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+224                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+225                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+226                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+227                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+228                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+229                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+230                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+231                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+232                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+233                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+234                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+235                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+236                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+237                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+238                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+239                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+240                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+241                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+242                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+243                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+244                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+245                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+246                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+247                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+248                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+249                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+250                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+251                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+252                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+253                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+254                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+255                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+256                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+257                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+258                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+259                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+260                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+261                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+262                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+263                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+264                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+265                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+266                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+267                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+268                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+269                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+270                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+271                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+272                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+273                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+274                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+275                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+276                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+277                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+278                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+279                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+280                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+281                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+282                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+283                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+284                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+285                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+286                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+287                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+288                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+289                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+290                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+291                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+292                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+293                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+294                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+295                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+296                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+297                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+298                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+299                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+300                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+301                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+302                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+303                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+304                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+305                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+306                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+307                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+308                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+309                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+310                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+311                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+312                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+313                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+314                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+315                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+316                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+317                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+318                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+319                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+320                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+321                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+322                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+323                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+324                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+325                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+326                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+327                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+328                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+329                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+330                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+331                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+332                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+333                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+334                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+335                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+336                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+337                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+338                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+339                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+340                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+341                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+342                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+343                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+344                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+345                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+346                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+347                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+348                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+349                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+350                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+351                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+352                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+353                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+354                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+355                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+356                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+357                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+358                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+359                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+360                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+361                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+362                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+363                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+364                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+365                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+366                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+367                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+368                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+369                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+370                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+371                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+372                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+373                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+374                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+375                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+376                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+377                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+378                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+379                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+380                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+381                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+382                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+383                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+384                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+385                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+386                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+387                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+388                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+389                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+390                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+391                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+392                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+393                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+394                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+395                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+396                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+397                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+398                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+399                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+400                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+401                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+402                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+403                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+404                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+405                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+406                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+407                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+408                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+409                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+410                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+411                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+412                 bossock task    IW  ~0.00      65104  64944  64 KB        1        0
+413                 bossock task     R  ~0.00      65104  61872  64 KB 10979240 21958282
+              unsuccessful polls        18.86
+414            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+415            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+416            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+417            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+418            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+419            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+420            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+421            ancillary bossock    IW  ~0.00      65216  65056  64 KB        1        0
+422                    sockclose    IW  ~0.00      65216  65056  64 KB        1        0
+423           WarnIfStuck timers    IW  ~0.00      65024  64688  64 KB     3903        0
+424               Serial Console     W   0.02      61456  56576  64 KB       11       73
+426          Prod assert watcher    IW  ~0.00      65200  65040  64 KB        1        0
+427                   Watchpuppy    IW  ~0.00      64800  64416  64 KB       83        0
+428                Flash deleter    IW  ~0.00      65232  65024  64 KB        2        0
+429                gms destroyer    IW  ~0.00      65104  64944  64 KB        1        0
+430            gms access lookup    IW  ~0.00      65024  64864  64 KB        1        0
+431                     LogFlush    IW  ~0.00      65088  64928  64 KB       94        0
+432                  EventLogger    IW  ~0.00      65168  60848  64 KB       14        0
+433                   CallLogger    IW  ~0.00      65152  64752  64 KB        8        0
+434                      Netbios    IW  ~0.00      65088  64752  64 KB      923        0
+435                 Parity check    IW  ~0.00      65136  64800  64 KB       94        0
+436    Internal Ethernet Monitor    IW  ~0.00      65136  61344  64 KB       19        0
+437                  ib msg retx    IW  ~0.00      64896  61392  64 KB      921      567
+438                    ib reader    IW   0.01     130704 114896 128 KB      330        0
+439                    ib reader    IW  ~0.00     130704 115040 128 KB      366        0
+440                    ib reader    IW   0.02     130704 115616 128 KB      807        0
+441                    ib reader    IW   0.04     130704 124736 128 KB      323        4
+442                    ib reader    IW   0.04     130704 124800 128 KB      323        4
+443                    ib reader    IW   0.05     130704 115648 128 KB      404       10
+444                    ib reader    IW   0.04     130704 124608 128 KB      326        0
+445                    ib reader    IW   0.01     130704 124800 128 KB      326        0
+446                    ib reader    IW  ~0.00     130704 115680 128 KB      344        0
+447                    ib reader    IW   0.05     130704 115936 128 KB      382        5
+448                    ib reader    IW   0.04     130704 116928 128 KB      378        0
+449                    ib reader    IW  ~0.00     130704 121168 128 KB      327        0
+450                    ib reader    IW   0.01     130704 115120 128 KB      326        0
+451                    ib reader    IW   0.01     130704 124800 128 KB      322        0
+452                    ib reader    IW   0.04     130704 124800 128 KB      323        7
+453                    ib reader    IW   0.04     130704 115136 128 KB      419        0
+454                    ib reader    IW  ~0.00     130704 124800 128 KB      326        0
+455                    ib reader    IW  ~0.00     130704 124624 128 KB      329        0
+456                    ib reader    IW   0.14     130704 119232 128 KB      326       10
+457                    ib reader    IW   0.01     130704 124800 128 KB      325        0
+460              Watchpuppy: NIM    IW  ~0.00      65168  60848  64 KB      164        0
+461              Watchpuppy: SIM    IW  ~0.00      65168  60848  64 KB      246        0
+464         Volume healthy fiber    IW  ~0.00      65104  64944  64 KB        1        0
+465         Volume unmount fiber    IW  ~0.00      64704  64544  64 KB        1        0
+466               AsyncVolFailer    IW  ~0.00      65136  64976  64 KB        1        0
+467          Fpga assert monitor     R  ~0.00      63728  61040  64 KB      141     1595
+468                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+469            NIS BindMgr EVS 0    IW  ~0.00      64784  51696  64 KB       19        0
+471                   DNS: async    IW  ~0.00      65120  64832  64 KB        2        0
+472                 cache: flush    IW  ~0.00      65136  64800  64 KB        1        0
+473            NIS BindMgr EVS 1    IW   0.06      64784  50768  64 KB    47677        0
+475                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+476            NIS BindMgr EVS 2    IW  ~0.00      64784  64576  64 KB        2        0
+477         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+478                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+479            NIS BindMgr EVS 3    IW  ~0.00      64784  64576  64 KB        2        0
+480         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+481                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+482            NIS BindMgr EVS 4    IW  ~0.00      64784  64576  64 KB        2        0
+483         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+484                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+485            NIS BindMgr EVS 5    IW  ~0.00      64784  64576  64 KB        2        0
+486         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+487                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+488            NIS BindMgr EVS 6    IW  ~0.00      64784  64576  64 KB        2        0
+489         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+490                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+491            NIS BindMgr EVS 7    IW  ~0.00      64784  64576  64 KB        2        0
+492         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+493                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+494            NIS BindMgr EVS 8    IW  ~0.00      64784  64576  64 KB        2        0
+495         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+496                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+497            NIS BindMgr EVS 9    IW  ~0.00      64784  64576  64 KB        2        0
+498         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+499                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+500           NIS BindMgr EVS 10    IW  ~0.00      64784  64576  64 KB        2        0
+501         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+502                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+503           NIS BindMgr EVS 11    IW  ~0.00      64784  64576  64 KB        2        0
+504         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+505                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+506           NIS BindMgr EVS 12    IW  ~0.00      64784  64576  64 KB        2        0
+507         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+508                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+509           NIS BindMgr EVS 13    IW  ~0.00      64784  64576  64 KB        2        0
+510         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+511                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+512           NIS BindMgr EVS 14    IW  ~0.00      64784  64576  64 KB        2        0
+513         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+514                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+515           NIS BindMgr EVS 15    IW  ~0.00      64784  64576  64 KB        2        0
+516         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+517                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+518           NIS BindMgr EVS 16    IW  ~0.00      64784  64576  64 KB        2        0
+519         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+520                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+521           NIS BindMgr EVS 17    IW  ~0.00      64784  64576  64 KB        2        0
+522         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+523                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+524           NIS BindMgr EVS 18    IW  ~0.00      64784  64576  64 KB        2        0
+525         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+526                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+527           NIS BindMgr EVS 19    IW  ~0.00      64784  64576  64 KB        2        0
+528         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+529                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+530           NIS BindMgr EVS 20    IW  ~0.00      64784  64576  64 KB        2        0
+531         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+532                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+533           NIS BindMgr EVS 21    IW  ~0.00      64784  64576  64 KB        2        0
+534         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+535                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+536           NIS BindMgr EVS 22    IW  ~0.00      64784  64576  64 KB        2        0
+537         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+538                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+539           NIS BindMgr EVS 23    IW  ~0.00      64784  64576  64 KB        2        0
+540         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+541                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+542           NIS BindMgr EVS 24    IW  ~0.00      64784  64576  64 KB        2        0
+543         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+544                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+545           NIS BindMgr EVS 25    IW  ~0.00      64784  64576  64 KB        2        0
+546         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+547                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+548           NIS BindMgr EVS 26    IW  ~0.00      64784  64576  64 KB        2        0
+549         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+550                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+551           NIS BindMgr EVS 27    IW  ~0.00      64784  64576  64 KB        2        0
+552         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+553                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+554           NIS BindMgr EVS 28    IW  ~0.00      64784  64576  64 KB        2        0
+555         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+556                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+557           NIS BindMgr EVS 29    IW  ~0.00      64784  64576  64 KB        2        0
+558         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+559                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+560           NIS BindMgr EVS 30    IW  ~0.00      64784  64576  64 KB        2        0
+561         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+562                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+563           NIS BindMgr EVS 31    IW  ~0.00      64784  64576  64 KB        2        0
+564         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+565                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+566           NIS BindMgr EVS 32    IW  ~0.00      64784  64576  64 KB        2        0
+567         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+568                WINS: primary    IW  ~0.00      65120  50624  64 KB        9        2
+569              WINS: secondary    IW  ~0.00      65120  50624  64 KB       11        2
+570              WINS: broadcast    IW  ~0.00      65120  51536  64 KB       11        2
+571                  WINS: async    IW  ~0.00      65120  64960  64 KB        1        0
+572                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+573                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+574         RPC transport reaper    IW  ~0.00      65120  64960  64 KB       58        0
+575                RPC scheduler    IW  ~0.00      65072  64912  64 KB        1        0
+576                          ntp    IW  ~0.00      65104  64768  64 KB       57        0
+578         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+581            CNS PerfTestFiber    IW  ~0.00      65088  64752  64 KB        6        0
+582      Purge stale nvram fiber    IW  ~0.00      65200  65040  64 KB        1        0
+583            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+584            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+585            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+586            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+587            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+588            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+589            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+590            iSCSI Format Unit    IW  ~0.00      65040  64880  64 KB        1        0
+591        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+592        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+593        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+594        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+595        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+596        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+597        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+598        Background Virus Scan    IW  ~0.00      65104  64944  64 KB        2        0
+599              NFS mount purge    IW  ~0.00      65120  64960  64 KB        1        0
+600        GNSPseudoFsLinkExport    IW  ~0.00      64768  64608  64 KB        1        0
+601            GNSPseudoFsExport    IW  ~0.00      64768  64608  64 KB        1        0
+602           iSNS Client Reaper    IW  ~0.00      65120  64960  64 KB        1        0
+603                     NDMPTIDY    IW  ~0.00      65040  58432  64 KB        5        0
+604                     NDMP_SRL    IW  ~0.00      65104  58848  64 KB       12        0
+605                      LockdGC    IW   0.01      65088  64928  64 KB        5        0
+606                   LockdRetry    IW  ~0.00      65104  64944  64 KB        1        0
+607        DC Connection Monitor    IW  ~0.00      65056  64896  64 KB        1        0
+608                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+609                 cache: flush    IW  ~0.00      65136  64976  64 KB        1        0
+610        AsyncNFSMountRecorder    IW  ~0.00      65200  65040  64 KB        1        0
+611         NfsCacheUpdateWorker    IW  ~0.00      64944  64784  64 KB        1        0
+612              statd: notify 1    IW  ~0.00      65120  62688  64 KB        2        0
+613              statd: ptimer 1    IW  ~0.00      65024  64864  64 KB        5        0
+614          AdminVnodeCIFSShare    IW  ~0.00      64768  64608  64 KB        1        0
+615 Checkpoint fiber (volume #2)    IW  ~0.00      64736  51936  64 KB       37        0
+616        Volume Recovery fiber    IW   0.06      64928  44048  64 KB      914     8878
+618       Delayed Writes Monitor    IW  ~0.00      64912  64752  64 KB        1        0
+        Total unsuccessful polls        46.89
+</pre>
+<p></p>
+<pre>[ps took 13 s.]
+server$
+</pre>
+<p></p>
+<p>As you can see, thread-list takes a long time.  Indeed, it is O(n*n) in the number of threads.  This is due to wanting to pay the minimum price in performance-critical code for marking a thread as entering or leaving one of the "State" letters.  This needs to change because it makes the diagnostics take longer than the 10s window available to them.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/thread-stack-trace.html">thread-stack-trace</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

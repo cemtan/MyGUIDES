@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>send-quota-report</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>send-quota-report</h1>
+<p>Send a quota details report now</p>
+<h1>Syntax</h1>
+<pre>send-quota-report &lt;email address&gt;
+</pre>
+
+<h1>Description</h1>
+<p>send-quota-report requests an email with a .csv report of the configuration and usage figures for all quotas on all virtual volumes on all file systems known to the server.</p>
+<p>For each quota, the report contains the following information:</p>
+<dl>
+<dt><strong>File System</strong></dt>
+<dd><p>The file system hosting the virtual volume.</p></dd>
+<dt><strong>Virtual Volume</strong></dt>
+<dd><p>The virtual volume to which the quota applies.</p></dd>
+<dt><strong>Path</strong></dt>
+<dd><p>The path in the file system leading to the root of the virtual volume.</p></dd>
+<dt><strong>Email Contacts</strong></dt>
+<dd><p>The list of contacts to whom emails will be sent when quota limits are exceeded.</p></dd>
+<dt><strong>User/Group Account</strong></dt>
+<dd><p>The user or group to which the quota's values apply.</p></dd>
+<dt><strong>Quota Type</strong></dt>
+<dd><p>Whether the quota is for a user, group or the entire virtual volume.</p></dd>
+<dt><strong>Created By</strong></dt>
+<dd><p>Whether the quota was created manually, or automatically as a result of quota defaults having been configured for the virtual volume.</p></dd>
+<dt><strong>Usage</strong></dt>
+<dd><p>The current usage of the virtual volume for the owner of the quota.</p></dd>
+<dt><strong>Usage Limit</strong></dt>
+<dd><p>The quota's usage limit.</p></dd>
+<dt><strong>Usage Hard Limit</strong></dt>
+<dd><p>Whether the usage limit is rigidly enforced, or just triggers an alert.</p></dd>
+<dt><strong>Usage Reset (%)</strong></dt>
+<dd><p>Amount by which usage must fall below a threshold before re-logging its event (%).</p></dd>
+<dt><strong>Usage Warning (%)</strong></dt>
+<dd><p>Usage warning threshold (%).</p></dd>
+<dt><strong>Usage Critical (%)</strong></dt>
+<dd><p>Usage critical threshold (%).</p></dd>
+<dt><strong>File Count</strong></dt>
+<dd><p>The current number of files in the virtual volume owned by the owner of the quota.</p></dd>
+<dt><strong>File Count Limit</strong></dt>
+<dd><p>The quota's file count limit.</p></dd>
+<dt><strong>File Count Hard Limit</strong></dt>
+<dd><p>Whether the file count limit is rigidly enforced, or just triggers an alert.</p></dd>
+<dt><strong>File Count Reset (%)</strong></dt>
+<dd><p>Amount by which file count must fall below a threshold before re-logging its event (%)</p></dd>
+<dt><strong>File Count Warning (%)</strong></dt>
+<dd><p>File count warning threshold.</p></dd>
+<dt><strong>File Count Critical (%)</strong></dt>
+<dd><p>File count critical threshold.</p></dd>
+</dl>
+<p>The command requires a single argument, &lt;email address&gt;, which is the single email address to which the report will be sent.</p>
+<h1>Examples</h1>
+<pre>send-quota-report dsmith@example.com
+</pre>
+<p></p>
+<p>The received email will contain a .csv attachment giving information of the following form:</p>
+<p>File System,Virtual Volume,Path,EmailContacts,User/Group Account,Quota Type,Created By,Usage,Usage Limit,Usage Hard Limit,Usage Reset (%),Usage Warning (%),Usage Critical (%),File Count,File Count Limit,File Count Hard Limit,File Count Reset (%),File Count Warning (%),File Count Critical (%) fs1,vv1,/vv1,dsmith@example.com,1024,User,User Defined,500000000,10737418240,soft,5,75,85,350000,1000000,soft,5,75,85</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/default-quota.html">default-quota</a> <a href="../User/quota.html">quota</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

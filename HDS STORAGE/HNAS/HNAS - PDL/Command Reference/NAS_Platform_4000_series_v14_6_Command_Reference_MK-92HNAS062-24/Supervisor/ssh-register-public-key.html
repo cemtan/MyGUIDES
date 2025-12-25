@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ssh-register-public-key</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ssh-register-public-key</h1>
+<p>Add SSH public key for user</p>
+<h1>Syntax</h1>
+<pre>ssh-register-public-key [-u &lt;user-name&gt;] -f &lt;file-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Add SSH public keys from a file to the server's authorized list for the specified or current NAS user. This command can only be run by a NAS user with supervisor permissions or above.</p>
+<p>Prior to running this command a file containing one or more keys must be copied to the NAS user's home directory on the NAS server. Typically individual keys can be found in the files ~/.ssh/id_dsa.pub and ~/.ssh/id_rsa.pub in the originating user's home directory on the machine that they are logging in from.  However, any file using the same format could be used and for convenience the two .pub files could be concatenated into a third file which can then be copied to the NAS so that both keys can be added in a single operation.</p>
+<p>Note that the originating user is a user on the machine that the SSH connection to the NAS originates from and not a NAS user. NAS users are those users that are created on the NAS using "user add" and can be listed with "user list".</p>
+<p>The format of the public key file is a subset of the "AUTHORIZED_KEYS FILE FORMAT" described in sshd(8). Each line is expected to comprise three fields: key type, key, and comment. There should be no options field. The comment is expected in the form username@host, where host may be an IP address or a hostname. Those are the defaults for keys created by ssh-keygen(1). If the comment contains a hostname, the NAS DNS must be set up to resolve it to an IP address.</p>
+<p>The originating user's key file should be copied to the NAS user's home directory on the server using scp. A typical scp call might look like this:</p>
+<p>scp ~/.ssh/authorized_keys johnsmith@servername:my_keys_to_add</p>
+<p>After the file has been copied to the server, the ssh-register-public-key command can then be run to register the originating user's keys on the server for a given NAS user (johnsmith in the above example). If the NAS user has supervisor permissions or above then he can run the command himself, otherwise he will need a NAS user with the correct permissions to run the command for him.</p>
+<h1>Examples</h1>
+<pre>ssh-register-public-key -f my_keys_to_add
+</pre>
+<p></p>
+<p>Register public key(s) for current logged in user. The file "my_keys_to_add" must have been copied into the user's home directory.</p>
+<pre>ssh-register-public-key -u johnsmith -f my_keys_to_add
+</pre>
+<p></p>
+<p>Register public key(s) for user "johnsmith". The file "my_keys_to_add" must have been copied into johnsmith's home directory.</p>
+<h1>See Also</h1>
+<p><a href="../User/dnssearch.html">dnssearch</a> <a href="../User/dnsserver.html">dnsserver</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

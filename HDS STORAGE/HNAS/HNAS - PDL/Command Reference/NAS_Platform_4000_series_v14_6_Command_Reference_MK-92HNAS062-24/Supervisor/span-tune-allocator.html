@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-tune-allocator</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-tune-allocator</h1>
+<p>Optimise future chunk allocations for balance or scalability</p>
+<h1>Syntax</h1>
+<pre>span-tune-allocator [(--span-weight | -s) &lt;weight&gt;] [(--filesystem-weight | -f) &lt;weight&gt;] [(--run-bias | -r) &lt;bias&gt;] &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>When you create or expand a filesystem, the server allocates one or more chunks of disk space to it.  The server's default allocation settings will nearly always serve you well.  However, in unusual cases, it can be helpful to tune them to prioritize one goal over another.  The 'span-tune-allocator' command performs this tuning.</p>
+<p>Changes made by this command are specific to a single span.  They take place at once and persist across reboots.  However, they affect only future allocations: this command does not move a filesystem's chunks from one stripeset to another.</p>
+<h2>THE CHUNK ALLOCATOR'S GOALS</h2>
+<p>The allocator tries to satisfy four goals:</p>
+<ol>
+<li>It tries to allocate consecutive chunks from a stripeset to the same filesystem.  Other parts of the system can merge such chunks into a single VLSI table entry, enabling a filesystem to expand well beyond the minimum guaranteed scalability of 1023 chunks.</li>
+<li>It tries to balance the load evenly across all the span's stripesets so that, if all filesystems are evenly loaded, all storage will be equally loaded.</li>
+<li>It tries to spread each filesystem evenly across all available stripesets, so that, if only one or two of a span's filesystems are heavily loaded, all storage will still be evenly loaded.</li>
+<li>It tries to ensure that new chunk allocations are drawn from as many stripesets as possible.  Newly allocated chunks usually receive more write operations than other chunks.</li>
+</ol>
+<p>It is clear that these goals conflict with one another.  For example, in the case of a single filesystem and multiple stripesets of equal size, goal (1) would naturally place long runs of chunks on the same stripeset, whereas goals (2) and (3) would allocate chunks from stripesets in a round-robin fashion, so that no two consecutive chunks were placed on the same stripeset.</p>
+<h2>TUNABLE PARAMETERS</h2>
+<p>You can influence chunk allocation by setting two weights and one run bias.</p>
+<h3>The two weights</h3>
+<p>The two weights control the relative importance of goals (2) and (3) against one another.  The span weight prioritizes goal (2); the filesystem weight prioritizes goal (3).</p>
+<p>The absolute values of these weights do not matter: setting them both to five will give exactly the same results as setting them to ten, except that Cod will become incompatible with releases before 11.2.  Setting one of them to zero will cause that goal to be ignored.  Setting them both to zero is equivalent to setting them both to one (or, indeed, five or ten).  The absolute values of the weights do not affect the priorities of goals (2) and (3) against the other three goals.</p>
+<p>The minimum value of each weight is zero; the maximum value, which is also the default, is ten.</p>
+<p>If most of the filesystems on the span are equally busy, it makes sense to prioritize goal (2) over goal (3).  The aim is to widen the storage bottleneck by ensuring that load is spread evenly across the storage.</p>
+<p>Conversely, if, at any one time, most of the load is concentrated in a small proportion of the filesystems on the span, then it is more beneficial to prioritize goal (3) so that, no matter which filesystem is busy, the server will do I/O to as many stripesets as possible.</p>
+<h3>The run bias</h3>
+<p>A large run bias will prioritize goal (1), causing the server to allocate long runs of consecutive chunks to a filesystem, increasing its scalability at some small cost in reduced load-balancing between stripesets.  It will also prioritize goal (4) by predicting future allocations more aggressively when a new stripeset is being chosen.</p>
+<p>Permitted values for the run bias range from 0 to 250; the default and recommended value is 64.</p>
+<p>On spans with many stripesets and filesystems and a relatively small number of chunks, the allocator may occasionally protect its ability to balance allocations across stripesets by using a smaller run bias than the one specified and displayed by this command.  Most average-sized or large spans will be unaffected by this mechanism.  The allocator never uses a larger run bias than the one you specify, despite sometimes achieving surprisingly long runs of consecutive chunks.</p>
+<h2>LOAD-BALANCING</h2>
+<p>The load-balancing performed by the chunk allocator is unrelated to other forms of load-balancing performed by the server.  It describes only the way in which the allocator tries to spread used chunks, as well as the chunks used in each filesystem, as evenly as possible across the available stripesets in a span.</p>
+<h2>BEST PRACTICES</h2>
+<p>The 'filesystem-expand' command has a switch that directs the server to allocate chunks from a specified stripeset.  Directed allocations should be used as infrequently as possible, because they hinder the chunk allocator's ability to satisfy its five goals.  Nevertheless, an occasional directed allocation is more predictable and reliable than manually changing the tuning settings in an attempt to trick the allocator into using the desired stripeset.</p>
+<p>Where possible, filesystem expansions should be as large as possible.  A single large allocation often lets the allocator allocate fewer, larger runs of chunks than a sequence of smaller allocations, increasing filesystem scalability without affecting the balance of stripesets and filesystems.</p>
+<p>Releases before 11.2 had a simpler chunk allocator that did not optimize filesystem scalability.  On spans that contain filesystems created in these releases, it may make sense to increase the run bias beyond the default value to make the best possible use of the remaining table entries, thus making filesystems as scalable as possible.</p>
+<p>When a span is almost full -- when almost all its chunks have been allocated to filesystems -- free space becomes fragmented, and the server cannot allocate long runs of chunks to a single filesystem.  If you plan to expand a span, doing so while a few per cent of its chunks are still free will optimize filesystem scalability.  'span-list' shows how much of a span is free.  (The notion of a span being full is unrelated to the notion of its file systems being full.  If the span's filesystems have been expanded to use all available chunks then the span is full, even if the file systems themselves are almost empty.)</p>
+<h1>Examples</h1>
+<p>To change span ProjectX's run bias to 8:</p>
+<pre>server:$ span-tune-allocator --run-bias 8 ProjectX
+Success
+</pre>
+<p></p>
+<pre>New settings:
+Span weight:       10
+Filesystem weight: 10
+Run bias:          8
+server:$
+</pre>
+<p></p>
+<p>Parameters can also be specified positionally -- span weight, then filesystem weight, then run bias:</p>
+<pre>server:$ span-tune-allocator ProjectX 4 5 12
+Success
+</pre>
+<p></p>
+<pre>New settings:
+Span weight:       4
+Filesystem weight: 5
+Run bias:          12
+server:$
+</pre>
+<p></p>
+<p>If run with no parameters other than a span instance name, the command prints the current tuning parameters without changing them:</p>
+<pre>server:$ span-tune-allocator ProjectY
+Span weight:       10
+Filesystem weight: 10
+Run bias:          12
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-scalability.html">filesystem-scalability</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

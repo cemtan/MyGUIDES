@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-devices</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>ndmp-devices</h1>
+
+<h1>Description</h1>
+<p>This man page gives a general description of access to tape drive devices and media changer devices through NDMP. It covers initial configuration of the devices and also device naming.</p>
+<h2>Enabling device use</h2>
+<p>In order to avoid possible clashes of use, the server does not allow immediate access to any device it can see. Access to each device needs to be allowed explicitly before NDMP will use it. The backup-devices-list command can be used to list the available devices. Each device is identified by a device number. Any device to be used must be enabled using backup-device-allow-access. It is also necessary to specify the EVSs through which the device may be accessed. This can be done using backup-device-set-evs. If you wish the device may be made available to all EVSs.</p>
+<h2>NDMP device names</h2>
+<p>NDMP device names are the names assigned to tape drive and media changer devices available for NDMP access. These names are the ones that will be used by the NDMP client which is usually a network backup application.</p>
+<p>The ndmp-devices-update command can be used to ensure that newly enabled devices have been seen by NDMP. Then the ndmp-devices-list command can be used to show the device names and addresses.</p>
+<p>When a device becomes available for NDMP use, it is automatically assigned a name by the system. The name is based on the type of device (tape drive or media changer), the Fibre Channel port through which the device is accessed and the Logical Unit Number of the device within that Fibre Channel port. It is also possible to assign a name of your choice to the device.</p>
+<p>A system assigned tape drive name has the form /dev/mt_dXlY and a media changer name has the form /dev/mc_dXlY. In both cases X is the device number (see below) of the Fibre Channel port through which this device is accessed and Y is the Logical Unit Number of this device within that Fibre Channel port.</p>
+<p>NDMP considers all the devices accessed through a single Fibre Channel port to be part of a single NDMP Fibre Channel Device identified by its Fibre Channel node name. An NDMP Fibre Channel Device Number is assigned to the device when it is first encountered and the mapping between the Fibre Channel node name and this Device Number will remain in the system until explicitly changed. This Device Number is the one used as X in the names above.</p>
+<p>The NDMP Fibre Channel Device could be a complete tape library including the media changer and all the tape drives. In this case, all devices will have the same Fibre Channel Device Number but each separate subdevice will be addressed by a different Logical Unit Number. For instance the library may have a media changer and two tape drives which might be assigned names /dev/mc_d4l0, /dev/mt_d4l1, /dev/mt_d4l2. At the other extreme a native Fibre Channel tape drive will be accessed as a separate Fibre Channel Device with its own unique Fibre Channel Device Number. A tape library with separately addressable Fibre Channel tape drives might have devices named /dev/mc_d3l0, /dev/mt_d4l0 and /dev/mt_d5l0, for instance. There are also intermediate cases where the devices in a tape library are spread between a few separate Fibre Channel ports.</p>
+<p>The Fibre Channel Device Numbers can be manipulated with the ndmp-fc-device-number-* set of commands. This may be useful if swapping out a failed tape library. The ndmp-fc-device-number-set command can be used to change the NDMP Fibre Channel Device Number of the new library to match that of the old library. This may avoid reconfiguring the backup application. (Note that this will only work if the tape location relationships - see TAPE DRIVE LOCATIONS - are preserved.)</p>
+<p>It may be useful for tracking purposes to assign names of your own choice to NDMP devices. This can be done using the ndmp-device-assigned-name-set command. The device may be identified by its serial number or by its Fibre Channel node name and (optionally) its Logical Unit Number.</p>
+<h2>Tape drive locations</h2>
+<p>When a tape library is asked to load a tape into a tape drive, the tape drive is identified by an address that reflects its physical location within the tape library. In some cases the physical address within the library determines its logical address in the Fibre Channel network. (For instance, in some tape libraries with a single FC port the first tape drive is addressed as logical unit 1, the second as logical unit 2 etc.) However, in the majority of cases there is no obvious mapping between the physical location in the tape library and the Fibre Channel address. Some tape libraries provide mechanisms for identifying the tape drives within them and the physical location of those drives. Those mechanisms are not universally implemented and vary from manufacturer to manufacturer.</p>
+<p>In order to be able to load a tape into a tape drive identified by an NDMP device name, a backup application needs to establish a mapping between that NDMP device name and the physical location of the tape drive within a specific tape library. In some backup applications this mapping needs to be entered by the administrator. It is very important that this mapping is correct, otherwise the backup application will not be able to use the tape drive. Unpredictable results may occur if the mapping is wrong.</p>
+<p>Where a tape drive and its tape library media changer are both attached to a server, the server will attempt to establish this mapping and display it in the "location" column of the ndmp-devices-list output. (This information is not produced for some tape libraries.) The tape drive numbers used in this location field are numbered from 1 - a convention used by some of the major backup application vendors. However, some tape libraries number the tape drive locations from 0 in their front panel displays. So it may be necessary to adjust the drive number if you are trying to match these numbers.</p>
+<h2>Sharing devices</h2>
+<p>Modern tape drives are expensive but have a high data rate and high tape capacities. In order to make full use of the tape drive it may be desirable to have the tape drive connected to more than one independent server. In this case the backup application will see the same tape drive more than once via the different servers through which the drive is connected. Some backup applications recognize the tape drive instances as relating to the same tape drive and manage it appropriately. Other applications need the tape drive to be made unavailable to other servers when it is being used by one server. This is achieved by using the SCSI Reserve and Release requests.</p>
+<p>Note that it is not necessary to use SCSI Reserve and Release if the tape drives are only connected to servers within a single high availability cluster.</p>
+<p>By default the server does not issue SCSI Reserve and Release requests because of potential difficulties in releasing devices if the server becomes unavailable whilst holding a reservation. If the server is to be used in an environment where the tape drives are shared and the backup application requires that the NDMP server uses reserve/release then the ndmp-option reserve_devices must be set. See the ndmp-option man page. The most common setting would be "ndmp-option reserve_devices tape".</p>
+<p>SCSI reservations made over Fibre Channel are "owned" by the host Fibre Channel port through which they were made. In order for them to work properly it is important that all interactions with a specific device are made using the same Fibre Channel port. So for any device that will be reserved, a specific host Fibre Channel port should be used. This may be set using the backup-device-port command.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/backup-device-allow-access.html">backup-device-allow-access</a> <a href="../Supervisor/backup-device-set-evs.html">backup-device-set-evs</a> <a href="../User/backup-devices-list.html">backup-devices-list</a> <a href="../Supervisor/ndmp-device-assigned-name-set.html">ndmp-device-assigned-name-set</a> <a href="../User/ndmp-devices-list.html">ndmp-devices-list</a> <a href="../Supervisor/ndmp-devices-update.html">ndmp-devices-update</a> <a href="../Supervisor/ndmp-fc-device-number-set.html">ndmp-fc-device-number-set</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

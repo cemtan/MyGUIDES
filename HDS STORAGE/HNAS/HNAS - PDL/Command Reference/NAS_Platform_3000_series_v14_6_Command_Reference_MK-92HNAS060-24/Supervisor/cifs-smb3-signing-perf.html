@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-smb3-signing-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>cifs-smb3-signing-perf</h1>
+<p>Display SMB3 signing performance statistics</p>
+<h1>Syntax</h1>
+<pre>cifs-smb3-signing-perf [--reset|--signing-rate|--summary]
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-smb3-signing-perf command reports SMB3 signing performance statistics. This includes statistics for the HNAS acting as both server (normal file-serving) and client (to Domain Controllers).</p>
+<dl>
+<dt><strong>--reset, -r</strong></dt>
+<dd><p>Resets the statistics.</p></dd>
+<dt><strong>--signing-rate, -i</strong></dt>
+<dd><p>Shows the average signing throughput since the statistics were last reset.</p></dd>
+<dt><strong>--summary, -s</strong></dt>
+<dd><p>Disables the drawing of the performance stats graphs.</p></dd>
+</dl>
+<p>These fields apply to responses sent to an SMB3 client and requests to a server:</p>
+<dl>
+<dt><strong>Send Data Transfer</strong></dt>
+<dt><strong>Send Calculate Signature</strong></dt>
+<dd><p>Time spent sending data from FPGA to host and calculating the signature.</p></dd>
+</dl>
+<p>These fields apply to requests from an SMB3 client and responses from a server:</p>
+<dl>
+<dt><strong>Receive Data Transfer</strong></dt>
+<dt><strong>Receive Verify Signature</strong></dt>
+<dd><p>Time spent sending data from FPGA to host and verifying the signature.</p></dd>
+</dl>
+<p>On Unified models, SMB3 signing is performed in FPGA which removes the need for transferring data from FPGA to the host:</p>
+<dl>
+<dt><strong>Send VLSI Calculate Signature</strong></dt>
+<dd><p>Time spent calculating the signature for a response to a client or a request to a server.</p></dd>
+<dt><strong>Receive VLSI Verify Signature</strong></dt>
+<dd><p>Time spent verifying the signature for a request from a client or a response to a server.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-smb3-signing-required-default.html">cifs-smb3-signing-required-default</a> <a href="../Supervisor/cifs-smb3-signing-required-disable.html">cifs-smb3-signing-required-disable</a> <a href="../Supervisor/cifs-smb3-signing-required-enable.html">cifs-smb3-signing-required-enable</a> <a href="../Supervisor/cifs-smb3-signing-status.html">cifs-smb3-signing-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

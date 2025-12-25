@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>stripeset-chunk-translate-offset</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>stripeset-chunk-translate-offset</h1>
+<p>Translate stripeset, chunk no and offset to the same offset in other formats</p>
+<h1>Syntax</h1>
+<pre>stripeset-chunk-translate-offset [--dump &lt;nr-bytes&gt; [--verbose] [--timeout &lt;nr-seconds&gt;] &lt;span&gt; &lt;stripeset-no&gt; &lt;chunk-no&gt; [&lt;chunk-offset-in-bytes&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command is intended for use by your support provider.  Given a span instance name, a stripeset number, the number of a chunk within the stripeset, and an offset into the chunk, it prints several other representations of the same offset: as an offset into a system drive, as an offset into the span that contains the stripeset, as an offset into the stripeset as a whole, and so on.  A stripeset is specified on the command line as a span instance name followed by the stripeset number; the first stripeset is stripeset 0.</p>
+<p>See 'filesystem-translate-offset' for an explanation of this command's output.</p>
+<p>Specifying '--dump' and a byte-count will read the corresponding data directly from the storage (bypassing the server's caches) and hexdump it on the console.  The command always dumps a whole number of disk blocks, and so '--dump 0' will dump the whole of the disk block that contains the offset you specify.  If you add '--verbose', the command prints the system drive device ID and offset before each block and dumps the data in full; otherwise, repeated lines are suppressed. '--verbose' implies '--dump'.  This command can't dump more than a mebibyte (that is, 2**20 bytes) or beyond the end of a chunk; to dump further, issue another '*-translate-offset' command.</p>
+<p>The '--timeout' switch limits the amount of time that the command spends dumping data.  If the specified time is exceeded, the command will abort.  Without '--dump', '--timeout' is ignored.  The default timeout is 120 seconds.</p>
+<p>Space occupied by a filesystem in the recycle bin will be shown as unused.  If necessary, undelete a filesystem in order to see offsets into it.</p>
+<h1>Examples</h1>
+<p>See the examples under 'sd-translate-offset'.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-chunk-translate-offset.html">filesystem-chunk-translate-offset</a> <a href="../Supervisor/filesystem-translate-offset.html">filesystem-translate-offset</a> <a href="../Supervisor/filesystem-undelete.html">filesystem-undelete</a> <a href="../Supervisor/sd-translate-offset.html">sd-translate-offset</a> <a href="../Supervisor/span-chunk-translate-offset.html">span-chunk-translate-offset</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-translate-offset.html">span-translate-offset</a> <a href="../Supervisor/stripeset-translate-offset.html">stripeset-translate-offset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

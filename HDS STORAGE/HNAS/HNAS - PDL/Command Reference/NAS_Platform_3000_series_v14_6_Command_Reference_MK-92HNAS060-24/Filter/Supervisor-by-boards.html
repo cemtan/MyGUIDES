@@ -1,0 +1,2963 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>Command Line Reference</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<table border="0" cellpadding="10" bgcolor="white">
+<tr><td><img alt="" src="logo.gif"></td>
+<td align="center">
+<h3>NAS Platform Command Line Reference<br>(Release 15.0)</h3>
+</td>
+</tr>
+</table>
+<p>The Command Line Interface (CLI) can be accessed in any of the following ways:</p>
+<ul>
+<li>Using Secure Shell (SSH) to connect into the NAS server through the SMU.</li>
+<li>Using SSH to directly connect into the NAS server.</li>
+<li>Using the SSC utility, available for Windows and Linux.</li>
+</ul>
+<p>These utilities allow you to access the CLI, which then requires that you log in before issuing commands.
+Contact Customer Support for the login details.</p>
+<p>Refer to the System Access Guide for more information about using the utilities listed above.</p>
+<hr>
+<h2>Command Line Reference</h2>
+<p>Click on a man page name to view additional reference information.</p>
+<h3>Topics</h3>
+<p>The following table lists topics that are functional areas or concepts relevant to the NAS server, but are not, in themselves, commands. These topics provide information relating to one or more commands, file service protocols, or technologies used by the NAS server. Click on a topic link to view the man page for that topic.</p>
+<blockquote>
+<table border="2" cellpadding="4" cellspacing="2">
+<tr>
+<td>
+<b>
+Topic
+</b>
+</td>
+</tr>
+<tr>
+<td>
+<a name=aggregate-linux-interfaces>
+</a>
+<a href="./Topic/aggregate-linux-interfaces.html">aggregate-linux-interfaces</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cacls-fields>
+</a>
+<a href="./Topic/cacls-fields.html">cacls-fields</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=check-space-trackers>
+</a>
+<a href="./Topic/check-space-trackers.html">check-space-trackers</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=chunk>
+</a>
+<a href="./Topic/chunk.html">chunk</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cifs>
+</a>
+<a href="./Topic/cifs.html">cifs</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cluster-interfaces>
+</a>
+<a href="./Topic/cluster-interfaces.html">cluster-interfaces</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cluster-node-route>
+</a>
+<a href="./Topic/cluster-node-route.html">cluster-node-route</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cod>
+</a>
+<a href="./Topic/cod.html">cod</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console>
+</a>
+<a href="./Topic/console.html">console</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style>
+</a>
+<a href="./Topic/console-prompt-style.html">console-prompt-style</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-default-set>
+</a>
+<a href="./Topic/console-prompt-style-default-set.html">console-prompt-style-default-set</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-set>
+</a>
+<a href="./Topic/console-prompt-style-set.html">console-prompt-style-set</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-show>
+</a>
+<a href="./Topic/console-prompt-style-show.html">console-prompt-style-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=cow>
+</a>
+<a href="./Topic/cow.html">cow</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=dedupe-schedule>
+</a>
+<a href="./Topic/dedupe-schedule.html">dedupe-schedule</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=deduplication>
+</a>
+<a href="./Topic/deduplication.html">deduplication</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=encroachment>
+</a>
+<a href="./Topic/encroachment.html">encroachment</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=evs-specifier>
+</a>
+<a href="./Topic/evs-specifier.html">evs-specifier</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=external-migration>
+</a>
+<a href="./Topic/external-migration.html">external-migration</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=file-clone>
+</a>
+<a href="./Topic/file-clone.html">file-clone</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=filesystem-specifier>
+</a>
+<a href="./Topic/filesystem-specifier.html">filesystem-specifier</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=filesystem-thresholds>
+</a>
+<a href="./Topic/filesystem-thresholds.html">filesystem-thresholds</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=hdp>
+</a>
+<a href="./Topic/hdp.html">hdp</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=heap_markers>
+</a>
+<a href="./Topic/heap_markers.html">heap_markers</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=hti>
+</a>
+<a href="./Topic/hti.html">hti</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=individual-security-affected-commands>
+</a>
+<a href="./Topic/individual-security-affected-commands.html">individual-security-affected-commands</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=kill-quotas>
+</a>
+<a href="./Topic/kill-quotas.html">kill-quotas</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=ldap>
+</a>
+<a href="./Topic/ldap.html">ldap</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=macro-support>
+</a>
+<a href="./Topic/macro-support.html">macro-support</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=migration-cloud>
+</a>
+<a href="./Topic/migration-cloud.html">migration-cloud</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mmb-memory>
+</a>
+<a href="./Topic/mmb-memory.html">mmb-memory</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mount-point-access-configuration>
+</a>
+<a href="./Topic/mount-point-access-configuration.html">mount-point-access-configuration</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mse-env>
+</a>
+<a href="./Topic/mse-env.html">mse-env</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mse-functions>
+</a>
+<a href="./Topic/mse-functions.html">mse-functions</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=mse-unit-testing>
+</a>
+<a href="./Topic/mse-unit-testing.html">mse-unit-testing</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=multi-tenancy>
+</a>
+<a href="./Topic/multi-tenancy.html">multi-tenancy</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=ndmp-devices>
+</a>
+<a href="./Topic/ndmp-devices.html">ndmp-devices</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=offset-and-length>
+</a>
+<a href="./Topic/offset-and-length.html">offset-and-length</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=per-fs-throttle>
+</a>
+<a href="./Topic/per-fs-throttle.html">per-fs-throttle</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=quoted-text>
+</a>
+<a href="./Topic/quoted-text.html">quoted-text</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=regex-options>
+</a>
+<a href="./Topic/regex-options.html">regex-options</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=replication-recovery-task-log-events>
+</a>
+<a href="./Topic/replication-recovery-task-log-events.html">replication-recovery-task-log-events</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config>
+</a>
+<a href="./Topic/resource-config.html">resource-config</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-apply>
+</a>
+<a href="./Topic/resource-config-apply.html">resource-config-apply</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-maximum-safe-heap-show>
+</a>
+<a href="./Topic/resource-config-maximum-safe-heap-show.html">resource-config-maximum-safe-heap-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-show>
+</a>
+<a href="./Topic/resource-config-show.html">resource-config-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-config-test>
+</a>
+<a href="./Topic/resource-config-test.html">resource-config-test</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-consumer-list>
+</a>
+<a href="./Topic/resource-consumer-list.html">resource-consumer-list</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-memory-total-show>
+</a>
+<a href="./Topic/resource-memory-total-show.html">resource-memory-total-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=resource-memory-uncommitted-show>
+</a>
+<a href="./Topic/resource-memory-uncommitted-show.html">resource-memory-uncommitted-show</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=rest-server>
+</a>
+<a href="./Topic/rest-server.html">rest-server</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=routing>
+</a>
+<a href="./Topic/routing.html">routing</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=routing-by-evs>
+</a>
+<a href="./Topic/routing-by-evs.html">routing-by-evs</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-group>
+</a>
+<a href="./Topic/sd-group.html">sd-group</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-ids>
+</a>
+<a href="./Topic/sd-ids.html">sd-ids</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-queue-depth>
+</a>
+<a href="./Topic/sd-queue-depth.html">sd-queue-depth</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=sd-spec>
+</a>
+<a href="./Topic/sd-spec.html">sd-spec</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=site>
+</a>
+<a href="./Topic/site.html">site</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=snapshots>
+</a>
+<a href="./Topic/snapshots.html">snapshots</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=snmp>
+</a>
+<a href="./Topic/snmp.html">snmp</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=space-constraint>
+</a>
+<a href="./Topic/space-constraint.html">space-constraint</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=space-tracker>
+</a>
+<a href="./Topic/space-tracker.html">space-tracker</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=span-fmd-compression>
+</a>
+<a href="./Topic/span-fmd-compression.html">span-fmd-compression</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=ssfs>
+</a>
+<a href="./Topic/ssfs.html">ssfs</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=storage-based-mirror>
+</a>
+<a href="./Topic/storage-based-mirror.html">storage-based-mirror</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=storage-based-snapshot>
+</a>
+<a href="./Topic/storage-based-snapshot.html">storage-based-snapshot</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=storage-based-snapshot-label>
+</a>
+<a href="./Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=tier>
+</a>
+<a href="./Topic/tier.html">tier</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=tree-clone>
+</a>
+<a href="./Topic/tree-clone.html">tree-clone</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=tree-delete>
+</a>
+<a href="./Topic/tree-delete.html">tree-delete</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=unified-management-ip-address>
+</a>
+<a href="./Topic/unified-management-ip-address.html">unified-management-ip-address</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=units>
+</a>
+<a href="./Topic/units.html">units</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=uvm>
+</a>
+<a href="./Topic/uvm.html">uvm</a>
+</td>
+
+</tr>
+<tr>
+<td>
+<a name=vlan-interfaces>
+</a>
+<a href="./Topic/vlan-interfaces.html">vlan-interfaces</a>
+</td>
+
+</tr>
+</table>
+</blockquote>
+<br>
+<h3>Commands</h3>
+<p>The following table lists NAS server commands. The information in the man page for each command describes the command, shows the command syntax, and may also provide examples and/or links to other relevant information. Click on a command name link to view the man page for that command.</p>
+<p>By default, the table is sorted by command name in alphabetical order.  Click on the Privilege Level column heading to group the commands by privilege level.  When commands are grouped by privilege level, they are sorted by name in alphabetical order.  To sort all commands by name (regardless of privilege level), click the Command column heading.</p>
+<blockquote>
+<table border="2" cellpadding="4" cellspacing="2">
+<tr>
+<td>
+<b>
+<a href="Filter/Supervisor.html">Command</a>
+</b>
+</td>
+<td>
+<b>
+<a href="Filter/Supervisor-by-level.html">Privilege Level</a>
+</b>
+</td>
+<td>
+<b>
+Description
+</b>
+</td>
+</tr>
+<tr>
+<td>
+<a name=alert-mail>
+</a>
+<a href="./User/alert-mail.html">alert-mail</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/configure alerts by email
+</td>
+</tr>
+<tr>
+<td>
+<a name=alert-snmp>
+</a>
+<a href="./User/alert-snmp.html">alert-snmp</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/configure alerts by SNMP
+</td>
+</tr>
+<tr>
+<td>
+<a name=alert-syslog>
+</a>
+<a href="./User/alert-syslog.html">alert-syslog</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/configure alerts by syslog
+</td>
+</tr>
+<tr>
+<td>
+<a name=apropos>
+</a>
+<a href="./Any/apropos.html">apropos</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Search command names and descriptions and man pages
+</td>
+</tr>
+<tr>
+<td>
+<a name=autodoc>
+</a>
+<a href="./User/autodoc.html">autodoc</a>
+</td>
+<td>
+User
+</td>
+<td>
+Auto document commands
+</td>
+</tr>
+<tr>
+<td>
+<a name=backup-devices-list>
+</a>
+<a href="./User/backup-devices-list.html">backup-devices-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List NDMP devices, such as tape drives and media changers
+</td>
+</tr>
+<tr>
+<td>
+<a name=cifs-dc-stats>
+</a>
+<a href="./User/cifs-dc-stats.html">cifs-dc-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report Domain Controller statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=cifs-saa>
+</a>
+<a href="./User/cifs-saa.html">cifs-saa</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manages Share Access Authentication in real file systems, cluster or EVS namespaces
+</td>
+</tr>
+<tr>
+<td>
+<a name=cifs-share>
+</a>
+<a href="./User/cifs-share.html">cifs-share</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manipulate CIFS shares on real file systems, cluster namespaces, or EVS namespaces
+</td>
+</tr>
+<tr>
+<td>
+<a name=cifs-stats>
+</a>
+<a href="./User/cifs-stats.html">cifs-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report or reset CIFS statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=cluster-node-route-list>
+</a>
+<a href="./User/cluster-node-route-list.html">cluster-node-route-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display cluster-node-route configuration
+</td>
+</tr>
+<tr>
+<td>
+<a name=cluster-node-route-status>
+</a>
+<a href="./User/cluster-node-route-status.html">cluster-node-route-status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show the cluster-node-route configuration status
+</td>
+</tr>
+<tr>
+<td>
+<a name=cluster-show>
+</a>
+<a href="./User/cluster-show.html">cluster-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show cluster parameters and node status
+</td>
+</tr>
+<tr>
+<td>
+<a name=cn>
+</a>
+<a href="./User/cn.html">cn</a>
+</td>
+<td>
+User
+</td>
+<td>
+Run command on specific pnode
+</td>
+</tr>
+<tr>
+<td>
+<a name=connstats>
+</a>
+<a href="./User/connstats.html">connstats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/Reset TCP connection statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=console-context>
+</a>
+<a href="./User/console-context.html">console-context</a>
+</td>
+<td>
+User
+</td>
+<td>
+Change the context for the current console
+</td>
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-set>
+</a>
+<a href="./User/console-prompt-style-set.html">console-prompt-style-set</a>
+</td>
+<td>
+User
+</td>
+<td>
+Sets the cnode display style for the current session.
+</td>
+</tr>
+<tr>
+<td>
+<a name=console-prompt-style-show>
+</a>
+<a href="./User/console-prompt-style-show.html">console-prompt-style-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show the style of prompt being used by the current session.
+</td>
+</tr>
+<tr>
+<td>
+<a name=contact-info>
+</a>
+<a href="./User/contact-info.html">contact-info</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/configure contact information. This command has been replaced with system-information-get and system-information-set.
+</td>
+</tr>
+<tr>
+<td>
+<a name=dcerpc-default-state-show>
+</a>
+<a href="./User/dcerpc-default-state-show.html">dcerpc-default-state-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show DCE/RPC default state.
+</td>
+</tr>
+<tr>
+<td>
+<a name=dcerpc-service-show>
+</a>
+<a href="./User/dcerpc-service-show.html">dcerpc-service-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show DCE/RPC Service(s).
+</td>
+</tr>
+<tr>
+<td>
+<a name=dcerpc-stats>
+</a>
+<a href="./User/dcerpc-stats.html">dcerpc-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show DCE/RPC Statistics.
+</td>
+</tr>
+<tr>
+<td>
+<a name=default-quota>
+</a>
+<a href="./User/default-quota.html">default-quota</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manages default user/group quotas
+</td>
+</tr>
+<tr>
+<td>
+<a name=df>
+</a>
+<a href="./User/df.html">df</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display disk utilization by file systems
+</td>
+</tr>
+<tr>
+<td>
+<a name=dnsdomainname>
+</a>
+<a href="./User/dnsdomainname.html">dnsdomainname</a>
+</td>
+<td>
+User
+</td>
+<td>
+Define DNS domain name
+</td>
+</tr>
+<tr>
+<td>
+<a name=dnssearch>
+</a>
+<a href="./User/dnssearch.html">dnssearch</a>
+</td>
+<td>
+User
+</td>
+<td>
+Define DNS search list
+</td>
+</tr>
+<tr>
+<td>
+<a name=dnsserver>
+</a>
+<a href="./User/dnsserver.html">dnsserver</a>
+</td>
+<td>
+User
+</td>
+<td>
+Define DNS servers
+</td>
+</tr>
+<tr>
+<td>
+<a name=domainname>
+</a>
+<a href="./User/domainname.html">domainname</a>
+</td>
+<td>
+User
+</td>
+<td>
+Get or set the current NIS domain.
+</td>
+</tr>
+<tr>
+<td>
+<a name=du>
+</a>
+<a href="./User/du.html">du</a>
+</td>
+<td>
+User
+</td>
+<td>
+Displays true and apparent disk usage for a specific file
+</td>
+</tr>
+<tr>
+<td>
+<a name=echo>
+</a>
+<a href="./User/echo.html">echo</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display a line of text
+</td>
+</tr>
+<tr>
+<td>
+<a name=ethernetstats>
+</a>
+<a href="./User/ethernetstats.html">ethernetstats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset ethernet statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=evs>
+</a>
+<a href="./User/evs.html">evs</a>
+</td>
+<td>
+User
+</td>
+<td>
+EVS management
+</td>
+</tr>
+<tr>
+<td>
+<a name=evs-security>
+</a>
+<a href="./User/evs-security.html">evs-security</a>
+</td>
+<td>
+User
+</td>
+<td>
+Change/report per EVS security settings
+</td>
+</tr>
+<tr>
+<td>
+<a name=evs-select>
+</a>
+<a href="./User/evs-select.html">evs-select</a>
+</td>
+<td>
+User
+</td>
+<td>
+Set EVS context
+</td>
+</tr>
+<tr>
+<td>
+<a name=exit>
+</a>
+<a href="./Any/exit.html">exit</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Exit the current shell
+</td>
+</tr>
+<tr>
+<td>
+<a name=fc-link-congestion>
+</a>
+<a href="./User/fc-link-congestion.html">fc-link-congestion</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show FC link congestion stats
+</td>
+</tr>
+<tr>
+<td>
+<a name=fc-link-errors>
+</a>
+<a href="./User/fc-link-errors.html">fc-link-errors</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show FC link error stats
+</td>
+</tr>
+<tr>
+<td>
+<a name=fc-stats>
+</a>
+<a href="./User/fc-stats.html">fc-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show FC statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=filesystem-limits>
+</a>
+<a href="./User/filesystem-limits.html">filesystem-limits</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show auto-expansion limits for a filesystem
+</td>
+</tr>
+<tr>
+<td>
+<a name=filesystem-list>
+</a>
+<a href="./User/filesystem-list.html">filesystem-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List filesystems
+</td>
+</tr>
+<tr>
+<td>
+<a name=fs-email>
+</a>
+<a href="./User/fs-email.html">fs-email</a>
+</td>
+<td>
+User
+</td>
+<td>
+File system contact list management (outside a virtual volume)
+</td>
+</tr>
+<tr>
+<td>
+<a name=fs-email-format>
+</a>
+<a href="./User/fs-email-format.html">fs-email-format</a>
+</td>
+<td>
+User
+</td>
+<td>
+File system/virtual volume email format management
+</td>
+</tr>
+<tr>
+<td>
+<a name=fs-perf-stats>
+</a>
+<a href="./User/fs-perf-stats.html">fs-perf-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report average file system performance statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=fs-usage>
+</a>
+<a href="./User/fs-usage.html">fs-usage</a>
+</td>
+<td>
+User
+</td>
+<td>
+Set/list events when the file system hits certain levels
+</td>
+</tr>
+<tr>
+<td>
+<a name=ftp-stats>
+</a>
+<a href="./User/ftp-stats.html">ftp-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset FTP statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=getmacid>
+</a>
+<a href="./Any/getmacid.html">getmacid</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Report the MAC ID
+</td>
+</tr>
+<tr>
+<td>
+<a name=heap-desired-size-show>
+</a>
+<a href="./User/heap-desired-size-show.html">heap-desired-size-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show the desired heap size
+</td>
+</tr>
+<tr>
+<td>
+<a name=help>
+</a>
+<a href="./Any/help.html">help</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Show command help
+</td>
+</tr>
+<tr>
+<td>
+<a name=host>
+</a>
+<a href="./User/host.html">host</a>
+</td>
+<td>
+User
+</td>
+<td>
+Host lookup
+</td>
+</tr>
+<tr>
+<td>
+<a name=icc-stats>
+</a>
+<a href="./User/icc-stats.html">icc-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show ICC packet driver statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=icmpstats>
+</a>
+<a href="./User/icmpstats.html">icmpstats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset ICMP statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=icmpv6stats>
+</a>
+<a href="./User/icmpv6stats.html">icmpv6stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset ICMPv6 statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=id>
+</a>
+<a href="./User/id.html">id</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/configure server identification. This command has been replaced with system-information-get and system-information-set.
+</td>
+</tr>
+<tr>
+<td>
+<a name=ifconfig>
+</a>
+<a href="./User/ifconfig.html">ifconfig</a>
+</td>
+<td>
+User
+</td>
+<td>
+displays network configuration
+</td>
+</tr>
+<tr>
+<td>
+<a name=ip-stats-other>
+</a>
+<a href="./User/ip-stats-other.html">ip-stats-other</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset other IP statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=iscsi-domain>
+</a>
+<a href="./User/iscsi-domain.html">iscsi-domain</a>
+</td>
+<td>
+User
+</td>
+<td>
+Set, display or unset the iSCSI domain
+</td>
+</tr>
+<tr>
+<td>
+<a name=iscsi-initiator>
+</a>
+<a href="./User/iscsi-initiator.html">iscsi-initiator</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manage iSCSI initiators
+</td>
+</tr>
+<tr>
+<td>
+<a name=iscsi-lu>
+</a>
+<a href="./User/iscsi-lu.html">iscsi-lu</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manages iSCSI Logical Units
+</td>
+</tr>
+<tr>
+<td>
+<a name=iscsi-params>
+</a>
+<a href="./User/iscsi-params.html">iscsi-params</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manages iSCSI configurable parameters
+</td>
+</tr>
+<tr>
+<td>
+<a name=iscsi-stats>
+</a>
+<a href="./User/iscsi-stats.html">iscsi-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report iSCSI statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=iscsi-target>
+</a>
+<a href="./User/iscsi-target.html">iscsi-target</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manages iSCSI targets
+</td>
+</tr>
+<tr>
+<td>
+<a name=isns>
+</a>
+<a href="./User/isns.html">isns</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manages iSNS servers
+</td>
+</tr>
+<tr>
+<td>
+<a name=licensekey>
+</a>
+<a href="./User/licensekey.html">licensekey</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manipulate software license keys
+</td>
+</tr>
+<tr>
+<td>
+<a name=limits>
+</a>
+<a href="./User/limits.html">limits</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report network reassembly limits
+</td>
+</tr>
+<tr>
+<td>
+<a name=localgroup>
+</a>
+<a href="./User/localgroup.html">localgroup</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manage members of local groups
+</td>
+</tr>
+<tr>
+<td>
+<a name=location-info>
+</a>
+<a href="./User/location-info.html">location-info</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/configure server location information. This command has been replaced with system-information-get and system-information-set.
+</td>
+</tr>
+<tr>
+<td>
+<a name=login>
+</a>
+<a href="./Any/login.html">login</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Login to console
+</td>
+</tr>
+<tr>
+<td>
+<a name=logout>
+</a>
+<a href="./Any/logout.html">logout</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Logout from the console
+</td>
+</tr>
+<tr>
+<td>
+<a name=mac-stats>
+</a>
+<a href="./User/mac-stats.html">mac-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display MAC chip statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=man>
+</a>
+<a href="./User/man.html">man</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display a manual page
+</td>
+</tr>
+<tr>
+<td>
+<a name=mtu>
+</a>
+<a href="./User/mtu.html">mtu</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display/Configure Local network MTU Table
+</td>
+</tr>
+<tr>
+<td>
+<a name=nameservice-host>
+</a>
+<a href="./User/nameservice-host.html">nameservice-host</a>
+</td>
+<td>
+User
+</td>
+<td>
+Formerly used to provide board specific host name lookup
+</td>
+</tr>
+<tr>
+<td>
+<a name=ndmp-devices-list>
+</a>
+<a href="./User/ndmp-devices-list.html">ndmp-devices-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display NDMP device information
+</td>
+</tr>
+<tr>
+<td>
+<a name=ndmp-fc-device-number-list>
+</a>
+<a href="./User/ndmp-fc-device-number-list.html">ndmp-fc-device-number-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display NDMP numbers assigned to FC devices
+</td>
+</tr>
+<tr>
+<td>
+<a name=ndmp-ruser-pwd>
+</a>
+<a href="./User/ndmp-ruser-pwd.html">ndmp-ruser-pwd</a>
+</td>
+<td>
+User
+</td>
+<td>
+Change NDMP/adc restricted user password
+</td>
+</tr>
+<tr>
+<td>
+<a name=ndmp-status>
+</a>
+<a href="./User/ndmp-status.html">ndmp-status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display or change NDMP status
+</td>
+</tr>
+<tr>
+<td>
+<a name=nfs-export>
+</a>
+<a href="./User/nfs-export.html">nfs-export</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report, create, delete, and modify NFS exports on file systems or cluster/EVS namespaces
+</td>
+</tr>
+<tr>
+<td>
+<a name=nfs-stats>
+</a>
+<a href="./User/nfs-stats.html">nfs-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report or reset NFS statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=nis-server>
+</a>
+<a href="./User/nis-server.html">nis-server</a>
+</td>
+<td>
+User
+</td>
+<td>
+Configure NIS servers
+</td>
+</tr>
+<tr>
+<td>
+<a name=nis-show>
+</a>
+<a href="./User/nis-show.html">nis-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display all NIS client configuration information
+</td>
+</tr>
+<tr>
+<td>
+<a name=nolog>
+</a>
+<a href="./User/nolog.html">nolog</a>
+</td>
+<td>
+User
+</td>
+<td>
+Run command without logging output to dblog
+</td>
+</tr>
+<tr>
+<td>
+<a name=ntp>
+</a>
+<a href="./User/ntp.html">ntp</a>
+</td>
+<td>
+User
+</td>
+<td>
+NTP configuration
+</td>
+</tr>
+<tr>
+<td>
+<a name=nvmirroring>
+</a>
+<a href="./User/nvmirroring.html">nvmirroring</a>
+</td>
+<td>
+User
+</td>
+<td>
+Queries the state of NVRAM mirroring
+</td>
+</tr>
+<tr>
+<td>
+<a name=nvpages>
+</a>
+<a href="./User/nvpages.html">nvpages</a>
+</td>
+<td>
+User
+</td>
+<td>
+List/free NVRAM pages reserved for file systems
+</td>
+</tr>
+<tr>
+<td>
+<a name=ops>
+</a>
+<a href="./User/ops.html">ops</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show average number of OPS per second
+</td>
+</tr>
+<tr>
+<td>
+<a name=overallstatus>
+</a>
+<a href="./User/overallstatus.html">overallstatus</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report overall system status
+</td>
+</tr>
+<tr>
+<td>
+<a name=papi-status>
+</a>
+<a href="./User/papi-status.html">papi-status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show PAPI status
+</td>
+</tr>
+<tr>
+<td>
+<a name=password>
+</a>
+<a href="./User/password.html">password</a>
+</td>
+<td>
+User
+</td>
+<td>
+Change password of a user
+</td>
+</tr>
+<tr>
+<td>
+<a name=path-mtu-flush>
+</a>
+<a href="./User/path-mtu-flush.html">path-mtu-flush</a>
+</td>
+<td>
+User
+</td>
+<td>
+Flush Path MTU Table
+</td>
+</tr>
+<tr>
+<td>
+<a name=path-mtu-show>
+</a>
+<a href="./User/path-mtu-show.html">path-mtu-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display Path MTU Table
+</td>
+</tr>
+<tr>
+<td>
+<a name=perf>
+</a>
+<a href="./User/perf.html">perf</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show performance stats
+</td>
+</tr>
+<tr>
+<td>
+<a name=phy-link-state>
+</a>
+<a href="./User/phy-link-state.html">phy-link-state</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display PHY characteristics
+</td>
+</tr>
+<tr>
+<td>
+<a name=ping>
+</a>
+<a href="./User/ping.html">ping</a>
+</td>
+<td>
+User
+</td>
+<td>
+Ping remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=ping-from-evs>
+</a>
+<a href="./User/ping-from-evs.html">ping-from-evs</a>
+</td>
+<td>
+User
+</td>
+<td>
+Ping remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=ping6>
+</a>
+<a href="./User/ping6.html">ping6</a>
+</td>
+<td>
+User
+</td>
+<td>
+Ping remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=ping6-from-evs>
+</a>
+<a href="./User/ping6-from-evs.html">ping6-from-evs</a>
+</td>
+<td>
+User
+</td>
+<td>
+Ping remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=primary-group-list>
+</a>
+<a href="./User/primary-group-list.html">primary-group-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List the user-to-primary group table
+</td>
+</tr>
+<tr>
+<td>
+<a name=query>
+</a>
+<a href="./User/query.html">query</a>
+</td>
+<td>
+User
+</td>
+<td>
+Queries the specified file system
+</td>
+</tr>
+<tr>
+<td>
+<a name=quota>
+</a>
+<a href="./User/quota.html">quota</a>
+</td>
+<td>
+User
+</td>
+<td>
+Add/remove/list quotas
+</td>
+</tr>
+<tr>
+<td>
+<a name=read-cache-stats>
+</a>
+<a href="./User/read-cache-stats.html">read-cache-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Displays the read cache statistics for the current cluster node
+</td>
+</tr>
+<tr>
+<td>
+<a name=rest-server-show>
+</a>
+<a href="./User/rest-server-show.html">rest-server-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show the RestAPI server configuration.
+</td>
+</tr>
+<tr>
+<td>
+<a name=rest-server-status>
+</a>
+<a href="./User/rest-server-status.html">rest-server-status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Retrieves the status of the RestAPI server.
+</td>
+</tr>
+<tr>
+<td>
+<a name=route>
+</a>
+<a href="./User/route.html">route</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display/Configure Route Table
+</td>
+</tr>
+<tr>
+<td>
+<a name=route-list>
+</a>
+<a href="./User/route-list.html">route-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display standard route registry configuration
+</td>
+</tr>
+<tr>
+<td>
+<a name=rpcport>
+</a>
+<a href="./User/rpcport.html">rpcport</a>
+</td>
+<td>
+User
+</td>
+<td>
+List/modify the port numbers associated with RPC services.
+</td>
+</tr>
+<tr>
+<td>
+<a name=sd-group-list>
+</a>
+<a href="./User/sd-group-list.html">sd-group-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List some or all system drive groups
+</td>
+</tr>
+<tr>
+<td>
+<a name=sd-list>
+</a>
+<a href="./User/sd-list.html">sd-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List system drives
+</td>
+</tr>
+<tr>
+<td>
+<a name=setdate>
+</a>
+<a href="./User/setdate.html">setdate</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display/set system date
+</td>
+</tr>
+<tr>
+<td>
+<a name=setnis>
+</a>
+<a href="./User/setnis.html">setnis</a>
+</td>
+<td>
+User
+</td>
+<td>
+Configure NIS support.
+</td>
+</tr>
+<tr>
+<td>
+<a name=settime>
+</a>
+<a href="./User/settime.html">settime</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display/set system time (24 hour format)
+</td>
+</tr>
+<tr>
+<td>
+<a name=sleep>
+</a>
+<a href="./User/sleep.html">sleep</a>
+</td>
+<td>
+User
+</td>
+<td>
+Pause for the specified time
+</td>
+</tr>
+<tr>
+<td>
+<a name=smb-client-stats>
+</a>
+<a href="./User/smb-client-stats.html">smb-client-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report SMB client statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=smb3-encryption-status>
+</a>
+<a href="./User/smb3-encryption-status.html">smb3-encryption-status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display the SMB3 encryption status of the current EVS
+</td>
+</tr>
+<tr>
+<td>
+<a name=smb3-reject-unencrypted-access-status>
+</a>
+<a href="./User/smb3-reject-unencrypted-access-status.html">smb3-reject-unencrypted-access-status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display the SMB3 &#39;reject unencrypted access&#39; status of the current EVS
+</td>
+</tr>
+<tr>
+<td>
+<a name=snapshot>
+</a>
+<a href="./User/snapshot.html">snapshot</a>
+</td>
+<td>
+User
+</td>
+<td>
+Snapshot management (deprecated, please see man page)
+</td>
+</tr>
+<tr>
+<td>
+<a name=snapshot-deleter-queue>
+</a>
+<a href="./User/snapshot-deleter-queue.html">snapshot-deleter-queue</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show work on the deleter queue
+</td>
+</tr>
+<tr>
+<td>
+<a name=snapshot-list>
+</a>
+<a href="./User/snapshot-list.html">snapshot-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display details of a file system&#39;s snapshots, or those snapshots associated with a rule.
+</td>
+</tr>
+<tr>
+<td>
+<a name=snapshot-rule-list>
+</a>
+<a href="./User/snapshot-rule-list.html">snapshot-rule-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display details of the snapshot rules.
+</td>
+</tr>
+<tr>
+<td>
+<a name=snmp-communities>
+</a>
+<a href="./User/snmp-communities.html">snmp-communities</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manipulate authentic SNMP communities
+</td>
+</tr>
+<tr>
+<td>
+<a name=snmp-hosts>
+</a>
+<a href="./User/snmp-hosts.html">snmp-hosts</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manipulate authentic SNMP hosts
+</td>
+</tr>
+<tr>
+<td>
+<a name=snmp-stats>
+</a>
+<a href="./User/snmp-stats.html">snmp-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report or reset SNMP statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=snmp-traps>
+</a>
+<a href="./User/snmp-traps.html">snmp-traps</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manipulate SNMP traps
+</td>
+</tr>
+<tr>
+<td>
+<a name=span-dump>
+</a>
+<a href="./User/span-dump.html">span-dump</a>
+</td>
+<td>
+User
+</td>
+<td>
+Dump full details of one or all spans
+</td>
+</tr>
+<tr>
+<td>
+<a name=span-list>
+</a>
+<a href="./User/span-list.html">span-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List one or all spans
+</td>
+</tr>
+<tr>
+<td>
+<a name=span-mirror-health>
+</a>
+<a href="./User/span-mirror-health.html">span-mirror-health</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show health, licensing and pegging of one or all spans&#39; system drives
+</td>
+</tr>
+<tr>
+<td>
+<a name=ssrun>
+</a>
+<a href="./User/ssrun.html">ssrun</a>
+</td>
+<td>
+User
+</td>
+<td>
+Run script
+</td>
+</tr>
+<tr>
+<td>
+<a name=status>
+</a>
+<a href="./User/status.html">status</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report server status
+</td>
+</tr>
+<tr>
+<td>
+<a name=storage-request-stats>
+</a>
+<a href="./User/storage-request-stats.html">storage-request-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show storage request stats
+</td>
+</tr>
+<tr>
+<td>
+<a name=storage-throughput-stats>
+</a>
+<a href="./User/storage-throughput-stats.html">storage-throughput-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show storage throughput statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=tcpipperfstats>
+</a>
+<a href="./User/tcpipperfstats.html">tcpipperfstats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report TCP/IP connection information.
+</td>
+</tr>
+<tr>
+<td>
+<a name=tcpstats>
+</a>
+<a href="./User/tcpstats.html">tcpstats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset TCP statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=time>
+</a>
+<a href="./User/time.html">time</a>
+</td>
+<td>
+User
+</td>
+<td>
+Run a command and summarize system resource usage.
+</td>
+</tr>
+<tr>
+<td>
+<a name=traceroute>
+</a>
+<a href="./User/traceroute.html">traceroute</a>
+</td>
+<td>
+User
+</td>
+<td>
+trace route to remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=traceroute-from-evs>
+</a>
+<a href="./User/traceroute-from-evs.html">traceroute-from-evs</a>
+</td>
+<td>
+User
+</td>
+<td>
+trace route to remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=traceroute6>
+</a>
+<a href="./User/traceroute6.html">traceroute6</a>
+</td>
+<td>
+User
+</td>
+<td>
+trace route to remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=traceroute6-from-evs>
+</a>
+<a href="./User/traceroute6-from-evs.html">traceroute6-from-evs</a>
+</td>
+<td>
+User
+</td>
+<td>
+trace route to remote system
+</td>
+</tr>
+<tr>
+<td>
+<a name=tz-list>
+</a>
+<a href="./User/tz-list.html">tz-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List available timezones
+</td>
+</tr>
+<tr>
+<td>
+<a name=tz-show>
+</a>
+<a href="./User/tz-show.html">tz-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Display system timezone and daylight saving
+</td>
+</tr>
+<tr>
+<td>
+<a name=udpstats>
+</a>
+<a href="./User/udpstats.html">udpstats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report/reset UDP statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=umask-directory-show>
+</a>
+<a href="./User/umask-directory-show.html">umask-directory-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Displays the umask for directory creation
+</td>
+</tr>
+<tr>
+<td>
+<a name=umask-file-show>
+</a>
+<a href="./User/umask-file-show.html">umask-file-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Displays the umask for file creation
+</td>
+</tr>
+<tr>
+<td>
+<a name=uname>
+</a>
+<a href="./User/uname.html">uname</a>
+</td>
+<td>
+User
+</td>
+<td>
+Print system information
+</td>
+</tr>
+<tr>
+<td>
+<a name=uptime>
+</a>
+<a href="./User/uptime.html">uptime</a>
+</td>
+<td>
+User
+</td>
+<td>
+Displays how long the system has been running
+</td>
+</tr>
+<tr>
+<td>
+<a name=user>
+</a>
+<a href="./User/user.html">user</a>
+</td>
+<td>
+User
+</td>
+<td>
+Manage management users
+</td>
+</tr>
+<tr>
+<td>
+<a name=user-authenticate>
+</a>
+<a href="./User/user-authenticate.html">user-authenticate</a>
+</td>
+<td>
+User
+</td>
+<td>
+Authenticates a network user and reports their credentials
+</td>
+</tr>
+<tr>
+<td>
+<a name=user-authenticate-stats>
+</a>
+<a href="./User/user-authenticate-stats.html">user-authenticate-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Reports network user authentication statistics
+</td>
+</tr>
+<tr>
+<td>
+<a name=ver>
+</a>
+<a href="./User/ver.html">ver</a>
+</td>
+<td>
+User
+</td>
+<td>
+Report server versions
+</td>
+</tr>
+<tr>
+<td>
+<a name=virtual-volume>
+</a>
+<a href="./User/virtual-volume.html">virtual-volume</a>
+</td>
+<td>
+User
+</td>
+<td>
+Virtual volume management (list/create/change/remove/remove all virtual volumes)
+</td>
+</tr>
+<tr>
+<td>
+<a name=whoami>
+</a>
+<a href="./Any/whoami.html">whoami</a>
+</td>
+<td>
+Any
+</td>
+<td>
+Display name of user currently logged in
+</td>
+</tr>
+<tr>
+<td>
+<a name=winsconfig>
+</a>
+<a href="./User/winsconfig.html">winsconfig</a>
+</td>
+<td>
+User
+</td>
+<td>
+Query/set WINS IPv4 addresses
+</td>
+</tr>
+<tr>
+<td>
+<a name=witness-evs-binding-list>
+</a>
+<a href="./User/witness-evs-binding-list.html">witness-evs-binding-list</a>
+</td>
+<td>
+User
+</td>
+<td>
+List Witness EVS bindings.
+</td>
+</tr>
+<tr>
+<td>
+<a name=witness-registration-list-show>
+</a>
+<a href="./User/witness-registration-list-show.html">witness-registration-list-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show Witness Registration List
+</td>
+</tr>
+<tr>
+<td>
+<a name=witness-registration-show>
+</a>
+<a href="./User/witness-registration-show.html">witness-registration-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show Witness Registration
+</td>
+</tr>
+<tr>
+<td>
+<a name=witness-stats>
+</a>
+<a href="./User/witness-stats.html">witness-stats</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show Witness Protocol Statistics.
+</td>
+</tr>
+<tr>
+<td>
+<a name=witness-unused-registration-timeout-show>
+</a>
+<a href="./User/witness-unused-registration-timeout-show.html">witness-unused-registration-timeout-show</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show Witness Unused Registration Timeout
+</td>
+</tr>
+<tr>
+<td>
+<a name=ypcat>
+</a>
+<a href="./User/ypcat.html">ypcat</a>
+</td>
+<td>
+User
+</td>
+<td>
+Prints values of all keys in an NIS database
+</td>
+</tr>
+<tr>
+<td>
+<a name=ypmatch>
+</a>
+<a href="./User/ypmatch.html">ypmatch</a>
+</td>
+<td>
+User
+</td>
+<td>
+Prints the value of a key from an NIS map
+</td>
+</tr>
+<tr>
+<td>
+<a name=ypwhich>
+</a>
+<a href="./User/ypwhich.html">ypwhich</a>
+</td>
+<td>
+User
+</td>
+<td>
+Returns the address of the NIS master or master map
+</td>
+</tr>
+</table>
+</blockquote>
+<br>
+<h3>Filters</h3>
+<p>The following table lists "filter" commands which can be used along with some of the NAS server commands listed in the previous table. A filter command is a secondary command added to a NAS server command using the command redirection pipe character (|). The filter command reads the NAS server command's output, performs post-processing on it, then writes the resulting output. Filter commands divide, rearrange, or extract portions of the information that passes through them, and are used to sort, view, and select parts of a NAS server command output.</p>
+<blockquote>
+<table border="2" cellpadding="4" cellspacing="2">
+<tr>
+<td>
+<b>
+Command
+</b>
+</td>
+<td>
+<b>
+<a href="Filter/Supervisor-by-level.html">Privilege Level</a>
+</b>
+</td>
+<td>
+<b>
+Description
+</b>
+</td>
+</tr>
+<tr>
+<td>
+<a name=devnull>
+</a>
+<a href="./Filter/User/devnull.html">devnull</a>
+</td>
+<td>
+User
+</td>
+<td>
+Swallow all output
+</td>
+</tr>
+<tr>
+<td>
+<a name=grep>
+</a>
+<a href="./Filter/User/grep.html">grep</a>
+</td>
+<td>
+User
+</td>
+<td>
+Print lines matching a pattern
+</td>
+</tr>
+<tr>
+<td>
+<a name=head>
+</a>
+<a href="./Filter/User/head.html">head</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show just the first part of output
+</td>
+</tr>
+<tr>
+<td>
+<a name=hexdump>
+</a>
+<a href="./Filter/User/hexdump.html">hexdump</a>
+</td>
+<td>
+User
+</td>
+<td>
+Hex dump
+</td>
+</tr>
+<tr>
+<td>
+<a name=less>
+</a>
+<a href="./Filter/User/less.html">less</a>
+</td>
+<td>
+User
+</td>
+<td>
+Pause output every page
+</td>
+</tr>
+<tr>
+<td>
+<a name=mail>
+</a>
+<a href="./Filter/User/mail.html">mail</a>
+</td>
+<td>
+User
+</td>
+<td>
+Mail command output
+</td>
+</tr>
+<tr>
+<td>
+<a name=more>
+</a>
+<a href="./Filter/User/more.html">more</a>
+</td>
+<td>
+User
+</td>
+<td>
+Pause output every page
+</td>
+</tr>
+<tr>
+<td>
+<a name=nop>
+</a>
+<a href="./Filter/User/nop.html">nop</a>
+</td>
+<td>
+User
+</td>
+<td>
+Copy input unchanged
+</td>
+</tr>
+<tr>
+<td>
+<a name=sort>
+</a>
+<a href="./Filter/User/sort.html">sort</a>
+</td>
+<td>
+User
+</td>
+<td>
+Sort lines
+</td>
+</tr>
+<tr>
+<td>
+<a name=sstee>
+</a>
+<a href="./Filter/User/sstee.html">sstee</a>
+</td>
+<td>
+User
+</td>
+<td>
+Write to console and file
+</td>
+</tr>
+<tr>
+<td>
+<a name=tail>
+</a>
+<a href="./Filter/User/tail.html">tail</a>
+</td>
+<td>
+User
+</td>
+<td>
+Show just the last part of output
+</td>
+</tr>
+<tr>
+<td>
+<a name=treacle>
+</a>
+<a href="./Filter/User/treacle.html">treacle</a>
+</td>
+<td>
+User
+</td>
+<td>
+Slow output down
+</td>
+</tr>
+<tr>
+<td>
+<a name=txt2html>
+</a>
+<a href="./Filter/User/txt2html.html">txt2html</a>
+</td>
+<td>
+User
+</td>
+<td>
+Minimal text-to-HTML filter
+</td>
+</tr>
+<tr>
+<td>
+<a name=unzip>
+</a>
+<a href="./Filter/User/unzip.html">unzip</a>
+</td>
+<td>
+User
+</td>
+<td>
+Decompress
+</td>
+</tr>
+<tr>
+<td>
+<a name=wc>
+</a>
+<a href="./Filter/User/wc.html">wc</a>
+</td>
+<td>
+User
+</td>
+<td>
+Print the number of newlines, words, and bytes
+</td>
+</tr>
+<tr>
+<td>
+<a name=zip>
+</a>
+<a href="./Filter/User/zip.html">zip</a>
+</td>
+<td>
+User
+</td>
+<td>
+Compress
+</td>
+</tr>
+</table>
+</blockquote>
+<br>
+<p>&nbsp;</p>
+<hr>
+<p>Part: MK-92HNAS060-30</p>
+</body>
+</html>

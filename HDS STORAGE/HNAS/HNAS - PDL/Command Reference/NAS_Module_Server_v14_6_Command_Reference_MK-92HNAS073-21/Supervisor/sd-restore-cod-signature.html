@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-restore-cod-signature</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-restore-cod-signature</h1>
+<p>Restore a Cod signature previously wiped by sd-wipe-cod-signature</p>
+<h1>Syntax</h1>
+<pre>sd-restore-cod-signature [--danger-ignore-sd-licensing] &lt;System-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Restores one or more SDs' Cod signatures, reversing the effect of the 'sd-wipe-cod-signature' or 'span-delete' command.  Cod signatures are described in the 'cod' man page.</p>
+<p>Restoring Cod signatures on all SDs in a deleted span will allow the span to load again.</p>
+<p>There is no equivalent way to undelete the filesystems on a span.  However, the 'cod' man page explains where Cod backups can be found.</p>
+<p>The --danger-ignore-sd-licensing switch enables the command to write to unlicensed system drives (those to which you have not allowed access).  Without this switch, the command will reject unlicensed SDs.  Never use this switch to do I/O to SDs that are being used by another cluster.</p>
+<p>You can specify more than one SD in a single command.  See the 'sd-spec' man page.</p>
+<p>After wiping or restoring Cod signatures, run 'sd-rescan-cod' to make the server load the updated Cod into memory.</p>
+<p>When a span is deleted, the server destroys its SDs' encroachment data.  If you undelete the span, you will need to rewrite this encroachment data before the span can be used.</p>
+<h1>Examples</h1>
+<p>If a span consisting of SDs 0 to 7 has been deleted, and if the SDs are healthy and licensed and have not been reused in a new span, the following commands will undelete the span:</p>
+<pre>sd-restore-cod-signature 0-7
+sd-rescan-cod
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Topic/encroachment.html">encroachment</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../Supervisor/span-delete.html">span-delete</a> <a href="../User/span-list.html">span-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

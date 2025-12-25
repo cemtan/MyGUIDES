@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-source-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ndmp-source-stats</h1>
+<p>Show NDMP source stats for this node</p>
+<h1>Syntax</h1>
+<pre>ndmp-source-stats [-r|--reset]
+</pre>
+
+<h1>Description</h1>
+<p>This command displays the accumulated statistics of file system accesses made by NDMP operations at the source end of transfers. This includes NDMP backups, adc copies, replications and data migrations. It shows only the data related to reading from file systems.</p>
+<p>By monitoring the increases in these figures the load on the file system from NDMP processes can be assessed.</p>
+<p>These statistics can be reset using the -r parameter.</p>
+<p>The statistics for writing to file systems can be displayed using the ndmp-target-stats command. Session level stats can be displayed using ndmp-session-stats, but that will only display stats for sessions that are currently active.</p>
+<h1>Examples</h1>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-session-stats.html">ndmp-session-stats</a> <a href="../Supervisor/ndmp-target-stats.html">ndmp-target-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

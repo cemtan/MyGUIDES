@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>remote-nfs-exports</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>remote-nfs-exports</h1>
+<p>Get a list of exports from the named NFS server, like &quot;showmount -e server&quot;</p>
+<h1>Syntax</h1>
+<pre>remote-nfs-exports &lt;server&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Displays the NFS export information for an NFS server.</p>
+<p>The remote-nfs-exports command displays the list of NFS exports from the named server along with their access restrictions. The output is similar to the linux "showmount -e &lt;server&gt;" command.</p>
+<h1>Examples</h1>
+<p>To display the NFS exports from server "wren":</p>
+<pre>$ remote-nfs-exports wren
+Export list for server wren:
+/                    *
+/u30                 *
+/var                 *
+/tmp                 *
+/var/chroot/ia32     *
+/var/chroot/ia32/var *
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/remote-nfs-errors.html">remote-nfs-errors</a> <a href="../Dev/remote-nfs-perf.html">remote-nfs-perf</a> <a href="../Dev/remote-nfs-stats.html">remote-nfs-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

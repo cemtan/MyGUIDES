@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-to-fs-offsets</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-to-fs-offsets</h1>
+<p>Translate SD offsets to fs &amp; offset</p>
+<h1>Syntax</h1>
+<pre>sd-to-fs-offsets &lt;SD-device-ID&gt; &lt;SD-offset&gt; &lt;SD-offset...&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command is mainly intended for use by scripts, rather than interactive users.  It accepts the device ID of a system drive (an SD), followed by one or more byte-offsets into the SD.  It sorts the offsets into ascending numerical order and translates each one into an equivalent offset into a filesystem.  For each SD offset, it prints a line containing the offset into the SD (unchanged from the input), the equivalent offset into a filesystem, and the instance name of the filesystem.</p>
+<p>Some offsets into the SD may not be used in any filesystem.  For those offsets, the command prints 'unmapped'.</p>
+<p>All numbers on the command line are taken to be in decimal by default, or hexadecimal if prefixed by '0x'.  All numbers printed by this command are in decimal.</p>
+<h1>Examples</h1>
+<pre>server:$ sd-to-fs-offsets 2 0x4C2EE800 0x15EDFF600 0x8EFF5E00 0xCEA88200 0x11EDD3A00
+1278142464: 3827230720, Accounts
+2399100416: 1789877760, Engineering
+3467149824: 4997022208, Engineering
+4812782080: 3637328384, Marketing
+5886703104: unmapped
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/sd-translate-offset.html">sd-translate-offset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

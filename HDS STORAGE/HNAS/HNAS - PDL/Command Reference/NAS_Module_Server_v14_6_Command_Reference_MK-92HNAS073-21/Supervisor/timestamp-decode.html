@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>timestamp-decode</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>timestamp-decode</h1>
+<p>Display WFS file system timestamp in human readable format</p>
+<h1>Syntax</h1>
+<pre>timestamp-decode [--nanosecond-resolution] [--terse] &lt;raw-time-value&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command converts a 64-bit raw value of a file system timestamp to a human-readable form.</p>
+<p>The 64-bit raw value is defined as follows:</p>
+<pre>    - the high-order 32-bit value is the number of seconds since 1970/01/01.
+    - the low-order 32-bit value is the fractional second expressed in nanoseconds.
+</pre>
+<p></p>
+<p>Note that the human-readble format is subject to 100-nanosecond resolution. Therefore, converting the human-readable format back to a 64-bit time value causes the result to have the same 100-nanosecond resolution.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--terse, -t</strong></dt>
+<dd><p>Display only the human-readable text, omitting the raw value. By default, if --terse is not specified, the command will display the human-readable timestamp followed by the raw value in parentheses.</p></dd>
+<dt><strong>--nanosecond-resolution, -n</strong></dt>
+<dd><p>Display the fractional part of second with 100-nanosecond resolution.</p></dd>
+<dt><strong>&lt;raw-time-value&gt;</strong></dt>
+<dd><p>The 64-bit raw value of the file system timestamp to convert.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>The onode command in previous releases may not decode an on-disk onode's format timestamp, displaying it as a raw value only. For example:</p>
+<pre>   $ onode -f fs2 -o 16400
+   onode/fs2:   Format TimeStamp : 0x5387c44f11e71346
+</pre>
+<p></p>
+<p>This value encodes the time when the file system "fs2" was formatted. To convert such a raw value to human-readable form:</p>
+<pre>   $ timestamp-decode 0x5387c44f11e71346
+   2014-05-29 16:35:43-07:00 (0x5387c44f11e71346)
+</pre>
+<p></p>
+<pre>   $ timestamp-decode --terse 0x5387c44f11e71346
+   2014-05-29 16:35:43-07:00
+</pre>
+<p></p>
+<pre>   $ timestamp-decode --terse --nano 0x5387c44f11e71346
+   2014-05-29 16:35:43.300356400-07:00
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/onode.html">onode</a> <a href="../Supervisor/timestamp-encode.html">timestamp-encode</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

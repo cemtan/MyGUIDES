@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-device-assigned-name-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>ndmp-device-assigned-name-set</h1>
+<p>Assign a name to an NDMP device</p>
+<h1>Syntax</h1>
+<pre>ndmp-device-assigned-name-set { -s &lt;serial_num&gt; | -n &lt;node_wwn&gt; [-l &lt;lun&gt;]} [--override | -o] &lt;name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The command assigns a name to a tape drive or media changer device that can be used by NDMP clients. If no name is assigned to a device the system assigns a name. (See man page ndmp-devices for details.)</p>
+<p>The device to be named can be identified either by its serial number or by the fibre channel node name of the device with an optional logical unit number.</p>
+<p>The serial number is specified by the -s option.</p>
+<p>The fibre channel device node name is specified by the -n option. Use the prefix 0x to indicate that the number supplied is hexadecimal. If more than one subdevice is hosted on the main FC device then the logical unit number of the subdevice must be specified using the -l option.</p>
+<p>If the name is already assigned to a device or if the device addressed is assigned another name then the command will have no effect unless the --override (-o for short) option is specified.</p>
+<h1>Examples</h1>
+<p>Change the name of the tape drive with serial number PMB51S0594 to be td2.</p>
+<pre>ndmp-device-assigned-name-set -s PMB51S0594 td2
+</pre>
+<p></p>
+<p>Change the name of the tape drive with logical unit number 3 within tape library with fibre channel node name 5005084000278000 to tape-drive3.</p>
+<pre>ndmp-device-assigned-name-set -n 0x5005084000278000 -l 3 tape-drive3
+</pre>
+<p></p>
+<p>Change the name of the native fibre channel tape drive with node name a005084000abcdef to tape1.</p>
+<pre>ndmp-device-assigned-name-set -n 0xa005084000abcdef tape1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-device-assigned-name-delete.html">ndmp-device-assigned-name-delete</a> <a href="../Supervisor/ndmp-device-assigned-name-list.html">ndmp-device-assigned-name-list</a> <a href="../Topic/ndmp-devices.html">ndmp-devices</a> <a href="../User/ndmp-devices-list.html">ndmp-devices-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>read-cache-settings</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>read-cache-settings</h1>
+<p>Get/Set the read caching parameters</p>
+<h1>Syntax</h1>
+<pre>read-cache-settings [--defaults] [--min-stable-time &lt;seconds&gt;] [--max-size &lt;size&gt;] [--retry-time &lt;seconds&gt;] [--inactivity-duration &lt;seconds&gt;] [--active-file-set &lt;number&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Allows the settings that affect the behavior of the read caching feature to be queried or modified.</p>
+<p>Usage:</p>
+<pre>read-cache-settings [--defaults] [--min-stable-time &lt;seconds&gt;] [--max-size &lt;size&gt;] [--retry-time &lt;seconds&gt;] [--inactivity-duration &lt;seconds&gt;] [--active-file-set &lt;number&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-d, --defaults</strong></dt>
+<dd><p>Puts the settings back to the default values.</p></dd>
+<dt><strong>-s, --min-stable-time</strong></dt>
+<dd><p>The minimum number of seconds a file must remain unchanged for before it's considered for read caching. The default value for this setting is 600 seconds (10 minutes). The lowest value for this setting is 60 seconds.</p></dd>
+<dt><strong>-n, --max-size</strong></dt>
+<dd><p>The maximum size a file can be to be considered for read caching. The default maximum file size is 512MBytes.</p></dd>
+<dt><strong>-r, --retry-time</strong></dt>
+<dd><p>The minimum time that must elapse before a file is re-considered for read-caching. The default value for this setting is 1800 seconds (30 minutes). The lowest value for this setting is 60 seconds.</p></dd>
+<dt><strong>-a, --inactivity-duration</strong></dt>
+<dd><p>The time that must elapse before a read-cached file is considered inactive and therefore a candidate for being replaced in the cache by another file. The default value for this setting is 900 seconds (15 minutes). The lowest value for this setting is 60 seconds.</p></dd>
+<dt><strong>-f, --active-file-set</strong></dt>
+<dd><p>The number of files in the read cache that can be active at any one time. The default value for this setting is 250000 files. The highest value for this setting is 500000 files. Changing this value only takes effect on the next boot.</p></dd>
+</dl>
+<p>The number of files that can potentially be read-cached is governed by the size of the read cache file system. Only a subset of those files, governed by the active-file-set attribute, will be used to service incoming network requests. A read-cached file in the active set will be replaced by another read-cached file if it is the least recently used and its last use time is more than the configured inactivity duration ago.</p>
+<p>The read-cache-stats command can be used to determine whether the current settings for the size of the active set and the inactivity duration are appropriate.</p>
+<p>Increasing the size of the active file set decreases the amount of memory available for the file system cache so care should be taken if this setting is changed from its default.</p>
+<h1>Examples</h1>
+<p>To report current settings:</p>
+<pre>read-cache-settings
+</pre>
+<p></p>
+<p>To allow files up to 1G and unchanged for more than 2 minutes to be read cached:</p>
+<pre>read-cache-settings --max-size 1G --min-stable-time 120
+</pre>
+<p></p>
+<p>To put the settings back to the defaults except for a 5 minute minimum stable time:</p>
+<pre>read-cache-settings --defaults --min-stable-time 300
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/read-cache-stats.html">read-cache-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

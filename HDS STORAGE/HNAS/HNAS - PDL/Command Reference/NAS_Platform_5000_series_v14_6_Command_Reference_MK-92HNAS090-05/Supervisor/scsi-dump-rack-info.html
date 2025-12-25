@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-dump-rack-info</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-dump-rack-info</h1>
+<p>dump engineering debug level scsi racks information</p>
+<h1>Syntax</h1>
+<pre>scsi-dump-rack-info [-p, --scsi-port]
+</pre>
+
+<h1>Description</h1>
+<p>Displays debug troubleshooting information about a storage rack or all storage racks attached to the server. The information output by this command is for use by engineering and services to troubleshooting storage issues and should not be required in normal operation.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-p, --port</strong></dt>
+<dd><p>Display troubleshooting information about the storage rack that hosts the given SCSI port number.</p></dd>
+</dl>
+<p>If no SCSI port number is entered troubleshooting information about all storage racks is displayed.</p>
+<h1>Examples</h1>
+<p>Show the debug information for the storage rack on SCSI port 1:</p>
+<pre>  scsi-dump-rack-info --port 1
+</pre>
+<p></p>
+<pre>  storage rack dump rack : 0
+    m_port_label_info_map is empty
+    m_serial_number is valid, string = ""
+    m_model_id is valid, string = ""
+    m_rack_initialisation_active : false
+    m_validate_config_active : false
+    m_consistent_system_id : true
+    m_validate_config_outstanding : false
+    m_initialisation_completed : true
+    m_valid_host_config_options : true
+    m_all_port_initialisation_completed : true
+    m_config_license_check_failed : true
+    m_long_capacity_supported : LONG_CAPACITY_NOT_SUPPORTED
+    m_in_use.users() = 0
+    controller info map :
+       port id 0   WWN 1T45311934
+       m_revalidate_wwn : false   m_cntrlr_port_label = "A" updated OK
+</pre>
+<p></p>
+<pre>       port id 1   WWN 1T31153120
+       m_revalidate_wwn : false   m_cntrlr_port_label = "B" updated OK
+</pre>
+<p></p>
+<pre>       port id 2   WWN 1T45311934
+       m_revalidate_wwn : false   m_cntrlr_port_label = "A" updated OK
+</pre>
+<p></p>
+<pre>       port id 3   WWN 1T31153120
+       m_revalidate_wwn : false   m_cntrlr_port_label = "B" updated OK
+</pre>
+<p></p>
+<pre>    m_port_init_map :
+       port id 0     init : 1     port id 1     init : 1     port id 2     init : 1     port id 3     init : 1
+    m_p_vendor_specific_manager :
+    OEM model name: XYZ, ID: 0x2020003
+    Manufacturer: ABC, model: XYZ
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-dump-device-state.html">scsi-dump-device-state</a> <a href="../Supervisor/scsi-dump-mc-status.html">scsi-dump-mc-status</a> <a href="../Supervisor/scsi-dump-port-state.html">scsi-dump-port-state</a> <a href="../Supervisor/scsi-dump-rack-states.html">scsi-dump-rack-states</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

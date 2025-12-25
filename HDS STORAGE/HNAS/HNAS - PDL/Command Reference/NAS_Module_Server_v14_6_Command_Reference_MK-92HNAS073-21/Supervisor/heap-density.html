@@ -1,0 +1,545 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>heap-density</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>heap-density</h1>
+<p>Plot heap allocation density by address</p>
+<h1>Syntax</h1>
+<pre>heap-density [--has-vptr | --no-vptr | --vptr-is &lt;vptr&gt;] [--marker &lt;marker&gt; | [--marker-ne &lt;marker&gt;] | [--marker-ge &lt;marker&gt;] [--marker-lt &lt;marker&gt;]] [--find-elbow]
+</pre>
+
+<h1>Description</h1>
+<p>The heap-density command scans the whole heap on the currently selected board, producing an ASCII art "graph" of the density. The x-axis represents the density, as a percentage of being completely allocated. The y-axis represents the address range, with one sample for each centile of the heap's address space. The command is quick and safe and may aid Engineering in diagnosing heap fragmentation issues.</p>
+<p>Each # represents one percent of the space being allocated. A trailing ~ is used for a fraction of one percent. This is mainly useful on rows that would otherwise be empty, showing that they are, in fact, very sparsely allocated.</p>
+<p>The --vptr-is option allows a particular allocation type's distribution to be investigated. Values for the argument can be conveniently obtained from the heap-vptr command or, somewhat less conveniently, with list-symbols. With our current compiler, most vptrs point 8 bytes into the vtable.</p>
+<p>While the --vptr-is switch claims to be checking the allocation's vptr, what it actually does is compare the argument against the value in the first sizeof(void*) bytes of the allocation. This can be useful when investigating heap-vptr's "blocks starting without a vptr" if the blocks in question always start with the same sizeof(void*) bytes. The most likely fixed value to be there is zero, ie heap-density --vptr-is 0.</p>
+<p>The --has-vptr and --no-vptr options restrict the included blocks to those with and without valid vptrs.</p>
+<p>The heap marker options allow the selection of blocks of various ages for display. See 'heap_markers' for an explanation.  In particular, the command</p>
+
+<p>heap-density --marker-lt 6</p>
+
+<p>shows the blocks allocated since the point ten minutes after boot. This is an exact version of the old "elbow-finding" code (which is still available; see below), but note that "heap-vptr --marker-lt 6" will do directly and exactly what the "elbow-finding" code was attempting.</p>
+<p>When invoked with the --find-elbow option, heap-density will try to work out where boot-time allocations probably end and perform an automatic heap-vptr on the region following. This "elbow finding" feature is thrown off by fsi-cache allocations. In the situations where it is of value, though, we will have been unable to use much of the fsi-cache. fsi-cache-flush can be used to simulate this condition, at the cost of a small and temporary drop in performance while the cache warms up again.</p>
+
+<p>The --find-elbow option was added to allow comparison of its results with the output of "heap-density --marker-lt 6" and "heap-vptr --marker-lt 6"; it is not expected to be useful in the field.</p>
+
+<p>There are a huge number of different states it's possible for a well-performing heap to be in at the instance the results are taken. There are a similar variety of states for a badly performing heap. This makes it very difficult to give advice on how to interpret the results. Familiarity with normal-looking results, both generally and for a particular system, is useful. Sometimes a particular problem has an easily recognizable signature.</p>
+<h1>Examples</h1>
+<pre>server$ heap-density
+sample index
+    sample start address
+                       allocation density (unary percent)
+                                |         |         |         |         |         |         |         |         |         |
+  0     0x7fa207fff010 ####################################################################################################
+  1     0x7fa2175c1906 ####################################################################################################
+  2     0x7fa226b841fc ####################################################################################################
+  3     0x7fa236146af2 ####################################################################################################
+  4     0x7fa2457093e8 ####################################################################################################
+  5     0x7fa254ccbcde ####################################################################################################
+  6     0x7fa26428e5d4 ####################################################################################################
+  7     0x7fa273850eca ####################################################################################################
+  8     0x7fa282e137c0 ####################################################################################################
+  9     0x7fa2923d60b6 ####################################################################################################
+ 10     0x7fa2a19989ac ####################################################################################################
+ 11     0x7fa2b0f5b2a2 ####################################################################################################
+ 12     0x7fa2c051db98 ####################################################################################################
+ 13     0x7fa2cfae048e ####################################################################################################
+ 14     0x7fa2df0a2d84 ####################################################################################################
+ 15     0x7fa2ee66567a ####################################################################################################
+ 16     0x7fa2fdc27f70 ####################################################################################################
+ 17     0x7fa30d1ea866 ####################################################################################################
+ 18     0x7fa31c7ad15c ####################################################################################################
+ 19     0x7fa32bd6fa52 ####################################################################################################
+ 20     0x7fa33b332348 ####################################################################################################
+ 21     0x7fa34a8f4c3e ####################################################################################################
+ 22     0x7fa359eb7534 ####################################################################################################
+ 23     0x7fa369479e2a ####################################################################################################
+ 24     0x7fa378a3c720 ####################################################################################################
+ 25     0x7fa387fff016 ####################################################################################################
+ 26     0x7fa3975c190c ####################################################################################################
+ 27     0x7fa3a6b84202 ####################################################################################################
+ 28     0x7fa3b6146af8 ####################################################################################################
+ 29     0x7fa3c57093ee ###################################################################################################~
+ 30     0x7fa3d4ccbce4 ####################################################################################################
+ 31     0x7fa3e428e5da ###################################################################################################~
+ 32     0x7fa3f3850ed0 ####################################################################################################
+ 33     0x7fa402e137c6 ####################################################################################################
+ 34     0x7fa4123d60bc ####################################################################################################
+ 35     0x7fa4219989b2 ####################################################################################################
+ 36     0x7fa430f5b2a8 ####################################################################################################
+ 37     0x7fa44051db9e ####################################################################################################
+ 38     0x7fa44fae0494 ####################################################################################################
+ 39     0x7fa45f0a2d8a ####################################################################################################
+ 40     0x7fa46e665680 ####################################################################################################
+ 41     0x7fa47dc27f76 ####################################################################################################
+ 42     0x7fa48d1ea86c ####################################################################################################
+ 43     0x7fa49c7ad162 ####################################################################################################
+ 44     0x7fa4abd6fa58 ####################################################################################################
+ 45     0x7fa4bb33234e ###################################################################################################~
+ 46     0x7fa4ca8f4c44 ####################################################################################################
+ 47     0x7fa4d9eb753a ####################################################################################################
+ 48     0x7fa4e9479e30 ####################################################################################################
+ 49     0x7fa4f8a3c726 ####################################################################################################
+ 50     0x7fa507fff01c ####################################################################################################
+ 51     0x7fa5175c1912 ####################################################################################################
+ 52     0x7fa526b84208 ####################################################################################################
+ 53     0x7fa536146afe ####################################################################################################
+ 54     0x7fa5457093f4 ####################################################################################################
+ 55     0x7fa554ccbcea ####################################################################################################
+ 56     0x7fa56428e5e0 ####################################################################################################
+ 57     0x7fa573850ed6 ####################################################################################################
+ 58     0x7fa582e137cc ####################################################################################################
+ 59     0x7fa5923d60c2 ####################################################################################################
+ 60     0x7fa5a19989b8 ####################################################################################################
+ 61     0x7fa5b0f5b2ae ####################################################################################################
+ 62     0x7fa5c051dba4 ####################################################################################################
+ 63     0x7fa5cfae049a ####################################################################################################
+ 64     0x7fa5df0a2d90 ####################################################################################################
+ 65     0x7fa5ee665686 ###################################################################################~
+ 66     0x7fa5fdc27f7c ############################################################################################~
+ 67     0x7fa60d1ea872 ######~
+ 68     0x7fa61c7ad168
+ 69     0x7fa62bd6fa5e
+ 70     0x7fa63b332354
+ 71     0x7fa64a8f4c4a
+ 72     0x7fa659eb7540
+ 73     0x7fa669479e36
+ 74     0x7fa678a3c72c
+ 75     0x7fa687fff022
+ 76     0x7fa6975c1918
+ 77     0x7fa6a6b8420e
+ 78     0x7fa6b6146b04
+ 79     0x7fa6c57093fa
+ 80     0x7fa6d4ccbcf0
+ 81     0x7fa6e428e5e6
+ 82     0x7fa6f3850edc
+ 83     0x7fa702e137d2
+ 84     0x7fa7123d60c8
+ 85     0x7fa7219989be
+ 86     0x7fa730f5b2b4
+ 87     0x7fa74051dbaa
+ 88     0x7fa74fae04a0
+ 89     0x7fa75f0a2d96
+ 90     0x7fa76e66568c
+ 91     0x7fa77dc27f82
+ 92     0x7fa78d1ea878
+ 93     0x7fa79c7ad16e
+ 94     0x7fa7abd6fa64
+ 95     0x7fa7bb33235a
+ 96     0x7fa7ca8f4c50
+ 97     0x7fa7d9eb7546
+ 98     0x7fa7e9479e3c
+ 99     0x7fa7f8a3c732 ~
+100     0x7fa807fff010
+server$
+</pre>
+<p></p>
+<p>Above is the default output on an idle system; below the post-boot results.</p>
+<pre>server$ heap-density --marker-lt 6
+sample index
+    sample start address
+                       allocation density (unary percent)
+                                |         |         |         |         |         |         |         |         |         |
+  0     0x7fa207fff010
+  1     0x7fa2175c1906
+  2     0x7fa226b841fc
+  3     0x7fa236146af2
+  4     0x7fa2457093e8
+  5     0x7fa254ccbcde
+  6     0x7fa26428e5d4
+  7     0x7fa273850eca
+  8     0x7fa282e137c0
+  9     0x7fa2923d60b6
+ 10     0x7fa2a19989ac
+ 11     0x7fa2b0f5b2a2
+ 12     0x7fa2c051db98
+ 13     0x7fa2cfae048e
+ 14     0x7fa2df0a2d84
+ 15     0x7fa2ee66567a
+ 16     0x7fa2fdc27f70
+ 17     0x7fa30d1ea866
+ 18     0x7fa31c7ad15c
+ 19     0x7fa32bd6fa52
+ 20     0x7fa33b332348
+ 21     0x7fa34a8f4c3e
+ 22     0x7fa359eb7534
+ 23     0x7fa369479e2a
+ 24     0x7fa378a3c720 ~
+ 25     0x7fa387fff016
+ 26     0x7fa3975c190c
+ 27     0x7fa3a6b84202 ~
+ 28     0x7fa3b6146af8 ~
+ 29     0x7fa3c57093ee ~
+ 30     0x7fa3d4ccbce4 ~
+ 31     0x7fa3e428e5da ~
+ 32     0x7fa3f3850ed0
+ 33     0x7fa402e137c6
+ 34     0x7fa4123d60bc
+ 35     0x7fa4219989b2
+ 36     0x7fa430f5b2a8
+ 37     0x7fa44051db9e
+ 38     0x7fa44fae0494
+ 39     0x7fa45f0a2d8a
+ 40     0x7fa46e665680
+ 41     0x7fa47dc27f76
+ 42     0x7fa48d1ea86c
+ 43     0x7fa49c7ad162
+ 44     0x7fa4abd6fa58 ~
+ 45     0x7fa4bb33234e ~
+ 46     0x7fa4ca8f4c44
+ 47     0x7fa4d9eb753a
+ 48     0x7fa4e9479e30
+ 49     0x7fa4f8a3c726
+ 50     0x7fa507fff01c
+ 51     0x7fa5175c1912
+ 52     0x7fa526b84208
+ 53     0x7fa536146afe
+ 54     0x7fa5457093f4
+ 55     0x7fa554ccbcea
+ 56     0x7fa56428e5e0
+ 57     0x7fa573850ed6
+ 58     0x7fa582e137cc
+ 59     0x7fa5923d60c2
+ 60     0x7fa5a19989b8
+ 61     0x7fa5b0f5b2ae
+ 62     0x7fa5c051dba4
+ 63     0x7fa5cfae049a
+ 64     0x7fa5df0a2d90
+ 65     0x7fa5ee665686 ~
+ 66     0x7fa5fdc27f7c ~
+ 67     0x7fa60d1ea872
+ 68     0x7fa61c7ad168
+ 69     0x7fa62bd6fa5e
+ 70     0x7fa63b332354
+ 71     0x7fa64a8f4c4a
+ 72     0x7fa659eb7540
+ 73     0x7fa669479e36
+ 74     0x7fa678a3c72c
+ 75     0x7fa687fff022
+ 76     0x7fa6975c1918
+ 77     0x7fa6a6b8420e
+ 78     0x7fa6b6146b04
+ 79     0x7fa6c57093fa
+ 80     0x7fa6d4ccbcf0
+ 81     0x7fa6e428e5e6
+ 82     0x7fa6f3850edc
+ 83     0x7fa702e137d2
+ 84     0x7fa7123d60c8
+ 85     0x7fa7219989be
+ 86     0x7fa730f5b2b4
+ 87     0x7fa74051dbaa
+ 88     0x7fa74fae04a0
+ 89     0x7fa75f0a2d96
+ 90     0x7fa76e66568c
+ 91     0x7fa77dc27f82
+ 92     0x7fa78d1ea878
+ 93     0x7fa79c7ad16e
+ 94     0x7fa7abd6fa64
+ 95     0x7fa7bb33235a
+ 96     0x7fa7ca8f4c50
+ 97     0x7fa7d9eb7546
+ 98     0x7fa7e9479e3c
+ 99     0x7fa7f8a3c732 ~
+100     0x7fa807fff010
+server$
+</pre>
+<p></p>
+<pre>server$ fsi-cache-flush
+[fsi-cache-flush took 11 s.]
+server$ heap-density --find-elbow
+sample index
+    sample start address
+               allocation density (unary percent)
+                        |         |         |         |         |         |         |         |         |         |
+  0 0x13c7cc80 ###################################################################################################~
+  1 0x157cd742 ##################################################################################################~
+  2 0x1731e204 ###################################################################################################~
+  3 0x18e6ecc6 ###############################~
+  4 0x1a9bf788 ###################~
+  5 0x1c51024a #############~
+  6 0x1e060d0c #~
+  7 0x1fbb17ce ####################################################################################~
+  8 0x21702290 ####################################################################################################
+  9 0x23252d52 ####################################################################################################
+ 10 0x24da3814 ####################################################################################################
+ 11 0x268f42d6 ###################################################################################################~
+ 12 0x28444d98 ####################################################################################################
+ 13 0x29f9585a ####################################################################################################
+ 14 0x2bae631c ####################################################################################################
+ 15 0x2d636dde ###################################################################################################~
+ 16 0x2f1878a0 ###################################################################################################~
+ 17 0x30cd8362 ####################################################################################################
+ 18 0x32828e24 ####################################################################################################
+ 19 0x343798e6 ####################################################################################################
+ 20 0x35eca3a8 ####################################################################################################
+ 21 0x37a1ae6a ####################################################################################################
+ 22 0x3956b92c #######################################################################################~
+ 23 0x3b0bc3ee ####################~
+ 24 0x3cc0ceb0 #####################################~
+ 25 0x3e75d972 ##################################~
+ 26 0x402ae434
+ 27 0x41dfeef6
+ 28 0x4394f9b8 ~
+ 29 0x454a047a
+ 30 0x46ff0f3c
+ 31 0x48b419fe
+ 32 0x4a6924c0
+ 33 0x4c1e2f82
+ 34 0x4dd33a44
+ 35 0x4f884506
+ 36 0x513d4fc8
+ 37 0x52f25a8a
+ 38 0x54a7654c
+ 39 0x565c700e
+ 40 0x58117ad0
+ 41 0x59c68592
+ 42 0x5b7b9054
+ 43 0x5d309b16
+ 44 0x5ee5a5d8
+ 45 0x609ab09a
+ 46 0x624fbb5c
+ 47 0x6404c61e
+ 48 0x65b9d0e0
+ 49 0x676edba2 ~
+ 50 0x6923e664
+ 51 0x6ad8f126
+ 52 0x6c8dfbe8
+ 53 0x6e4306aa
+ 54 0x6ff8116c
+ 55 0x71ad1c2e
+ 56 0x736226f0
+ 57 0x751731b2
+ 58 0x76cc3c74
+ 59 0x78814736
+ 60 0x7a3651f8
+ 61 0x7beb5cba
+ 62 0x7da0677c
+ 63 0x7f55723e
+ 64 0x810a7d00
+ 65 0x82bf87c2
+ 66 0x84749284
+ 67 0x86299d46
+ 68 0x87dea808
+ 69 0x8993b2ca
+ 70 0x8b48bd8c
+ 71 0x8cfdc84e
+ 72 0x8eb2d310
+ 73 0x9067ddd2 #~
+ 74 0x921ce894 ##~
+ 75 0x93d1f356 ###~
+ 76 0x9586fe18 ###~
+ 77 0x973c08da ##~
+ 78 0x98f1139c ##~
+ 79 0x9aa61e5e ##~
+ 80 0x9c5b2920 ##~
+ 81 0x9e1033e2 ##~
+ 82 0x9fc53ea4 ##~
+ 83 0xa17a4966 ###~
+ 84 0xa32f5428 ###~
+ 85 0xa4e45eea ##~
+ 86 0xa69969ac ##~
+ 87 0xa84e746e ##~
+ 88 0xaa037f30 #~
+ 89 0xabb889f2 ##~
+ 90 0xad6d94b4 #####~
+ 91 0xaf229f76 ######~
+ 92 0xb0d7aa38 ######~
+ 93 0xb28cb4fa ######~
+ 94 0xb441bfbc ######~
+ 95 0xb5f6ca7e ######~
+ 96 0xb7abd540 ######~
+ 97 0xb960e002 ##~
+ 98 0xbb15eac4
+ 99 0xbccaf586
+100 0xbe800000
+Mean: 20%
+Variance: 1479
+Standard deviation: 38%
+The first sample past the elbow was:
+ 26 0x402ae434
+Running heap-vptr --address-ge 0x402ae434...
+...
+70 HeapVPtrAllocationHeader&lt;net::arp::ArpLoggerData, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x11DACD28)
+76 HeapVPtrAllocationHeader&lt;UnicodeChar&lt;unsigned short, true&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x11AF7F20)
+113 FSIFile (vptr 0x11B6E738)
+851 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;RCPtr&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, RCPtrTraits&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const*, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const&amp;&gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingSetLabel&gt; &gt; (vptr 0x11B98F58)
+883 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;boost::tuples::tuple&lt;NTSecurity::SIDHeader const&amp;, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type&gt; const, RCPtr&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, RCPtrTraits&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const*, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const&amp;&gt; &gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingMapLabel&gt; &gt; (vptr 0x11B9AED8)
+936 HeapVPtrAllocationHeader&lt;char, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingBasicStringLabel&gt; &gt; (vptr 0x11B620E8)
+1339 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;utf::InplaceFixedCharacterSetString&lt;utf::CharacterSetTraits::UTF8&gt; const, RCPtr&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, RCPtrTraits&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const*, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const&amp;&gt; &gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingMapLabel&gt; &gt; (vptr 0x11B9AEC8)
+3381 PathIndexEntry&lt;PIEPath, ByteStream&lt;UnicodeChar&lt;unsigned short, true&gt; &gt;, true, true&gt; (vptr 0x11B354F8)
+10281 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;boost::tuples::tuple&lt;unsigned, NTSecurity::SIDHeader const&amp;, Quota::QuotaType, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type&gt; const, RCPtr&lt;Quota::SpaceTracker, RCPtrTraits&lt;boost::tuples::null_type, boost::tuples::null_type*, boost::tuples::null_type&amp;&gt; &gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingMapLabel&gt; &gt; (vptr 0x11BDB838)
+182760 Quota::SpaceTracker (vptr 0x11BDB7C0)
+There were 200792 allocated blocks starting with a vptr of which only 200690 were displayed.
+There were 1469 allocated blocks starting without a vptr, making for a total of 202261 allocated blocks.
+server$
+server$ fsi-cache-flush; heap-vptr
+...
+5514 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;void const*&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x11DF41A0)
+7047 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;RCPtr&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, RCPtrTraits&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const*, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const&amp;&gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingSetLabel&gt; &gt; (vptr 0x11B98F58)
+7138 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;boost::tuples::tuple&lt;NTSecurity::SIDHeader const&amp;, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type&gt; const, RCPtr&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, RCPtrTraits&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const*, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const&amp;&gt; &gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingMapLabel&gt; &gt; (vptr 0x11B9AED8)
+8192 HeapVPtrAllocationHeader&lt;std::_List_node&lt;RCPtr&lt;net::arp::CacheEntryObserver, RCPtrTraits&lt;net::arp::CacheEntryObserver, net::arp::CacheEntryObserver*, net::arp::CacheEntryObserver&amp;&gt; &gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x11DACEA0)
+10312 HeapVPtrAllocationHeader&lt;char, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingBasicStringLabel&gt; &gt; (vptr 0x11B620E8)
+11028 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;void const* const, unsigned&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x11DD5350)
+14092 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;utf::InplaceFixedCharacterSetString&lt;utf::CharacterSetTraits::UTF8&gt; const, RCPtr&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, RCPtrTraits&lt;Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const*, Mappings::MappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; const&amp;&gt; &gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingMapLabel&gt; &gt; (vptr 0x11B9AEC8)
+25769 HeapVPtrAllocationHeader&lt;char, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x11AF7F10)
+186154 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;boost::tuples::tuple&lt;unsigned, NTSecurity::SIDHeader const&amp;, Quota::QuotaType, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type, boost::tuples::null_type&gt; const, RCPtr&lt;Quota::SpaceTracker, RCPtrTraits&lt;boost::tuples::null_type, boost::tuples::null_type*, boost::tuples::null_type&amp;&gt; &gt; &gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermYieldingSizeBasedAllocator, LongTermYieldingMapLabel&gt; &gt; (vptr 0x11BDB838)
+283064 Quota::SpaceTracker (vptr 0x11BDB7C0)
+There were 608720 allocated blocks starting with a vptr of which only 558310 were displayed.
+There were 13537 allocated blocks starting without a vptr, making for a total of 622257 allocated blocks.
+server$
+</pre>
+<p></p>
+<p>The main observation to draw from the above example is the lack of significance, to heap fragmentation at least, of the SpaceTracker map entries (HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;...RCPtr&lt;Quota::SpaceTracker...), despite their high number in the heap as a whole. There were 186154 in the whole heap but only 10281 "after the elbow". Contrast with the Quota::SpaceTracker objects, for which the corresponding numbers were 283064 and 182760. Clearly, in this example, the SpaceTrackers themselves are ten times more of a fragmentation problem than their map nodes.</p>
+<p>A second observation is the relative lack of "blocks starting without a vptr" in the region "after the elbow". 1469 (after the elbow) is not a significant number of allocations, whereas 13537 (in the heap as a whole) looked potentially worthy of investigation.</p>
+<pre>server$ fsm heap-vptr
+...
+434 HeapVPtrAllocationHeader&lt;std::_Hashtable_node&lt;std::pair&lt;InplaceString&lt;char, InplaceCharTraits&lt;char&gt; &gt; const, ConsoleCommand*&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x10510A98)
+553 Trace (vptr 0x1084311C)
+768 HeapVPtrAllocationHeader&lt;char, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x104F6B38)
+1734 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;void const*&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x1054FC08)
+2049 HeapVPtrAllocationHeader&lt;std::_List_node&lt;net::ipreassembly::Reassembler&lt;net::ipv6::Address&gt;*&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x10533F98)
+2049 HeapVPtrAllocationHeader&lt;std::_List_node&lt;net::ipreassembly::Reassembler&lt;net::ipv4::IPAddress&lt;unsigned&gt; &gt;*&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x10533FF8)
+2049 HeapVPtrAllocationHeader&lt;std::_List_node&lt;net::ipreassembly::ReassemblyStatus*&gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x10534658)
+3468 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;void const* const, unsigned&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x1052F480)
+4096 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;unsigned const, MsgbPtr&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x10533FA8)
+8192 HeapVPtrAllocationHeader&lt;std::_List_node&lt;RCPtr&lt;net::arp::CacheEntryObserver, RCPtrTraits&lt;net::arp::CacheEntryObserver, net::arp::CacheEntryObserver*, net::arp::CacheEntryObserver&amp;&gt; &gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x10504C30)
+There were 27439 allocated blocks starting with a vptr of which only 25392 were displayed.
+There were 358 allocated blocks starting without a vptr, making for a total of 27797 allocated blocks.
+server$ fsm heap-density --vptr-is 0x10504C30
+sample index
+    sample start address
+               allocation density (unary percent)
+                        |         |         |         |         |         |         |         |         |         |
+  0 0x10b18280
+  1 0x10fc88e1
+  2 0x11478f42
+  3 0x119295a3
+  4 0x11dd9c04
+  5 0x1228a265
+  6 0x1273a8c6
+  7 0x12beaf27
+  8 0x1309b588
+  9 0x1354bbe9
+ 10 0x139fc24a
+ 11 0x13eac8ab
+ 12 0x1435cf0c
+ 13 0x1480d56d
+ 14 0x14cbdbce
+ 15 0x1516e22f
+ 16 0x1561e890
+ 17 0x15aceef1
+ 18 0x15f7f552
+ 19 0x1642fbb3
+ 20 0x168e0214
+ 21 0x16d90875
+ 22 0x17240ed6 ########################################################################################~
+ 23 0x176f1537 ####~
+ 24 0x17ba1b98
+ 25 0x180521f9
+ 26 0x1850285a
+ 27 0x189b2ebb
+ 28 0x18e6351c
+ 29 0x19313b7d
+ 30 0x197c41de
+ 31 0x19c7483f
+ 32 0x1a124ea0
+ 33 0x1a5d5501
+ 34 0x1aa85b62
+ 35 0x1af361c3
+ 36 0x1b3e6824
+ 37 0x1b896e85
+ 38 0x1bd474e6
+ 39 0x1c1f7b47
+ 40 0x1c6a81a8
+ 41 0x1cb58809
+ 42 0x1d008e6a
+ 43 0x1d4b94cb
+ 44 0x1d969b2c
+ 45 0x1de1a18d
+ 46 0x1e2ca7ee
+ 47 0x1e77ae4f
+ 48 0x1ec2b4b0
+ 49 0x1f0dbb11
+ 50 0x1f58c172
+ 51 0x1fa3c7d3
+ 52 0x1feece34
+ 53 0x2039d495
+ 54 0x2084daf6
+ 55 0x20cfe157
+ 56 0x211ae7b8
+ 57 0x2165ee19
+ 58 0x21b0f47a
+ 59 0x21fbfadb
+ 60 0x2247013c
+ 61 0x2292079d
+ 62 0x22dd0dfe
+ 63 0x2328145f
+ 64 0x23731ac0
+ 65 0x23be2121
+ 66 0x24092782
+ 67 0x24542de3
+ 68 0x249f3444
+ 69 0x24ea3aa5
+ 70 0x25354106
+ 71 0x25804767
+ 72 0x25cb4dc8
+ 73 0x26165429
+ 74 0x26615a8a
+ 75 0x26ac60eb
+ 76 0x26f7674c
+ 77 0x27426dad
+ 78 0x278d740e
+ 79 0x27d87a6f
+ 80 0x282380d0
+ 81 0x286e8731
+ 82 0x28b98d92
+ 83 0x290493f3
+ 84 0x294f9a54
+ 85 0x299aa0b5
+ 86 0x29e5a716
+ 87 0x2a30ad77
+ 88 0x2a7bb3d8
+ 89 0x2ac6ba39
+ 90 0x2b11c09a
+ 91 0x2b5cc6fb
+ 92 0x2ba7cd5c
+ 93 0x2bf2d3bd
+ 94 0x2c3dda1e
+ 95 0x2c88e07f
+ 96 0x2cd3e6e0
+ 97 0x2d1eed41
+ 98 0x2d69f3a2
+ 99 0x2db4fa03
+100 0x2e000000
+server$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fsi-cache-flush.html">fsi-cache-flush</a> <a href="../Supervisor/heap-info.html">heap-info</a> <a href="../Supervisor/heap-size.html">heap-size</a> <a href="../Supervisor/heap-vptr.html">heap-vptr</a> <a href="../Topic/heap_markers.html">heap_markers</a> <a href="../Dev/list-symbols.html">list-symbols</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,1329 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mse-functions</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>mse-functions</h1>
+
+<h1>Description</h1>
+<p>Both the 'calculate' command and the 'mse' command interpreter support evaluation of arbitrary expressions that are specified in the C programming language syntax. The expressions can include mixed integer and floating-point calculations, logical expressions, or string expressions. They can contain built-in functions with syntax similar to C. This man page attempts to describe and list all the built-in functions.</p>
+<p>The evaluation of expressions is carried out in 64-bit signed integers if the operands involved are integers, and double floating-point numbers if at least one of the operands involved is a floating-point number. For example, calculating 3/4 yields 0, but 3./4 yields 0.75.</p>
+<p>If the expression is logical, the expression is still evaluated to a number where zero is interpreted as false and nonzero as true.</p>
+<p>Note that the calculate command interprets the last argument to the command as the expression to evaluate. The mse interpreter supports expression syntax in the for loop, foreach loop, while loop, do-while loop, conditional statements, arithmetic assignments using an equal sign, arithmetic expansion using the %(expression) macro syntax, and print family functions.</p>
+<p>Example:</p>
+<pre>      $ sscat example.scr
+      s = "abc";
+      if (find("abc def", "def") &gt;= 0) {      # conditional in C-like syntax
+         x = 5*4*(7 - 1/3.)/2. + int8(240) + 4*strlen("abc");  # x is a floating-point number
+         len = strlen(x);                     # variable x interpreted as string
+         echo x = %x, length = %len;          # built-in command
+         lprint "x = " x ", length = " len;   # built-in function with command-like syntax.
+      } else if (strncmp(s, "abc", 3) == 0 &amp;&amp; strlen(s) &gt; 10) {
+         msg = "Found " + s;                  # string concatenation
+         echo %msg;
+      } else {
+         echo s = %s;
+      }
+</pre>
+<p></p>
+<p>Although expressions adhere to the C programming language syntax, many restrictions are removed to make the syntax amenable to scripting.</p>
+<p>* strings can be enclosed with either single or double quotes.</p>
+<p>* strings can also be enclosed with quoting functions such as str(), qstr(), dqstr(), esc().</p>
+<p>* variables and function calls can be interpreted as string or number depending on the context (e.g., strlen(x) in example above).</p>
+<p>* many operators can be specified in mnemonics to avoid characters that are special to the BALI shell.</p>
+<h2>A. Numerical and logical operator support</h2>
+<p>The &lt;expression&gt; supports both unary and binary operators using the C-language notation. The command supports the C/C++ order of precedence.</p>
+<pre>   1. Unary operators:  + - ! ~
+   2. Integer binary operators:  + - * / % &gt;&gt; &lt;&lt; &amp;  |  ^
+   3. Logical binary operators:  &lt; &lt;= == &gt;= &gt; &amp;&amp; ||
+</pre>
+<p></p>
+<p>For convenience, the command supports case-sensitive operator mnemonics for use to avoid shell interpretation.</p>
+<pre>               Table 1. Operator Mnemonics
+               ---------------------------
+</pre>
+<p></p>
+<pre>    &amp;&amp; =&gt; .and.      &amp; =&gt; .band.     || =&gt; .or.    | =&gt; .bor.     / =&gt; .div.
+    *  =&gt; .mul.      % =&gt; .mod.      !  =&gt; .not.   ~ =&gt; .comp.    ^ =&gt; .xor.
+    &lt;  =&gt; .lt.      &lt;= =&gt; .le.       == =&gt; .eq.   != =&gt; .ne.      &gt; =&gt; .gt.
+    &gt;= =&gt; .ge.      &lt;&lt; =&gt; .lsh.      &gt;&gt; =&gt; .rsh.   ? =&gt; .qm.      : =&gt; .col.
+</pre>
+<p></p>
+<pre>       (b in .band. and .bor. means bitwise)
+</pre>
+<p></p>
+<h2>B. String operator support</h2>
+<p>A string expression can contain one or more strings connected by the concatenating operator '+', and/or the repeat operator '*'. Both operators are binary and have no mnemonics. A string operand can be specified with enclosing single or double quotes, or by a quoting function such as str(), qstr(), dsqstr(), esc() as described in sections C and item 11 of Table 2.</p>
+<h2>B1. String concatenation</h2>
+<p>In general, the two operands of the concatenating operator '+' must be a string or a function returning a string. However, if one operand is a string or a function returning a string, the '+' operator will be interpreted as concatenation if the other operand is as follows.</p>
+<pre>    * an non-negative integer
+    * a defined environment variable
+</pre>
+<p></p>
+<p>Example:</p>
+<pre>    $ calculate  '"xyz"'+3
+    xyz3
+    $ calculate  2+'"xyz"'+3
+    2xyz3
+    $ env-set abc 18
+    $ calculate  '"xyz"'+abc
+    xyz18
+    $ calculate  'substr("AbcDef",3)+abc'
+    Def18
+</pre>
+<p></p>
+<h2>B2. String repeat</h2>
+<p>One operand of the repeat operator '*' must always be a string, and the other must be an integer. A positive integer n means repeating the string n times. A negative integer -n means first reversing the string, then repeating the resulting string n times.</p>
+<p>Example:</p>
+<pre>   $ calculate '"Can you say" + " yes" * 3 + "?"'
+   Can you say yes yes yes?
+   $ mse --eof END.scr   # same output
+   msg = "Can you say" + " yes" * 3 + "?";
+   echo %msg;
+   END.scr
+</pre>
+<p></p>
+<pre>   $ calculate 'strlen("Can you say" + " yes" * 3 + "?")'
+   24
+   $ mse --eof END.scr  # same output
+   n = strlen("Can you say" + " yes" * 3 + "?");
+   echo %n
+</pre>
+<p></p>
+<h2>B3. Resolve ambiguities between string and numeric operators</h2>
+<p>String and numeric data share a common set of operators:</p>
+<pre>       +   *   &lt;   &lt;=   &gt;   &gt;=   ==  !=
+</pre>
+<p></p>
+<p>By default, these operators interpret their operands as numeric. They only change their interpretation to string operands if and only if one of the operands reveals itself as a string. An operand is a string if it is</p>
+<pre>   * a quoted string (explicitly enclosed by single or double quotes), or
+   * a function call returning a string value.
+</pre>
+<p></p>
+<p>When both operands are variables, there is no way to determine with absolute certainty if they are string or numeric data. In this case, the default interpretation prevails; i.e., both operands are assumed as numeric. This can lead to errors or incorrect result if the variables should be interpreted as numeric.</p>
+<p>Thus, when both operands are variables, one of them should be converted to string type. One method is to use string() function to cast the argument to a string. Another is to concatenate it with an empty string.</p>
+<p>Example:</p>
+<pre>   $ env-set msg1 6/2
+   $ env-set msg2 3
+   $ calculate msg1==msg2           # Evaluate as numeric comparison
+   1
+</pre>
+<p></p>
+<p>To evaluate string comparison, make one of the operand a string:</p>
+<pre>   $ calculate string(msg1)==msg2
+   0
+   $ calculate '"" + msg1==msg2'
+</pre>
+<p></p>
+<h2>C. Literal string specification</h2>
+<p>There are many ways to specify a literal string. The following examples are written for an mse script.</p>
+<h3>C1. Enclose the string with single or double quotes:</h3>
+<pre>      s = "Hello";
+      s = 'Hello';
+      echo /%s/                       # Output: /Hello/
+</pre>
+<p></p>
+<h3>C2. Use quoting functions str() and mstr()</h3>
+<p>A literal string can be specified between the parentheses of these functions, which behave like a pair of invisible double or single quotes. All characters between the two delimiting parentheses, including spaces and single and double quotes, are normal text except the escape character (default is @) and the macro symbol (default is %).</p>
+<p>For example, to store the string [Hoc's book] in x, where the square brackets are not part of the string:</p>
+<pre>      x = "Hoc's book";
+      x = str(Hoc's book);
+      x = str[Hoc's book];            # alternative argument delimiter
+      x = str&lt;Hoc's book&gt;;
+      x = str{Hoc's book};
+      x = str/abc/Hoc's book/abc/;    # use /somestring/ as argument delimiter
+      echo /%x/                       # Output: /Hoc's book/
+</pre>
+<p></p>
+<p>The functions mstr() and str() are interchangeable as far as the calculator engine is concerned. The calculator engine is used in many cases:</p>
+<pre>   1) In the 'calculate' command
+</pre>
+<p></p>
+<pre>      #  calculate receives [x=str(Hoc's book)] and processes str().
+      $ calculate "x=str(Hoc's book)"
+      Hoc's book
+</pre>
+<p></p>
+<pre>      # calculate receives [x=Hoc's book]: wrong syntax
+      # calculate expects: [x="Hoc's book"]
+      $ calculate x="Hoc's book"
+</pre>
+<p></p>
+<pre>   2) In mathematical expressions in an mse script
+</pre>
+<p></p>
+<pre>      mse 'if (find(text,"abc") == 0) ... '
+      mse 'if (find(text,str(abc)) == 0) ... '
+</pre>
+<p></p>
+<p>The functions mstr() and str() are mostly interchangeable in an mse script except the following case.  when they appear in a BALI command inside an mse script, the minishell interpreter evaluates str() but not mstr(). The m prefix means a mathematical string supported by the calculator engine and the minishell interpreter should not try to evaluate it.</p>
+<p>For instance,</p>
+<pre>   a) When run in BALI:
+      $ ls str(my car)       # ls receives two separate tokens: [str(my] and  [car)]
+      $ ls mstr(my home)     # ls receives two separate tokens: [mstr(my] and  [car)]
+</pre>
+<p></p>
+<pre>   b) When run by the mse interpreter:
+      $ mse --eof END.scr
+      ls str(my car)         # mse parses str() as a single token, then evaluates it.
+                             # Hence, ls receives [my car] as a single token
+      ls mstr(my car)        # mse parses mstr() as a single token, then leaves it intact.
+                             # Hence, ls receives [mstr(my home)] as a single token
+      END.scr
+</pre>
+<p></p>
+<h3>C3. Use quoting functions qstr() and mqstr()</h3>
+<p>Use these functions to add surrounding single quotes to a string and make the quotes part of the string. For example, to store the string ['Hoc's book'] in y:</p>
+<pre>      y = str('Hoc's book');
+      y = qstr(Hoc's book);
+      y = qstr[Hoc's book];           # alternative argument delimiter
+      y = qstr&lt;Hoc's book&gt;;
+      y = qstr{Hoc's book};
+      y = qstr/abc/Hoc's book/abc/;   # use /somestring/ as argument delimiter
+      echo /%y/                       # Output: /'Hoc's book'/
+</pre>
+<p></p>
+<p>The functions mqstr() and qstr() are interchangeable as far as the calculator engine is concerned. They are mostly interchangeable in an mse script except when they appear in a BALI command line. In this case, mse evaluates qstr() but leaves mqstr() intact.</p>
+<h3>C4. Use quoting functions dqstr() and mdqtr()</h3>
+<p>Use these functions to add surrounding double quotes to a string and make the quotes part of the string. For example, to store the string ["Hoc's book"] in z:</p>
+<pre>      z = str("Hoc's book");
+      z = dqstr(Hoc's book);
+      z = dqstr[Hoc's book];          # alternative argument delimiter
+      z = dqstr&lt;Hoc's book&gt;;
+      z = dqstr{Hoc's book};
+      z = dqstr/abc/Hoc's book/abc/;  # use /somestring/ as argument delimiter
+      echo /%z/                       # Output: /"Hoc's book"/
+</pre>
+<p></p>
+<p>Note the functions mdqtr() and dqstr() are interchangeable as far as the calculator engine is concerned. They are mostly interchangeable in an mse script except when they appear in a BALI command line. In this case, mse evaluates dqstr() but leaves mdqtr() intact.</p>
+<h3>C5. Use escaping function esc()</h3>
+<p>Use esc() to add a hidden private escape character at the start of the argument and resolve the resulting escape sequence.</p>
+<pre>      t = esc(A Hoc's book);          # &lt;escape&gt;A is '&amp;' (see Table 1 of quoted-text man page).
+      t = esc[A Hoc's book];          # alternative argument delimiter
+      t = esc&lt;A Hoc's book&gt;;
+      t = esc{A Hoc's book};
+      t = esc/abc/A Hoc's book/abc/;  # use /somestring/ as user-defined argument delimiter
+      echo /%t/                       # Output: /&amp; Hoc's book/
+</pre>
+<p></p>
+<p>Explanation:</p>
+<p>All five assignments to t above are equivalent. The esc function takes only one argument that is delimited by a pair of delimiters such as (), or [], or &lt;&gt;, or {}, or a pair of identical user-defined tokens. A user-defined token is any string that begins and ends with a forward slash as shown above: "/abc/". The function name plus the left delimiter are then replaced with a hidden escape character, and the right delimiter is discarded.  The resulting string will then be evaluated as an escape sequence based on the rules in the quoted-text man page.</p>
+<p>The 'calculate' command supports all built-in functions, including the string quoting functions mentioned above. However, its arguments must be quoted correctly in a BALI shell.</p>
+<pre>      $ calculate str(foo-bar)
+      foo-bar
+      $ calculate qstr(foo-bar)
+      'foo-bar'
+      $ calculate dqstr(foo-bar)
+      "foo-bar"
+</pre>
+<p></p>
+<pre>      # Need to quote the entire token to prevent the inner double quotes
+      # from being interpreted by BALI:
+</pre>
+<p></p>
+<pre>      $ calculate 'str("foo-bar")'
+      "foo-bar"
+      $ calculate 'qstr("foo-bar")'
+      '"foo-bar"'
+      $ calculate 'dqstr("foo-bar")'
+      ""foo-bar""
+</pre>
+<p></p>
+<pre>      $ calculate 'str["foo"-(bar)]'
+      "foo"-(bar)
+</pre>
+<p></p>
+<pre>      # Use "/xyz/" as a delimiter:
+      $ calculate 'str/xyz/"foo"-(bar)/xyz/'
+      "foo"-(bar)
+</pre>
+<p></p>
+<p>It is possible to build a complex literal string that contains special characters to the BALI shell without explicit quotes. For example, all the commands below display the same result:</p>
+<pre>      # Need quotes because of a space before "book"
+      $ calculate "str(Hoc's book)"
+      $ calculate 'str(Hoc)+esc(q)+str(s book)'
+</pre>
+<p></p>
+<pre>      # No quotes
+      $ calculate str(Hoc)+esc(q)+str(s)+esc(_)+str(book)
+      Hoc's book
+</pre>
+<p></p>
+<p>Because the literal single quote, double quote, and space are used frequently, the library offers special functions to create them:</p>
+<pre>      dq(n=1) : create n double quotes, default is 1.
+      sq(n=1) : create n single quotes, default is 1.
+      sp(n=1) : create n spaces, default is 1.
+</pre>
+<p></p>
+<p>Thus, the last example can be written as:</p>
+<pre>      $ calculate str(Hoc)+sq()+str(s)+sp()+str(book)
+</pre>
+<p></p>
+<h3>C6. How to specify string parameters to functions?</h3>
+<p>Functions can have numeric or string parameters. Whether a function parameter is string or numeric is always predefined by that function.</p>
+<p>For example, strlen(s) requires s to be a string, strcmp(s,t) requires both parameters to be string. This section discusses the various methods to specify a string parameter to a function.</p>
+<p>For simplicity, consider the case of strlen(s) function.</p>
+<p>To be syntactically correct like functions in the C language:</p>
+<p>1) If the argument is a literal string, it must be specified in double or single quotes, or one of the quoting functions, or the string() casting function:</p>
+<pre>         mse script                              BALI commands
+</pre>
+<p></p>
+<pre>      n = strlen("Hello");                   $ calculate 'n=strlen("Hello")'
+      n = strlen('Hello');                   $ calculate "n=strlen('Hello')"
+      n = strlen(str(Hello));                $ calculate  n=strlen(str(Hello))
+      n = strlen(mstr(Hello));               $ calculate  n=strlen(mstr(Hello))
+      n = strlen(string(Hello));             $ calculate  n=strlen(string(Hello))
+</pre>
+<p></p>
+<p>2) If the argument is a variable, its data type is determine by the predefined data type of the parameter. Thus, the variable can be specified as is. For instance,</p>
+<pre>         mse script                              BALI commands
+</pre>
+<p></p>
+<pre>      greeting := Hello                      $ env-set greeting Hello
+      n = strlen(greeting);                  $ calculate n=strlen(greeting)
+</pre>
+<p></p>
+<p>What happens is that the library parses 'strlen(greeting)' and finds a valid variable name. It then searches this variable in various environments. If the variable is found, its value will be used as the parameter to the function. If not, it needs to decide whether to fail the function.</p>
+<p>But should the parser fail the function because the variable is not found? For scripting purposes, should it be more user-friendly to treat the variable name, which is an unquoted string, as the actual string value when the variable is not found?</p>
+<p>To summarize, there are three possibilities:</p>
+<pre>      (a) Parsing strlen("Hello")  =&gt; return 5
+      (b) Parsing strlen(greeting) =&gt; strlen(Hello) ==&gt; return 5
+      (c) Parsing strlen(Hello)    =&gt; failed (variable 'Hello' not found)
+      (d) Parsing strlen(Hello)    =&gt; variable 'Hello' not found, treat as strlen("Hello")
+</pre>
+<p></p>
+<p>Arguments in favor of (d) are as follows:</p>
+<pre>   * By design, the parameter to strlen() is always a string.
+   * Whatever is in the argument to strlen, it must be a string.
+   * If it is a variable, use the value of the variable as the string parameter to strlen().
+   * If it is an undefined variable, use the name of the variable as the string parameter to strlen().
+</pre>
+<p></p>
+<p>To be more user friendly, we extend this concept a little further:</p>
+<pre>   * Even if whatever in the argument to strlen is not a variable name,
+     it can be interpreted as the literal string parameter to strlen() as is.
+     For example,
+         strlen(123abc/=) is 8
+</pre>
+<p></p>
+<p>To safeguard agains wrong interpretation, an unquoted literal string should not contain certain characters that can lead to it interpretable as an expression. For example,</p>
+<pre>       +   the concatenation operator
+       *   the string repeat operator
+       ()  the function argument delimiters associated with function calls
+       ,   the delimiter between function parameters
+       ?:  the tertiary operators
+       &amp; | { } ;   special characters to the shell
+       etc
+</pre>
+<p></p>
+<p>To override the default interpretation of string parameters:</p>
+<pre>    * Use explicit single/double quotes to enclose the string
+    * Use quoting functions to enclose the string as the arguments
+    * Use evaln() to force the argument to be computed and the result to be interpreted as numeric
+    * Use evals() to force the argument to be computed and the result to be interpreted as string
+</pre>
+<p></p>
+<p>For example,</p>
+<pre>    strlen(3+4)        =&gt;  3, which is strlen("3+4")
+    strlen(evals(3+4)) =&gt;  1, which is strlen("7")
+</pre>
+<p></p>
+<p>However, strlen(b+4) is ambiguous because b can be a variable name. If b is undefined, strlen(b+4) is interpreted as strlen("b+4"). If b is defined with value 20, it is unclear if the user wants to evaluate 20+4=24 and find the length of "24", or simply wants the length of "20+4".  In this case,</p>
+<pre>   strlen(evals(20+4)) =&gt; 2, which is strlen("24")
+   strlen(string(b)+4) =&gt; 3, which is strlen("204"), due to + being interpreted as string concatenation
+   strlen(b+str(4))    =&gt; 3, ditto
+</pre>
+<p></p>
+<h2>D. Built-in function support</h2>
+<p>A number of built-in functions can appear in &lt;expressions&gt; using the C-language syntax. Function can have parameters in string, variable, number, or another function call. If the parameter is a string, it can be specified as a variable, a string enclosed by single or double quotes, or a function call. If the parameter is numeric, it can be specified as a variable, an explicit number, or a function call. Thus, variables and function calls can be interpreted as string or number depending on the context.</p>
+<p>Example:</p>
+<pre>   $ calculate 'x=strlen("abc")+abs(-4)'
+   7
+   $ calculate 'y=strstr("Hello there", "t")'
+   there
+   $ calculate 'z=strstr("Hello there", "abc")'  #  z is an empty string
+</pre>
+<p></p>
+<pre>   $ sscat test.scr
+   x = strlen("abc")+abs(-4);
+   y = strstr("Hello there", "t");
+   z = strstr("Hello there", "abc");
+   echo x = %x
+   echo y = %y
+   echo z = %z
+</pre>
+<p></p>
+<pre>   $ mse -f test.scr
+   x = 7
+   y = there
+   z =
+</pre>
+<p></p>
+<p>Note that variables and function returns have dual data types; they can be interpreted as string or numbers depending on the context.  For example,</p>
+<pre>   $ calculate strlen(1234)
+   strlen: invalid parameter #1:
+        strlen(1234)
+               ^
+</pre>
+<p></p>
+<p>The command fails because strlen expects a string parameter but 1234, which is  not enclosed with quotes, is a number. But if we store 1234 in a variable, strlen() will not complain:</p>
+<pre>   $ env-set  x 1234
+   $ calculate strlen(x)
+   4
+   $ env-set  x 123456789012             # 12 digits
+   $ calculate 'strstr(strlen(x),"2")'   # strlen(x) displays 12
+   2
+</pre>
+<p></p>
+<p>At the present time the command supports a number of functions. Some function names are mainly similar to the C runtime library but are overloaded with additional parameters (see strstr, strcmp, etc). All function parameters are represented as follows:</p>
+<pre>  - s and t are arbitrary strings.
+  - delims is a set of characters used to delimit tokens in a string.
+    To specify white space characters, it is necessary to define the escape character.
+    For the calculate command, use -e &lt;escape char&gt;. In Table 2 it is assumed
+    -e \ has been specified so that \t, \r, \n are TAB, CR, and LF, respectively.
+  - pos is an offset into a string (offset 0 is the first character).
+    If pos is negative, the offset is from right where -1 is the offset of the ending NUL character.
+    Example:
+        Given s = "abcdef", "a" is at offset 0, "b" at 1, "c" at 3, etc.
+        The ending NUL is at offset -1, "f" at -2, "e" at offset -3, etc.
+  - n is the count of characters starting from offset pos.
+    Default is all characters from offset pos to end of string, which is
+    conveniently denoted as n=all in the list below.
+  - k is a general integer.
+  - u is a Unix time value, which can be 32 bits or 64 bits.
+    A 32-bit Unix time is the number of seconds since midnight 1970/01/01.
+    A 64 bit Unix time consists of:
+       * the high-order 32-bit value is the number of seconds since midnight 1970/01/01, and
+       * and the low-order 32-bit value is the number of nanoseconds in the fractional part of a second.
+  - nlist is a string specifying a comma-delimited list of integers and/or ranges of integers.
+    Ranges are specified by "start-end" or "start-end/stepsize", and the hyphen can be replaced with a colon.
+    Example: nlist = "2,4,10:12,20-30/3" consists of integers 2, 4, 10, 11, 12, 20, 23, 26, 29.
+  - Suffix "_ic" means the function ignores the character case.
+</pre>
+<p></p>
+<pre>            Table 2. Complete list of built-in functions
+            --------------------------------------------
+</pre>
+<p></p>
+<pre>  1. Display date and time with time zone offset information
+     For more conversion info, see man pages of timestamp-encode, timestamp-decode, strtoken.
+     All these functions can be specified with --hex and --template-formatter options to change
+     the output (see Example 20).
+</pre>
+<p></p>
+<pre>     In the following date time functions:
+       - if u is 0, u will be taken as the Unix time value of the current date time.
+       - if u is a 32-bit number, it's a 32-bit Unix time explained above.
+       - if u is a 64-bit number, it's a 64-bit Unix time explained above.
+       - if u is a string, it is the date time in human readable format as shown in various examples below.
+       - if o is a string, it is the date time offset in number of days, hours, minutes, and seconds as follows:
+                           "[&lt;num&gt;d][&lt;num&gt;h][&lt;num&gt;m]&lt;num&gt;[.&lt;fraction&gt;][s]"
+       - if o is a number, it is the date time offset in number of whole seconds:  &lt;num&gt;
+</pre>
+<p></p>
+<pre>     a. Display current date time
+     date()            Display current date in human readable format, e.g., "2014-11-10"
+     datetime()        Display current date time, e.g., "2014-11-10 02:05:54-08:00"
+     dateTime()        Display current data time in ISO standard format with T between
+                       date and time, e.g., "2014-11-10T02:05:54-08:00"
+     time()            Display current time in human readable format, e.g., "02:05:54-08:00"
+</pre>
+<p></p>
+<pre>     b. Convert a 32-bit or 64-bit Unix time value to human readable format to second resolution:
+     date(u,o=0)       Display date in human readable format, e.g., date(1415613954,"3d") is "2014-11-13"
+     datetime(u,o=0)   Display date time, e.g., datetime(1415613954,"3d5h") is "2014-11-13 07:05:54-08:00"
+                         or datetime("2014-11-10 02:05:54-08:00", "3d5h") is "2014-11-13 07:05:54-08:00"
+     dateTime(u,o=0)   Display time in ISO format, e.g., dateTime(1415613954,"3d5h") is "2014-11-13T07:05:54-08:00"
+     time(u,o=0)       Display the time part, e.g., time(1415613954,"3d5h") is "07:05:54-08:00"
+</pre>
+<p></p>
+<pre>     c. Convert a 32-bit or 64-bit Unix time value to human readable format with fractional second to nanosecond resolution:
+     datetimef(u,o=0)  Display date time, e.g., datetimef(0x55e774012b4f390b) is "2015-09-02 22:11:13.726612200+00:00"
+     dateTimef(u,o=0)  Display time in ISO format, e.g., dateTimef(0x55e774012b4f390b) is "2015-09-02T22:11:13.726612200+00:00"
+     timef(u,o=0)      Display time part, e.g., timef(0x55e774012b4f390b) is "22:11:13.726612200+00:00"
+</pre>
+<p></p>
+<pre>     d. Convert a 32-bit or 64-bit Unix time value to human readable format with fractional second to millisecond resolution:
+     datetimefm(u,o=0) Display date time, e.g., datetimef(0x55e774012b4f390b) is "2015-09-02 22:11:13.726+00:00"
+     dateTimefm(u,o=0) Display time in ISO format, e.g., dateTimef(0x55e774012b4f390b) is "2015-09-02T22:11:13.726+00:00"
+     timefm(u,o=0)     Display time part, e.g., timef(0x55e774012b4f390b) is "22:11:13.726+00:00"
+</pre>
+<p></p>
+<pre>     e. Display 32-bit or 64-bit Unix time values
+     seconds()         Display current time in seconds since midnight 1970/01/01, e.g., 1415614163.
+     seconds64()       Convert current date time to a 64-bit Unix time (bits 63..32: seconds, bits 31..0: nanoseconds)
+     seconds(s)        Convert date time string to a 32-bit Unix time (i.e., number of seconds)
+     seconds64(s)      Convert date time string to a 64-bit Unix time
+</pre>
+<p></p>
+<pre>     f. Convert time offset string to Unix time:
+     deltatime(o)      Convert time offset string to a 32-bit Unix time
+     deltatime64(o)    Convert time offset string to a 64-bit Unix time
+</pre>
+<p></p>
+<pre>  2. Math functions, including cast functions
+</pre>
+<p></p>
+<pre>     Note x and y can be integer or floating-point number.
+</pre>
+<p></p>
+<pre>     abs(x)             Display absolute value of x (x can be an expression).
+     chs(x)             Change the sign of x (x can be an expression).
+     max(x,y)           Display the maximum of x and y.
+     min(x,y)           Display the minimum of x and y.
+</pre>
+<p></p>
+<pre>     iabs(x)            Same as abs(x) but convert the result to integer.
+     ichs(x)            Same as chs(x) but convert the result to integer.
+     imax(x,y)          Same as max(x,y) but convert the result to integer.
+     imin(x,y)          Same as min(x,y) but convert the result to integer.
+</pre>
+<p></p>
+<pre>     random()           Display a signed 32-bit random number.
+     urandom()          Display an unsigned 32-bit random number.
+     urandom(k1,k2=0)   Same as urandom() except the random number is between k1 and k2, inclusive.
+                        If k1 is 0, k1 will be reset to the maximum 32-bit unsigned integer.
+                        It does not matter if k1 is greater or less than k2; the result is always
+                        between k1 and k2, inclusive.
+</pre>
+<p></p>
+<pre>     random64()         Display a signed 32-bit random number.
+     urandom64()        Display an unsigned 32-bit random number.
+     urandom64(k1,k2=0) Same as urandom() except the random number is between k1 and k2, inclusive.
+                        If k1 is 0, k1 will be reset to the maximum 64-bit unsigned integer.
+                        It does not matter if k1 is greater or less than k2.
+</pre>
+<p></p>
+<pre>     randomstr(length=4,minbytevalue=0x20,maxbyte=0xFF)
+                        Display a string of 'length' random bytes where the minimum value of all characters
+                        is 'minbyte' modulo 256 and the max is 'maxbyte' modulo 256.
+                        If 'length' is larger than 64*1024, it is reset to 64*1024.
+                        If --hex option is specified to the 'calculate' command, the bytes are displayed
+                        in hex digits without intervening spaces; e.g., "54A678C9".
+</pre>
+<p></p>
+<pre>     srandom(u)         Set, and display, the random seed for random number generators to u.
+                        On reboot the seed is set to 1. Note that all runs with the same starting random seed
+                        will produce the same results. In other words, all the n-th calls of f() since the last
+                        srandom(u) call give the same results for the same value of u and for the
+                        same function f, where f is one of the 5 random functions listed above: random(),
+                        urandom(), random64(), urandom64(), and randomstr().
+</pre>
+<p></p>
+<pre>     char(expr)         Evaluate expr and cast the result into an 8-bit unsigned character.
+                        The result is treated as a one-character string for display purposes,
+                        and an integer for arithmetic calculation purposes.
+</pre>
+<p></p>
+<pre>     int8(expr)         Evaluate expr and cast the result into an 8-bit signed integer.
+     int16(expr)        Evaluate expr and cast the result into a 16-bit signed integer.
+     int32(expr)        Evaluate expr and cast the result into a 32-bit signed integer.
+     int(expr)          Same as int32(expr).
+     int64(expr)        Evaluate expr and cast the result into a 64-bit signed integer.
+                        If the calculator is in signed data mode (option -u is specified)
+                        and if the final result is cast to and signed intXX, the calculator
+                        mode is overridden to display an unsigned number.
+                           e.g.  calculate -u int64(-1)    # display: -1
+</pre>
+<p></p>
+<pre>     uint8(expr)        Evaluate expr and cast the result into an 8-bit unsigned integer.
+     uint16(expr)       Evaluate expr and cast the result into a 16-bit unsigned integer.
+     uint32(expr)       Evaluate expr and cast the result into a 32-bit unsigned integer.
+     uint(expr)         Same as uint32(expr).
+     uint64(expr)       Evaluate expr and cast the result into a 64-bit unsigned integer.
+                        If the calculator is in signed data mode (option -u not specified)
+                        and if the final result is cast to and unsigned uintXX, the calculator
+                        mode is overridden to display an unsigned number.
+                           e.g.  calculate uint64(-1)    # display: 18446744073709551615
+                                 calculate uint64(-1)*1  # display: -1
+                        The last result is -1 because the calculator computes the multiplication
+                        in 64-bit signed integer arithmetics.
+</pre>
+<p></p>
+<pre>     ParseSize(x,type=uint64)
+     ParseSizeEx(x,type=uint64)
+     ComputeSizeExpression(x|expr,type=uint64)
+         Evaluate the first argument using integer arithmetics with the integer type specified
+         in the second argument.
+           - 'x' is a single number, or a number followed by a byte unit such as KB, MB, BLK, etc
+              (note: ParseSize does not support BLK).
+           - 'expr' is an algebraic expression involving numbers with or without units.
+           - 'type' is one of the 10 casting function names listed above: int8, int16, ..., uint64.
+</pre>
+<p></p>
+<pre>         The ComputeSizeExpression function and the 'calculate --allow-byte-units' command are
+         affected by the twiddle and the poke variable described in the offset-and-length man page.
+</pre>
+<p></p>
+<pre>         Note the three functions do not support data wrapping. When the data exceeds the max or min
+         value of the specified integer type, the functions will fail, reporting an overflow error.
+         Compare how the following commands handle out-of-range errors:
+</pre>
+<p></p>
+<pre>           # Standard calculator mode automatically converts to double if result is out of integer range
+           $ calculate --allow-byte-units 10G*10G
+           1.15292e+20
+</pre>
+<p></p>
+<pre>           # Programmer's calculator mode supports integer data wrapping
+           $ calculate --allow-byte-units --unsigned 10G*10G
+           4611686018427387904
+</pre>
+<p></p>
+<pre>           # Function fails if result is out of range, irrespective of calculator's mode:
+           $ cal ComputeSizeExpression(10G*10G)
+           Error: '10G*10G' = 1.15292e+20 is outside of range [0, 18446744073709551615] for 64-bit unsigned integers
+</pre>
+<p></p>
+<pre>     eval(&lt;expression&gt;)
+     evaln(&lt;expression&gt;)
+     evals(&lt;expression&gt;)
+        Compute &lt;expression&gt; as if the user ran 'calculate &lt;expression&gt;'.
+        The result of eval() can be a number or a string, depending on &lt;expression&gt;.
+        The result of evals() is treated as a string, evaln() as a number.
+        Note evals() is often used in string concatenation and string repeat.
+        For example,
+           calculate 'eval(3+4)'            # argument is a numerical expression, display: 7
+           calculate 'eval("3+4")'          # argument is a string expression, display: 3+4
+           calculate '"File" + evals(10)'   # display: File10
+           calculate '"File" + evals(10*3)' # display: File30
+</pre>
+<p></p>
+<pre>     unquote(s)
+        Remove the single or double quotes surrounding a string if any.
+        If the result is an expression (surrounded by no quotes), it will be computed.
+</pre>
+<p></p>
+<pre>        If a pair of quotes enclosing an expression is actually part of the data string,
+        the calculator engine will not calculate it. For example, if s = "'3+4'"; i.e.,
+        the single quotes are part of the string, then:
+                 $ calculate s
+                 '3+4'
+                 $ calculate unquote(s)
+                 7
+     hide(&lt;expression&gt;)
+        Calculate expression but do not display the result.
+        This function is handy in arithmetic expansion macros.
+</pre>
+<p></p>
+<pre>  3. General functions
+</pre>
+<p></p>
+<pre>     basename(s,pos=0)   Same output as the basename command in Linux.
+     dirname(s,pos=0)    Same output as the dirname command in Linux.
+     isdef(var)          Display 1 if the literal var is a defined variable, 0 if not.
+     isempty(s)          Same as isemptyvalue(s)
+     isemptyvalue(s)     This function tests if s is a variable that either is undefined
+                         or has an empty string value. Thus, if s contains any macros,
+                         it will expand them first before treating the result as a variable.
+                         Undefined macros are replaced with an empty string.
+                         If the result is a variable, display 1 if it is undefined
+                         or evaluated to an empty string. Otherwise, display 1 if
+                         the result is an empty string, or 0 otherwise.
+                         See example 16 in the 'calculate' man page for clarification.
+     isemptytoken(s)     This function tests if token s is empty. If s contains any macros,
+                         it will expand the macros before checking if the result is empty.
+                         Display 1 if the result is empty, 0 otherwise.
+     isvalid(s)          Display 1 if the literal s is a valid variable name, 0 if not.
+     belong(n,nlist)     Display 1 if the integer n belongs to the list specified by nlist, 0 if not.
+</pre>
+<p></p>
+<pre>  4. Display the property of a string or a substring of n characters starting from pos.
+     Default pos is 0, default n is all characters from pos to end of string s.
+</pre>
+<p></p>
+<pre>     isalpha(s,pos=0,n=all)    Display 1 if characters are all alphabetic, 0 if not .
+     isdigit(s,pos=0,n=all)    Display 1 if characters are all digits, 0 if not.
+     islower(s,pos=0,n=all)    Display 1 if characters are all lower case, 0 if not.
+     ispunct(s,pos=0,n=all)    Display 1 if characters are all punctuation, 0 if not.
+     isspace(s,pos=0,n=all)    Display 1 if characters are all white spaces, 0 if not.
+     isupper(s,pos=0,n=all)    Display 1 if characters are all upper case, 0 if not.
+     isxdigit(s,pos=0,n=all)   Display 1 if characters are all hex digits, 0 if not.
+</pre>
+<p></p>
+<pre>  5. Convert/Change string
+</pre>
+<p></p>
+<pre>     escape(s)
+        Escape all characters in s that belong to this unsafe character set: backspace,
+        single quote, double quote, tab, CR, LF, @, %, $ and semicolon. All other characters
+        are left as is even if they are control characters or high-order characters.
+        The escape scheme is listed in Table 1 of the quoted-text man page.
+</pre>
+<p></p>
+<pre>     escape1(s)
+        Same as escape(s) but the unsafe character set consists of all characters
+        listed in Table 1 of the quoted-text man page.
+</pre>
+<p></p>
+<pre>     hexescape(s,t=" .,:+-_=")
+        Encode s with hex sequences based on the default rules in section A1 of
+        the strline man page.  The t string is the exception list mentioned in section A1.
+</pre>
+<p></p>
+<pre>     tolower(s,pos=0,n=all)  Convert n characters from pos to lower case and display them.
+     toupper(s,pos=0,n=all)  Convert n characters from pos to upper case and display them.
+</pre>
+<p></p>
+<pre>     tohex(s,sep=" ")    Convert every character to hex, display result separated by sep.
+     todec(s,sep=" ")    Convert every character to decimal, display result separated by sep.
+     tooct(s,sep=" ")    Convert every character to octal, display result separated by sep.
+     tocode(s,sep=" ")   Convert every character to a number the format of which
+                           depends on options to the calculate command.
+</pre>
+<p></p>
+<pre>     tochar(n)           Convert character code n to an ASCII character (n between 1 and 255).
+     to7bit(s)
+        Strip off the highest-order bit of every character in s and display the result.
+</pre>
+<p></p>
+<pre>     to8bit(s,t=T)
+        Set the highest-order bit of all characters in s that appear in t.
+        The default string T consists of single quote, double quote, CR, and LF.
+</pre>
+<p></p>
+<pre>     chain(s)
+        Chain all characters in s to make a single string with no spaces and quotes.
+        chain(s) is identical to to8bit(s,t) where t consists of space, tab, CR, LF,
+        single quote, double quote, and all control characters.
+        If s is purely 7-bit ASCII, to7bit(chain(s)) restores the original string s.
+</pre>
+<p></p>
+<pre>     seq(first)
+     seq(first,last)
+     seq(first,increment,last,separator="\n")
+        Display a sequence of numbers as the standard Linux 'seq' command.
+        The second form uses the newline character as the separator.
+        The display format depends on options to the calculate command.
+        The output is limited to 64KB in length.
+</pre>
+<p></p>
+<pre>     chomp(s,pos)
+        Take the substring of s starting from pos, remove all trailing newlines.
+     trim(s,pos=0,nleft=0,nright=0)
+        Take the substring of s starting from pos, trim leading and trailing white space.
+        If nleft &gt; 0, trim an additional nleft characters on the left.
+        If nright &gt; 0, trim an additional nright characters on the right.
+     trimleft(s,pos=0,nleft=0)
+        Take the substring of s starting from pos, trim leading white space.
+        If nleft &gt; 0, trim an additional nleft characters on the left.
+     trimright(s,pos=0,nright=0)
+        Take the substring of s starting from pos, trim leading white space.
+        If nright &gt; 0, trim an additional nright characters on the right.
+</pre>
+<p></p>
+<pre>     strcat(s,t)                Append string t to s.
+     strerase(s,pos[,n=all])    Erase n characters in s starting from offset 'pos'.
+     strinsert(s,pos,t)
+        If pos &gt;= 0: insert t into s at offset 'pos'
+        If pos = -1, insert t after every character in s, except the last one.
+        If pos = -2, insert t after every character in s, including the last one.
+        If pos = -3, insert t before every character in s.
+        If pos = -4, insert t before every character in s, then append t after s.
+        If pos &lt; -4: undefined behavior (for now, the result is the same as pos = -1)
+</pre>
+<p></p>
+<pre>     strreplace(s,oldstr[,newstr=""[,n=0]])
+        Replace the n-th occurrence of 'oldstr' with 'newstr'.  If 'newstr' is empty
+        or not specified, the effect is to delete 'oldstr'.
+           * n &gt; 0 if counting left to right. If 'oldstr' empty, prepend 'newstr' to s.
+           * n &lt; 0 if counting right to left. If 'oldstr' empty, append 'newstr' to s.
+           * n = 0 if replacing all occurrences. If 'oldstr' empty, prepend 'newstr' to s.
+</pre>
+<p></p>
+<pre>     strchange(s,pos,n,newstr)
+        Change n characters in s starting at pos to 'newstr'.
+        If 'newstr' empty, the effect is to erase n characters in s starting at pos.
+</pre>
+<p></p>
+<pre>     strmul(s,n)
+        Multiply string s n times, i.e., concatenate s itself n times.
+        If n is negative, reverse string s before concatenation.
+        The function fails if the output string's length exceeds an implementation-defined limit.
+        An alternative is using the 'echo -c|-C' command, which has no restriction.
+</pre>
+<p></p>
+<pre>  6. Parsing and counting
+</pre>
+<p></p>
+<pre>     count_alpha(s,pos=0)    Count alphabetic characters in s starting from pos.
+     count_alnum(s,pos=0)    Count alphanumeric characters in s starting from pos.
+     count_ascii(s,pos=0)    Count all ASCII characters in s starting from pos.
+     count_blank(s,pos=0)    Count all blank characters in s starting from pos.
+     count_cntrl(s,pos=0)    Count all control characters in s starting from pos.
+     count_digit(s,pos=0)    Count all decimal digits in s starting from pos.
+     count_graph(s,pos=0)    Count all graphic characters in s starting from pos.
+     count_lower(s,pos=0)    Count lower-case characters in s starting from pos.
+     count_print(s,pos=0)    Count all printable characters in s starting from pos.
+     count_punct(s,pos=0)    Count all punctuation characters in s starting from pos.
+     count_space(s,pos=0)    Count all space characters in s starting from pos.
+     count_upper(s,pos=0)    Count upper-case characters in s starting from pos.
+     count_xdigit(s,pos=0)   Count all hex digits in s starting from pos.
+</pre>
+<p></p>
+<pre>     match_ctype(s,t)
+          Display 1 if characters in s match with the ctypes or the literal string
+          specified in the t argument.
+          1) Supported character ctypes:
+               a - alphabetic character
+               m - alphanumeric character (mixed)
+               u - upper case character
+               l - lower case character
+               t - alphabetic or punctuation (text)
+               d - decimal digit
+               x - hex digit
+               n - decimal digit or punctuation
+               h - hex digit or punctuation
+               A - ASCII character
+               c - control character
+               g - graphic character
+               p - punctuation character
+               P - printable character
+               b - blank character
+               s - space character
+          2) A character in s can be matched with any ctype in a group enclosed in square brackets:
+             e.g. calculate 'match_ctype("F", "[ud]")'
+</pre>
+<p></p>
+<pre>          3) Literal characters are specified after a period.
+             A group of literal characters "xxx" can be specified in the following formats:
+                 .(xxx), .[xxx], .{xxx}, .&lt;xxx&gt;
+             If a literal character x is not (, [, {, or &lt;, it is specified as .x
+          4) All the ctype characters and the dot can be preceded by a repetition number
+             or an asterisk. The asterisk means a variable (arbitrary) number.
+          5) Any other characters not mentioned in (1) and (4) are literal, e.g., B C = - +
+             calculate 'match_ctype("2016-04-29", "4d-*d-*d")'
+             calculate 'match_ctype("150.5 sec", "3d..ds.se.c")'
+</pre>
+<p></p>
+<pre>     strcount(s,t,pos=0)
+     strcount_ic(s,t,pos=0)
+          Display total occurrences of t in s starting from pos.
+            e.g. strcount("ab1 ab2 ab3 ab4", "ab", 3) displays "3".
+</pre>
+<p></p>
+<pre>     strlen(s,pos=0)
+          Display length (number of non-zero bytes) in string s.
+</pre>
+<p></p>
+<pre>     strtok(s,k=1,delims=" \t\r\n")
+          Display the k-th token in s where tokens are split by characters in delims.
+            * k &gt; 0: count from left to right (1 is the first token).
+            * k &lt; 0: count from right to left (-1 is the last token).
+            * k = 0: display a list of all tokens, each of which is separated by a space.
+          Note: The backslash character should be replaced with the escape character
+          currently in effect.
+</pre>
+<p></p>
+<pre>     strtokcount(s,delims=" \t\r\n")
+          Display total number of tokens in s. See note in strtok().
+</pre>
+<p></p>
+<pre>     strtokens(s,separator=" ",delims=" \t\r\n")
+          Display a list of all tokens, each of which is separated by 'separator'.
+          See note in strtok().
+</pre>
+<p></p>
+<pre>  7. Substring and string searching
+</pre>
+<p></p>
+<pre>     char_at(s,pos=0)
+          Display the character that is at offset pos of s.
+</pre>
+<p></p>
+<pre>     strrstr(s,t,pos=0)
+     strrstr_ic(s,t,pos=0)
+          Display tail of s starting from last occurrence of t before pos.
+          The tail is empty if occurrence is not found.
+</pre>
+<p></p>
+<pre>     strstr(s,t,pos=0)
+     strstr_ic(s,t,pos=0)
+          Display tail of s starting from first occurrence of t after pos.
+          The tail is empty if occurrence is not found.
+</pre>
+<p></p>
+<pre>     strcut(s,t,pos=0)
+     strcut_ic(s,t,pos=0)
+          Complement of strstr: remove output of strstr from s, i.e.,
+            * display head of s to the first occurrence of t after pos.
+            * display entire s if occurrence is not found.
+              e.g. strcut("abc12","c") displays "ab".
+</pre>
+<p></p>
+<pre>     strrcut(s,t,pos=0)
+     strrcut_ic(s,t,pos=0)
+          Complement of strrstr: remove output of strrstr from s, i.e.,
+            * display head of s to the last occurrence of t before pos.
+            * display entire s if occurrence is not found.
+              e.g. strrcut("abc12 abc34)","bc") displays "abc12 a".
+</pre>
+<p></p>
+<pre>     substr(s,pos=0,n=all)
+          Display n characters of s starting from pos (pos &lt; length of s).
+          Display empty string if pos is out of range.
+</pre>
+<p></p>
+<pre>     startswith(s,t,pos=0)
+     startswith_ic(s,t,pos=0)
+          Display 1 if the string starting from pos of s starts with t, 0 if not.
+          Display 0 if pos is out of range.
+</pre>
+<p></p>
+<pre>     endswith(s,t,pos=0)
+     endswith_ic(s,t,pos=0)
+          Display 1 if the string starting from pos of s ends with t, 0 if not.
+          Display 0 if pos is out of range.
+</pre>
+<p></p>
+<pre>     has(s,t,pos=0)
+     has_ic(s,t,pos=0)
+          Display 1 if the string starting from pos of s has (contains) t, 0 if not.
+          Display 0 if pos is out of range.
+</pre>
+<p></p>
+<pre>  8. Display offset of a substring (display -1 if not found)
+</pre>
+<p></p>
+<pre>     find(s,t,pos=0)
+     find_ic(s,t,pos=0)
+          Display offset of first occurrence of t in s starting from pos.
+</pre>
+<p></p>
+<pre>     rfind(s,t,pos=0)
+     rfind_ic(s,t,pos=0)
+          Display offset of last occurrence of t in s before position pos.
+</pre>
+<p></p>
+<pre>     findtoken(s,t,n=1)
+     findtoken_ic(s,t,n=1)
+          Display offset of n-th occurrence of t in s.
+           * n &gt; 0 if counting from left to right.
+           * n &lt; 0 if counting from right to left.
+           * n = 0: display a space-delimited list of offsets of all occurrences
+             from left to right.
+</pre>
+<p></p>
+<pre>  9. Display offset of the first character meeting the specified property.
+     Display -1 if not found.
+</pre>
+<p></p>
+<pre>     find_alpha(s,pos=0)       First alphabetic character in s starting from pos.
+     find_digit(s,pos=0)       First digit in s starting from pos.
+     find_graph(s,pos=0)       First graphic character in s starting from pos.
+     find_lower(s,pos=0)       First lower character in s starting from pos.
+</pre>
+<p></p>
+<pre>     find_punct(s,pos=0)       First punctuation in s starting from pos.
+     find_space(s,pos=0)       First white space character in s starting from pos.
+     find_upper(s,pos=0)       First upper character in s starting from pos.
+     find_xdigit(s,pos=0)      First hex digit in s starting from pos.
+</pre>
+<p></p>
+<pre>     find_nonalpha(s,pos=0)    First non alphabetic character in s starting from pos.
+     find_nondigit(s,pos=0)    First non digit in s starting from pos.
+     find_nonpunct(s,pos=0)    First non punctuation in s starting from pos.
+     find_nonxdigit(s,pos=0)   First non hex digit in s starting from pos.
+</pre>
+<p></p>
+<pre>     rfind_graph(s,pos=0)      Display offset of last graphic character in s starting from pos.
+</pre>
+<p></p>
+<pre>10. Compare the first n characters of two strings.
+     If n is not specified, compare all characters.
+</pre>
+<p></p>
+<pre>     strcmp(s,t,n=all)
+     strcmp_ic(s,t,n=all)
+          Display 0 if s equals t, nonzero otherwise (same value as returned by C function).
+</pre>
+<p></p>
+<pre>     streq(s,t,n=all)
+     streq_ic(s,t,n=all)
+          Display 1 if s == t, 0 otherwise.
+</pre>
+<p></p>
+<pre>     strle(s,t,n=all)
+     strle_ic(s,t,n=all)
+          Display 1 if s &lt;= t, 0 otherwise.
+</pre>
+<p></p>
+<pre>     strlt(s,t,n=all)
+     strlt_ic(s,t,n=all)
+          Display 1 if s &lt; t, 0 otherwise.
+</pre>
+<p></p>
+<pre>     strge(s,t,n=all)
+     strge_ic(s,t,n=all)
+          Display 1 if s &gt;= t, 0 otherwise.
+</pre>
+<p></p>
+<pre>     strgt(s,t,n=all)
+     strgt_ic(s,t,n=all)
+          Display 1 if s &gt; t, 0 otherwise.
+</pre>
+<p></p>
+<pre>11. Special string constructors
+</pre>
+<p></p>
+<pre>     dq(n=1)  Construct a string consisting of n double quotes.
+     sp(n=1)  Construct a string consisting of n spaces.
+     sq(n=1)  Construct a string consisting of n single quotes.
+</pre>
+<p></p>
+<pre>     esc(s)   Prepend an internal escape character (character code 0x01) to the literal
+              string s and then resolve the resulting escape sequence based on Tables 1-3
+              of the quoted-text man page.
+                e.g., calculate esc(Abcd) # display: &amp;bcd
+</pre>
+<p></p>
+<pre>     string(token)
+              If token is a defined variable, the function returns the value of the variable as string data.
+              Otherwise, the function returns the token as string data after trimming leading and trailing spaces.
+              For example, if variable xyz = 120, then
+                calculate "string(xyz)*3"       # display: 120120120
+                calculate "string( 45 ab )*2"   # display: 45 ab45 ab
+</pre>
+<p></p>
+<pre>12. Special quoting functions
+</pre>
+<p></p>
+<pre>     str(s)   Construct the literal string s specified between the parentheses.
+              See section E2 for details.
+                e.g., calculate "str(ab'c)"   # display:  ab'c
+</pre>
+<p></p>
+<pre>     qstr(s)  Construct the literal string s similar to str(s), then enclosing it
+              with a pair of single quotes. The quotes are part of the data.
+                e.g., calculate "qstr(ab'c)"  # display: 'ab'c'
+</pre>
+<p></p>
+<pre>     dqstr(s) Construct the literal string s similar to str(s), then enclosing it
+              with a pair of double quotes. The quotes are part of the data.
+                e.g., calculate "dqstr(ab'c)" # display: "ab'c"
+</pre>
+<p></p>
+<pre>     Note:
+     a) Argument s stands for all characters listed literally between the two parentheses.
+        All characters are literal except the escape character and the macro symbol.
+     b) The parentheses can be replaced with any of these delimiters: &lt;&gt;, [], or {}.
+          e.g., str(abc) returns the 3-character string "abc".
+        The function can be specified as: str&lt;abc&gt;, str[abc], str{abc}.
+     c) The left and right parenthesis can also be replaced by the same delimiting
+        string of the form "/some_string/".
+          e.g., str(abc) can be specified as str/xyz/abc/xyz/.
+</pre>
+<p></p>
+<pre>     d) String repeat is supported by the '*' operator; the order of the operands
+        are irrelevant. For instance,
+              calculate str(abc,)*2      # display: abc,abc,
+              calculate 2*'"def,"'       # display: def,def,
+</pre>
+<p></p>
+<pre>     e) String concatenation is supported by the '+' operator.
+          e.g.,
+              calculate str(abc,)+str(def)+esc(A) # display: abc,def&amp;
+              calculate str(abc,)*2+str(def)      # display: abc,abc,def
+              calculate 'str(abc,) + "def"*2'     # display: abc,defdef
+              calculate '"abc,"*2 + str(def)'     # display: abc,abc,def
+</pre>
+<p></p>
+<pre>     Both the minishell interpreter and the calculator library parse the quoting functions
+     and their arguments as a single token, then replace them with the literal values.
+     For example, the command
+           mse 'ls str(my  report); calculate file==str(my  report);'
+     does not use quotes to enclose individual tokens that contain spaces. However, the entire
+     string "str(my  report)" appears as a single token to both the calculate and mse commands.
+</pre>
+<p></p>
+<pre>13. Math-specific quoting functions
+</pre>
+<p></p>
+<pre>     mstr(s)     Same behavior like str(s)
+     mqstr(s)    Same behavior like qstr(s)
+     mdqstr(s)   Same behavior like dqstr(s)
+</pre>
+<p></p>
+<pre>     The minishell interpreter parses the math-specific quoting functions as a single token just like
+     the quoting functions in (12).  The only difference is that it does not evaluate these functions,
+     leaving the job to the calculator library. As far as the calculator library is concerned, it treats
+     all quoting functions in the same way: parse the occurrence of each quoting function and its
+     argument as a single token, then replace the occurrence with the actual string value.
+</pre>
+<p></p>
+<pre>14. Regular expression functions
+</pre>
+<p></p>
+<pre>     regex_match(text, pattern, options="", variable="")
+     regex_extract(text, pattern, options="", variable="")
+     regex_offset(text, pattern, options="", variable="")
+     regex_len(text, pattern, options="", variable="")
+</pre>
+<p></p>
+<pre>        * options : "F,w,i,v,j&lt;m chars, default 0&gt;,k&lt;n chars, default 0&gt;,o=&lt;occurrence #, default 1&gt;"
+          See documentation in the regex-options man page.
+</pre>
+<p></p>
+<pre>        * variable : name begins with an underscore or letter and
+                     is followed by alphanumeric characters.
+</pre>
+<p></p>
+<pre>        * regex_match()
+            - return the number of matches, say N, of the pattern in text.
+            - return 0 if no match.
+            - if variable is supplied, say "match", the following variables will be created
+                 a) If the occurrence sub-option is not specified:
+                    match1_token     the actual first substring in text that matches the pattern
+                    match1_offset    the offset in bytes of the first matched substring
+                    match1_len       the length in bytes of the first matched substring
+                    match2_token     the actual second substring in text that matches the pattern
+                    match2_offset    the offset in bytes of the second matched substring
+                    match2_len       the length in bytes of the second matched substring
+                    etc until the N-th match.
+                 b) If the occurrence sub-option is specified:
+                    match_token      the actual substring in text of the specified occurrence
+                    match_offset     the offset in bytes of the specified occurrence
+                    match_len        the length in bytes of the specified occurrence
+</pre>
+<p></p>
+<pre>             e.g.
+                x = regex_match("abc def xyz DeF", "[d-f]");       # x = 4
+                x = regex_match("abc def xyz DeF", "[d-f]", "i");  # x = 6
+                x = regex_match("abc def xyz DeF", "[d-f]+", "i"); # x = 2
+                n = regex_match("abc def xyz DeF", "[d-f]+", "i", "match");
+                    This gives:
+                       n = 2
+                       match1_token = "def"; match1_offset = 4; match1_len = 3
+                       match2_token = "DeF"; match2_offset = 12; match2_len = 3
+</pre>
+<p></p>
+<pre>                m = regex_match("abc def xyz DeF", "[d-f]+", "i,o=1", "match");
+                    This gives:
+                       m = 2
+                       match_token = "def"; match_offset = 4; match_len = 3
+</pre>
+<p></p>
+<pre>        * regex_extract()
+             Exactly similar to regex_extract.
+             The only difference is the return, which is the matched substring.
+             If an occurrence number is specified in the third parameter via the o sub-option,
+             say, "o=4", the return is the 4-th match.  If no occurrence is specified,
+             the return is the first match.
+</pre>
+<p></p>
+<pre>             If a variable name is supplied in the fourth parameter, additional variables will
+             be created exactly as described for regex_match(). The intention is to get all the
+             information available with just one function call.
+</pre>
+<p></p>
+<pre>        * regex_offset()
+             Exactly similar to regex_extract.
+             The only difference is the return, which is the offset of the n-th matched substring
+             where n is the occurrence number. If no occurrence is specified, the first match is chosen.
+             If a variable name is supplied in the fourth parameter, additional variables will
+             be created exactly as described for regex_match().
+</pre>
+<p></p>
+<pre>        * regex_len()
+             Exactly similar to regex_offset.
+             The only difference is the return, which is the length of the n-th matched substring
+             where n is the occurrence number. If no occurrence is specified, the first match is chosen.
+             If a variable name is supplied in the fourth parameter, additional variables will
+             be created exactly as described for regex_match().
+</pre>
+<p></p>
+<pre>15. Floating-point arithmetics
+     Note x and y can be any numbers (integer or floating-point) or expressions.
+     If the result is whole integer, it will be display as integer.
+</pre>
+<p></p>
+<pre>     float(x)     Convert x to a floating-point number
+     fchs(x)      Change sign of x and convert the result to floating-point.
+     fabs(x)      Find the absolute value of x and convert the result to floating-point.
+     fmax(x,y)    Find the maximum value of x and y and convert the result to floating-point.
+     fmin(x,y)    Find the minumum value of x and y and convert the result to floating-point.
+</pre>
+<p></p>
+<pre>     The following functions are supported for backward compatibility.
+     They are no longer needed because the 'calculate' command supports
+     floating-point arithmetics starting with release 13.1:
+</pre>
+<p></p>
+<pre>         fadd(x,y)    Same as evaluating x+y (where x and y, again, can be expressions)
+         fsub(x,y)    Same as evaluating x-y
+         fmul(x,y)    Same as evaluating x*y
+         fdiv(x,y)    Same as evaluating x/y
+</pre>
+<p></p>
+<pre>         feq(x,y)     Same as evaluating x == y
+         fne(x,y)     Same as evaluating x != y
+         fge(x,y)     Same as evaluating x &gt;= y
+         fgt(x,y)     Same as evaluating x &gt; y
+         fle(x,y)     Same as evaluating x &lt;= y
+         flt(x,y)     Same as evaluating x &lt; y
+</pre>
+<p></p>
+<pre>16. Compute floating-point arithmetics and display integer result
+</pre>
+<p></p>
+<pre>     The following functions perform floating point calculation on x and y,
+     then assign the result to a 64-bit integer and display it.
+     Note x and y can be any numbers (integer or floating-point) or expressions.
+     No warning is issued if the result is too large to fit in a 64-bit integer.
+</pre>
+<p></p>
+<pre>     itrunc(x)  Convert x to a 64-bit integer and display the result.
+     ifloat(x)  An alias for itrunc(x)
+</pre>
+<p></p>
+<pre>     iround(x)
+         Round off to the double that is nearest to x, with halfway cases rounded away from zero.
+         Then convert the double to a 64-bit integer and display the result.
+</pre>
+<p></p>
+<pre>     iceil(x)
+         Round x upward to the double that has the smallest integral value &gt;= x.
+         Then convert the double to a 64-bit integer and display the result.
+</pre>
+<p></p>
+<pre>     ifloor(x)
+         Round x downward to the double that has the greatest integral value &lt;= x.
+         Then convert the double to a 64-bit integer and display the result.
+</pre>
+<p></p>
+<pre>     The following functions are supported for backward compatibility.
+     They are no longer needed because the 'calculate' command support
+     floating-point arithmetics starting with release 13.1:
+</pre>
+<p></p>
+<pre>         ifadd(x,y)    Compute int64(x+y)
+         ifsub(x,y)    Compute int64(x-y)
+         ifmul(x,y)    Compute int64(x*y)
+         ifdiv(x,y)    Compute int64(x/y)
+</pre>
+<p></p>
+<pre>         ifabs(x)      Compute uint64( abs(x) )
+         ifmax(x,y)    Compute int64( max(x,y) )
+         ifmin(x,y)    Compute int64( min(x,y) )
+</pre>
+<p></p>
+<pre>17. Functions available to mse scripts only
+     Ex:   mse -f script.scr --uid  18    --gid  50
+                  argument0  arg1   arg2  arg3   arg4
+</pre>
+<p></p>
+<pre>     argc()                  Return the number of arguments to the script (e.g. 5 in example above).
+     argv(n)                 Return the n-th argument to the script.
+                               e.g. argv(0) returns "script.scr", argv(2) returns "18"
+     has_option(s)           Return the index of option s in the script argument list, or 0
+                             if option s is not specified. Note s can be partially specified
+                             as long as the match is unique.
+                               e.g. has_option("--gid") returns 3
+                                    has_option("--gi") also returns 3
+                                    has_option("--g") also returns 3
+     get_optionvalue(s)      Return the value of option s in the script argument list,
+                             fail if option s is not specified.
+                               e.g. get_optionvalue("--gid") returns 50
+     get_optionvalue(s,t)    Return the value of option s in the script argument list,
+                             or return t if s is not specified.
+                               e.g. get_optionvalue("--home","/home/hoc") returns "/home/hoc".
+</pre>
+<p></p>
+<h3>E. Built-in functions print, prints, lprint, lprints</h3>
+<p>These functions are not available to the 'calculate' command. They are supported by the mse interpreter only.</p>
+<p>The s suffix means adding a space between tokens to print. The l prefix means print a line, i.e., adding a newline after the last token.</p>
+<p>These built-in functions have a command-like syntax and, hence, their output can be assigned to a variable using the command output assignment operators described in sections D4.4 to D4.5. The funtions treat each argument as a numeric or string expression, evaluate it using the same library as the 'calculate' command, and finally display the result.</p>
+<p>The print and lprint functions display the results of all arguments, one after another without any intervening spaces. The prints and lprints functions display all the results with an intervening space in between. The lprint and lprints functions add a newline character at the end of the last result.</p>
+<p>Note that the arguments to these printing functions are processed as follows.</p>
+<p>E1. The characters &amp; and | are considered literal text for parsing purposes.</p>
+<p>E2. If an argument is enclosed by a pair of double or single quotes, it is treated as text with the enclosing quotes discarded. The printing function then resolves all escapes and macros in the text, including command substitution and arithmetic expansion. The resulting text will be displayed as is. For instance,</p>
+<pre>    lprint "Hello there"           # display: /Hello there/   (slashes not part of the output)
+    lprint "%(echo Hello Tom)"     # display: /Hello Tom/
+    lprint "%(echo Hello Tom)my"   # display: /Hello Tommy/
+    lprint "%((x + 4*y))"          # display: /9/ assuming x = 1 and y = 2
+    lprint "%((x + 4*y))+1"        # display: /9+1/
+</pre>
+<p></p>
+<p>E3. If an argument is a macro of the form %(commandline), it will be identified as a command substitution. The text between the parentheses is treated as a command line. The printing function resolves all escapes and macros in the text, then executes it. The resulting output is treated as text. For instance,</p>
+<pre>    lprint %(echo Hello Tom)     # parsed as a single token to lprint
+    lprint %(echo Hello Tom)my   # display: /Hello Tommy/
+</pre>
+<p></p>
+<p>Thus, when an argument begins with "%(", it can be written with or without enclosing quotes (see examples in E2).</p>
+<p>E4. If an argument is a macro of the form %((expression)), it will be identified as an arithmetic expansion. The expression consists of all text between the pair of double parentheses. The printing function resolves all escapes and macros in the text and then executes it using the calculate command library.  The result is treated as text. For instance,</p>
+<pre>    lprint %((x + 4*y))        # display: /9/
+    lprint %((x + 4*y))+1      # display: /9+1/ because "9" is treated as text after expansion
+</pre>
+<p></p>
+<p>Thus, when an argument begins with "%((", it can be written with or without enclosing quotes (see examples in E2).</p>
+<p>E5. Otherwise, the argument is parsed as if it were an expression to the calculate command. The printing function resolves all escapes and macros in the expression, and then evaluates it using the calculate command library.  The result is treated as text.</p>
+<pre>    e.g., lprints "result is" x+4*y   # display: /result is 9/
+</pre>
+<p></p>
+<p>E6. If an argument begins with a left parenthesis, it is treated as an expression which is terminated only by a matching right parenthesis. In this case, the expression can span multiple arguments. Once the matching right parenthesis is found, the entire argument containing it will become part of the expression.</p>
+<p>For example, the following three examples display the same "result is 10 books" message.</p>
+<pre>      print "result is " x+4*y+1 " books"               # 3 arguments to lprints
+      print "result is " (x + 4 * y)+1 " books"         # same
+      print "result is " %((x + 4 * y))+1 " books"      # same
+</pre>
+<p></p>
+<p>In summary, the print-family functions view all arguments as either a string or a mathematical expression. An argument is a string if it begins with a single or double quote, and a mathematical expression if not.</p>
+<p>Example:</p>
+<pre>   $ sscat test.scr
+   x = 10;
+   y = 3
+   lprints "The result of x+y is" x+y              # (1)
+   lprints str(The result of x-y is) (x - y)       # (2)
+   t ::=: prints "x*y is" x*y                      # (3)
+   echo Result: %t                                 # (4)
+   lprints "It" strstr("Hello there", "t")         # (5)
+   lprints str/x/abc(){}[]{} / | ! #&lt;&gt;;'"&amp;$/x/;
+</pre>
+<p></p>
+<pre>   $ mse -f test.scr
+   The result of x+y is 13
+   The result of x-y is 7
+   Result: x*y is 30
+   Hi there
+   abc(){}[]{} / | ! #&lt;&gt;;'"&amp;$
+</pre>
+<p></p>
+<p>Explanation:</p>
+<pre>  (1): argument 2 is [x+y], which is an expression.
+       The square brackets are used to delimit the string and are not part of the argument.
+  (2): argument 2 is [(x - y)], which is an expression.
+       The parser does not stop parsing until it finds the matching closing right parenthesis.
+  (3): no display, the function output is assigned to variable t.
+  (5): argument 2 is [strstr("Hello there", "t")], which is an expression.
+       The parser does not stop parsing until it finds the matching closing right parenthesis.
+</pre>
+<p></p>
+<p>Note str() is a quoting function, which plays the role of a pair of quotes to delimit a string. All characters enclosed by str() are literal except the escape character (default is '@') and the macro symbol (default is '%'). The delimiting parentheses can be replaced with {}, [], or &lt;&gt;. They can also be replaced with a pair of identical delimiting tags of the form /somestring/. In example (6) above, the delimiting tag is "/x/".</p>
+<h1>Examples</h1>
+<p>See various examples in the 'calculate' and 'mse' man pages.</p>
+<h1>See Also</h1>
+<p><a href="../Dev/backquote.html">backquote</a> <a href="../Filter/Dev/calculate.html">calculate</a> <a href="../Dev/env.html">env</a> <a href="../Filter/Dev/env-set.html">env-set</a> <a href="../Filter/Dev/env-unset.html">env-unset</a> <a href="../Filter/Dev/mse.html">mse</a> <a href="../Filter/Dev/mse-run.html">mse-run</a> <a href="../Filter/Dev/mse-set.html">mse-set</a> <a href="../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../Topic/offset-and-length.html">offset-and-length</a> <a href="../User/ssrun.html">ssrun</a> <a href="../Filter/Dev/strquery.html">strquery</a> <a href="../Filter/Dev/strtoken.html">strtoken</a> <a href="../Supervisor/timestamp-decode.html">timestamp-decode</a> <a href="../Supervisor/timestamp-encode.html">timestamp-encode</a> <a href="../Dev/wrfile.html">wrfile</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

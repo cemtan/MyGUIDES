@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-cod-history</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-cod-history</h1>
+<p>Show Cod history on a span or an SD</p>
+<h1>Syntax</h1>
+<pre>sd-cod-history [&lt;SD-device-ID&gt; | &lt;span-instance-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Dumps a compressed history of the recent changes to each type of the three Cod areas on a system drive (SD) or span, or on all loaded spans.</p>
+<p>Whenever Cod changes, the server updates Cod history on the first SD in the span.  The first SD in span Foo is defined as the first one listed by this command:</p>
+<pre>span-list Foo
+</pre>
+<p></p>
+<p>To list the Cod history on a span, pass the span's instance name, like this:</p>
+<pre>sd-cod-history Foo
+</pre>
+<p></p>
+<p>If this command is run on a cluster node other than the one running the admin vnode (AVN), the results may be out of date.</p>
+<p>If a span has been deleted or if Cod has been damaged and the span will no longer load, it is still possible to obtain Cod history (unless that too has been destroyed) by supplying the device ID of the first SD in the span:</p>
+<pre>sd-cod-history 0
+</pre>
+<p></p>
+<p>This form of the command always reads from disk.  Its output is always up to date.  It may be a valuable troubleshooting aid to your support provider.</p>
+<p>Finally, if the command is run without any command-line arguments, it dumps Cod history from all loaded spans.  This form of the command runs whenever diagnostics are taken.</p>
+<h2>Understanding Cod history</h2>
+<p>Cod history is highly compressed.  A listing produced by 'sd-cod-history' is not human-readable.  It is intended to be read by the 'decode-cod-history' program used by your support provider.</p>
+<p>Cod history does not contain customer data, any more that Cod itself does.  All it records are changes to the configuration of the server and its storage.  A sample follows:</p>
+<pre>----------------------------
+Filesystem catalogue history
+----------------------------
+</pre>
+<p></p>
+<pre>  Schema:      0
+  Operation:   Create span
+  Cod type:    Filesystem catalogue
+  Cluster:     cd7b1f4c-bb1c-11cc-9000-8a03b28e45a6  server2n4, pnode 1
+  Was running: 11.0.3105.00
+  Timestamp:   2012-05-09 14:40:50+00:00 update 1
+  Wrote to SD: 0-3
+  Span:        8E45A668CF38745E, Quad
+  Parameters:
+     Capacity: 7187090898944 bytes (6694GiB, 7TiB)
+</pre>
+<p></p>
+<pre>  Schema:      0
+  Operation:   Create filesystem
+  Cod type:    Filesystem catalogue
+  Cluster:     cd7b1f4c-bb1c-11cc-9000-8a03b28e45a6  server2n4, pnode 1
+  Was running: 11.0.3105.00
+  Timestamp:   2012-05-09 14:41:03+00:00 update 0
+  Wrote to SD: 0-3
+  Filesystem:  8E45A665633668D6, 1024, Alpha
+</pre>
+<p></p>
+<pre>  Schema:      0
+  Operation:   Create filesystem
+  Cod type:    Filesystem catalogue
+  Cluster:     cd7b1f4c-bb1c-11cc-9000-8a03b28e45a6  server2n4, pnode 1
+  Was running: 11.0.3105.00
+  Timestamp:   2012-05-09 14:41:05+00:00 update 0
+  Wrote to SD: 0-3
+  Filesystem:  8E45A664F742DDBC, 1025, bravo
+</pre>
+<p></p>
+<pre>  Schema:      0
+  Operation:   Set filesystem description
+  Cod type:    Filesystem catalogue
+  Cluster:     cd7b1f4c-bb1c-11cc-9000-8a03b28e45a6  server2n4, pnode 1
+  Was running: 11.0.3105.00
+  Timestamp:   2012-05-09 14:41:11+00:00 update 0
+  Wrote to SD: 0-3
+  Filesystem:  8E45A665633668D6, 1024, Alpha
+  Parameters:
+     Worm:        No
+     WFS:         2
+     DSB count:   128
+     Cluster KiB: 4
+</pre>
+<p></p>
+<h1>Examples</h1>
+<pre>sd-cod-history Accounts
+sd-cod-history 32
+sd-cod-history
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>chassis-drive-clean-configuration</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>chassis-drive-clean-configuration</h1>
+<p>Run the chassis drive management script</p>
+<h1>Syntax</h1>
+<pre>chassis-drive-clean-configuration  [ --force | --disable --drive (A | B) ]
+</pre>
+
+<h1>Description</h1>
+<p>The system hardware includes hard disk drives on which the server software and firmware images are loaded. These drives are configured into RAID 1 volumes for resiliency. An application runs on the system that monitors the health of the RAID volumes. If problems are detected on the volumes the application will send events to the system event log.  In addition a trouble reporter can be used to determine the health of the volumes.</p>
+<p>The 'chassis-drive-clean-configuration' command is used to attempt to repair the RAID volumes if an error has occurred that causes a volume to become degraded.  This is the default behaviour when run without command line switches. The command is also used to remove a suspect drive from RAID volume and disable the drive so that a subsequent 'chassis-drive-clean-configuration' command will not automatically repair the RAID volumes.</p>
+<p>This command would normally be run as a result of seeing errors in the event log that indicate problems with the chassis disks and may also be run as the result of a trouble reporter detecting problems with the chassis drives</p>
+<p>Note: This command does not affect the storage connected to the Fiber Channel ports of the system.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--disable</strong></dt>
+<dd><p>Remove a drive from the RAID volumes and disable the drive so that the partitions will not automatically be re-added to the RAID volumes.</p></dd>
+<dd><p>This option requires the --drive option to be specified.</p></dd>
+<dt><strong>--drive</strong></dt>
+<dd><p>This option is used to specify the drive to be disabled when using the --disable flag.  If the --disable flag is not specified this option is ignored.</p></dd>
+<dd><p>Valid values for the drive are 'A' and 'B'.  These indicate the labelling of the physical drives in the unit  and are NOT guaranteed to be the same as the software device names (sda, sdb etc).</p></dd>
+<dt><strong>--force</strong></dt>
+<dd><p>The force option is used to re-add a previously disabled drive.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>Severe: Chassis device 'md2' has invalid drive configuration. Drive B is missing
+</pre>
+<p></p>
+<pre>$ trouble chassis-drive
+ external:chassis-drive   (on Linux; base priority 50)
+</pre>
+<p></p>
+<pre>  Device md2 :
+    Priority 51: Linux:
+</pre>
+<p></p>
+<pre>    Device has invalid configuration. 'Drive B' is missing.
+</pre>
+<p></p>
+<pre>      If this is the first time this issue has occurred run
+      chassis-drive-clean-configuration.  If the fault persists contact your
+      support provider.
+</pre>
+<p></p>
+<pre>$ chassis-drive-clean-configuration
+Starting checks
+Adding device sdb2 to md2
+mdadm: re-added /dev/sdb2
+Checks complete
+</pre>
+<p></p>
+<pre>Information: Chassis device 'md2' status is good. Volume is fault tolerant
+Information: Chassis device 'md2' rebuild complete.
+</pre>
+<p></p>
+<p>Remove the partitions on drive B from RAID volumes and disable the drive from being automatically re-added.</p>
+<pre>$ chassis-drive-clean-configuration  --disable --drive B
+Disabling drive
+Disabling sdb6
+Disabling sdb5
+Disabling sdb2
+[chassis-drive-clean-configuration took 9 s.]
+$
+</pre>
+<p></p>
+<p>Previously disabled drive will not be re-added by the command.</p>
+<pre>$ chassis-drive-clean-configuration
+Starting checks
+No MD Superblock found on sdb6 so not adding to md1.  Use --force to override
+No MD Superblock found on sdb5 so not adding to md0.  Use --force to override
+No MD Superblock found on sdb2 so not adding to md2.  Use --force to override
+Checks complete
+No changes were made to the configuration.
+</pre>
+<p></p>
+<p>Previously disabled drive is re-added by use of the --force option.</p>
+<pre>$ chassis-drive-clean-configuration --force
+Starting checks
+No MD Superblock found on sdb6. Force is set so adding anyway.
+Adding device sdb6 to md1
+mdadm: added /dev/sdb6
+No MD Superblock found on sdb5. Force is set so adding anyway.
+Adding device sdb5 to md0
+mdadm: added /dev/sdb5
+No MD Superblock found on sdb2. Force is set so adding anyway.
+Adding device sdb2 to md2
+mdadm: added /dev/sdb2
+Checks complete
+$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/chassis-drive-status.html">chassis-drive-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

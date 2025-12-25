@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-dacl-mode</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fs-dacl-mode</h1>
+<p>Configures how the file system modifies a DACL when an NFS client applies a Unix mode or ownership change to a file/directory that has a security descriptor</p>
+<h1>Syntax</h1>
+<pre>fs-dacl-mode [--masking-deny-aces enable|disable] [discard | mask-on-chmod-or-create | mask-on-chmod-discard-on-create | mask-on-chmod-passthrough-on-create]
+</pre>
+
+<h1>Description</h1>
+<p>The fs-dacl-mode command is used to globally configure how the file system modifies a DACL when an NFS client applies a Unix mode or ownership change to a file/directory that has a security descriptor.  e.g. when an NFS client performs "chmod"/"chown"/"chgrp" type operations on an object that has a security descriptor or when it creates a new object in a directory that has a security descriptor (conceptually, the new object has a DACL inherited from the parent directory or derived from the server-side umask).</p>
+<p>The following modes are available:</p>
+<dl>
+<dt><strong>discard</strong></dt>
+<dd><p>The security descriptor's DACL is discarded and replaced with one derived from the new mode (on chmod/create) or the existing mode (on chown/chgrp).</p></dd>
+<dd><p>This is the only mode that affects chown/chgrp.</p></dd>
+<dt><strong>mask-on-chmod-or-create</strong></dt>
+<dd><p>Permissions granted by the security descriptor's DACL to the associated file system object, which are not granted by the mode, are "masked", such that:</p></dd>
+<ul>
+<li>Permissions granted to the owner are no greater than those granted by the mode's user bits.</li>
+<li>Permissions granted to other users/groups are no greater than those granted by the mode's group bits.</li>
+</ul>
+<dd><p>ACEs are also amended and/or appended to the DACL, to reflect the permissions granted by the mode.</p></dd>
+<dd><p>See the --masking-deny-aces option for a description of how the masking is performed.</p></dd>
+<dd><p>N.B. Inheritable permissions are not affected.</p></dd>
+<dt><strong>mask-on-chmod-discard-on-create</strong></dt>
+<dd><p>The "mask" behaviour is used when a chmod is performed.  The "discard" behaviour is used when creating a new object.</p></dd>
+<dd><p>This is the default.</p></dd>
+<dt><strong>mask-on-chmod-passthrough-on-create</strong></dt>
+<dd><p>The "mask" behaviour is used when a chmod is performed.  The mode is ignored when creating a new object, the DACL inherited from the parent directory or derived from the server-side umask is applied.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong>--masking-deny-aces enable|disable</strong></dt>
+<dd><p>Configures how masking is performed:</p></dd>
+<ul>
+<li>Enabled (the default).  A "masking" deny-ACE is inserted in front of each allow-ACE that grants more permissions than the new mode, which denies the excess permissions.</li>
+<p>Subsequent mode changes will replace/remove existing masking deny-ACEs, which means excess permissions are only temporarily disabled.</p>
+<p>N.B. This method may produce DACLs with deny-ACEs ordered after allow-ACEs, which is known to cause issues with some Windows applications that prefer to order all deny-ACEs before allow-ACEs.</p>
+<li>Disabled.  Excess permissions are permanently removed from (masked out of) an allow-ACE's Access Mask.</li>
+</ul>
+</dl>
+<h1>Examples</h1>
+<p>To display the current setting:</p>
+<pre>fs-dacl-mode
+</pre>
+<p></p>
+<p>Change the current setting to "mask-on-chmod-or-create":</p>
+<pre>fs-dacl-mode mask-on-chmod-or-create
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/security-mode.html">security-mode</a> <a href="../Supervisor/umask-directory-set.html">umask-directory-set</a> <a href="../User/umask-directory-show.html">umask-directory-show</a> <a href="../Supervisor/umask-file-set.html">umask-file-set</a> <a href="../User/umask-file-show.html">umask-file-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-source-throughput-limit-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>replication-source-throughput-limit-set</h1>
+<p>Limits the aggregate throughput of object replications</p>
+<h1>Syntax</h1>
+<pre>replication-source-throughput-limit-set &lt;throughput-in-MiB-per-second&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The replication-source-throughput-limit-set command limits the aggregate throughput of object replication per physical node.</p>
+<p>For example, if it is set to 50 MiB/s, a physical node will be prevented from sending any more than 50 MiB/s of object replication data (in total across all object replications). In a cluster, each physical node will be able to send up to 50 MiB/s, so the cluster's total throughput will be 50 MiB/s multiplied by the number of nodes.</p>
+<p>The setting is persistent over reboots and takes effect immediately for both new and existing replications.  The minimum allowed value is 5 MiB/s, and a value of 0 (the default) removes the limit entirely.</p>
+<p>To view the current replication throughput, use the replication-show-active command.</p>
+<h1>Examples</h1>
+<p>Set the replication throughput limit to 50 MiB/s:</p>
+<pre>$ replication-source-throughput-limit-set 50
+Object replication throughput limit: 50 MiB/s
+</pre>
+<p></p>
+<p>Remove the replication throughput limit:</p>
+<pre>$ replication-source-throughput-limit-set 0
+Object replication throughput limit: 0 (no limit)
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/replication-show-active.html">replication-show-active</a> <a href="../Supervisor/replication-source-throughput-limit-show.html">replication-source-throughput-limit-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

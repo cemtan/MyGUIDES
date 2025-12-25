@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-hide</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>filesystem-hide</h1>
+<p>Hide a filesystem to prevent unwanted I/O</p>
+<h1>Syntax</h1>
+<pre>filesystem-hide &lt;span-or-filesystem-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command prepares a filesystem for storage maintenance by making it unavailable for mounting on all servers throughout the cluster.  This guarantees that the server will perform no I/O to the file system, but makes it impossible to check, fix, format or mount the file system.  'filesystem-hide' will fail if the file system is currently in use in any of these ways.</p>
+<p>If a filesystem is hidden, 'filesystem-list -a' shows it as 'Hiddn'; 'span-list', 'filesystem-list' and 'trouble' print warnings.</p>
+<p>'filesystem-hide' does not update the registry or the Cod.  A filesystem will automatically be revealed if you simultaneously reboot all servers in the cluster.</p>
+<p>'span-hide' queues a message for the Filesystem, instructing it not to mount the file systems you have hidden, but it does not wait for the message to be processed.  A script that uses this command should follow it with 'span-wait-for-loading --mount' in order to make certain that this asynchronous message has been processed before the next command runs.  If you wish to determine whether the notification has been processed without waiting for it to complete, run 'filesystem-list-queues' and check for the filesystem in the 'Unavailability' and 'Removal' queues.  Typically, when you are working interactively, the message is processed fast enough to render a manual check unnecessary.</p>
+<p>It is also possible to hide an entire span.  If you hide both a filesystem and its host span, you'll need to reveal them both (in either order) before any Filesystem I/O is possible.  Hiding spans and filesystems doesn't prevent them from appearing in 'span-list' and 'filesystem-list'.</p>
+<h1>Examples</h1>
+<pre>filesystem-hide Accounts
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/filesystem-reveal.html">filesystem-reveal</a> <a href="../Supervisor/span-hide.html">span-hide</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-reveal.html">span-reveal</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

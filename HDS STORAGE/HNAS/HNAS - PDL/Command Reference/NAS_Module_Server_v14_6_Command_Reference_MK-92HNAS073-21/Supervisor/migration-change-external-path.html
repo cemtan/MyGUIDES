@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-change-external-path</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>migration-change-external-path</h1>
+<p>Modifies a target of the external migration path for the specified vivol/volume.</p>
+<h1>Syntax</h1>
+<pre>migration-change-external-path -s &lt;fs label&gt; [-v &lt;vivol&gt;] -n &lt;logical name&gt; ([-A] [-H] [-R] [-W] [--type &lt;type&gt;] [-u &lt;user&gt; [-p &lt;password&gt;]] -t &lt;target&gt; | -O) [--force] [--confirm] [--use-ignore-file]
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --source &lt;fs label&gt;</strong></dt>
+<dd><p>Source file system.</p></dd>
+<dt><strong>-v, --vivol &lt;vivol&gt;</strong></dt>
+<dd><p>Name of source Virtual Volume (optional).</p></dd>
+<dt><strong>-W, --WORM</strong></dt>
+<dd><p>Flag this target as being a system with WORM behavior (optional).</p></dd>
+<dt><strong>-R, --RAIN</strong></dt>
+<dd><p>Flag this target as being a system with RAIN behavior (optional).</p></dd>
+<dt><strong>-A, --HCAP-archive</strong></dt>
+<dd><p>Flags this target as being a Hitachi Content Archive Platform, HCAP (optional).</p></dd>
+<dt><strong>-T, --type { HCAP2 | HCP-default-namespace | HCP-namespace | external-control | cloud }</strong></dt>
+<dd><p>Flags this target as being of the type specified. Note that <em>--type HCAP2</em> is equivalent to <em>--HCAP-archive</em>.</p></dd>
+<dt><strong>-H, --hash</strong></dt>
+<dd><p>Turn on hash generation for files as they are migrated (optional).</p></dd>
+<dt><strong>-n, --name &lt;logical name&gt;</strong></dt>
+<dd><p>Logical name of the migration target.</p></dd>
+<dt><strong>-t, --target &lt;external path URI&gt;</strong></dt>
+<dd><p>Protocol specific external path.</p></dd>
+<dt><strong>-O, --offline</strong></dt>
+<dd><p>Flag this target as being offline.</p></dd>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>Confirm that the modification is to be carried out without any further prompt.</p></dd>
+<dt><strong>-F, --force</strong></dt>
+<dd><p>Force the change of the external target even when it is not accessible.</p></dd>
+<dt><strong>-I, --use-ignore-file</strong></dt>
+<dd><p>Attempt to find and use an ignorefile on the external target. See migration-add-external-path for more information on ignore files.</p></dd>
+<dt><strong>-u, --user &lt;username&gt;</strong></dt>
+<dd><p>Specify the <em>data access account</em> username for an HCP namespace target.</p></dd>
+<dt><strong>-p, --password &lt;password&gt;</strong></dt>
+<dd><p>Specify the <em>data access account</em> password for an HCP namespace target. If this option is not supplied on the command line, the command will prompt for the password interactively, in which case the password will not be echoed to the terminal.</p></dd>
+</dl>
+<p>Modifies the target or options of an existing external migration target.</p>
+<p>The first form of this command allows the protocol specific URI and target options to be modified. For instance this command could be used to update an external migration target when an external NFS server is renamed.</p>
+<p>The second form of this command causes the specific external migration target to be marked as offline. An offline target will no longer be used for new migrations, but existing cross-file-system links may refer to files via this path. An offline target may not be made online again; however, it is possible to change the protocol specific URI and other target specific flags of an offline target by using the first form of this command, for instance if an NFS server is renamed.</p>
+<p>If the new URI is not currently accessible, then the command will fail unless the -F (--force) flag is specified.</p>
+<p>With the exception of -O (--offline), the options are the same as for the migration-add-external-path command.</p>
+<h1>Examples</h1>
+<pre>migration-change-external-path -s fs1 -O -n Archive1
+</pre>
+<p></p>
+<p>Mark the "Archive1" external target as offline.</p>
+<pre>migration-change-external-path -s fs1 -W -R -H -n Archive1 -t nfs://new-archive.example.com/fcfs_data/example_archive
+</pre>
+<p></p>
+<p>Change the target of the "Archive1" external target to be the /fcfs_data/example_archive mount point on new-archive.example.com. If this migration path had previously been marked offline, the offline status would be retained but the target details would still be changed.</p>
+<p>For cloud migration use migration-cloud-destination-modify or migration-cloud-accout-modify to update cloud related information.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a> <a href="../Supervisor/migration-cloud-account-modify.html">migration-cloud-account-modify</a> <a href="../Supervisor/migration-cloud-destination-modify.html">migration-cloud-destination-modify</a> <a href="../Supervisor/migration-delete-external-path.html">migration-delete-external-path</a> <a href="../Supervisor/migration-expand-external-path.html">migration-expand-external-path</a> <a href="../Supervisor/migration-get-dependencies.html">migration-get-dependencies</a> <a href="../Supervisor/migration-get-path.html">migration-get-path</a> <a href="../Supervisor/migration-list-paths.html">migration-list-paths</a> <a href="../Supervisor/migration-update-paths.html">migration-update-paths</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

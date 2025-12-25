@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>snapshot-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>snapshot-list</h1>
+<p>Display details of a file system&#39;s snapshots, or those snapshots associated with a rule.</p>
+<h1>Syntax</h1>
+<pre>snapshot-list [--all] [--freeable-space] (--file-system &lt;file-system&gt; [&lt;snapshot-name&gt;]) | (--rule &lt;rule-name&gt; [--file-system &lt;file-system&gt;])
+</pre>
+
+<h1>Description</h1>
+<p>This command displays details of snapshots that exist on the specified file system.  Its output consists of either:</p>
+<ul>
+<li>All the snapshots, or can be restricted to</li>
+<li>A single named snapshot, or</li>
+<li>All the snapshots associated with a snapshot rule.</li>
+</ul>
+<p>The file system may be identified by specifying a file system label, or a rule name.  Specifying a rule name restricts the output to snapshots associated with that rule; if the rule name does not unambiguously identify a file system, both a rule name and a file system label must be specified.</p>
+<p>Preserved space shows the amount of space that is in use by a snapshot. If the snapshot is deleted, all of the space preserved for it may not be freed since some of the space is also shared with older snapshots. Space usage is only shown for block-based snapshots. Preserved space usage is approximate.</p>
+<dl>
+<dt><strong>--all, -a</strong></dt>
+<dd><p>Show all snapshots including snapshots awaiting or undergoing deletion and deletion progress if available. Snapshot deletion progress is only available for block-based snapshots.</p></dd>
+<dt><strong>--freeable-space, -s</strong></dt>
+<dd><p>Calculate the amount of space that will be freed if a snapshot is deleted. This option is only applicable to block-based snapshots.</p></dd>
+<dd><p>On WFS-2 file systems that support dedupe, all of the reported space may not get freed when the snapshot is deleted. This can happen if some of the blocks have been deduplicated and are still in use by other files.</p></dd>
+<dd><p>Note: Calculating the freeable space for all snapshots may take a long time the first time it is run. It is advisable to use this option on a single snapshot at a time.</p></dd>
+<dt><strong>--file-system, -f &lt;file-system&gt;</strong></dt>
+<dd><p>Select file system by label.</p></dd>
+<dt><strong>--rule, -r &lt;rule-name&gt;</strong></dt>
+<dd><p>Select rule by name.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ snapshot-list --freeable-space --file-system fs1
+</pre>
+<p></p>
+<pre>                Date/Time               Created Freeable Space Preserved Space                                                 Name Status
+------------------------- --------------------- -------------- --------------- ---------------------------------------------------- ------
+2010-09-20 11:50:06-07:00              Manually            0 B             0 B                                              backup1 Usable
+2010-09-20 11:47:24-07:00               By Rule         124 KB          152 KB                          2010-09-20_1147-0700.MyRule Usable
+2010-09-14 14:14:56-07:00 By Object Replication         124 KB          164 KB AUTO_SNAPSHOT_d9a82e00-5451-11cb-9003-5751a8a0ff93_1 Usable
+2010-09-14 14:06:35-07:00              Manually         148 KB          148 KB                                                    4 Usable
+</pre>
+<p></p>
+<pre>File system is using block-based snapshots.
+</pre>
+<p></p>
+<pre>server:$ snapshot-list --rule MyRule
+</pre>
+<p></p>
+<pre>                Date/Time Created                        Name Status
+------------------------- ------- --------------------------- ------
+2010-09-20 11:47:24-07:00 By Rule 2010-09-20_1147-0700.MyRule Usable
+</pre>
+<p></p>
+<pre>File system is using object-based snapshots.
+</pre>
+<p></p>
+<pre>server:$ snapshot-list --file-system fs1 backup1
+</pre>
+<p></p>
+<pre>                Date/Time      Created        Name     Status
+-------------------------     --------     -------     ------
+2010-09-20 11:50:06-07:00     Manually     backup1     Usable
+</pre>
+<p></p>
+<pre>File system is using object-based snapshots.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-persona-list.html">filesystem-persona-list</a> <a href="../Supervisor/snapshot-create.html">snapshot-create</a> <a href="../Supervisor/snapshot-delete.html">snapshot-delete</a> <a href="../Supervisor/snapshot-delete-all.html">snapshot-delete-all</a> <a href="../Supervisor/snapshot-rename.html">snapshot-rename</a> <a href="../User/snapshot-rule-list.html">snapshot-rule-list</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

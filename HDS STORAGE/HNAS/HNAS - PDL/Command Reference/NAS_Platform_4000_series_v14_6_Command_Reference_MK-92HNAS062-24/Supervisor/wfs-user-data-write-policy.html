@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>wfs-user-data-write-policy</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>wfs-user-data-write-policy</h1>
+<p>Get/Set userdata write policy</p>
+<h1>Syntax</h1>
+<pre>wfs-user-data-write-policy [--set &lt;default|never-overwrite|always-overwrite|sometimes-overwrite&gt;] [--force] &lt;file system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The wfs-user-data-write-policy command can be used to control how overwrites of existing file data are written to disk.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--set, -s</strong></dt>
+<dd><p>Change the user data write policy. If the --set option isn't specified, the currently selected mode is shown.</p></dd>
+<dd><p>The change will not take effect until the file system is next mounted. You can use the --force option to try and force the currently mounted file system to start using the new setting, but it is not always 100% successful!</p></dd>
+<dd><p>Options for --set:</p></dd>
+<dl>
+<dt><strong>never-overwrite</strong></dt>
+<dd><p>File data is always written to new space. This leads to efficient writing, as the server can combine writes to several different files into a contiguous write to the storage, resulting in good stripeset flushing performance. If free space is fragmented, or lots of partial blocks are being written, performance may suffer.</p></dd>
+<dd><p>This is the default option for WFS-2 file systems.</p></dd>
+<dd><p>In WFS-2 file systems, this option allows changes in older checkpoints to be preserved, allowing the administrator to roll back to an older checkpoint if an application's data in the live file system becomes inconsistent.</p></dd>
+<dd><p>This option temporarily consumes additional disk space, as the server needs to allocate a new data block to write the change into, but won't immediately free the old data block.</p></dd>
+<dt><strong>always-overwrite</strong></dt>
+<dd><p>File data overwrites the original data. This can result in small IO's to disk, but with partial block writes does mean the server doesn't need to read the original block to overlay the new data. This option also doesn't consume any additional disk space and so may be a good option for space limited file systems.</p></dd>
+<dd><p>This option does reduce the effectiveness of WFS-2. Note that this option is not supported on a WFS-2 file system that has a reference counted bitmap.</p></dd>
+<dt><strong>sometimes-overwrite</strong></dt>
+<dd><p>This is a combination of the previous two options. In this mode, if an entire block is being overwritten the server will behave in never-overwrite mode, and will write the block to new space. If only a partial block is being overwritten, the server behaves in always-overwrite mode, and writes the data in place to avoid having to read the original block contents. Note that this option is not supported on a WFS-2 file system that has a reference counted bitmap.</p></dd>
+<dt><strong>default</strong></dt>
+<dd><p>Use the default setting for this file system.</p></dd>
+</dl>
+<dt><strong>&lt;file system&gt;</strong></dt>
+<dd><p>Specify the file system you wish to query or change.</p></dd>
+</dl>
+<p>It should be noted that if a data block requires preserving for a snapshot, the server will always write the change to new space regardless of what the write policy mode us, thus preserving the original block contents for the snapshot.</p>
+<h1>Examples</h1>
+<p>To change fs0 to use always-overwrite mode:</p>
+<pre>wfs-user-data-write-policy --set always-overwrite fs0
+</pre>
+<p></p>
+<p>To report the current policy of fs1:</p>
+<pre>wfs-user-data-write-policy fs1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fs-checkpoint-select.html">fs-checkpoint-select</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

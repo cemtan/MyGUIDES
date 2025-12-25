@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>krb5-nfs-principal-format</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>krb5-nfs-principal-format</h1>
+<p>Controls how Kerberos principals are interpreted when used by NFS</p>
+<h1>Syntax</h1>
+<pre>krb5-nfs-principal-format [primary-and-instance|only-primary]
+</pre>
+
+<h1>Description</h1>
+<p>The krb5-nfs-principal-format command controls the way that Kerberos client or user principals are interpreted when used by NFS.</p>
+<p>A Kerberos principal has the form primary/instance@REALM. Kerberos environments differ in the way that the primary and instance parts of the principal are used. To support the differences it is possible to change the way the Kerberos principal is mapped onto a user.</p>
+<p>There are two possible settings:</p>
+<dl>
+<dt><strong>primary-and-instance</strong></dt>
+<dd><p>This is the default setting. The Kerberos principal is unchanged before being mapped onto a user.</p></dd>
+<dt><strong>only-primary</strong></dt>
+<dd><p>If the instance appears to be an FQDN, the Kerberos principal will be changed to primary@REALM before being mapped onto a user. If the instance does not appear to be an FQDN then the principal will be used unchanged. This setting is intended to be used in environments where the same user account is used from different machines, producing multiple Kerberos principals that need to map to a single user e.g.</p></dd>
+<dd><p>root/machine1.example.com@EXAMPLE.COM</p></dd>
+<dd><p>root/machine2.example.com@EXAMPLE.COM</p></dd>
+<dd><p>It is not possible to configure a many-to-one mapping such as this. By using the <strong>only-primary</strong> setting both the principals above would be interpreted as root@EXAMPLE.COM and so would require only a one-to-one mapping.</p></dd>
+<dd><p>In some Kerberos environments the instance is used to indicate some other qualification of the primary e.g.</p></dd>
+<dd><p>user/admin@EXAMPLE.COM</p></dd>
+<dd><p>This usage is supported by the principal not being modified when <strong>only-primary</strong> is set and the instance does not appear to be an FQDN.</p></dd>
+</dl>
+<p><strong>Note:</strong> this configuration should only be modified when first configuring a security context (see '<code>evs-security</code>'). If the setting is changed after Kerberos authentication for NFS has been used with the security context, then a mixture of Kerberos Principal formats could be stored in on-disk security. This is likely to result in users being unable to access files, which would need to be remedied by manually correcting the on-disk security.</p>
+<p>Similarly, releases before the command was introduced (release 13.2.4527.04) only use the default behaviour defined as "primary-and-instance". This needs to be considered if planning a downgrade to an earlier release.</p>
+<h1>Examples</h1>
+<p>To display the current setting:</p>
+<pre>$ krb5-nfs-principal-format
+primary-and-instance
+</pre>
+<p></p>
+<p>To change the setting to <strong>only-primary</strong>:</p>
+<pre>$ krb5-nfs-principal-format only-primary
+only-primary
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/domain-mappings-add.html">domain-mappings-add</a> <a href="../User/evs-security.html">evs-security</a> <a href="../Supervisor/krb5-keytab.html">krb5-keytab</a> <a href="../Supervisor/krb5-realm.html">krb5-realm</a> <a href="../Supervisor/user-mappings-delete.html">user-mappings-delete</a> <a href="../Supervisor/user-mappings-list.html">user-mappings-list</a> <a href="../Supervisor/user-mappings-modify.html">user-mappings-modify</a> <a href="../Supervisor/user-mappings-refresh.html">user-mappings-refresh</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

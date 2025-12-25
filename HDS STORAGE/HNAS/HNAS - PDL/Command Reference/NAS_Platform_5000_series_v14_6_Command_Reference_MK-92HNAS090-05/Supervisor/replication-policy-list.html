@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-policy-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>replication-policy-list</h1>
+<p>List the object replication policies</p>
+<h1>Syntax</h1>
+<pre>replication-policy-list [-n &lt;num-entries&gt;] [&lt;policy id|source fs label&gt;]|[&lt;policy name&gt; &lt;source fs label&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Lists policies for object replication.</p>
+<dl>
+<dt><strong>&lt;policy id&gt;</strong></dt>
+<dd><p>ID of the policy.</p></dd>
+<dt><strong>&lt;policy name&gt;</strong></dt>
+<dd><p>Name of the policy, which must be unique.</p></dd>
+<dt><strong>&lt;source fs label&gt;</strong></dt>
+<dd><p>Source file system label.</p></dd>
+<dt><strong>-n, --max &lt;num-entries&gt;</strong></dt>
+<dd><p>Lists at most num-entries policies.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>replication-policy-list
+</pre>
+<p></p>
+<p>Lists all object replication policies on this EVS.</p>
+<pre>replication-policy-list fs0
+</pre>
+<p></p>
+<p>Lists all object replication policies for source file system fs0.</p>
+<pre>replication-policy-list DefaultPolicy fs0
+</pre>
+<p></p>
+<p>List the object replication policy named 'DefaultPolicy' for source file system fs0.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../Supervisor/replication-policy-create.html">replication-policy-create</a> <a href="../Supervisor/replication-policy-delete.html">replication-policy-delete</a> <a href="../Supervisor/replication-policy-modify.html">replication-policy-modify</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

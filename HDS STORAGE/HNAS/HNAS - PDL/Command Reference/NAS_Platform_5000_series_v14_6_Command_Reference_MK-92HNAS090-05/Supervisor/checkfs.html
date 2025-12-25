@@ -1,0 +1,288 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>checkfs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>checkfs</h1>
+<p>Schedules a check of the specified file system</p>
+<h1>Syntax</h1>
+<pre>checkfs [--abort] [--sanity] [--terse] [--dup-key-check] &lt;file-system&gt;
+Dev-level options: [-u|--wait-for-unmounted] | [-m|--wait-for-mounted] [(-c|--wait-for-completion) | --sync]
+</pre>
+
+<h1>Description</h1>
+<p>Performs a full check of the file system. If there is a problem with the on-disk metadata, checkfs will find it. However, on a large file system checkfs can take a very long time to complete, especially if the file system contains very wide directories.</p>
+<p>If there is any doubt regarding the integrity of the underlying storage layer, then a recursive check-directory from the root directory should always be preferred to running checkfs. This is because checkfs writes to the scratch space located at the end of the file system, and cannot be considered read-only. However, if confidence in the storage is very high and a full check is required, then checkfs is the tool to use for completeness.</p>
+<p>checkfs is an asynchronous utility. It can be run on a mounted or unmounted file system. If the file system is mounted, checkfs will create an internal snapshot and check it. Should the file system be expanded before checkfs has completed then checkfs will abort.</p>
+<p>checkfs does not verify the integrity of user data.</p>
+<p>Users should consult the event log to see the results of the check, or for a more detailed analysis consult the dynamic log.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--terse, -t</strong></dt>
+<dd><p>Produces terse output.</p></dd>
+<dt><strong>--abort, -a</strong></dt>
+<dd><p>Aborts the existing check for the supplied file system.</p></dd>
+<dt><strong>--sanity, -s</strong></dt>
+<dd><p>Checks the superblocks, the format files, then performs a 20-minute check of the file system directory tree before quitting.</p></dd>
+<dt><strong>--dup-key-check</strong></dt>
+<dd><p>Performs duplicate hash key checking on directory trees. This is a particularly resource-hungry check to ensure that no two directory tree nodes contain the same hash value. Only use under the direction of your support provider.</p></dd>
+</dl>
+<h2>Notes on over/under-allocations</h2>
+<p>For checkfs reporting purposes, an allocation is a block of disk space that is in use (allocated).  A block in use has a reference count indicating the number of times the block is referenced (used).</p>
+<p>When a block is initially allocated to store data, its reference count is set to 1. With dedupe enabled, if the same data in the block is used again, the file system will simply re-use the same block and increment its reference count by one. For this reason, if the reference count is greater than 1, the excess value is called the deduped block count. For instance, if a block has a reference count of 10, it can be interpreted that the file system initially allocated 10 blocks which contained identical data. Later the file system deduped out 9 blocks by keeping only 1 block and setting its reference count to 10. So in the end only one physical block is allocated, not 10, plus 9 references to the same block.</p>
+<p>When a data block is removed, the file system will simply decrement its reference count by one and if the new reference count reaches zero, it will free the block, i.e., returning it to the freed blocks pool.</p>
+<p>The free space allocator (FSA) maintains a bitmap that contains allocation information of all individual blocks in the file system. For WFS-2 with dedupe support, the information of each block is stored in a 8-bit unit that encodes the type of the block (data or metadata) and the reference count. Without dedupe support, the information is stored in a 2-bit unit that encodes the data type (unallocated, data, metadata, snapshot). Each block of the FSA bitmap stores only 2K (2048 bytes) of allocation status information. In other words, each FSA block contains the allocation information for 2048 blocks for dedupe-supported file systems, or 8192 blocks for file systems without dedupe support.</p>
+<p>In order to check the integrity of the FSA bitmap, checkfs first reads all objects in the entire file system (by walking from the root directory) and builds its own version of the FSA bitmap from the information of individual blocks recorded in the file system.  This special bitmap, hereafter referred to as the checkfs private bitmap, is temporarily stored at the end of the file system and is considered correct.  Checkfs then compares the FSA bitmap and its private bitmap, chunk by chunk, to find out the discrepancies and report them.</p>
+<p>The following warnings/errors will be reported by checkfs:</p>
+<h2>1. Over-allocation warning</h2>
+<p>Over-allocation occurs when the FSA bitmap reports more blocks in use than the value computed by checkfs (i.e., the value obtained from the checkfs private bitmap). Over-allocation is not a serious error condition because it merely causes the file system to allocate fewer blocks than the number of free blocks actually available.  This causes space leakage but no data overwrite, no harm, so checkfs reports this as a warning.</p>
+<h2>2. Under-allocation error</h2>
+<p>This condition occurs when the FSA reports fewer blocks in use than the value computed by checkfs. This results in an error condition because it may cause the file system to allocate more blocks than the number of free blocks actually available. This can lead to data overwrite, hence error.</p>
+<h2>3. Over-reference (a.k.a. over-dedupe) warning</h2>
+<p>A block is over-referenced when its reference count obtained from the FSA bitmap is larger than the reference count from the checkfs private bitmap. Over-reference is not a serious error condition because it merely causes space leakage, so checkfs reports this as a warning.</p>
+<h2>4. Under-reference (a.k.a. under-dedupe) error</h2>
+<p>A block is under-referenced when its reference count obtained from the FSA bitmap is smaller than the value obtained from the checkfs private bitmap. This results in an error condition because it can cause the file system to wrongly free the block when the reference count from the FSA bitmap reaches zero while it is actually still in use.</p>
+<h2>5. Over/Under-allocation reporting</h2>
+<p>If the allocation status of a file system block in the FSA bitmap is wrong (i.e., inconsistent with the checkfs private bitmap), checkfs will report it as a group of 3 numbers as follows:</p>
+<pre>                 "SectorAddress (recordedRefCount/actualRefCount)"
+</pre>
+<p></p>
+<p>where</p>
+
+<dl>
+<dt><strong>SectorAddress</strong></dt>
+<dd><p>Sector address of the block whose allocation status in the bitmap is incorrect. If the block number is N and the block size is B bytes, the starting sector number of this block is N*B/512. The allocation status for block N is stored in a 2-KiB chunk in FSA bitmap block M = N/2048 for dedupe-supported file systems, or M = N/8192 for file systems without dedupe support.</p></dd>
+<dt><strong>recordedRefCount (a.k.a. correctRefCount)</strong></dt>
+<dd><p>The reference count recorded in the checkfs private bitmap. This information is recorded in the metadata of each object, which will be read by checkfs when it walks the entire file system to build its private copy of the bitmap. Thus, this count is considered correct.</p></dd>
+<dt><strong>actualRefCount (a.k.a. FSARefCount)</strong></dt>
+<dd><p>The reference count found in the FSA bitmap.  It is called 'actual' because the free space allocator chip actually relies on this information to manage block allocation, without recounting the total number of references each and every time it tries to allocate a block.</p></dd>
+</dl>
+
+<p>For simplicity, the extra information in parentheses, "(recordedRefCount/actualRefCount)", will be omitted if it is (1/0) or (0/1). In general, checkfs lumps both physical over-allocations and over-references (no new physically allocated blocks) into the over-allocation category.  Similarly for under-allocations and under-references.</p>
+<p>As explained above, a block reference count of 10 consists of one physical block allocation plus 9 additional references to the same block. The reference numbers 2 to 10 are called strict reference counts. The following table explains the terminology:</p>
+<pre>    ---------------------------------------------------------------------------------------------
+       Total       Physical    Strict    |
+     reference    allocation  reference  | Explanation
+       count       count       count     |
+    ----------------------------------------------------------------------------------------------
+          0          0           0       | Block is free (unallocated)
+          1          1           0       | Block is allocated for the first time
+         n&gt;1         1          n-1      | Block is allocated and has n-1 strict references.
+    ----------------------------------------------------------------------------------------------
+</pre>
+<p></p>
+<p>Thus, if a block has a reference count mismatch between the FSA bitmap and the checkfs private bitmap, the mismatch can come from the physical allocation count and/or the strict reference counts.</p>
+<p>The following example explains how checkfs reports over/under-allocation conditions.</p>
+<p>Suppose checkfs finds out that bitmap block #0 has inconsistent allocation information for three file system blocks located at sectors 0x2100, 0x2200, and 0x2300. For simplicity, let's assume all the discrepancies are identical. Depending on the values of the reference counts, checkfs will report differently as follows:</p>
+<pre>               Reference counts for block located at sector number 0x2100
+    -----------------------------------------------------------------------------------------
+      checkfs |  FSA   | Explanation
+    -------------------|---------------------------------------------------------------------
+         0    |   1    | FSA over-counts the number of physical allocations (1 vs 0).
+              |        | Thus, bitmap block #0 has
+              |        |      3 over-allocations:
+              |        |        0x2100, 0x2200, 0x2300
+              |        |
+         0    |   3    | The FSA over-counts the physical allocations (1 vs 0) and the
+              |        | additional references (2 vs 0).  Thus, bitmap block #0 has
+              |        |      9 over-allocations (6 of 9 are over-references):
+              |        |        0x2100 (0/3), 0x2200 (0/3), 0x2300 (0/3)
+              |        |
+         3    |   9    | checkfs and FSA agree on the number of physical allocations (1 vs 1).
+              |        | But FSA over-counts the strict reference counts (2 vs 8).
+              |        | Thus, bitmap block #0 has
+              |        |      18 over-allocations (18 of 18 are over-references):
+              |        |        0x2100 (3/9), 0x2200 (3/9), 0x2300 (3/9)
+              |        |
+         1    |   0    | FSA under-counts the number of allocations (0 vs 1).
+              |        | Thus, bitmap block #0 has
+              |        |      3 under-allocations
+              |        |        0x2100, 0x2200, 0x2300
+              |        |
+         3    |   0    | FSA under-counts the physical allocation (0 vs 1) and the
+              |        | additional references (0 vs 2).  Thus, bitmap block #0 has
+              |        |      9 under-allocations:
+              |        |        0x2100 (3/0), 0x2200 (3/0), 0x2300 (3/0)
+              |        |
+         7    |   5    | checkfs and FSA agree on the number of physical allocations (1 vs 1).
+              |        | But FSA under-counts the strict reference counts (6 vs 4).
+              |        | Thus, bitmap block #0 has
+              |        |      6 under-allocations:
+              |        |        0x2100 (7/5), 0x2200 (7/5), 0x2300 (7/5)
+    -----------------------------------------------------------------------------------------
+</pre>
+<p></p>
+<h2>Allocation discrepancy warnings due to file system conversion to support dedupe</h2>
+<p>The conversion process to support dedupe may leave behind some discrepancies in the interest of speed. These discrepancies correspond to snapshot blocks existing at the time of conversion. After conversion, checkfs reports these as "allocation type discrepancies possibly due to conversion to support dedupe". It also logs error details for each block. These discrepancies will disappear when the corresponding snapshot blocks get freed up. Delete all pre-conversion snapshots and run fs-recover-space to get rid of conversion-related discrepancies of this type sooner. If a listed block does not belong to a pre-conversion snapshot, it is a non-conversion-related genuine discrepancy needing attention.</p>
+<h1>Examples</h1>
+<p>To perform a full check of a 4-KB dedupe-supported file system, say fs1:</p>
+<pre>    $ checkfs fs1
+</pre>
+<p></p>
+<pre>    . . . . . . . . . . . . . . . . . . .
+    checkfs/fs1: Checking Disk Allocations...
+    checkfs/fs1: Analyzing allocations...
+    checkfs/fs1: Over/Under-allocations are listed below as SectorAddress (recordedRefCount/actualRefCount):
+    checkfs/fs1:
+    checkfs/fs1: 3 allocation discrepancies found in FSA 2K block 14   &lt;== total mismatchs in block 14
+    checkfs/fs1:   3 over-allocations (3 of 3 are over-references):    &lt;== type of mismatch
+    checkfs/fs1:     0x38268 (1/4),                                    &lt;== list of mismatches
+    checkfs/fs1:
+    checkfs/fs1: Total under-allocations     : 0
+    checkfs/fs1: Total wrong-type allocations: 0
+    checkfs/fs1: Total over-allocations      : 3 (12 KB) [3 of 3 are over-references]  &lt;== total mismatches in the entire bitmap
+    checkfs/fs1: Checking Allocation Totals...
+    . . . . . . . . . . . . . . . . . . .
+</pre>
+<p></p>
+<p>Explanation:</p>
+<p>* FSA 2K block 14:</p>
+<p>The free space bitmap contains wrong allocation information for the file system block at sector 0x38268. The sector is the start of block number N = 0x38268*512/4096 = 28749. The allocation information for this block is stored in the bitmap block number M = 28749/2048 = 14.</p>
+<p>* 0x38268 (1/4)</p>
+<p>This notation means the file system block at sector 0x38268 has a recorded reference count of 1 (correct, obtained by walking the entire file system) and actual reference count of 4 in the FSA bitmap. In other words, the FSA bitmap says block N = 28749 is allocated with a reference count of 4 but checkfs finds out this block has a reference count of 1. Thus, the FSA bitmap over-counts 3 over-references.</p>
+<p>Because the entire bitmap block #14 contains only one block with wrong reference counts, checkfs reports as follows:</p>
+<pre>    checkfs/fs1: 3 allocation discrepancies found in FSA 2K block 14
+    checkfs/fs1:   3 over-allocations (3 of 3 are over-references):
+    checkfs/fs1:     0x38268 (1/4),
+</pre>
+<p></p>
+<p>Sample checkfs command output:</p>
+<pre>    $ checkfs fs2
+    Information: File System: Scheduling checkfs on file system fs2.
+    Information: File System: Checking file system fs2.
+    Request to check file system submitted successfully. An event will be raised when the process is complete
+    mercury2n11[mercury2n11-s]:$ checkfs/fs2: checkfs fs2
+    checkfs/fs2:
+    checkfs/fs2:   FS Version   : WFS-2
+    checkfs/fs2:   FS Block Size: 32KB
+    checkfs/fs2:   DSB Count    : 128
+    checkfs/fs2: Checking DynamicSuperBlocks...
+    checkfs/fs2: Checking WFSZeroFilledBlock...
+    checkfs/fs2: Checking WFSFSAZeroFilledBlock...
+    checkfs/fs2: Latest DSB has checkpoint number: 0x18b51
+    checkfs/fs2: CFSVolumeControl: Opened volume (3) for write access
+    WFS2::View::ReadLiveDSB() for snapshot with checkpoint number 101202, DSB index 57.
+    Information: Snapshot created ("checkfs/fs2" on fs2).
+    checkfs/fs2: Checking WFSZeroFilledBlock...
+    checkfs/fs2: Checking WFSFSAZeroFilledBlock...
+    checkfs/fs2: Using DSB with checkpoint number: 0x18b52
+    checkfs/fs2: Checking WFSZeroFilledBlock...
+    checkfs/fs2: Checking WFSFSAZeroFilledBlock...
+    checkfs/fs2: Using DSB with checkpoint number: 0x18b52
+    checkfs/fs2: Initializing FSA bitmap cache...
+    checkfs/fs2: Checking Free Space Bitmap ObjStore...
+    checkfs/fs2: Initializing Indirection Object cache...
+    checkfs/fs2: Checking Indirection Object ObjStore...
+    checkfs/fs2: Initializing disk cache at 0x480000000 length = 0x24000 bytes...
+    checkfs/fs2: Initializing disk cache at 0x480024000 length = 0x871 bytes...
+    checkfs/fs2: Checking Persona...
+    checkfs/fs2: Checking Auxiliary Persona...
+    checkfs/fs2: Object-number: 0x13 does not resolve to a root onode
+    checkfs/fs2: 0x0 (unused) (Type: (::WfsObjectType(0 == 0x0))) (Checkpoint: 0x0)
+    checkfs/fs2: Checking Hidden File System Objects...
+    checkfs/fs2: Checking Format Files...
+    checkfs/fs2:   Checking Free Object Number List...
+    checkfs/fs2:   Searching for Leaked Object Numbers...
+    checkfs/fs2:   Checking Freed Blocks Lists...
+    checkfs/fs2:   Checking Freed Blocks List Validators...
+    checkfs/fs2:   Checking Snapshot List...
+    checkfs/fs2:   Checking Snapshot List Records...
+    checkfs/fs2:   Checking Secondary Free Space...
+    checkfs/fs2:   Checking Virtual Volume Configuration...
+    checkfs/fs2:   Checking Quota Usage Configuration...
+    checkfs/fs2:   Checking Quota Tracking Configuration...
+    checkfs/fs2:   Checking Quota Constraint Configuration...
+    checkfs/fs2:   Checking Record File...
+    checkfs/fs2:   Checking Restore List...
+    checkfs/fs2:   Checking Registry Copy...
+    checkfs/fs2: Object-number: 0x10 does not resolve to a root onode
+    checkfs/fs2: 0x0 (unused) (Type: (::WfsObjectType(0 == 0x0))) (Checkpoint: 0x0)
+    checkfs/fs2:   Checking Source Registry Copy...
+    checkfs/fs2: Object-number: 0x11 does not resolve to a root onode
+    checkfs/fs2: 0x0 (unused) (Type: (::WfsObjectType(0 == 0x0))) (Checkpoint: 0x0)
+    checkfs/fs2:   Checking Dedupe Config Object...
+    checkfs/fs2: Object-number: 0x12 does not resolve to a root onode
+    checkfs/fs2: 0x0 (unused) (Type: (::WfsObjectType(0 == 0x0))) (Checkpoint: 0x0)
+    checkfs/fs2:   Checking Dedupe Index...
+    checkfs/fs2: Object-number: 0x15 does not resolve to a root onode
+    checkfs/fs2: 0x0 (unused) (Type: (::WfsObjectType(0 == 0x0))) (Checkpoint: 0x0)
+    checkfs/fs2:   Checking NDMP Hardlink Set...
+    checkfs/fs2: Object-number: 0x14 does not resolve to a root onode
+    checkfs/fs2: 0x0 (unused) (Type: (::WfsObjectType(0 == 0x0))) (Checkpoint: 0x0)
+    checkfs/fs2:   Checking Truncate List...
+    checkfs/fs2:   Checking Truncate List Records...
+    checkfs/fs2: Checking File System Tree...
+    checkfs/fs2: Checking Hard Link Counts...
+    checkfs/fs2: Checking Disk Allocations...
+    checkfs/fs2: Analyzing allocations (comparing info recorded in file system and actual FSA bitmap) ...
+    checkfs/fs2:   No allocation discrepancies were found
+    checkfs/fs2:   FSA Cache Hits: 17190. FSA Cache Misses: 37.
+    checkfs/fs2:
+    checkfs/fs2: Checking Allocation Totals (comparing DSB counts and actual counts calculated by walking file system)...
+    checkfs/fs2:   Allocation Totals Breakdown
+    checkfs/fs2:   ---------------------------
+    checkfs/fs2:   DSB totals
+    checkfs/fs2:   ----------
+    checkfs/fs2:     Blocks in use         : 12531
+    checkfs/fs2:     Snapshot blocks       : 0
+    checkfs/fs2:     Sparse blocks in use  : 0
+    checkfs/fs2:     Allocated in live FS  : 12531
+    checkfs/fs2:
+    checkfs/fs2:   Actual totals calculated
+    checkfs/fs2:   ------------------------
+    checkfs/fs2:     Blocks in use         : 12531
+    checkfs/fs2:     Snapshot blocks       : 0
+    checkfs/fs2:     Sparse blocks in use  : 0
+    checkfs/fs2:     Allocated in live FS  : 12531
+    checkfs/fs2:
+    Information: Snapshot marked for deletion ("checkfs/fs2" on fs2).
+    checkfs/fs2: CFSVolumeOpener: Closing volume (3)
+    Information: File System: checkfs took 676.2 ms on file system fs2, 18 GB (19327352832 B) (32K blocks), 2% full excluding snapshots, 3 directories and 1 files of other types.
+    checkfs/fs2:
+    checkfs/fs2: -------------- Report for checkfs on file system: fs2 --------------
+    checkfs/fs2: 3 directories and 1 files of other types checked
+    checkfs/fs2: CheckingFormat (phase 1 of 6) complete (436.7 ms)
+    checkfs/fs2: CheckingHiddenFileSystemObjects (phase 2 of 6) complete (168.6 ms)
+    checkfs/fs2: CheckingFileSystemTree (phase 3 of 6) complete (3.341 ms)
+    checkfs/fs2: CheckingFreeRootOnodeLists (phase 4 of 6) - skipped
+    checkfs/fs2: CheckingHardLinkCounts (phase 5 of 6) complete (52.16 us)
+    checkfs/fs2: CheckingAllocations (phase 6 of 6) complete (67.59 ms)
+    checkfs/fs2:
+    checkfs/fs2: File counts by type should be accurate as counted by checkfs:
+    checkfs/fs2: File counts:
+    checkfs/fs2:   Regular              : 1
+    checkfs/fs2:   Directory            : 3
+    checkfs/fs2:   All files excluding directories : 1
+    checkfs/fs2:   All files including directories : 4
+    checkfs/fs2:
+    checkfs/fs2: Result of FS check on file system fs2: CheckedOk
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/check-directory.html">check-directory</a> <a href="../Supervisor/dynamic-log-dump.html">dynamic-log-dump</a> <a href="../Dev/fixfs.html">fixfs</a> <a href="../Supervisor/fs-cancel-queued-task.html">fs-cancel-queued-task</a> <a href="../Supervisor/fs-recover-space.html">fs-recover-space</a> <a href="../Supervisor/fs-show-queued-tasks.html">fs-show-queued-tasks</a> <a href="../Supervisor/utility-progress.html">utility-progress</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

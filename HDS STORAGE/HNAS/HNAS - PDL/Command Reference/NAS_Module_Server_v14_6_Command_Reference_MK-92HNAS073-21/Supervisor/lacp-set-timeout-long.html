@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>lacp-set-timeout-long</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>lacp-set-timeout-long</h1>
+<p>Select long LACP timeout</p>
+<h1>Syntax</h1>
+<pre>lacp-set-timeout-long &lt;interface&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The 'lacp-set-timeout-short', 'lacp-set-timeout-long' and 'lacp-set-timeout-default' commands configure the LACP Timeout parameter for an aggregation. The default LACP Timeout configuration uses a short timeout.</p>
+<p>Changing the LACP Timeout value for an active aggregation may cause a temporary change to the link state resulting in a short interruption of service to any EVS using the aggregation.</p>
+<p>To display the configuration use the 'lacp-show' command.</p>
+<h1>Examples</h1>
+<p>To configure use of a long LACP Timeout for an aggregation:</p>
+<pre>    lacp-set-timeout-long ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/lacp-set-timeout-default.html">lacp-set-timeout-default</a> <a href="../Supervisor/lacp-set-timeout-short.html">lacp-set-timeout-short</a> <a href="../Supervisor/lacp-show.html">lacp-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

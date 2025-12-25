@@ -1,0 +1,346 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-list-chunks</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-list-chunks</h1>
+<p>List all chunks in a span or a filesystem</p>
+<h1>Syntax</h1>
+<pre>span-list-chunks [--terse | --used | --unused] &lt;span-instance-name&gt;
+Alias:       chunks
+</pre>
+
+<h1>Description</h1>
+<p>(This man page includes wide output.  You may wish to widen your terminal window and use 'man -n'.)</p>
+<p>This command is intended for use by your support provider.  It lists the chunks of space used in a span or a filesystem.  (You can optionally use the 'filesystem-list-chunks' alias for this command when working with filesystems.)</p>
+<p>If you provide a span instance name, the command lists every chunk used in the span -- even those not used in filesystems -- and chunks are listed in the order in which they appear in the span.  If you provide a filesystem instance name, the command lists just the chunks used in the specified filesystem, and it lists them in the order in which they are used in the filesystem.  If you provide a span instance name and a permanent filesystem ID taken from 'span-list-recycle-bin', 'span-list-chunks' lists the chunks used by the deleted filesystem you have specified.</p>
+<p>Listings are more than 80 columns wide, and are best viewed in a wide console or terminal.</p>
+<p>The fields printed in the table are described below.  The order in which they are displayed depends on whether you specify a span or a filesystem.  Byte offsets and capacities are shown in hex; other numbers are decimal.</p>
+<dl>
+<dt><strong>Span #, Fs #</strong></dt>
+<dd><p>Shows the position that the chunk occupies in the span and the filesystem.  These numbers will usually differ: the third chunk in a filesystem might be, say, the seventh chunk in the span.</p></dd>
+<dt><strong>Set</strong></dt>
+<dd><p>Shows the stripeset from which the space is taken.</p></dd>
+<dt><strong>Set Start, Set End</strong></dt>
+<dd><p>The byte offsets at which the chunk starts and stops in the stripeset.  There will be one chunk starting at zero for each stripeset in the span.</p></dd>
+<dt><strong>Fs Start, Fs End</strong></dt>
+<dd><p>Shows the byte offsets at which the chunk starts and stops in the filesystem.  Because the space in each filesystem starts at offset zero and is contiguous, offsets within the filesystem won't usually be the same as those within the span.</p></dd>
+<dt><strong>Fs label</strong></dt>
+<dd><p>Shows the instance name of the filesystem that uses the chunk.  Appears only when you list the chunks in a span.</p></dd>
+</dl>
+<p>To see the same offsets expressed differently, you can use the '*-offset-translate' commands in any of the following ways:</p>
+<pre>span-chunk-translate-offset &lt;span-instance-name&gt; &lt;Span #&gt;
+</pre>
+<p></p>
+<pre>stripeset-translate-offset &lt;span-instance-name&gt; &lt;Set&gt; &lt;Set Start or Set End&gt;
+</pre>
+<p></p>
+<pre>filesystem-translate-offset &lt;fs-instance-name&gt; &lt;Fs start or Fs end&gt;
+</pre>
+<p></p>
+<p>When listing the chunks in a span, you can issue the --used switch to see only chunks that are used in filesystems or the --unused switch to see only chunks not currently in use.  To see all the chunks in a single filesystem, but from a span's point of view, list all used chunks in the span and pipe the output through grep.</p>
+<p>The --terse switch makes the command print only the first and last chunks of any run of chunks that follow one another consecutively, both in span space and in filesystem space.  Chunks other than the first and last in each run are not printed.  Two chunks are consecutive in span space if the second chunk begins where the first chunk ends.  Two chunks are consecutive in filesystem space if either</p>
+<ul>
+<li>Both chunks are in the same filesystem, and the second chunk begins where the first chunk ends, or</li>
+<li>Neither chunk is used in a filesystem.</li>
+</ul>
+<p>Because a span's chunk can occur in any order in a filesystem, two chunks may be consecutive in span space without being consecutive in filesystem space, or vice versa.</p>
+<p>The last chunk in the listing is always shown, because it always ends the last run of chunks in the span or filesystem.</p>
+<p>Only one of --terse, --used and --unused may be specified.</p>
+<h1>Examples</h1>
+<p>The following listing is made from the span's point of view, and shows how each of the span's chunks either forms part of a filesystems or stands unused:</p>
+<pre>server:$ span-list-chunks duo | head -45
+Span Duo has capacity 0x53b52000000
+</pre>
+<p></p>
+<pre>Span#  Set  Set Start       Set End         FS#    Fs Start        Fs End          Fs instance name
+-----  ---  --------------  --------------  -----  --------------  --------------  ----------------
+    0    0  0x000000000000  0x000156800000      0  0x000000000000  0x000156800000  Alpha
+    1    0  0x000156800000  0x0002AD000000      1  0x000156800000  0x0002AD000000  Alpha
+    2    0  0x0002AD000000  0x000403800000      2  0x0002AD000000  0x000403800000  Alpha
+    3    0  0x000403800000  0x00055A000000      3  0x000403800000  0x00055A000000  Alpha
+    4    0  0x00055A000000  0x0006B0800000
+    5    0  0x0006B0800000  0x000807000000
+    6    0  0x000807000000  0x00095D800000
+    7    0  0x00095D800000  0x000AB4000000
+    8    0  0x000AB4000000  0x000C0A800000
+    9    0  0x000C0A800000  0x000D61000000
+   10    0  0x000D61000000  0x000EB7800000
+   11    0  0x000EB7800000  0x00100E000000
+   12    0  0x00100E000000  0x001164800000
+   13    0  0x001164800000  0x0012BB000000
+   14    0  0x0012BB000000  0x001411800000
+   15    0  0x001411800000  0x001568000000
+   16    0  0x001568000000  0x0016BE800000      0  0x000000000000  0x000156800000  Bravo
+   17    0  0x0016BE800000  0x001815000000      1  0x000156800000  0x0002AD000000  Bravo
+   18    0  0x001815000000  0x00196B800000      2  0x0002AD000000  0x000403800000  Bravo
+   19    0  0x00196B800000  0x001AC2000000      3  0x000403800000  0x00055A000000  Bravo
+   20    0  0x001AC2000000  0x001C18800000
+   21    0  0x001C18800000  0x001D6F000000
+   22    0  0x001D6F000000  0x001EC5800000
+   23    0  0x001EC5800000  0x00201C000000
+   24    0  0x00201C000000  0x002172800000
+   25    0  0x002172800000  0x0022C9000000
+   26    0  0x0022C9000000  0x00241F800000
+   27    0  0x00241F800000  0x002576000000
+   28    0  0x002576000000  0x0026CC800000
+   29    0  0x0026CC800000  0x002823000000
+   30    0  0x002823000000  0x002979800000
+   31    0  0x002979800000  0x002AD0000000
+   32    0  0x002AD0000000  0x002C26800000      0  0x000000000000  0x000156800000  Charlie
+   33    0  0x002C26800000  0x002D7D000000      1  0x000156800000  0x0002AD000000  Charlie
+   34    0  0x002D7D000000  0x002ED3800000      2  0x0002AD000000  0x000403800000  Charlie
+   35    0  0x002ED3800000  0x00302A000000      3  0x000403800000  0x00055A000000  Charlie
+   36    0  0x00302A000000  0x003180800000
+   37    0  0x003180800000  0x0032D7000000
+   38    0  0x0032D7000000  0x00342D800000
+   39    0  0x00342D800000  0x003584000000
+   40    0  0x003584000000  0x0036DA800000
+server:$
+</pre>
+<p></p>
+<p>In many cases, only used chunks are interesting:</p>
+<pre>server:$ span-list-chunks --used duo
+Span Duo has capacity 0x53b52000000
+</pre>
+<p></p>
+<pre>Span#  Set  Set Start       Set End         FS#    Fs Start        Fs End          Fs instance name
+-----  ---  --------------  --------------  -----  --------------  --------------  ----------------
+    0    0  0x000000000000  0x000156800000      0  0x000000000000  0x000156800000  Alpha
+    1    0  0x000156800000  0x0002AD000000      1  0x000156800000  0x0002AD000000  Alpha
+    2    0  0x0002AD000000  0x000403800000      2  0x0002AD000000  0x000403800000  Alpha
+    3    0  0x000403800000  0x00055A000000      3  0x000403800000  0x00055A000000  Alpha
+    5    0  0x0006B0800000  0x000807000000      4  0x00055A000000  0x0006B0800000  Alpha
+    6    0  0x000807000000  0x00095D800000      5  0x0006B0800000  0x000807000000  Alpha
+    7    0  0x00095D800000  0x000AB4000000      6  0x000807000000  0x00095D800000  Alpha
+   10    0  0x000D61000000  0x000EB7800000      7  0x00095D800000  0x000AB4000000  Alpha
+   11    0  0x000EB7800000  0x00100E000000      8  0x000AB4000000  0x000C0A800000  Alpha
+   16    0  0x001568000000  0x0016BE800000      0  0x000000000000  0x000156800000  Bravo
+   17    0  0x0016BE800000  0x001815000000      1  0x000156800000  0x0002AD000000  Bravo
+   18    0  0x001815000000  0x00196B800000      2  0x0002AD000000  0x000403800000  Bravo
+   19    0  0x00196B800000  0x001AC2000000      3  0x000403800000  0x00055A000000  Bravo
+   20    0  0x001AC2000000  0x001C18800000      9  0x000C0A800000  0x000D61000000  Alpha
+   32    0  0x002AD0000000  0x002C26800000      0  0x000000000000  0x000156800000  Charlie
+   33    0  0x002C26800000  0x002D7D000000      1  0x000156800000  0x0002AD000000  Charlie
+   34    0  0x002D7D000000  0x002ED3800000      2  0x0002AD000000  0x000403800000  Charlie
+   35    0  0x002ED3800000  0x00302A000000      3  0x000403800000  0x00055A000000  Charlie
+</pre>
+<p></p>
+<pre>Consider also:
+span-space-distribution Duo
+server:$
+</pre>
+<p></p>
+<p>It is also possible to produce a list of unused chunks:</p>
+<pre>server:$ span-list-chunks --unused duo | head
+Span Duo has capacity 0x53b52000000
+</pre>
+<p></p>
+<pre>Span#  Set  Set Start       Set End         FS#    Fs Start        Fs End          Fs instance name
+-----  ---  --------------  --------------  -----  --------------  --------------  ----------------
+    4    0  0x00055A000000  0x0006B0800000
+    8    0  0x000AB4000000  0x000C0A800000
+    9    0  0x000C0A800000  0x000D61000000
+   12    0  0x00100E000000  0x001164800000
+   13    0  0x001164800000  0x0012BB000000
+   14    0  0x0012BB000000  0x001411800000
+server:$
+</pre>
+<p></p>
+<p>Large filesystems often contain long runs of chunks.  In these cases, one is often more interested in the runs themselves, and in how they are distributed among the span's stripesets, than in individual chunks.  One can focus on runs of consecutive chunks by supplying the --terse switch:</p>
+<pre>server:$ span-list-chunks --terse foo
+Span foo has capacity 0x53b52000000
+</pre>
+<p></p>
+<pre>Span#  Set  Set Start       Set End         FS#    Fs Start        Fs End          Fs instance name
+-----  ---  --------------  --------------  -----  --------------  --------------  ----------------
+    0    0  0x000000000000  0x00003FC00000      0  0x000000000000  0x00003FC00000  Echo
+...
+  101    0  0x001926C00000  0x001966800000    101  0x001926C00000  0x001966800000  Echo
+  102    0  0x001966800000  0x0019A6400000    453  0x0070CEC00000  0x00710E800000  Delta
+...
+  552    0  0x008976000000  0x0089B5C00000    903  0x00E0DE400000  0x00E11E000000  Delta
+  553    0  0x0089B5C00000  0x0089F5800000    252  0x003EC1000000  0x003F00C00000  Foxtrot
+...
+  802    0  0x00C7B7800000  0x00C7F7400000    501  0x007CC2C00000  0x007D02800000  Foxtrot
+  803    0  0x00C7F7400000  0x00C837000000
+...
+ 2678    0  0x029AE2800000  0x029DA9000000
+ 2679    1  0x000000000000  0x00003FC00000    102  0x001966800000  0x0019A6400000  Echo
+...
+ 2777    1  0x001867800000  0x0018A7400000    200  0x0031CE000000  0x00320DC00000  Echo
+ 2778    1  0x0018A7400000  0x0018E7000000      0  0x000000000000  0x00003FC00000  Delta
+...
+ 3230    1  0x008936400000  0x008976000000    452  0x00708F000000  0x0070CEC00000  Delta
+ 3231    1  0x008976000000  0x0089B5C00000      0  0x000000000000  0x00003FC00000  Foxtrot
+...
+ 3482    1  0x00C7F7400000  0x00C837000000    251  0x003E81400000  0x003EC1000000  Foxtrot
+ 3483    1  0x00C837000000  0x00C876C00000
+...
+ 5357    1  0x029AE2800000  0x029DA9000000
+</pre>
+<p></p>
+<pre>Consider also:
+span-space-distribution foo
+server:$
+</pre>
+<p></p>
+<p>This listing shows that the span's first 102 chunks are allocated, consecutively, to filesystem Echo; that chunks 102 to 552 are allocated, consecutively, to filesystem Delta; and that chunks 803 to 2678 are currently unused.</p>
+<p>One can also list chunks from the perspective of a filesystem:</p>
+<pre>server:$ filesystem-list-chunks golf
+Filesystem Golf of capacity 0x877800000
+resides on span Bar of capacity 0x53b52000000
+</pre>
+<p></p>
+<pre>Fs#    Fs Start        Fs End          Span#  Set  Set Start       Set End
+-----  --------------  --------------  -----  ---  --------------  --------------
+    0  0x000000000000  0x00003FC00000      0    0  0x000000000000  0x00003FC00000
+    1  0x00003FC00000  0x00007F800000      1    0  0x00003FC00000  0x00007F800000
+    2  0x00007F800000  0x0000BF400000      2    0  0x00007F800000  0x0000BF400000
+    3  0x0000BF400000  0x0000FF000000      3    0  0x0000BF400000  0x0000FF000000
+    4  0x0000FF000000  0x00013EC00000      4    0  0x0000FF000000  0x00013EC00000
+    5  0x00013EC00000  0x00017E800000      5    0  0x00013EC00000  0x00017E800000
+    6  0x00017E800000  0x0001BE400000      6    0  0x00017E800000  0x0001BE400000
+    7  0x0001BE400000  0x0001FE000000      7    0  0x0001BE400000  0x0001FE000000
+    8  0x0001FE000000  0x00023DC00000      8    0  0x0001FE000000  0x00023DC00000
+    9  0x00023DC00000  0x00027D800000      9    0  0x00023DC00000  0x00027D800000
+   10  0x00027D800000  0x0002BD400000     10    0  0x00027D800000  0x0002BD400000
+   11  0x0002BD400000  0x0002FD000000     11    0  0x0002BD400000  0x0002FD000000
+   12  0x0002FD000000  0x00033CC00000     12    0  0x0002FD000000  0x00033CC00000
+   13  0x00033CC00000  0x00037C800000     13    0  0x00033CC00000  0x00037C800000
+   14  0x00037C800000  0x0003BC400000     14    0  0x00037C800000  0x0003BC400000
+   15  0x0003BC400000  0x0003FC000000     15    0  0x0003BC400000  0x0003FC000000
+   16  0x0003FC000000  0x00043BC00000     16    0  0x0003FC000000  0x00043BC00000
+   17  0x00043BC00000  0x00047B800000     17    0  0x00043BC00000  0x00047B800000
+   18  0x00047B800000  0x0004BB400000     18    0  0x00047B800000  0x0004BB400000
+   19  0x0004BB400000  0x0004FB000000   2695    1  0x0003FC000000  0x00043BC00000
+   20  0x0004FB000000  0x00053AC00000   2696    1  0x00043BC00000  0x00047B800000
+   21  0x00053AC00000  0x00057A800000   2697    1  0x00047B800000  0x0004BB400000
+   22  0x00057A800000  0x0005BA400000   2698    1  0x0004BB400000  0x0004FB000000
+   23  0x0005BA400000  0x0005FA000000   2699    1  0x0004FB000000  0x00053AC00000
+   24  0x0005FA000000  0x000639C00000   2700    1  0x00053AC00000  0x00057A800000
+   25  0x000639C00000  0x000679800000   2701    1  0x00057A800000  0x0005BA400000
+   26  0x000679800000  0x0006B9400000   2702    1  0x0005BA400000  0x0005FA000000
+   27  0x0006B9400000  0x0006F9000000   2703    1  0x0005FA000000  0x000639C00000
+   28  0x0006F9000000  0x000738C00000   2704    1  0x000639C00000  0x000679800000
+   29  0x000738C00000  0x000778800000   2705    1  0x000679800000  0x0006B9400000
+   30  0x000778800000  0x0007B8400000   2706    1  0x0006B9400000  0x0006F9000000
+   31  0x0007B8400000  0x0007F8000000   2707    1  0x0006F9000000  0x000738C00000
+   32  0x0007F8000000  0x000837C00000   2708    1  0x000738C00000  0x000778800000
+   33  0x000837C00000  0x000877800000   2709    1  0x000778800000  0x0007B8400000
+</pre>
+<p></p>
+<pre>Consider also:
+span-space-distribution Bar
+server:$
+</pre>
+<p></p>
+<p>When this level of detail is excessive, one can focus on runs instead:</p>
+<pre>server:$ filesystem-list-chunks --terse golf
+Filesystem Golf of capacity 0x877800000
+resides on span Bar of capacity 0x53b52000000
+</pre>
+<p></p>
+<pre>Fs#    Fs Start        Fs End          Span#  Set  Set Start       Set End
+-----  --------------  --------------  -----  ---  --------------  --------------
+    0  0x000000000000  0x00003FC00000      0    0  0x000000000000  0x00003FC00000
+...
+   18  0x00047B800000  0x0004BB400000     18    0  0x00047B800000  0x0004BB400000
+   19  0x0004BB400000  0x0004FB000000   2695    1  0x0003FC000000  0x00043BC00000
+...
+   33  0x000837C00000  0x000877800000   2709    1  0x000778800000  0x0007B8400000
+</pre>
+<p></p>
+<pre>Consider also:
+span-space-distribution Bar
+server:$
+</pre>
+<p></p>
+<p>This listing shows that the filesystems has two runs of chunks: one of 19 chunks and one of 15.</p>
+<p>The next transcript shows how 'span-list-chunks' shows chunks in filesystems that are in the recycle bin.  Filesystem Second has been deleted; filesystem First has not.</p>
+<pre>server:$ span-list-chunks --used Accounts
+Span Accounts has capacity 0xe1bff800000
+</pre>
+<p></p>
+<pre>Span#  Set  Set Start       Set End         FS#    Fs Start        Fs End          Fs instance name
+-----  ---  --------------  --------------  -----  --------------  --------------  ----------------
+    0    0  0x000000000000  0x0000F6800000      0  0x000000000000  0x0000F6800000  First
+    1    0  0x0000F6800000  0x0001ED000000      1  0x0000F6800000  0x0001ED000000  First
+    2    0  0x0001ED000000  0x0002E3800000      2  0x0001ED000000  0x0002E3800000  First
+    3    0  0x0002E3800000  0x0003DA000000      3  0x0002E3800000  0x0003DA000000  First
+    4    0  0x0003DA000000  0x0004D0800000      4  0x0003DA000000  0x0004D0800000  First
+    5    0  0x0004D0800000  0x0005C7000000      5  0x0004D0800000  0x0005C7000000  First
+    6    0  0x0005C7000000  0x0006BD800000      6  0x0005C7000000  0x0006BD800000  First
+    7    0  0x0006BD800000  0x0007B4000000      7  0x0006BD800000  0x0007B4000000  First
+   64    0  0x003DA0000000  0x003E96800000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   65    0  0x003E96800000  0x003F8D000000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   66    0  0x003F8D000000  0x004083800000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   67    0  0x004083800000  0x00417A000000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   68    0  0x00417A000000  0x004270800000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   69    0  0x004270800000  0x004367000000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   70    0  0x004367000000  0x00445D800000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   71    0  0x00445D800000  0x004554000000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   72    0  0x004554000000  0x00464A800000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+   73    0  0x00464A800000  0x004741000000  [Deleted filesystem Second (0xeb970f3c64fd101a)]
+</pre>
+<p></p>
+<pre>Consider also:
+span-space-distribution Accounts
+server:$
+</pre>
+<p></p>
+<p>The following transcript shows how to list the chunks in a deleted filesystem from the filesystem's point of view.  The span name and the filesystem's permanent ID (the large hex number) are taken from the command above, although it could equally well have been taken from 'span-list-recycle-bin'.</p>
+<pre>server:$ filesystem-list-chunks accounts eb970f3c64fd101a
+Filesystem Second of capacity 0x9a1000000
+resides on span Accounts of capacity 0xe1bff800000
+</pre>
+<p></p>
+<pre>Fs#    Fs Start        Fs End          Span#  Set  Set Start       Set End
+-----  --------------  --------------  -----  ---  --------------  --------------
+    0  0x000000000000  0x0000F6800000     64    0  0x003DA0000000  0x003E96800000
+    1  0x0000F6800000  0x0001ED000000     65    0  0x003E96800000  0x003F8D000000
+    2  0x0001ED000000  0x0002E3800000     66    0  0x003F8D000000  0x004083800000
+    3  0x0002E3800000  0x0003DA000000     67    0  0x004083800000  0x00417A000000
+    4  0x0003DA000000  0x0004D0800000     68    0  0x00417A000000  0x004270800000
+    5  0x0004D0800000  0x0005C7000000     69    0  0x004270800000  0x004367000000
+    6  0x0005C7000000  0x0006BD800000     70    0  0x004367000000  0x00445D800000
+    7  0x0006BD800000  0x0007B4000000     71    0  0x00445D800000  0x004554000000
+    8  0x0007B4000000  0x0008AA800000     72    0  0x004554000000  0x00464A800000
+    9  0x0008AA800000  0x0009A1000000     73    0  0x00464A800000  0x004741000000
+</pre>
+<p></p>
+<pre>Consider also:
+span-space-distribution Accounts
+server:$
+</pre>
+<p></p>
+<p>(You can optionally apply a '0x' prefix to the permanent ID.)</p>
+<p>On a span that resides on an HDP pool, 'span-list-chunks' will sometimes display the words 'Vacated space'.  This phrase refers to space that was occupied by one or filesystems that have since been deleted and recycled.  When other filesystems are created or expanded, this vacated space will be used before any other unused space.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-scalability.html">filesystem-scalability</a> <a href="../Supervisor/filesystem-translate-offset.html">filesystem-translate-offset</a> <a href="../Filter/User/grep.html">grep</a> <a href="../Filter/User/head.html">head</a> <a href="../Supervisor/span-chunk-translate-offset.html">span-chunk-translate-offset</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Supervisor/span-space-distribution.html">span-space-distribution</a> <a href="../Supervisor/span-vacated-chunks.html">span-vacated-chunks</a> <a href="../Supervisor/stripeset-translate-offset.html">stripeset-translate-offset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

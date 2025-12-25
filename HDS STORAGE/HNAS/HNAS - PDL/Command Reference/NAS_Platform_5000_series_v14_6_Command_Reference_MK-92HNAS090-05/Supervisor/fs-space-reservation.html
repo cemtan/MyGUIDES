@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-space-reservation</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>fs-space-reservation</h1>
+<p>Displays the state of the file system space reservation handler</p>
+<h1>Syntax</h1>
+<pre>fs-space-reservation 
+	 --file-system | -f &lt;file system name or number&gt;
+	[--pre-allocate | -p &lt;space to pre-allocate in units of 0.01%&gt;]
+	[--dip-into-unused]
+</pre>
+
+<h1>Description</h1>
+<p>Manage reserve space or display statistics relating to disk space reserved for modifying operations during the last ten checkpoints.</p>
+<dl>
+<dt><strong>--file-system, -f &lt;file system name or number&gt;</strong></dt>
+<dd><p>This required option specifies the file system by name or number.</p></dd>
+<dt><strong>--pre-allocate, -p &lt;space to pre-allocate in units of 0.01%&gt;</strong></dt>
+<dd><p>Use this option to change the fraction of a file system to pre-allocate for non-use (in 0.01 % units). Default is 10 which translates to 0.1 % of the file system.  The file system must be remounted for this to take effect.</p></dd>
+<dt><strong>--dip-into-unused</strong></dt>
+<dd><p>Use this option to allow operations to use up to one half of the space pre-allocated for non-use during the current checkpoint only.  This option exists only to recover from an overfull file system that prevents unlink operations from reserving enough space to proceed.  Normal non-use pre-allocation limits will be restored at the close of the current checkpoint.</p></dd>
+</dl>
+<p>The current space reservation state and statistics are output. For multi tier file systems, this will include per-tier block counts.</p>
+<p>Definition of terms used:</p>
+<dl>
+<dt><strong>Total</strong></dt>
+<dd><p>Total block count of the file system/tier</p></dd>
+<dt><strong>NonUse</strong></dt>
+<dd><p>Blocks reserved for non-use. See the --pre-allocate option to change this figure. In WFS-2, additional space is reserved for writing changes to the free space bitmap. This space cannot be altered, and is based on the current size of the file system.</p></dd>
+<dt><strong>Unlink</strong></dt>
+<dd><p>Blocks that may only be allocated for unlink operations. When deleting files, we will actually consume additional space, only releasing space when we can no longer roll back to the checkpoint. Thus we need to ensure we've more space available for unlinks than other operations, to prevent us getting in a situation where we fill the file system but cannot delete files to free up space. Note the --dip-into-unused</p></dd>
+<dt><strong>StartCP</strong></dt>
+<dd><p>The total blocks in use at the start of the current checkpoint. This is an estimated figure until the previous checkpoint completes.</p></dd>
+<dt><strong>Completed</strong></dt>
+<dd><p>The number of blocks reserved for operations that have completed in the current checkpoint.</p></dd>
+<dt><strong>InProgress</strong></dt>
+<dd><p>The number of blocks reserved for operations that have yet to start (may start in the next checkpoint) or are in progress in the current checkpoint.</p></dd>
+<dt><strong>InUse</strong></dt>
+<dd><p>Shows the number of allocated blocks that are use in the file system/per tier. This includes blocks that are used by live files, blocks that contain snapshot preservations, and blocks that are being held back for deleted files in case of a rollback to an earlier checkpoint.</p></dd>
+<dt><strong>Free</strong></dt>
+<dd><p>The number of free blocks in the file system/tier.</p></dd>
+<dt><strong>InSnapshot</strong></dt>
+<dd><p>The number of blocks that hold snapshot preservations. You will reclaim this much space if you delete all the snapshots on the file system.</p></dd>
+<dt><strong>Reserved</strong></dt>
+<dd><p>The number of blocks reserved for operations during a checkpoint</p></dd>
+<dt><strong>Used</strong></dt>
+<dd><p>The actual net change in block usage during a checkpoint. This figure may be negative if more space is freed than is consumed.</p></dd>
+<dt><strong>Freed</strong></dt>
+<dd><p>Number of blocks freed by software during checkpoint. These blocks will not become available (marked free) until we can no longer select this checkpoint.</p></dd>
+</dl>
+<p>&lt;FS Operation&gt;=&lt;count of ops reserving zero blocks&gt;/&lt;count of ops reserving some blocks&gt;:&lt;total number of blocks reserved&gt;</p>
+<h1>Examples</h1>
+<p>Display space reservation stats for test-fs0:</p>
+<pre>    server:$ fs-space-reservation -f test-fs0
+</pre>
+<p></p>
+<p>Pre-allocate 1/2 % of the test-fs0 file system for non-use:</p>
+<pre>    server:$ fs-space-reservation -f test-fs0 -p 50
+</pre>
+<p></p>
+<p>Reset the pre-allocated for non-use back to the default of 0.1 %:</p>
+<pre>    server:$ fs-space-reservation -f test-fs0 -p 0
+</pre>
+<p></p>
+<p>Allow the deletion of a non-essential file because the file system is filled to the usable limit.</p>
+<pre>    server:$ fs-space-reservation -f test-fs0 --dip-into-unused; rm close-to-the-edge.mp3
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../Supervisor/fs-checkpoint-select.html">fs-checkpoint-select</a> <a href="../User/fs-usage.html">fs-usage</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

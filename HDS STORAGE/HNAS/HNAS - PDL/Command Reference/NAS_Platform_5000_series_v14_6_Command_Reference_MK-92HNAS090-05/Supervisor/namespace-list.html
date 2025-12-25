@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>namespace-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>namespace-list</h1>
+<p>Displays the name of the configured namespace and, optionally, its links</p>
+<h1>Syntax</h1>
+<pre>namespace-list [-l]
+Alias:       cns
+</pre>
+
+<h1>Description</h1>
+<p>Displays the name of the cluster or EVS namespace and, optionally, its links.</p>
+<p>The namespace that is listed using this command depends on the type of node in context.</p>
+<p>- If an admin node or an EVS node which is using <em>global EVS security</em> is in context, then only a cluster-wide namespace will be listed.</p>
+<p>- If an EVS node which is using <em>individual EVS security</em> is in context then only a namespace local to that EVS will be listed.</p>
+<p>Use <em>console-context</em> to set the proper context.</p>
+<p>Usage:</p>
+<p>namespace-list [OPTIONS]</p>
+<dl>
+<dt><strong>--links, -l</strong></dt>
+<dd><p>Display the links within the cluster or EVS namespace.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>	namespace-list
+	Cluster namespace
+	Name: cns
+</pre>
+<p></p>
+<p>If an admin node or an EVS node with global EVS security is in context, then this command will list any <em>cluster namespace</em> that has been configured for the node. However, if an EVS node with local EVS security is in context, then it will list any <em>EVS namespace</em> local to that EVS.</p>
+<p>The first line of the output refers to the type of namespace listed and also, optionally, the type of the node in context.</p>
+<p>For example, in the context of an admin node with a cluster namespace 'cns', the namespace-list command will produce:</p>
+<pre>	Cluster namespace
+	Name: cns
+</pre>
+<p></p>
+<p>In the context of an EVS node with global EVS security enabled and a cluster namespace 'cns' configured, the namespace-list command will produce:</p>
+<pre>	Cluster namespace - EVS is using global EVS security
+	Name: cns
+</pre>
+<p></p>
+<p>And in the context of an EVS node with individual EVS security and an EVS namespace 'evsns' configured, the namespace-list command will produce:</p>
+<pre>	EVS namespace - EVS is using individual EVS security
+	Name: evsns
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/console-context.html">console-context</a> <a href="../User/evs-security.html">evs-security</a> <a href="../Supervisor/namespace-create.html">namespace-create</a> <a href="../Supervisor/namespace-delete.html">namespace-delete</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

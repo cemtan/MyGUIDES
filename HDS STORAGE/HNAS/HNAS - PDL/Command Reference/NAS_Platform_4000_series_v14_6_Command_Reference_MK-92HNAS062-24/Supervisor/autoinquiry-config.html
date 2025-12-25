@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>autoinquiry-config</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>autoinquiry-config</h1>
+<p>Enables/disables autoinquiry persistently.</p>
+<h1>Syntax</h1>
+<pre>autoinquiry-config [--type (all|nfs|smb1|smb2)] [--operation (all|nfs-all|getattr|lookup|read|readdir|readdirplus|readlink|access|commit|gns|smb1-all|smb1-read|smb1-flush|smb1-trans2-query-file] [--confirm] [on|off|default]
+</pre>
+
+<h1>Description</h1>
+<p>The autoinquiry-config command is used to manage which protocols are subject to autoinquiry by the server.</p>
+<p>Usage:</p>
+<pre>autoinquiry-config [--type &lt;protocol_type&gt;] [--operation &lt;protocol_operation&gt;] [--confirm] [&lt;state&gt;]
+</pre>
+<p></p>
+<p>Options:</p>
+<dl>
+<dt><strong>-t, --type &lt;protocol_type&gt;</strong></dt>
+<dd><p>Selects a protocol to configure.  Valid choices are (<strong>all</strong>|<strong>nfs</strong>|<strong>smb1</strong>|<strong>smb2</strong>). The 'smb2' option specifies SMB2.x/3.x. Defaults to <strong>all</strong>.</p></dd>
+<dt><strong>-o, --operation &lt;protocol_operation&gt;</strong></dt>
+<dd><p>This allows DEV users to configure autoinquiry for individual operations; it is not available to any other user levels at the present time.  Using the --type parameter will enable and disable supported operations as required. Selects a specific protocol operation to configure.  Defaults to <strong>all</strong>.</p></dd>
+<dl>
+<dt><strong>for --type all</strong></dt>
+<dd><p>Valid choices are: <strong>all</strong></p></dd>
+<dt><strong>for --type nfs</strong></dt>
+<dd><p>Valid choices are: (<strong>nfs-all</strong>|<strong>getattr</strong>|<strong>lookup</strong>|<strong>read</strong>|<strong>readdir</strong>|<strong>readdirplus</strong>|<strong>readlink</strong>|<strong>access</strong>|<strong>commit</strong>|<strong>gns</strong>)</p></dd>
+<dt><strong>for --type smb1</strong></dt>
+<dd><p>Valid choices are: (<strong>smb1-all</strong>|<strong>smb1-read</strong>|<strong>smb1-flush</strong>|<strong>smb1-trans2-query-file</strong>)</p></dd>
+<dt><strong>for --type smb2</strong></dt>
+<dd><p>Operation level control is not supported.</p></dd>
+</dl>
+<dt><strong>&lt;state&gt;</strong></dt>
+<dd><p>Turn autoinquiry <strong>on</strong> or <strong>off</strong>, or reset to the system <strong>default</strong> for the given protocol.  If no state is given then the current state is shown. State must be the last parameter in a command.</p></dd>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Bypass any warning messages which ask the user to confirm their actions on the terminal.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>autoinquiry-config --type all
+</pre>
+<p></p>
+<p>Displays the configuration details for all protocols</p>
+<pre>autoinquiry-config --type smb1 on
+</pre>
+<p></p>
+<p>Enables autoinquiry for SMB1</p>
+<pre>autoinquiry-config --type all default
+</pre>
+<p></p>
+<p>Restores the system default state for all protocols</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/autoinquiry-stats.html">autoinquiry-stats</a> <a href="../Supervisor/autoresponse-config.html">autoresponse-config</a> <a href="../Supervisor/autoresponse-stats.html">autoresponse-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-host-port-load</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>fc-host-port-load</h1>
+<p>Display allocation of devices to FC host ports</p>
+<h1>Syntax</h1>
+<pre>fc-host-port-load [-v] [port]
+</pre>
+
+<h1>Description</h1>
+<p>fc-host-port-load shows how many open system drives are currently assigned to each FC host port and optionally lists them. This will include open secondary drives, as load balancer does not make any distinction between primary and secondary drives.</p>
+<dl>
+<dt><strong>-v --verbose</strong></dt>
+<dd><p>List SDs instead of just saying how many.</p></dd>
+<dt><strong>port</strong></dt>
+<dd><p>Specify a single host port. By default information for all enabled host ports is displayed.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-target-port-load.html">fc-target-port-load</a> <a href="../Supervisor/sdpath.html">sdpath</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

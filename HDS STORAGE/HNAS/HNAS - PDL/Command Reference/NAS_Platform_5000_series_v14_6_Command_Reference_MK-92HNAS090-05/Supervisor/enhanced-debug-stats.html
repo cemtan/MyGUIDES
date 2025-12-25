@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>enhanced-debug-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>enhanced-debug-stats</h1>
+<p>Control gathering of enhanced debugging information</p>
+<h1>Syntax</h1>
+<pre>enhanced-debug-stats [--enable | --disable] [--not-persistent]
+</pre>
+
+<h1>Description</h1>
+<p>Enables/disables gathering of enhanced debugging information.</p>
+<p>The maintenance of some debugging information can cause a decrease in system performance. Nevertheless the gathering of this information is enabled by default. The overhead is estimated to be in the order of a few percent. This information is important for problem diagnosis and so should be left enabled during normal operation, unless an extra one or two percent performance is absolutely required.</p>
+<p>The setting affects all nodes in a cluster.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--enable</strong></dt>
+<dd><p>Enable the gathering of enhanced debugging information.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>Disable the gathering of enhanced debugging information.</p></dd>
+<dt><strong>--not-persistent</strong></dt>
+<dd><p>By default, the setting is persistent across reboots.  This switch prevents the setting from being saved.</p></dd>
+<dd><p>NB. the --not-persistent option applies the changes to the selected pnode only. Use "for-each-cnode " prefix to broadcast non-persistent changes</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>  server:$ enhanced-debug-stats
+</pre>
+<p></p>
+<p>Queries the current enhanced-debug-stats setting</p>
+<pre>  server:$ enhanced-debug-stats --enable
+</pre>
+<p></p>
+<p>Enables enhanced-debug-stats gathering</p>
+<pre>  server:$ enhanced-debug-stats --enable --not-persistent
+</pre>
+<p></p>
+<p>Enhanced-debug-stats are enabled, but without changing the persistent config. This command only applies to the current pnode</p>
+<pre>  server:$ for-each-cnode enhanced-debug-stats --enable --not-persistent
+</pre>
+<p></p>
+<p>Enhanced-debug-stats are enabled, with no persistent config change, as the "for-each-cnode" command is added before the base command this change is broadcast to all pnodes.</p>
+<pre>  server:$ for-each-cnode enhanced-debug-stats
+</pre>
+<p></p>
+<p>This will display the enhanced-debug-stats status on all pnodes on the current pnode.</p>
+<h1>Applies To</h1>
+<p>Cluster wide Unless --not-persistent is specified, in which case only the current cluster node will be affected</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/enhanced-perf-stats.html">enhanced-perf-stats</a> <a href="../Supervisor/for-each-cnode.html">for-each-cnode</a> <a href="../Supervisor/performance-info-report.html">performance-info-report</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

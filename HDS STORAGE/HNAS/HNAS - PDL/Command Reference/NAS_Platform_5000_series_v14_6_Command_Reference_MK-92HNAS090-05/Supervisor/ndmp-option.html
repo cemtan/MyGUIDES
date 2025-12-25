@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-option</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>ndmp-option</h1>
+<p>Set or show an NDMP option value</p>
+<h1>Syntax</h1>
+<pre>ndmp-option [-l] | [[-d] &lt;option&gt; [&lt;new_value&gt;]]
+</pre>
+
+<h1>Description</h1>
+<p>Displays or sets NDMP options.</p>
+<p>-d sets an option to its default value</p>
+<p>--list, -l displays all the options with their current values.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>port [&lt;numeric_port_value&gt;]</strong></dt>
+<dd><p>NDMP service port (default 10000). The value is a TCP port number in the range 0 to 65535. If this value is changed the new value will not come into effect until the NDMP service is restarted. The default option must be used if this server is the destination of a replication controlled by an SMU which does not manage this server.</p></dd>
+<dt><strong>version [{ 4 | 3 | 2 }]</strong></dt>
+<dd><p>Set/get the NDMP version. The client may negotiate down. Do not set version 2 if using adc or replication.</p></dd>
+<dt><strong>vlqb [{ on | off }]</strong></dt>
+<dd><p>Set/get the NDMP volume level quota backup enable.</p></dd>
+<dt><strong>vlqr [{ on | off }]</strong></dt>
+<dd><p>Set/get the NDMP volume level quota restore enable.</p></dd>
+<dt><strong>perf [{ off | record | display }]</strong></dt>
+<dd><p>Performance monitoring. Set to 'record' to enable stats gathering on backups. Set to 'display' to display stats at end of each transfer.</p></dd>
+<dd><p>The value needs to be set to either 'record' or 'display' at the start of an operation to enable recording of stats on that display. It needs to be set to 'display' at the end of an operation to display the stats.</p></dd>
+<dd><p>The default setting is 'record'. This means that if there is slow performance in a backup or replication, the setting can be changed to 'display' during the backup to enable the display of the stats at the end.</p></dd>
+<dd><p>If the stats are being recorded the new command ndmp-session-stats can be used to display the current values. This command may also be used to reset the counters part way through an operation.</p></dd>
+<dd><p>The performance statistics are also now displayed by the performance-info-report command which resets the values when run.</p></dd>
+<dt><strong>quotalimit [{ default | hard | soft }]</strong></dt>
+<dd><p>Options for changing action on hitting quota limit while recovering or copying data. The default is to take hard limits as soft for replications and hard for recovery/adc. The hard/soft settings make hard quota limits appear hard/soft for all NDMP disk writing.</p></dd>
+<dt><strong>blockip [{ unset | &lt;comma separated ip address list&gt; }]</strong></dt>
+<dd><p>Disable NDMP client access from all the specified IP addresses. Up to 20 IP addresses can be specified. Note that, prior to software version 12.2, only a single IP address could be specified. If the software is downgraded to an earlier version of the software, only the first address in the list will be recognised by the earlier version. If a new IP address is then specified and the software upgraded again to a version that supports a list of addresses, the rest of the list may be reinstated to its value before the downgrade. It should therefore be checked to verify that it is as expected.</p></dd>
+<dt><strong>allowip [{ unset | &lt;comma separated ip address list&gt; }]</strong></dt>
+<dd><p>Restrict NDMP client access to only the specified IP addresses. Up to 20 IP addresses can be specified. Note that, prior to software version 12.2, only a single IP address could be specified. If the software is downgraded to an earlier version of the software, only the first address in the list will be recognised by the earlier version. If a new IP address is then specified and the software upgraded again to a version that supports a list of addresses, the rest of the list may be reinstated to its value before the downgrade. It should therefore be checked to verify that it is as expected.</p></dd>
+<dt><strong>tokens [{ on | off }]</strong></dt>
+<dd><p>Enable use of token based incremental backups. This may be needed to interwork with Tivoli Storage Manager.</p></dd>
+<dt><strong>change_list_incr [{ on | off }]</strong></dt>
+<dd><p>Enable use of changed object list in incremental backups. This is most useful in situations where a small number of directories contain the changes since the last backup or copy. May be overridden by NDMP_BLUEARC_USE_CHANGE_LIST environment variable.</p></dd>
+<dt><strong>readahead_procs [&lt;number_of_processes&gt;]</strong></dt>
+<dd><p>Indicate the maximum number of processes to use in readahead while backing up or copying data. Default value is 5. It may be useful to increase this value up to about 10 if the file system has lots of small files.</p></dd>
+<dd><p>May be overridden by NDMP_BLUEARC_READAHEAD_PROCESSES environment variable which is used in replications if a replication rule indicates a non-default setting.</p></dd>
+<dt><strong>ext_readahead [&lt;number_of_reads&gt;]</strong></dt>
+<dd><p>Indicate the number of second level readahead requests each first level readahead will generate. Default value is 1. That is a good value for almost all circumstances. The only exception being when the lowest level directories contain only one or two files each. If this value is increased then the readahead_procs value should also be increased. Possible values where performance of NDMP is very important might be 10 for ext_readahead and 30 for readahead_procs.</p></dd>
+<dt><strong>reserve_devices [{ none | tape | autochanger | all}]</strong></dt>
+<dd><p>Enable use of SCSI reserve command to gain exclusive access to a device. The default is "none" meaning that the reserve command is not used. We recommend that this default is used unless you are trying to do tape device sharing with certain backup applications (such as Networker or NetBackup). If you enable reservation of a device then you should also select a preferred FC port to use to access that device. This can be achieved using the backup-device-port command. We recommend discussing this with your support provider before you make this change.</p></dd>
+<dt><strong>report_as_fs [{ volume | export | share | all | ...}]</strong></dt>
+<dd><p>Backup applications such as CommVault Galaxy show lists of File Systems that can be backed up from NDMP servers. The server allows File System (volume) names, export names and share names to be used as the backup file system path. This option can be used to select which of the various file system specifiers will be reported back to the backup application in the list of File Systems. By default the option is set to volume meaning that only File Systems (volumes) will be reported.</p></dd>
+<dt><strong>min_send_size [&lt;min_bytes_to_send&gt;]</strong></dt>
+<dd><p>Where NDMP data is not being sent to a local tape drive, the data is sent via TCP. In order to reduce the number of packets being sent, NDMP buffers a little data before sending it. This option sets the size below which data will be buffered. The default size is 1024 bytes. This should be a good value for almost all conditions.</p></dd>
+<dt><strong>blr_override [{ none | disable_base | disable_update | disable_all }]</strong></dt>
+<dd><p>If the system has a Block Level Replication license then NDMP replication will check if disk blocks within a file have never been written or if blocks have not been changed since the last copy and avoid sending unnecessary blocks. (These checks are limited to files greater that 32MB or the limit setting in the replication rule.) This usually saves time in replications. However, the time taken to scan files for this optimisation can in itself take a significant time. This option allows you to switch off aspects of this within file block level working in such cases.</p></dd>
+<dd><p>Note: Switching off the file update checks may increase the space used at the replication destination as more blocks may be changed in a particular copy and thus more blocks will need to be saved within the previous snapshot. Switching off base checks could also cause increased space usage at the destination if the files involved are big enough to be sparsely allocated.</p></dd>
+<dd><p>The default setting "none" allows all block level operations to go ahead as usual.</p></dd>
+<dd><p>The setting "disable_base" will switch off checking for unwritten blocks in the first full replication copy. This would be a useful option to set if there is a large amount of data held in large files that have been fully written. (That is all disk blocks have been written as opposed to a file which has been set to a particular size and then only limited writes have been applied.) Also checking for unwritten blocks tends to be slower than checking for unchanged blocks, particularly on very busy file systems. So this option may also be useful in those circumstances.</p></dd>
+<dd><p>The "disable_update" setting is one that would not usually be used. It disables the checking for changed blocks but allows checking for unwritten blocks.</p></dd>
+<dd><p>The "disable_all" setting disables checking for both unwritten blocks or unchanged blocks. It is useful where most large files are generally completely rewritten when changed. (Utilities such as MS Word and editors usually write a complete copy of the file when saving changes.) You may want to avoid this option if the file system contains database files or iSCSI LUNs within which the proportion of data changed between replication copies is small.</p></dd>
+<dt><strong>mover_window_adjust [{ recovery | backup | all | none }]</strong></dt>
+<dd><p>This option changes the way that the server processes the offset field of a MOVER_SET_WINDOW request received from a backup application.</p></dd>
+<dd><p>If set to "recovery", the server ignores an offset field of 0 received in this request during a recovery operation and instead uses its own calculated current position in the data stream as the window offset.  This setting may be required to successfully recover backups spanning multiple tapes using Tivoli Storage Manager.</p></dd>
+<dd><p>If set to "backup", the server ignores the offset field received in this request during a backup operation and instead uses its own calculated current position in the data stream as the offset.  The NDMP v4 specification states that the backup application is not required to provide a valid offset field during a backup as it is not used. There are no known scenarios where the option should be set to this value at present.</p></dd>
+<dd><p>If set to "all", the server will adjust the window offset field as above on both backup and recovery operations.</p></dd>
+<dd><p>If set to "none", then the server applies no adjustment to the offset field for any operation type.</p></dd>
+<dd><p>The default value is "none". It is recommended that changing this setting from its default value is discussed with your support provider.</p></dd>
+<dt><strong>backup_ignore_external_links [{ on | off }]</strong></dt>
+<dd><p>This option changes the default behaviour of non-replication backup operations when dealing with externally migrated files. With the option turned on, the default behaviour of the operation is as if the operation has NDMP environment variable NDMP_BLUEARC_EXTERNAL_LINKS set to "ignore". With the option turned off (default setting) then the default behaviour of the operation is as if the operation has NDMP environment variable NDMP_BLUEARC_EXTERNAL_LINKS set to "remigrate". In either case if the NDMP environment variable NDMP_BLUEARC_EXTERNAL_LINKS is set explicitly for the operation, then the explicit setting will override the value of this option.</p></dd>
+<dt><strong>data_port_range [{ any | &lt;numeric_port_value&gt; | &lt;numeric_port_range&gt; }]</strong></dt>
+<dd><p>Controls the port(s) available to listen for data connections during TCP NDMP operations.</p></dd>
+<dd><p>The default setting is "any", meaning any available port. A single port number or a port number range may also be specified, restricting the port(s) that can be used for listening. This allows connections to be created across networks that block ports, typically in a firewall.</p></dd>
+<dd><p>A valid port number range consists of a minimum and a maximum port number, separated by a '-', with the maximum port number greater than or equal to the minimum port number. Example range specification: 2000-2010.</p></dd>
+<dd><p>A single port number of zero, or a range of 0-0 is equivalent to "any". Valid port numbers are numeric values between 1 and 65535.</p></dd>
+<dd><p>Note: A range with 0 as one port number, and an otherwise valid non-zero port number as the other, is not a valid range.</p></dd>
+<dd><p>There should be enough ports in the specified range to support the required number of NDMP operations. One port will be used for each NDMP session for the duration of its connection. If one or more ports in the specified range are already in use for some other purpose, those ports will not be available for NDMP. A wider port range may be required, to compensate.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>ndmp-option perf display
+</pre>
+<p></p>
+<p>Sets the performance stats monitor option so that statistics will be displayed at the end of each transfer.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-session-stats.html">ndmp-session-stats</a> <a href="../User/ndmp-status.html">ndmp-status</a> <a href="../Supervisor/performance-info-report.html">performance-info-report</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

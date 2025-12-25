@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>heap-info</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>heap-info</h1>
+<p>Display heap info</p>
+<h1>Syntax</h1>
+<pre>heap-info [-r|--reset]
+</pre>
+
+<h1>Description</h1>
+<p>The heap-info command tells you a number of statistics about the heap. Only three are generally useful outside Engineering:</p>
+<p>"big size" is the total size of all free heap blocks greater than 512 KB.</p>
+<p>"total reasonable size" is the total size of all free heap blocks greater than 4 KB.</p>
+<p>"The low water mark for big size during HeapPool creation" gives the total size by which heap pools can safely be tuned up.</p>
+<p>The FSM uses the heap as a cache and so we intentionally fill it up, or nearly so. On the NIM and SIM, we don't tend to fill up the heap deliberately. On the FSM, we do, however, try to keep two megabytes available for both large and reasonably sized allocations. If there are a lot of reasonably sized allocations available but very little "big size", then we have fragmented the heap. (It's possible to have fragmentation without having that symptom.)</p>
+<p>The -r argument resets the "unreasonable allocations" statistics and the low water mark state for big size.</p>
+<h1>Examples</h1>
+<pre>server:$ heap-info
+Space reserved for heap: 24 GB (25769803776 B).
+Heap tracking:
+  big size:                   7.936 GB (8520709976 B) (the total size of all big free blocks)
+  a big size:                 512 KB (524288 B)
+  reasonablySizedAllocations: 2078468 (the number of reasonably sized allocations that *can be* safely made)
+  a reasonable size:          4.016 KB (4112 B) (including heap overhead, stored @0x000000000B9DAC08)
+  total reasonable size:      7.96 GB (8546660416 B) (the minimum total allocation that can be made in reasonably sized chunks)
+  obsceneAllocationThreshold: 512 KB (524288 B)
+  total size of unreasonable allocations: 32.18 GB (34550050476 B) (the total since the statistics were reset, some of which may have been freed)
+  linear_searches:            240
+  bin_scans:                  13421014
+Last freed block size 41.
+Last freed block was at 0x00007FA5FC718850.
+Empty bin skip mask: 0x3ff.
+first: 0x00007FA207FFF010
+gc1: 0x00007FA807FFEFB0
+gc0: 0x00007FA807FFEFE0
+Unreasonable allocations:
+ Samples=   20103  Total=18.16 GB (19497169956 B)  Min=4.008 KB (4104 B)  Av=947.1 KB (969863 B)  Max=1.676 GB (1799876936 B)
+ Last reset 45.32 min ago
+</pre>
+<p></p>
+<pre>     16902|            #
+      8451|            #
+      4225|            #
+      2112|            #~
+      1056|            ## ~~
+       528|            ## ##
+       264|            ##~##~
+       132|            ######~
+        66|            ####### ~
+        33|            #########~~ ~~~
+        16|            ###########~### ~
+         8|            ##################
+         4|            ##################
+         2|            ###################
+         1|            ###################
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          1B   16 256  4KB 64  1MB 16 256
+</pre>
+<p></p>
+<pre>The low water mark for big size was 7.936 GB (8520709976 B) (the lowest total size of all big free blocks).
+That occurred at 2016-01-07 14:04:21-08:00
+The stack at the time was:
+</pre>
+<p></p>
+<pre>[bigSizeLwm] Version: 12.6.4134.00 adhoc (MMB1)
+[bigSizeLwm] Date: 2016-01-06 18:46:15-08:00
+[bigSizeLwm] Debug info in: /home/[...]/work/bat/6/exe/mfb/x86_64_bali_release/mfb.elf
+[bigSizeLwm]
+[bigSizeLwm] Stack: 0x00007fa2d5562350, RIP: 0x0000000005390941 StackTrace::BackTrace::populateFromScratchHere()+0x11
+[bigSizeLwm] Stack: 0x00007fa2d5562380, RIP: 0x000000000470d120 wrapped_malloc+0x580
+[bigSizeLwm] Stack: 0x00007fa2d5562470, RIP: 0x00000000049c649e malloc+0x63e
+[bigSizeLwm] Stack: 0x00007fa2d55624e0, RIP: 0x00000000045bcc64 std::map&lt;std::string, RCPtr&lt;PoolStatsImplementation&gt;, PoolCompare&gt;::_Rep_type::_M_insert(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::pair&lt;std::string const, RCPtr&lt;PoolStatsImplementation&gt; &gt; const&amp;)+0x454
+[bigSizeLwm] Stack: 0x00007fa2d5562530, RIP: 0x00000000045bd09b std::map&lt;std::string, RCPtr&lt;PoolStatsImplementation&gt;, PoolCompare&gt;::_Rep_type::insert_unique(std::_Rb_tree_iterator&lt;std::pair&lt;std::string const, RCPtr&lt;PoolStatsImplementation&gt; &gt;, std::pair&lt;std::string const, RCPtr&lt;PoolStatsImplementation&gt; &gt; &amp;, std::pair&lt;std::string const, RCPtr&lt;PoolStatsImplementation&gt; &gt; *&gt;, std::pair&lt;std::string const, RCPtr&lt;PoolStatsImplementation&gt; &gt; const&amp;)+0xdb
+[bigSizeLwm] Stack: 0x00007fa2d5562780, RIP: 0x00000000045bc2f0 PoolStatsImplementationCollection::insert(std::string const&amp;, RCPtr&lt;PoolStatsImplementation&gt;)+0x4a0
+[bigSizeLwm] Stack: 0x00007fa2d55627b0, RIP: 0x00000000045b4056 insertIntoCollection(RCPtr&lt;PoolStatsImplementation&gt;)+0x46
+[bigSizeLwm] Stack: 0x00007fa2d55627e0, RIP: 0x00000000045b43c1 PoolStats::setImplementation(RCPtr&lt;PoolStatsImplementation&gt;)+0x81
+[bigSizeLwm] Stack: 0x00007fa2d5562940, RIP: 0x00000000045ad6d7 HeapPool::Create(boost::unique_lock&lt;boost::mutex&gt; const&amp;, RCPtr&lt;PoolDescriber&gt;)+0x227
+[bigSizeLwm] Stack: 0x00007fa2d5562980, RIP: 0x0000000001eea1df ReadCache::CachedFile::Initialize()+0xef
+[bigSizeLwm] Stack: 0x00007fa2d5562990, RIP: 0x0000000001ef5c00 ReadCache::Start()+0x40
+[bigSizeLwm] Stack: 0x00007fa2d5562af0, RIP: 0x0000000002482555 handle_management_request(ManagementRequestId, void const*, void*, int*, BoardType, unsigned short)+0x135
+[bigSizeLwm] Stack: 0x00007fa2d5562b60, RIP: 0x0000000002482853 interboard_process_request(interboard::ib_sap, BoardType, void const*, unsigned long, void*, unsigned long&amp;)+0xf3
+[bigSizeLwm] Stack: 0x00007fa2d5562c70, RIP: 0x000000000449022a interboard::Rpc::Dispatch(interboard::ib_sap, void const*, unsigned long, void*, unsigned long&amp;)+0x9a
+[bigSizeLwm] Stack: 0x00007fa2d5562cc0, RIP: 0x00000000044909e4 interboard::Rpc::Call(BoardType, interboard::ib_sap, void const*, unsigned long, void const*, unsigned long, void*, unsigned long&amp;)+0xb4
+[bigSizeLwm] Stack: 0x00007fa2d5562e60, RIP: 0x0000000002482b01 send_management_request(unsigned short, unsigned short, unsigned short, bool, BoardType, ManagementRequestId, void const*, int, void*, int)+0x2a1
+[bigSizeLwm] Stack: 0x00007fa2d5562ed0, RIP: 0x0000000004dfe648 management_request(BoardType, ManagementRequestId, void const*, int, void*, int)+0x48
+[bigSizeLwm] Stack: 0x00007fa2d5562f00, RIP: 0x000000000448ebc9 ServiceInfo::Start() [clone .part.55]+0x69
+[bigSizeLwm] Stack: 0x00007fa2d5562f30, RIP: 0x000000000448f172 update_running_services(char const*, bool)+0x162
+[bigSizeLwm] Stack: 0x00007fa2d5562f70, RIP: 0x000000000448d37f RunLevelMasterFiber::Main()+0xef
+[bigSizeLwm] Stack: 0x00007fa2d5562fc0, RIP: 0x0000000004959065 Task::TaskMain()+0x1c5
+[bigSizeLwm] Stack: 0x0000000000000000, RIP: 0x00000000052db1ae BOSStackTerminator
+The low water mark for big size during HeapPool creation was 7.812 GB (8388464200 B) (the lowest total size of all big free blocks).
+</pre>
+<p></p>
+<p>server:$</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/heap-density.html">heap-density</a> <a href="../Supervisor/heap-size.html">heap-size</a> <a href="../Supervisor/heap-vptr.html">heap-vptr</a> <a href="../Supervisor/pool-vptr.html">pool-vptr</a> <a href="../Supervisor/poolstats.html">poolstats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

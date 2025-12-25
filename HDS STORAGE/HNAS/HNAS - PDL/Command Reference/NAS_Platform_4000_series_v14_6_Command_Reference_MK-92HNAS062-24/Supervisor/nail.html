@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nail</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nail</h1>
+<p>Send mail with attachment</p>
+<h1>Syntax</h1>
+<pre>nail [-n] [-a &lt;filename&gt;] [-s &lt;subject&gt;] [to]
+</pre>
+
+<h1>Description</h1>
+<p>nail is used to send a simple mail with (or without) an attachment from the 'flash' file system to a specified email address.  All arguments are optional.  The subject and destination email address will be prompted for if not specified.  The file 'tmp' can also be attached.</p>
+<p>Text can be entered for the body of an email unless the -n option is used.  A single . on a line terminates the text input.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-n</strong></dt>
+<dd><p>Don't prompt for a body</p></dd>
+<dt><strong>-a &lt;filename&gt;</strong></dt>
+<dd><p>Add the attachment from the flash file system</p></dd>
+<dt><strong>-s &lt;subject&gt;</strong></dt>
+<dd><p>Set the subject for the email.  Use quotes for subjects with spaces in</p></dd>
+<dt><strong>&lt;to&gt;</strong></dt>
+<dd><p>Email address to send to</p></dd>
+</dl>
+<p>The -a option can be used multiple times to attach multiple files and multiple recipients may be specified.</p>
+<h1>Examples</h1>
+<p>To send a recent packet capture file without a body</p>
+<pre>nail -n -a tmp -s "Your capture" support@example.com
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

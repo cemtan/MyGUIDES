@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>handle-to-path</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>handle-to-path</h1>
+<p>Dumps the path of an object given its handle</p>
+<h1>Syntax</h1>
+<pre>handle-to-path [--file-system &lt;file system name&gt; | --volume-number &lt;volume number&gt;] [--object-number] &lt;handle | object-number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Given a file handle, handle-to-path attempts to resolve the full pathname for that handle.</p>
+<p>This command may only be run when the file system is mounted.</p>
+<p>If the handle resolves to a file and that file has multiple hard links, the command will output the path to the first link to the file. If you wish to see all the paths that can reach the file, use the hard-links command.</p>
+<p>If corruption is suspected on the file system, consider using object-number-to-path instead of handle-to-path, as object-number-to-path performs more extensive checks on the metadata to protect against file system failure. object-number-to-path can also be run when the file system is unmounted.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-f, --file-system &lt;file system&gt;</strong></dt>
+<dd><p>Look for the handle on the given file system. The default is to use the console's current file system.</p></dd>
+<dt><strong>-v, --volume-number &lt;volume number&gt;</strong></dt>
+<dd><p>Look for the handle on the file system with the given volume number. The default is to use the console's current file system.</p></dd>
+<dt><strong>--object-number</strong></dt>
+<dd><p>Rather than providing a full handle, only provide the object number. This can be useful in situations where diagnostics haven't output the entire handle.</p></dd>
+<dt><strong>&lt;handle&gt;</strong></dt>
+<dd><p>The handle or object number you wish to resolve a path for.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>handle-to-path -v 0 FileHandle[0000000000000138000000006803ffffffffffffffffffff]
+ handle-to-path -f my-fs --object-number 1024
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/hard-links.html">hard-links</a> <a href="../Supervisor/object-number-to-path.html">object-number-to-path</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

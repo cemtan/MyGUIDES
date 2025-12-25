@@ -1,0 +1,1611 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>calculate</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>calculate</h1>
+<p>Calculate a C-language-like algebraic/logical/string expression or assignment</p>
+<h1>Syntax</h1>
+<pre>... | calculate [-u|--unsigned-data] [-c|--convert-result-to &lt;int8|int16|int32|int|int64|uint8|uint16|uint32|uint|uint64&gt;]
+	          [-p|--prefix &lt;prefix&gt;] [--hex|--octal|--binary] [-w|--width &lt;width&gt;]
+	          [-f|--fill &lt;fill-char&gt;] [-a|--allow-byte-units]  [-e|--escape-char &lt;char&gt;] [-m|--minishell]
+	          [floating-point-options] ([-s|--start|--] [variable=]&lt;expression&gt;)
+	     floating-point-options  ::= [(-F|--fixed) | (-S|--scientific)] [-P|--precision &lt;num digits&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The command evaluates an expression and assigns the result to an environment variable if specified.  The expression can be any expression supported by the C programming language. The expression can be tertiary. It can contain mixed integer and real (floating-point) arithmetics, bit-wise operations, logical operations, string operations. All logical operations always result in a number where zero is interpreted as false and nonzero as true.</p>
+<h2>Table of contents</h2>
+<pre>            A. Overview
+            A1. Programmer's calculator
+            A2. Standard calculator
+            A3. Expression syntax
+            A4. Environment variables
+            B. Evaluating expression
+            B1. Phase 1. Expanding macros
+            B2. Phase 2. Computing built-in functions and strings
+            B3. Phase 3. Evaluating complete expression
+            C. Operator support
+            C1. Numerical and logical operator support
+            C2. String operator support
+            C3. Comparison operators
+            C4. Multiple interpretations of the % symbol
+            D. Built-in function support
+            D1. Casting functions
+            D2. Quoting functions
+            D3. Forcing early evaluation of a sub-expression
+            E. Support for input data
+            E1. Integer input data in hex, octal, and binary formats
+            E2. String input data
+            E2.1 String data enclosed with single or double quotes
+            E2.2 String data enclosed with quoting functions
+            E3. Minishell built-in 'calculate' command
+            F. Support for byte size units
+            G. Options
+            G1. Common options
+            G2. Options to display numbers
+            H. Output display
+            I. Filter
+            EXAMPLES
+            SEE ALSO
+</pre>
+<p></p>
+<h2>A. Overview</h2>
+<p>The command can evaluate an arbitrary C-like expression that contains numbers, strings, variables, functions, together with all the popular C binary and unary operators.</p>
+<p>* A number can be signed or unsigned integer, or real. It can be specified with an exponent and/or a decimal point. A number containing a decimal point is always treated as real and stored internally as a long double; otherwise, it is an integer. Thus, 3E10 is an integer, but 3.E10 is a real number.</p>
+<p>* A literal string must be enclosed by a pair of double or single quotes, or specified as an argument to a quoting function (see section C of the 'mse-functions' man page).</p>
+<p>* A variable is specified by its name alone, without being preceded by a macro symbol like % (see mse man page). The variable must belong to the global minishell environment or the BALI shell environment.</p>
+<p>* Only built-in functions listed in Table 2 of the 'mse-functions' man page are supported.</p>
+<p>For convenience, we will use the following notations in this man page:</p>
+<pre>     * UMAX = 18446744073709551615: maximum 64-bit unsigned integer
+     * IMAX = 9223372036854775807:  maximum 64-bit signed integer
+     * IMIN = -9223372036854775808: minimum 64-bit signed integer
+</pre>
+<p></p>
+<p>The command can operate as a standard calculator (default mode) or a programmer's calculator. It can also be run as a filter. It has an alias called 'cal' but this alias is not supported for the filter.</p>
+<h3>A1. Programmer's calculator</h3>
+<p>The command operates in programmer's calculator mode if the --unsigned-data option is specified. In this case the command does not support real numbers, i.e., all calculations are performed in 64-bit unsigned arithmetics only. The maximum integer is UMAX, and the minimum is 0. Overflow will result in the number wrapped around; e.g., UMAX+1 becomes 0, UMAX+2 becomes 1. A number preceded by a unary minus sign is not negative; it is internally cast in to an unsigned. For example, -1 is actually UMAX, -1/2 means UMAX/2 or 9223372036854775807.</p>
+<p>Although numbers are unsigned, various casting functions in section D1 can be used to affect the result.</p>
+<h3>A2. Standard calculator</h3>
+<p>By default, the command operates as a standard calculator, which supports both signed and unsigned integers as well as real numbers. Arithmetic operations involving all integer operands use integer arithmetics; e.g., 7/4 is 1, -1/2 is 0. Arithmetic operations involving at least one real operand use real arithmetics; e.g., 7./4 is 1.75, -1./2 is -0.5. An integer can be stored in a signed or unsigned integer variable, depending on its magnitude and how it is specified. This interpretation can be different from the C language as described below.</p>
+<dl>
+<dt><strong>Number in decimal format</strong></dt>
+<dd><p>A number in decimal format, which can be in scientific notation, is always interpreted as a non-negative integer unless it is preceded with a unary minus sign. Internally, the value of the number may be stored in different formats as follows.</p></dd>
+</dl>
+<pre>        a) Signed 64-bit integer format if the value is an integer in the range [IMIN,IMAX].
+           For example, 3 and -5 are stored as signed integers.
+</pre>
+<p></p>
+<pre>        b) Unsigned 64-bit integer format if the value is an integer in the range (IMAX,UMAX],
+           For example, 9223372036854775817, which is IMAX+10, is stored as an unsigned integer.
+</pre>
+<p></p>
+<pre>        c) Long double format if outside the ranges mentioned above, or having a decimal point.
+           For example, each of the following numbers is stored in a long double:
+              18446744073709551616, which is UMAX+1.
+              -9223372036854775809, which is IMIN-1.
+              3.14159, which is a real number.
+</pre>
+<p></p>
+
+<p>Thus, when the calculator is in the standard mode, -1 is really negative one, 18446744073709551615 (UMAX) is really a positive integer, and expression 10*(-1) is -10, 10*18446744073709551615 is 184467440737095516150. Note that the last number is stored internally as a long double, whose value is 1.84467440737095516e+20, with only 19 significant decimal digits. Therefore, the long double generally does not preserve the precision. The default display, however, uses 6 significant decimal digits but this can be overridden by option --precision or -P.</p>
+<p>Number in hex, octal, binary formats</p>
+<p>A number in hex, octal, binary formats is always treated as a non-negative integer and can be specified with more than 8 significant bytes. Internally, the value of the number may be stored in different formats as follows.</p>
+
+<pre>        a) Unsigned 64-bit integer format if the value is an integer in the range [0,UMAX].
+</pre>
+<p></p>
+<pre>        b) Long double format if above the range mentioned above.
+           For example, 0x112233445566778899 (9 significant bytes) is stored internally as 3.16059e+20.
+</pre>
+<p></p>
+<dl>
+<dt><strong>Number with a decimal point</strong></dt>
+<dd><p>The number is always interpreted as a real number independent of the magnitude.</p></dd>
+<dt><strong>Integer arithmetics</strong></dt>
+<dd><p>If the involved operands are integers, the calculations are generally carried out in 64-bit signed integer arithmetics (e.g., 5/3 gives 1).</p></dd>
+<dd><p>However, all integers' signedness states are maintained all the time so that when the result is wider than 64 bits, it will be converted to a long double to avoid overflow. Once this happens, the data becomes a real number and subsequent calculations will be performed in real arithmetics. Consequently, there is no data wrap-around when using the standard calculator mode.</p></dd>
+<dd><p>For example, consider multiplying two positive signed 64-bit integers. There are three outcomes. If the result is equal to IMAX or smaller, it will be stored as a signed 64-bit integer. If in the range (IMAX,UMAX], it will be stored as an unsigned 64-bit integer. If larger than UMAX, it will be stored as a long double.</p></dd>
+<dt><strong>Floating-point arithmetics</strong></dt>
+<dd><p>If at least one operand is a real number, the computation is carried out in real arithmetics. For example, calculating 3/4 yields 0 because it is integer arithmetics, but 3./4 yields 0.75.</p></dd>
+<dd><p>Note that if an integer calculation results in a number that cannot fit in a 64-bit integer, the result will be stored as a long double as described above.</p></dd>
+</dl>
+<h3>A3. Expression syntax</h3>
+<p>In general, the command supports two formats:</p>
+<pre>     (a)  calculate  [options] &lt;expression&gt;
+     (b)  calculate  [options] &lt;variable&gt;=&lt;expression&gt;
+</pre>
+<p></p>
+<p>Format (b) is an assignment. The right-hand side of the equal sign is evaluated first and the result is then assigned to the variable specified on the left of the equal sign. If the variable name is "devnull", the assignment is still made but the result will not be displayed. This feature is useful when used in arithmetic expansion macros embedded in BALI commands.</p>
+<p>By default, the variable is generally stored in the BALI shell environment. For example, if 'calculate' is started in the BALI shell (when run directly in a BALI console or indirectly by the backquote/mse/ssrun commands), the variable is stored in the BALI console environment. If 'calculate' is started by the 'strquery' command/filter, which operates in its local minishell environment (see 'mse' man page), the variable will be stored therein. This default behavior can be overridden by the -m option, which causes the variable to be stored in the global minishell environment.</p>
+<p>The &lt;expression&gt; in formats (a) and (b) can be a tertiary expression such as "&lt;conditional&gt; ? &lt;expression1&gt; : &lt;expression2&gt;". In this case, the command first evaluates &lt;conditional&gt; to an integer. The tertiary expression is then simplified to &lt;expression1&gt; if &lt;conditional&gt; is nonzero, and &lt;expression2&gt; otherwise.</p>
+<p>The &lt;expression&gt; evaluated by the 'calculate' command can also be computed by other commands such as 'mse' or 'strquery'. For these commands to support all options available to the 'calculate' command, it is necessary to find a way to embed the options in the &lt;expressions&gt;. To this end, if the expression begins with a left square bracket, all the tokens following it up to the matching right square bracket are considered as options. The options within the square brackets are processed and then discarded before the actual calculation begins (see Example 18 below). In other words, the two formats (a) and (b) above can be alternatively specified as follows:</p>
+<pre>     (a1) calculate  '[&lt;options&gt;]&lt;expression&gt;'
+     (b1) calculate  '&lt;variable&gt;=[&lt;options&gt;]&lt;expression&gt;'
+</pre>
+<p></p>
+<p>Note that single or double quotes can be used to make the options and the expression appear as a single command line argument.</p>
+<h3>A4. Environment variables</h3>
+<p>An environment variable name is a string of characters that meets two conditions: (i) the first character in the name must be an alphabetic character or an underscore, and (ii) subsequent characters can be alphanumeric or underscores. See the 'env' man page for more information.</p>
+<p>The command can support two types of environment variables:</p>
+<dl>
+<dt><strong>BALI console environment variables (BSEV)</strong></dt>
+<dd><p>The BALI console maintains a list of global variables, which can be displayed by the 'env' command. There are many commands that can store a new variable in the list. For instance, env-set, backquote, calculate, etc. One can run env-unset to undefine a variable in BSEV. By default, the calculate command, when run in the BALI shell, assumes all variables are in the BSEV. Any variable that appears in &lt;expression&gt; will be resolved by searching in BSEV only.</p></dd>
+<dt><strong>Global minishell environment variables (MSEV)</strong></dt>
+<dd><p>There are many types of minishell environments described in detail in the 'mse' man page: global, local, inherited, and shared minishell environments. By design, the calculate command can support only the global minishell environment. Thus, any reference to the minishell environment in this man page means the global minishell environment.</p></dd>
+<dd><p>The global MSEV is supported by a small number of commands such as mse, mse-env, mse-set, mse-unset, calculate, strquery, strtoken. One can run the 'mse-env' command to list all variables in MSEV. One can create or update MSEV variables with the calculate command, the mse-set command, or assignment statements in an mse script. One can undefine MSEV variables using the mse-unset command, or delete all of them by 'mse-unset --all'.</p></dd>
+<dd><p>By default, the calculate command always works in the BALI shell environment. If the --minishell option is specified, the command works in the global minishell environment. In this case, creation and update of variables are done in the global minishell environment, but read and search are performed first in the global minishell environment, then BALI shell environment.</p></dd>
+</dl>
+<p>Note that the status of the calculation is stored in a predefined variable called 'CALCULATE_RC'.  This variable is in the BSEV by default. But if --minishell is specified, the variable is in the MSEV.</p>
+<p>In general, all variables associated with the calculate commands are stored in the BALI shell environment, including the variables in assignment expressions. This occurs when the command</p>
+<pre>    * is started in the BALI shell directly,
+    * is launched by backquote, mse, ssrun, and strtoken commands or filters.
+</pre>
+<p></p>
+<pre>    Example A4.1:
+        $ mse-unset --all              # clean up the entire global minishell environment
+        $ env | grep ^x | env-unset    # remove all variables prefixed with x in the BALI shell
+        $ calculate x1=10+5
+        $ backquote y calculate x2=10+5
+        $ mse 'calculate x3=10+5'
+        $ ssrun -c 'calculate x4=10+5'
+        $ echo 10 | strtoken --run 'calculate x5=%1+5'
+        $ env | grep ^x
+        x1=15
+        x2=15
+        x3=15
+        x4=15
+        x5=15
+        $ mse-env | grep ^x  # output is empty: no variables were created in the global minishell environment
+</pre>
+<p></p>
+<p>To store all variables above in the global minishell environment, the --minishell option must be specified to all the calculate commands above.</p>
+<pre>    Example A4.2:
+        $ mse-unset --all; env | grep ^x | env-unset
+        $ calculate -m x1=10+5
+        $ backquote y calculate -m x2=10+5
+        $ mse 'calculate -m x3=10+5'
+        $ ssrun -c 'calculate -m x4=10+5'
+        $ echo 10 | strtoken --run 'calculate -m x5=%1+5'
+        $ env | grep ^x       # output is empty: no variables were created in the BALI environment
+        $ mse-env | grep ^x
+        x1=15
+        x2=15
+        x3=15
+        x4=15
+        x5=15
+</pre>
+<p></p>
+<p>The default behavior is different when 'calculate' is executed by the 'strquery' command/filter. By default, the variable will be stored in strquery's minishell environment.</p>
+<pre>    Example A4.3:
+        $ mse-unset --all; env | grep ^x | env-unset
+        $ echo 10 | strquery --run [ calculate x=__+5 ]
+        15
+        $ env | grep ^x       # output is empty: no variables were created in the BALI environment
+        $ mse-env | grep ^x   # output is empty: no variables were created in the global minishell environment
+</pre>
+<p></p>
+<p>By default, strquery operates in its own local minishell environment, which is destroyed upon exit (see 'strquery' man page). This default behavior can be overridden by the -m option to the calculate command, which causes the variable to be stored in the global minishell environment.</p>
+<pre>    Example A4.4:
+        $ mse-unset --all
+        $ env | grep ^x | env-unset
+        $ echo 10 | strquery --run [ calculate -m x=__+5 ]
+        15
+        $ env | grep ^x       # output is empty: no variables were created in the BALI environment
+        $ mse-env | grep ^x
+        x=15
+</pre>
+<p></p>
+<h2>B. Evaluating expression</h2>
+<p>The expression can contain variables and built-in functions exactly as in the C programming language. Variables are specified without a leading dollar sign; e.g. x=3*y+1. If a variable is used but has not been defined yet, the command will fail.</p>
+<p>In order to use the many powerful features of the 'calculate' command, it is necessary to understand what the command does in various processing stages.</p>
+<p>The command's very first task is to store the &lt;expression&gt; in an environment variable called CALCULATE_EXPR. Then it will begin a three-phase process as follows.</p>
+<h3>B1. Phase 1. Expanding macros</h3>
+<p>This phase is skipped if the environment where the command is running does not support macros. By default, the calculate command runs in a BALI shell environment, which does not support macro tokens.</p>
+<p>Macro tokens are variable names preceded by a macro symbol. Because the default BALI shell environment does not support macros, the macro symbol is set to NUL for this environment. Thus, the % character is literal text in BALI. But this can be changed by the env-config command.</p>
+<p>If the calculate command is run with -m option, it operates in the global minishell environment, where macro support is enabled by default. The default macro symbol is the percent sign (%). This can be changed by running the mse-config command.</p>
+<p>Macro support is not limited to variable substitution. It includes command output substitution, which is %(command line), and arithmetic substitution, which is %((expression)). Note that all substitutions are carried out in the first phase before any computation begins.</p>
+<p>If macro support is needed, it is better to run the command with -m to avoid changing the BALI shell environment.</p>
+<p>For example, consider the command:</p>
+<pre>     calculate -m 'a=strlen("%(echo abc)"+"def")+x+1'      # (1)
+</pre>
+<p></p>
+<p>After phase 1, the command line becomes</p>
+<pre>     calculate -m 'a=strlen("abc"+"def")+x+1'              # (2)
+</pre>
+<p></p>
+<h3>B2. Phase 2. Computing built-in functions and strings</h3>
+<p>After all macro expansions are carried out, the command then scans the resulting expression to evaluate all strings and built-in functions listed in Table 2 of the mse-functions man page. If there are no strings and functions, it will skip to phase 3 immediately.</p>
+<p>If a function is found, the command will evaluate its arguments, one at a time. Each argument is computed as if it were a new expression; i.e., it can contain further variables and functions. In the end, each argument is evaluated to a number or a string. When all arguments are evaluated, the function itself will be computed and the result is either a number or a string.</p>
+<p>If strings are found together with a string operator, they will be evaluated. The string operators evaluated during this phase are concatenation, repeat, and comparison operators.</p>
+<p>Once all functions and string operations are evaluated, the resulting expression can still contain variables. For example, after phase 2 is completed, the command line in (2) will become</p>
+<pre>      calculate -m 'a=6+x+1'               # (3)
+</pre>
+<p></p>
+<p>and will enter phase 3.</p>
+<h3>B3. Phase 3. Evaluating complete expression</h3>
+<p>In this phase the expression is completely free of function calls and the command will proceed as follows:</p>
+<pre>    (a) replace all the remaining variables with their actual values,
+    (b) parse and evaluate the expression,
+    (c) display the result, and
+    (d) store the status of the calculation in a variable called 'CALCULATE_RC', and also update
+        the four mse-defined variables starting with 'RC' (see section D7.1 in the mse man page).
+</pre>
+<p></p>
+<p>Continue with the same example in phase 2, assuming x is 3:</p>
+<pre>      calculate -m '6+3+1'   # after step (a)
+      calculate -m '10'      # after step (b)
+      10                     # after step (c)
+</pre>
+<p></p>
+<p>After step (d) is completed, the variables are available for use:</p>
+<pre>      $ env
+      CALCULATE_EXPR=a=1
+      CALCULATE_RC=Success
+      RC=10
+      RC_FAILED=0
+      RC_SUCCESS=1
+      RC_SYNTAX=0
+      x=3
+      $ mse-env
+      a=10
+</pre>
+<p></p>
+<h2>C. Operator support</h2>
+<h3>C1. Numerical and logical operator support</h3>
+<p>The &lt;expression&gt; supports both unary and binary operators using the C-language notation. The command supports the C/C++ order of precedence.</p>
+<pre>   1. Integer unary operators:  + - ! ~
+   2. Integer binary operators:  + - * / %  &gt;&gt;  &lt;&lt;  &amp; |  ^
+   3. Floating-point unary operators:  + -
+   4. Floating-point binary operators:  + - * /
+   3. Logical binary operators:  &lt;  &lt;=  == !=  &gt;=  &gt;  &amp;&amp; ||
+</pre>
+<p></p>
+<p>For convenience, the command supports case-sensitive operator mnemonics for use to avoid shell interpretation.</p>
+<pre>               Table 1. Operator Mnemonics
+               ---------------------------
+</pre>
+<p></p>
+<pre>    &amp;&amp; =&gt; .and.      &amp; =&gt; .band.     || =&gt; .or.    | =&gt; .bor.     / =&gt; .div.
+    *  =&gt; .mul.      % =&gt; .mod.      !  =&gt; .not.   ~ =&gt; .comp.    ^ =&gt; .xor.
+    &lt;  =&gt; .lt.      &lt;= =&gt; .le.       == =&gt; .eq.   != =&gt; .ne.      &gt; =&gt; .gt.
+    &gt;= =&gt; .ge.      &lt;&lt; =&gt; .lsh.      &gt;&gt; =&gt; .rsh.   ? =&gt; .qm.      : =&gt; .col.
+</pre>
+<p></p>
+<pre>       (the b prefix in .band. and .bor. means bitwise)
+</pre>
+<p></p>
+<h3>C2. String operator support</h3>
+<p>The simplest string expression contains one string such as 'Hello', or one string function such as strstr("Hello Hoc", "Ho"). In general, the expression can  contain occurrences of concatenation operator '+' and/or the repeat operator '*'. Both operators are binary and have no mnemonics. The '+' operator requires two string operands. The '*' operator requires one string operand and one numeric operand, which can appear in any order.</p>
+<p>* A string operand can be specified as text enclosed by single or double quotes, or a function returning a string. To convert a sub-expression or a variable to a string, use the string() function.</p>
+<p>* A numeric operand can be specified as an explicit number, or a variable whose value is a number, or a function returning a number.</p>
+<p>Example:</p>
+<pre>   # The entire &lt;expression&gt; is a string expression
+   $ calculate '"Can you say" + " yes" * 3 + "?"'
+   Can you say yes yes yes?
+</pre>
+<p></p>
+<pre>   # A parameter of a function is a string
+   $ calculate 'strlen("Can you say" + " yes" * 3 + "?")'
+   24
+</pre>
+<p></p>
+<p>For more information, see sections B and C of the mse-functions man page.</p>
+<h3>C3. Comparison operators</h3>
+<p>The following six logical binary operators support both numerical and string comparisons:</p>
+<pre>              &lt;  &lt;=  == !=  &gt;=  &gt;
+</pre>
+<p></p>
+<p>They are interpreted as string comparisons if both operands are string data types, or numerical comparisons if both operands are numeric (i.e., either numeric expressions or numbers).</p>
+<p>When an operand is a variable, the comparison is impossible because its data type is not clearly defined. Thus, the calculate command has to define the following rules when one operand is a variable:</p>
+<p>1. The variable is a string if the other operand is unmistakenly a string (i.e., enclosed by double or single quotes, or argument to quoting functions):</p>
+<pre>         $ env-set sum  3+4
+         $ cal 'sum == "3+4"
+         1
+</pre>
+<p></p>
+<p>Note that the 'sum' variable, by itself, can be a numerical expression or a string. But the command relies on the right hand side to conclude that sum must be a string.</p>
+<p>2. The variable is a numeric expression or a number if the other operand is unmistakenly a numeric expression. Both operands will be evaluated before comparison is performed:</p>
+<pre>         $ cal 'sum == 3+4'
+         1
+</pre>
+<p></p>
+<p>The right hand side is clearly a numeric expression. Thus, the command concludes that the variable on the left hand side must be numeric.</p>
+<p>3. If one operand is unmistakenly a string and the other operand is numeric (either a number or a numeric expression), the comparison will fail.</p>
+<pre>         $ cal '3+4 == "3+4"'
+         Cannot compare non-string data with string data: 3+4 == "3+4"
+         Suggestion: use string() to cast to string data type: string(3+4) == "3+4"
+         Failed to evaluate expression: 3+4=="3+4"
+         Command failed.
+</pre>
+<p></p>
+<h3>C4. Multiple interpretations of the % symbol</h3>
+<p>The % symbol has special interpretation depending on different commands.</p>
+<dl>
+<dt><strong>1. The calculator library interprets % as the modulo operator</strong></dt>
+<dd><p>The calculator library is the engine for computing arithmetic/string/logical expression. It is used by the following:</p></dd>
+</dl>
+<pre>      - the 'calculate' command when evaluating an expression.
+      - the 'mse' command when evaluating the following in an mse script:
+           * arithmetic assignments,
+               e.g., x = &lt;expression&gt;;
+           * initial/conditional/update expressions in for-loop,
+               e.g., for (&lt;initial&gt;; &lt;conditional&gt;; &lt;update&gt;)
+           * conditional expressions in while-loop,
+               e.g., while (&lt;expression&gt;)
+           * conditional expressions in if-statements,
+               e.g., if (&lt;expression&gt;)
+           * expressions specified in an arithmetic expansion macro
+               e.g. %(expression)
+</pre>
+<p></p>
+<pre>      - the '--calculate' option to the strquery filter
+      - the '--if-strquery' and '--unless-strquery' options to the many filters:
+           strjoin, strline, strreplace, strsplit, strtoken
+</pre>
+<p></p>
+<pre>      - the '--if' option to the many filters: strsplit, strreplace, strjoin, etc
+</pre>
+<p></p>
+<dl>
+<dt><strong>2. The minishell interpreter treats % as the default macro symbol</strong></dt>
+<dd><p>The detailed description is found in the mse man page. It suffices to summarize the interpretation rules as follows.</p></dd>
+</dl>
+<pre>       a. All %&lt;number&gt; tokens are treated as positional parameters.
+          If the 'mse -f &lt;script&gt; &lt;arg1&gt; &lt;arg2&gt; ...' command is run with multiple arguments specified
+          in the command line, token %n is called a positional parameter. Its value is the n-th argument
+          after the script name, where n = 0 corresponds to the script name.
+             - If the n-th argument after the script name is specified, all occurrences of the %n token
+               in the script will be replaced with the actual value of the argument.
+             - If not specified, %n will be generally replaced with an empty string. However, there are
+               a few exceptions:
+</pre>
+<p></p>
+<pre>                  * If the %n token appears in the command lines of strquery or strtoken, it will be left
+                    as is so that these filters can later process them as their own positional tokens.
+                  * If the %n token appears in a math expression, it will be left as is so that
+                    the calculator engine can later process them as modulo operators.
+</pre>
+<p></p>
+<pre>       b. All %&lt;variable&gt; tokens are treated as variable substitution.
+          The variable is searched first in the minishell environment, then the BALI environment.
+          If the variable is defined, the token is replaced with the value of the variable.
+          If the variable is undefined, the command fails.
+</pre>
+<p></p>
+<pre>       c. All %(command line) tokens are treated as command output substitution.
+</pre>
+<p></p>
+<pre>       d. All %((expression)) tokens are treated as arithmetic expansion.
+</pre>
+<p></p>
+
+<p>This symbol can be changed by the -m option to the mse command. In particular, specifying -m 0 (i.e., zero) will set this symbol to the NUL character, effectively turning off support for macro expansion.</p>
+<p>Therefore, to specify the modulo operator in an mse script, the simplest way is to use the mnemonic form .mod. instead. Another way is to specify another macro symbol to the mse command, or to set the macro symbol to zero.</p>
+<p>3. The BALI shell treats % as a normal character</p>
+<p>Consequently,</p>
+<p>a. If the calculate command runs in the BALI shell, the % symbol is interpreted by the command itself. Thus, all occurrences of % in the expression are modulo operators.</p>
+<p>b. If the calculate command is executed in an mse script that is run with N arguments specified after the script name, the mse interpreter will first expand all macros and positional parameters. Only occurrences of %n where n = 0 to N are positional parameters to mse. The remaining occurrences of %n, where n is greater than N, in the expression are interpreted as modulo operators.</p>
+
+<p>Example:</p>
+<pre>      $ cal 12%5         # see note (3a)
+      2
+</pre>
+<p></p>
+<pre>      $ cal -m 12%5      # see note (3a)
+      2
+</pre>
+<p></p>
+<pre>      $ env-set a 5
+      $ cal 12%a         # see note (3a)
+      2
+</pre>
+<p></p>
+<pre>      $ cal -m 12%a      # see note (3b): %a replaced with 5, resulting in 125
+      125
+</pre>
+<p></p>
+<pre>      $ cal -m 12.mod.a  # .mod. is unambiguous in any environment
+      2
+</pre>
+<p></p>
+<pre>      $ env-unset a
+      $ cal -m 12%a      # see note (3b), then (2b)
+      Variable substitution failed: Variable 'a' not found in global minishell environment and Bali console environment
+      Failed to resolve macros and escapes in: 12%a
+      Command failed.
+</pre>
+<p></p>
+<h2>D. Built-in function support</h2>
+<p>A number of built-in functions can appear in &lt;expressions&gt; using the C-language syntax. Some provide the functionalities of many runtime C-library functions like strlen(), strcmp(), substr(), etc. Other provide casting capabilities like char(), int8(), uint8(), int16(), uint16(), etc. There are many functions that provide complex processing such as parsing, counting, regular expressions, etc. See the 'mse-functions' man page for a complete description and listing of built-in functions.</p>
+<p>For the purpose of this man page, we will highlight the following built-in functions.</p>
+<h3>D1. Casting functions</h3>
+<p>By default, all floating numbers are long double and all numeric integers are 64 bits. The default integer data type is signed integers unless --unsigned-data option is specified.</p>
+<p>To convert to other data types requires casting functions:</p>
+<pre>     * Change size/type of numeric data: int8(), uint8(), int16(), uint16(), int32(), uint32(), int64(), uint64(), float()
+     * Change number to character:                      char(&lt;number&gt;)      =&gt; &lt;character&gt;
+     * Change value of variable to string:              string(&lt;variable&gt;)  =&gt; "&lt;value&gt;"
+     * Change non-variable token to string:             string(&lt;token&gt;)     =&gt; "&lt;token&gt;"
+     * Evaluate expression and change result to number: evaln(&lt;expression&gt;) =&gt; &lt;number&gt;
+     * Evaluate expression and change result to string: evals(&lt;expression&gt;) =&gt; "&lt;result&gt;"
+</pre>
+<p></p>
+<pre>   Example:
+</pre>
+<p></p>
+<pre>     $ cal char(65)
+     A
+     $ cal uint8(-1)
+     255
+     $ cal int8(255)
+     -1
+     $ env-set xyz 150
+     $ cal string(xyz)*2       # argument is a defined variable
+     150150
+     $ cal 'string(xyz 123)'   # argument is not a defined variable
+     xyz 123
+</pre>
+<p></p>
+<h3>D2. Quoting functions</h3>
+<p>Quoting functions are designed to convert their arguments to string data types without using special characters like single quotes, double quotes, or escapes. There are seven quoting functions in all:</p>
+<pre>        Type 1 (generic):       str(),  qstr(),  dqstr(),  esc()
+        Type 2 (math-specific): mstr(), mqstr(), mdqstr()
+</pre>
+<p></p>
+<p>All the characters inside the parentheses are literal except the escape character and the macro symbol. Thus, if another function name appears in the argument, the name is considered literal text. If an escape sequence or a macro token appears in the argument, it will be expanded.</p>
+<p>Examples:</p>
+<pre>     str(abc) changes abc to:   "abc"      (the double quotes are not part of the data)
+     qstr(abc) changes abc to:  "'abc'"    (the outermost double quotes are not part of the data)
+     dqstr(abc) changes abc to: '"abc"'    (the outermost single quotes are not part of the data)
+     esc(abc) changes abc to:   @abc       (assuming @ is an escape character)
+</pre>
+<p></p>
+<pre>     mstr(abc) behaves like str(abc)
+     mqstr(abc) behaves like qstr(abc)
+     mdqstr(abc) behaves like dqstr(abc)
+</pre>
+<p></p>
+<p>The functions with an m prefix behave exactly as their counter-parts without the m prefix. If their behaviors are identical, why not discarding the m-prefix versions?</p>
+<p>The main reason is that the minishell interpreter also supports the seven quoting functions above. But it will recognize the m-prefix versions as math-specific and leave them to the calculate library to handle the conversion. The details are as follows.</p>
+<p>When the interpreter scans a command line in an mse script, it will recognize these quoting functions and process as follows:</p>
+<pre>    1. Parse the entire occurrence of a quoting function in an mse script as a single token.
+           e.g.,  ls str(my "new" car)
+       This command lists a single file named /my "new" car/ (the slashes are not part of the name).
+</pre>
+<p></p>
+<pre>    2. If the quoting function is of type 1, replace the token with its true string value
+       based on the function description in the mse-functions man page.
+</pre>
+<p></p>
+<pre>    3. If the quoting function is of type 2 (m-prefix version), do nothing.
+       Therefore, the command itself will see the quoting function as is.
+</pre>
+<p></p>
+<p>It is clear now that we must use the m-prefix versions if the quoting functions are intended to be left intact by the minishell interpreter. Usually, the m-prefix versions are intended to be executed by the math functions in the calculate command.</p>
+<pre>   Example 1:
+           $ echo Hello there | strtoken %2 --if has(str(%1),str(Hello))
+           there
+</pre>
+<p></p>
+<pre>   Example 2: Run example 1 in an mse script:
+</pre>
+<p></p>
+<pre>           $ mse 'echo Hello there | strtoken %2 --if has(str(%1),str(Hello))'
+           has: Undefined variable 'Hello': not found in global minishell environment and Bali console environment
+           Failed to evaluate expression: has(Hello,Hello)
+</pre>
+<p></p>
+<p>To see why, note the following execution steps:</p>
+<p>a) The mse interpreter expanded all macros and quoting functions in the command line, then ran the resulting command in a BALI shell as follows:</p>
+<pre>           echo Hello there | strtoken %2 --if has("Hello","Hello"))
+</pre>
+<p></p>
+<p>b) Because the BALI shell stripped off the double quotes, strtoken received the following arguments:</p>
+<pre>           strtoken there --if has(Hello,Hello)
+</pre>
+<p></p>
+<p>c) strtoken invoked the calculator library to evaluate the if-expression: has(Hello,Hello). Based on the syntax, Hello was clearly a variable name but its value was undefined. Hence, the failure.</p>
+<pre>   Example 3: To correct the error in example 2, use mstr() instead of str():
+</pre>
+<p></p>
+<pre>           $ mse 'echo Hello there | strtoken %2 --if has(mstr(%1),mstr(Hello))'
+           there
+</pre>
+<p></p>
+<p>This example succeeded because the mse interpreter left mstr functions intact so that strtoken would receive:</p>
+<pre>           strtoken there --if has(mstr(Hello),mstr(Hello))
+</pre>
+<p></p>
+<p>The calculator then evaluated the expression:</p>
+<pre>           has(mstr(Hello),mstr(Hello))
+</pre>
+<p></p>
+<p>The innermost functions were evaluated first, resulting in:</p>
+<pre>           has("Hello","Hello")
+</pre>
+<p></p>
+<p>The next function, has, was evaluated next, resulting in 1. Thus, the original command line became:</p>
+<pre>           echo Hello there | strtoken there --if 1
+</pre>
+<p></p>
+<p>For more information, see section C of the 'mse-functions' man page.</p>
+<h3>D3. Forcing early evaluation of a sub-expression</h3>
+<p>Note that all string comparisons are carried out in phase 2 and numeric computation in phase 3. If a sub-expression needs to be evaluated completely during this phase, it has to be specified as an argument to one of the following functions:</p>
+<pre>   evals(expression)
+   evaln(expression)
+   eval(expression)
+   unquote(expression)
+   hide(expression)
+</pre>
+<p></p>
+<p>All the functions above invoke the 'calculate' command library to compute the parenthesized expression. The outcome of the 'calculate' command can be one of the following forms:</p>
+<pre>   $ cal 10+5            # a. result is a number
+   15
+   $ cal "'10+5'"        # b. data type of result is ambiguous (can be a numeric expression or string value)
+   10+5
+   $ cal "'10 dollars'"  # c. result is a string without surrounding quotes
+   10 dollars
+   $ cal qstr(10+5)      # d. result is a string quoted with single quotes
+   '10+5'
+   $ cal dqstr(10+5)     # e. result is a string quoted with double quotes
+   "10+5"
+</pre>
+<p></p>
+<p>In example (c), note that the calculate command receives the expression '10 dollars', including the surrounding single quotes. But the quotes simply tell the calculate command that the data inside is a string. Thus, the quotes do not appear when the result is displayed in (c).</p>
+<dl>
+<dt><strong>evals(expression)</strong></dt>
+<dd><p>The function invokes the calculate command to compute the expression completely. Regardless of the outcome of the calculate command, the evals function redefines the data type of the result as string for internal use.</p></dd>
+</dl>
+<pre>    Example:
+        $ cal evals(10+5)           # internally, evals(10+5) is "15"
+        15
+        $ cal 'evals(10+5)=="15"'   # the data type implied by evals is recognized during string comparison
+        1
+        $ cal '15=="15"'            # error
+</pre>
+<p></p>
+
+<p>Thus, using evals() forces the sub-expression 10+5 to be evaluated during phase 1 where the string comparison is carried out.</p>
+<p>evaln(expression)</p>
+<p>The function invokes the calculate command to compute the expression completely. Regardless of the outcome of the calculate command, the evals function redefines the data type of the result as numeric for internal use.</p>
+<p>eval(expression)</p>
+<p>The function invokes the calculate command to compute the expression completely. However, it does not redefine the data type of the result. It is up to the caller to interpret the data type of the result.</p>
+<p>unquote(expression)</p>
+<p>The function removes the outermost single or double quotes surrounding the expression, if any, then evaluates the resulting expression without redefining the data type of the result. It is up to the caller to interpret the data type of the result.</p>
+
+<pre>    Example:
+        $ cal 'unquote("10+15")&lt;100'
+        1
+</pre>
+<p></p>
+<dl>
+<dt><strong>hide(expression)</strong></dt>
+<dd><p>The function invokes the calculate command to compute the expression completely, then removes the result from the original expression. All of this occurs during phase 1.</p></dd>
+</dl>
+<pre>    Example:
+        $ cal 'hide(x=10+15) x*2'
+        50
+</pre>
+<p></p>
+<pre>    The net result is as if two commands were run consecutively
+        $ cal x=10+15
+        $ cal x*2
+    but the command executing the argument of hide did not display the result.
+</pre>
+<p></p>
+<h2>E. Support for input data</h2>
+<p>The input data for the 'calculate' command is generally numeric. The command does not support date time strings in input data. The appropriate commands to convert date time strings to Unix time are timestamp-encode and timestamp-decode and strtoken.</p>
+<h3>E1. Integer input data in hex, octal, and binary formats</h3>
+<p>Integers can be specified in decimal, binary, octal, or hexadecimal formats as follows.</p>
+<pre>  1. A binary number must be prefixed with 0b (lower case letter b only).
+     Note that binary digits can be separated by a single underscore
+     for readability purposes; e.g., "0b1110_0101_1011"
+</pre>
+<p></p>
+<pre>  2. An octal number must be specified with a leading zero.
+</pre>
+<p></p>
+<pre>  3. A hexadecimal number must be specified with prefix "0x" or "0X".
+</pre>
+<p></p>
+<p>The signedness of an integer depends on whether the command operates as a programmer's or standard calculator. The interpretation was discussed in detail in sections A1 and A2.</p>
+<h3>E2. String input data</h3>
+<p>The 'calculate' command can operate as a limited string calculator using the same syntax:</p>
+<pre>     calculate  [&lt;variable&gt;=]&lt;expression&gt;
+</pre>
+<p></p>
+<p>Here, the entire &lt;expression&gt; can be a string, or contain built-in functions using strings. The string data must be properly quoted to avoid being interpreted by the 'calculate' command as a variable.</p>
+<h3>E2.1 String data enclosed with single or double quotes</h3>
+<p>If the first character of &lt;expression&gt; is a single or double quote, then the data enclosed between the quotes is a string value, not a variable name.</p>
+<p>* Example 1:</p>
+<pre>      $ env set foo 10
+      $ env set bar 3
+      $ calculate 'foo-bar'
+      7
+</pre>
+<p></p>
+<p>The single quotes are interpreted away by the BALI shell. Thus, the calculate command receives the 7-character token /foo-bar/ without any surrounding quotes. (Note that we have used a pair of forward slashes to delimit the actual string data; the forward slashes are not part of the data.) Thus, the data is not a literal string. Because a token starting with a letter or an underscore is interpreted as a variable, the 7-character token /foo-bar/ is treated as variable foo minus variable bar. If any of them is undefined, the command will fail.</p>
+<p>* Example 2:</p>
+<pre>      $ calculate "'foo-bar'"
+      foo-bar
+</pre>
+<p></p>
+<p>The outermost double quotes are interpreted away by the BALI shell. Thus, the calculate command receives the 9-character token /'foo-bar'/. To the calculate command, the starting and ending single quotes merely mean the actual data is a 7-character literal string /foo-bar/ inside the double quotes.</p>
+<p>* Example 3:</p>
+<pre>      $ calculate '"foo-bar"'
+      foo-bar
+</pre>
+<p></p>
+<p>The outermost single quotes are interpreted away by the BALI shell. Thus, the calculate command receives the 9-character token /"foo-bar"/. To the calculate command, the starting and ending double quotes are not part of the data; they merely mean the actual data inside the double quotes is a string.</p>
+<p>At this point, it is time to find out how to pass /"Hello"/, where the quotes are part of the string data, to the calculate command.  Clearly, we cannot add additional quotes to examples 2 and 3 above. One method is to use the escape mechanism as follows.</p>
+<pre>   Example 4:
+      $ calculate -e Q '"@Qfoo-bar@Q"'
+      "foo-bar"
+</pre>
+<p></p>
+<p>But there is an elegant method to avoid clumsy escapes. This is discussed next.</p>
+<h3>E2.2 String data enclosed with quoting functions</h3>
+<p>The single and double quotes are special characters to the BALI shell. When they are part of the string data, they need to be quoted properly. Both the mse and calculate commands support string data supplied without quotes via quoting functions as described in section D3.</p>
+<pre>   Example 5:
+      $ calculate dqstr(foo-bar)
+      "foo-bar"
+</pre>
+<p></p>
+<p>The dq prefix means double quoted string. Thus, dqstr() means adding a pair of double quotes to surround the data inside the parentheses, making the quotes part of the string. Note that all characters that are enclosed by the parentheses are part of the string, including spaces and quotes. For example,</p>
+<pre>      $ calculate "dqstr( foo-bar's foo -- what is it? )"
+      " foo-bar's foo -- what is it? "
+</pre>
+<p></p>
+<p>Similarly, qstr() means adding a pair of single quotes, instead of double quotes.</p>
+<pre>   Example 6:
+      $ calculate qstr(foo-bar)
+      'foo-bar'
+</pre>
+<p></p>
+<p>If the surrounding quotes are not part of the string data, use str(), which returns the characters inside the parentheses as string data:</p>
+<pre>   Example 7:
+      $ calculate str(foo-bar)
+      foo-bar
+</pre>
+<p></p>
+<p>Finally, use esc() to avoid specifying the escape character explicitly. The function will silently prepend an internal escape character to the argument and then resolve the resulting escape sequence.</p>
+<pre>   Example 8:
+      $ calculate 'str(foo-bar)esc(qs foo)'
+      foo-bar's foo
+</pre>
+<p></p>
+<h3>E3. Minishell built-in 'calculate' command</h3>
+<p>The keywords str, qstr, dqstr, and esc and the m-prefix versions are reserved by the mse interpreter as quoting functions. The interpreter processes them whenever they appear in an mse script, except in quoted text.</p>
+<p>Consider the following differences if calculate were treated as any other BALI command.</p>
+<pre>      $ calculate qstr(foo-bar)               # command (a)
+      'foo-bar'
+</pre>
+<p></p>
+<pre>      $ sscat test.scr
+      echo Line 1: "Say qstr(Hello) for me."  # qstr: normal text
+      echo Line 2: Say qstr(Hello) for her.   # qstr: quoting function
+      echo Line 3: calculate qstr(foo-bar)    # qstr: quoting function
+      calculate qstr(foo-bar)                 # command (b), qstr: quoting function
+</pre>
+<p></p>
+<pre>      $ mse -f test.scr
+      Line 1: Say qstr(Hello) for me.
+      Line 2: Say 'Hello' for her.
+      Line 3: calculate 'foo-bar'
+      Variable 'foo' undefined: not found in Bali environment
+      Command failed.
+</pre>
+<p></p>
+<p>Command (a) succeeds because qstr() is processed by the calculate command. Command (b) fails because qstr() is processed by the mse command first. This results in "calculate 'foo-bar'", which would be executed as if the user typed the command line directly in the BALI shell.</p>
+<p>The difference in the outcomes of the two identical commands, one run by mse and another by BALI, has profound consequences. If a calculate command runs successfully in BALI, it is not guaranteed to run so in an mse script. This defeats the purpose of using scripts to automate testing.</p>
+<p>To resolve this dilemma, the mse interpreter treats the calculate command as a built-in command. That is, after parsing, it will call the calculate library to compute the expression in its context without re-launching the command in the BALI shell. This strategy guarantees that all the quoting functions used in the 'calculate' command line work consistenly in both the BALI shell and the mse interpreter.</p>
+<h2>F. Support for byte size units</h2>
+<p>If option --allow-byte-units is specified (see below), the input expression can contain numbers immediately followed by a unit string that indicates the byte size such as K, KB, M, MB, etc, or BLK. For detailed information, see the 'offset-and-length' man page. Note BLK is the file system block size. If the expression contains BLK, the 'calculate' command relies on the environment variable "FS_LABEL" to get the currently selected file system and find its blocksize.</p>
+<p>The rule in processing units is that any number (integer or floating-point) immediately followed by a unit always has the highest order of precedence; it is always evaluated (and truncated if necessary) to a whole number of bytes before the entire expression is computed. For instance, both "calculate 10*0.1KB" and "calculate 0.1KB*10" give 1020 because "0.1KB" has highest order of precedence and is first evaluated to 102 whole bytes, not 102.4, not 102.0.</p>
+<pre>   $ calculate -a 0.4K            # always truncated to produce an integer result
+   409
+   $ calculate -a 0.4K/2K         # integer arithmetics
+   0
+   $ calculate -a 0.4K/2K*1.0     # division is carried out in integer arithmetics
+   0
+   $ calculate -a 0.4K*1.0/2K     # numerator is computed in floating-point arithmetics
+   0.199707
+   $ calculate -a fdiv(0.4K,2K)   # using floating-point division built-in function
+   0.199707
+</pre>
+<p></p>
+<p>Note that if the number followed by a unit results in an integer larger than 64 bits, the value is automatically converted to a long double.</p>
+<pre>   $ calculate -a 1024.*1E
+   1.18059e+21
+   $ calculate -a -P 18 1024.*1E  # maxed out at 18 significant digits
+   1.18059162071741130e+21
+</pre>
+<p></p>
+<h2>G. Options</h2>
+<p>All options must be specified before the &lt;expression&gt;. In other words, the &lt;expression&gt; is always the last argument to the command.</p>
+<p>An alternative way is to specify an expression with embedded options in a single argument, which consists of two parts (see Example 18):</p>
+<pre>  - The first part is all options enclosed within a pair of square brackets.
+  - The second part is the expression itself.
+</pre>
+<p></p>
+<p>Specifically,</p>
+<pre>     calculate  "[calculate-options] &lt;expression&gt;"
+     calculate  "&lt;variable&gt; = [calculate-options] &lt;expression&gt;"
+</pre>
+<p></p>
+<p>Note that options can be specified in a mixed mode: some options specified as separate arguments before &lt;expression&gt;, some options as embedded in &lt;expression&gt;. In this case, embedded options override those specified in preceding arguments.</p>
+<h3>G1. Common options</h3>
+<dl>
+<dt><strong>--unsigned-data</strong></dt>
+<dd><p>Specify that the calculator supports unsigned 64-bit integers only. In this case the command operates as a programmer's calculator in Microsoft's Windows as explained in section A1. All input data that contain real numbers are invalid and cause the command to fail. Note that "3.1E+2" is valid because it does not contain a decimal point when expressed as a decimal number (310), but "3.125E2" is invalid because it is "312.5". A number preceded by a minus sign is interpreted as an unsigned. Thus, -1 means the maximum unsigned integer UMAX. If the result of a calculation results in a number greater than UMAX, it will be wrapped around, i.e., UMAX+1 is 0, UMAX+2 is 1, etc.</p></dd>
+<dd><p>If this option is not specified, the command operates as a standard calculator as described in section A2. The standard calculator supports both integers and real numbers. If all the operands of an operator are integers, the operation will be carried out in integer arithmetics and the result is stored in an integer. But if the result exceeds 64 bits, it will be stored in a long double. If at least one operand is a real number, the operation will be carried out in long double arithmetics and the result is stored in a double.</p></dd>
+<dt><strong>--convert-result-to, -c &lt;integer-data-type&gt;</strong></dt>
+<dd><p>This option has no effect if the calculator result is a string. It specifies that the final numerical result of the calculator is to be converted to one of the following integer data types:</p></dd>
+</dl>
+<pre>            uint8, uint16, uint32 or uint, uint64
+            int8,  int16,  int32 or int,   int64
+</pre>
+<p></p>
+
+<p>If the numerical result is a double, conversion causes truncation of the fractional part. If the result cannot fit in the specified data type, the command will fail, reporting an overflow error.</p>
+<p>--prefix, -p &lt;prefix&gt;</p>
+<p>Specify a text prefix to prepend to the number. The default is 0x for hex, 0b for binary, and no prefix for decimal and octal. The leading zero of an octal number is considered part of the number, not the prefix. To suppress the prefix, specify -p "".  This option cannot be specified together with --template-formatter.</p>
+<p>--hex, -h</p>
+<p>Display the result as a single number in hex format (prefixed with 0x by default) subject to options --width and --fill. The default is to display in decimal format.</p>
+<p>--octal, -o</p>
+<p>Display the result as a single number in octal format subject to options --width and --fill.</p>
+<p>--binary, -b</p>
+<p>Display the result as a single number in binary format (prefixed with 0b) subject to options --width and --fill. The number of binary digits is always a multiple of 8 with an underscore inserted between groups of 4 bits for readability purposes.</p>
+<p>--width, -w &lt;W&gt;</p>
+<p>The sign of W indicates the left/right justification. If W is negative/positive, the string is left/right justified.</p>
+<p>The absolute value of W is the number of columns reserved to display the result. The number is called the field width or simply width.</p>
+<p>If this option is not specified, the default field width is equal to the length of the result string.</p>
+<p>If this option specifies a width smaller than the result string length, the default field width will be used.</p>
+<p>If center-justification or complete formatting control is desired, use --template-formatter option instead.</p>
+<p>--fill-char, -f &lt;char&gt;</p>
+<p>If the width is larger than the length of the result string, the result will be padded with &lt;char&gt; as described shortly.</p>
+<p>--template-formatter, -t  &lt;template output&gt;</p>
+<p>Specify that the command displays the &lt;template output&gt; after replacing all occurrences of the "%1" token therein with the result of the calculation.</p>
+<p>Specifically, the result of the calculation is referred to as token number 1 and is represented by "%1", or "%{1}" where the curly brackets can also be replaced with parentheses, or square/angle brackets. Specifically, the token number can be specified using the following syntax, which is described in detail in Section C of the strtoken man page:</p>
+
+<pre>             "%{1, C&lt;datatype&gt;, P&lt;percentChar&gt;, T&lt;typeChar&gt;, W&lt;width&gt;, F&lt;fillChar&gt;, J&lt;justifyChar&gt;, S&lt;startOffset&gt;, L&lt;ByteLength&gt;}"
+</pre>
+<p></p>
+<pre>         Example:
+             $ calculate -t "The final result is %{1,W10,F*,Jc} as expected, not -%1." 3*5
+             The final result is ****15**** as expected, not -15.
+</pre>
+<p></p>
+
+<p>Note that the --prefix option cannot be specified with the --template-formatter option because the prefix, or any extra text in general, can be specified in the template. All other options --hex, --octal, --binary, --width, --fill-char can be specified together with --template-formatter. However, they will be overridden if similar options are explicitly specified by --template-formatter. For example, --hex is overridden by Th, --octal by To, --binary by Tb, --width &lt;num&gt; by W&lt;num&gt;, --fill-char &lt;c&gt; by <em>c</em>.</p>
+<p>--allow-byte-units, -a</p>
+<p>Allow a byte size unit to be specified immediately after a number in the expression. For instance, "5GB - 10MB", etc. Note that there must be no spaces between the number and the unit name.</p>
+<p>Note that if the expression is written as "5*GB - 10MB", "GB" is interpreted as an environment variable and "MB" a byte size unit.  In this case, if the environment variable "GB" is not defined, the command will fail.</p>
+<p>--minishell, -m</p>
+<p>Specify that the calculate command operates in the global minishell environment. In this case, to retrieve the value of a variable, the command will search first in the global minishell environment variable list, then BALI console environment list. If the variable is not found, the command will fail. If the assignment syntax is used, the command will create the new variable in the MSE variable list. To see the MSE variable list, run 'mse-env'. See example 26 for detail.</p>
+<p>By default, the command operates in the BALI shell environment if run in the BALI shell, and the global minishell environment when run by the mse interpreter. To see the BSE variable list, run 'env'.</p>
+<p>--escape-char, -e &lt;escape-character&gt;</p>
+<p>Specify that the calculate command processes escape sequences in the &lt;expression&gt; using the specified escape character.  This option is used when the expression contains built-in functions that have string parameters.</p>
+<p>By default, the command uses the escape character defined in the config of the BALI environment. If -m is specified, the config of the global minishell environment is used. The two commands env-config and mse-config can be used to dump the settings. The default escape character for the BALI environment is NUL, i.e., escape sequences are not supported. The default escape character for the global minishell environment is '@'. See examples 25 and 26 for detail.</p>
+<p>--start, -s, --</p>
+<p>Specify that the next argument is the start of the expression. This option is necessary if the expression spans more than one argument. The complete expression is then constructed by concatenating all arguments after this option, with a space added between the arguments. If this option is not specified, the command always interprets the last argument as the &lt;expression&gt; to compute. For example,</p>
+
+<pre>       calculate --hex --start x = 10 * 3 - 6 # expression spans 7 arguments
+       calculate --hex -- x = 10 * 3 - 6      # ditto
+       calculate --hex x=10*3-6               # expression spans 1 argument
+</pre>
+<p></p>
+<h3>G2. Options to display numbers</h3>
+<p>If the expression is evaluated to a real number, the result is usually displayed with 6 significant decimal digits. However, this can be changed by the following options:</p>
+<dl>
+<dt><strong>--fixed, -F</strong></dt>
+<dd><p>Display real numbers in fixed-point format; e.g., 3.782.</p></dd>
+<dt><strong>--scientific, -S</strong></dt>
+<dd><p>Display real numbers in scientific notation; e.g., 2.158e+10.</p></dd>
+<dt><strong>--precision, -P &lt;num digits&gt;</strong></dt>
+<dd><p>If -S or -F is specified, the precision option specifies the exact number of decimal digits after the decimal point. Otherwise, the precision is the number of  the maximum number of meaningful digits to display both before and after the decimal point.</p></dd>
+<dd><p>For example, the precision of 2.158e+10 is 3 if -S or -F is specified, and is 4 if both -S and -F are not specified.</p></dd>
+<dd><p>By default, the precision is 0, which means the number of digits is automatically determined based on the individual real numbers.</p></dd>
+</dl>
+<p>If the expression is evaluated to an integer number, it will be treated as a floating-point number if any of the options -F, -S, -P is specified.</p>
+<h2>H. Output display</h2>
+<p>By default, the result is displayed in decimal format unless one of the three options --hex, --octal, and --binary is specified. Note that the three options are mutually exclusive.</p>
+<p>For binary format the command always displays all bits of the significant bytes. An underscore is used to separate groups of 4 bits for readability purposes. For example, the 64-bit integer 1024 has two significant bytes, hence will be displayed with 16 bits as follows:</p>
+<pre>     0b0000_0100_0000_0000
+</pre>
+<p></p>
+<p>Binary numbers with underscores can be used in expression read by the 'calculate' command:</p>
+<pre>     $ calculate 0b0000_0100_0000_0000
+     1024
+</pre>
+<p></p>
+<p>The fill character is used only when the width is larger than the string length.</p>
+<p>1. If the fill character is '0' (zero), '0' digits will be added to the left of the result before adding the prefix, if any, to make the final string length equal to the width. Note that the sign of the width value is irrelevant in  this case.</p>
+<pre>       $ calculate -w -30 -f 0 -b 1024
+       0b0000_0100_0000_0000000000000
+</pre>
+<p></p>
+<p>2. If the fill character is not '0' and the string is left-justified (i.e., W &lt; 0), the fill character will be padded to end of the result.</p>
+<pre>       $ calculate -w -30 -f q -b 1024
+       0b0000_0100_0000_0000qqqqqqqqq
+</pre>
+<p></p>
+<p>3. If the fill character is not '0' and the string is right-justified (i.e., W &gt; 0), the fill character will be padded to the left of the result (i.e., left of the number prefix, if any).</p>
+<pre>       $ calculate -w 30 -f q -b 1024
+       qqqqqqqqq0b0000_0100_0000_0000
+</pre>
+<p></p>
+<h2>I. Filter</h2>
+<p>The 'calculate' command can be run as a filter, which does not support the 'cal' alias. As soon as there is data in the standard input, the filter will read a line from it and perform the following tasks:</p>
+<pre>  - Store the line number in the ____ variable (4 underscores).
+  - Store the text line as is in the ___ variable (3 underscores).
+  - Remove the ending newline character in the text line, if any,
+    and store the result in the __ variable (2 underscores).
+  - Replace all occurrences of these variables in the expressions with their values.
+  - Evaluate the resulting expression and display the result.
+</pre>
+<p></p>
+<p>Thus, the special underscore variables are defined as follows:</p>
+<pre>  1. __ (two underscores)
+     The current standard input line, with new line removed, read by the filter.
+</pre>
+<p></p>
+<pre>  2. ___ (three underscores)
+     The current standard input line, with new line preserved, read by the filter.
+</pre>
+<p></p>
+<pre>  3. ____ (four underscores)
+     The line number of the current standard input line read by the filter.
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>1. Simple calculation, note that "cal" is an alias of "calculate"</p>
+<pre>   $ calculate 3*4
+   12
+</pre>
+<p></p>
+<pre>   $ cal 3.mul.4   # or cal "3 .mul. 4"
+   12
+</pre>
+<p></p>
+<pre>   $ cal 15.mod.4   # or cal "15 % 4"
+   3
+</pre>
+<p></p>
+<pre>   $ cal -h "(3*4 + 7/3)"
+   0xe
+</pre>
+<p></p>
+<p>2. Evaluate an assignment</p>
+<pre>   $ cal x=17/5   # assign result to environment variable x
+   3
+</pre>
+<p></p>
+<pre>   $ env --name x
+   x=3
+</pre>
+<p></p>
+<p>Note that each 'calculate' run also updates five RC variables:</p>
+<pre>   $ env
+   CALCULATE_RC=Success  # Calculation status
+   RC=10                 # BALI command exit code
+   RC_FAILED=0           # i.e., is RC value a failed error code?
+   RC_SUCCESS=1          # i.e., is RC value a success error code?
+   RC_SYNTAX=0           # i.e., is RC value a syntax error code?
+   x=3
+</pre>
+<p></p>
+<p>The last four RC variables are updated by many minishell commands. In particular, the 'mse' command updates these variables after it executes any command in an mse script.</p>
+<p>3. Evaluate a logical expression</p>
+<pre>   $ calculate "5 &gt; 4"
+   1
+</pre>
+<p></p>
+<pre>   $ calculate "5 &lt; 4"
+   0
+</pre>
+<p></p>
+<pre>   $ calculate "5 &lt; 4 &amp;&amp; 10 &lt;= 15"
+   0
+</pre>
+<p></p>
+<p>4. Use variable in the expression (assuming x = 3 from example 2):</p>
+<pre>   $ calculate "x &lt; 4+3"    # x is replaced with 3 by the calculate command
+   1
+</pre>
+<p></p>
+<pre>   $ calculate "$x &lt; 4+3"   # $x is replaced with 3 by the BALI shell
+   1
+</pre>
+<p></p>
+<p>5. Evaluate a tertiary assignment, assuming x = 3:</p>
+<pre>   $ calculate "y = x &gt; 2 ? 10 : 20"
+   10
+</pre>
+<p></p>
+<pre>   $ env --name y   # display just a single variable
+   y=10
+</pre>
+<p></p>
+<p>6. Run as a filter, assuming y = 10:</p>
+<pre>   $ echo count from 1 to 4 | strtoken %5 | calculate "(y + __) * __"
+   56
+</pre>
+<p></p>
+<p>7. Create a file and write 5 MB plus 10 KB of data to it</p>
+<pre>   $ cal --allow-byte-units size=5MB+10KB # MB and KB are interpreted as units
+   $ wrfile -c file1 -n "$size"
+</pre>
+<p></p>
+<p>8. Alternatively, we can define a number of environment variables to represent file size units in bytes</p>
+<pre>   $ cal KB=1024   # same as: env-set KB 1024
+   $ cal MB=KB*KB  # KB is interpreted as an environment variable
+   $ cal GB=MB*KB
+   $ cal TB=GB*KB
+   $ cal PB=TB*KB
+   $ cal EB=PB*KB
+   $ cal size=5*MB+10*KB
+   $ wrfile -c file2 -n "$size"
+</pre>
+<p></p>
+<p>9. To produce a 10-character file name of the form "fileNNNNNN" where NNNNNN is a decimal, say 15:</p>
+<pre>   $ cal --prefix file --width 10 --fill 0 15
+   file000015
+</pre>
+<p></p>
+<p>10. Other variants with different fill character and justification:</p>
+<pre>   $ cal --prefix file --width -10 --fill 0 15  # left justification
+   file150000
+</pre>
+<p></p>
+<pre>   $ cal --prefix file --width -10 --fill z 15  # fill with 'z'
+   file15zzzz
+</pre>
+<p></p>
+<pre>   $ cal --prefix file --width 10 --fill z 15   # right justification
+   zzzzfile15
+</pre>
+<p></p>
+<pre>   $ cal --prefix file --width 10 15      # No fill character, right justification
+       file15
+</pre>
+<p></p>
+<pre>   $ cal --prefix file --width -10  15
+   file15
+</pre>
+<p></p>
+<p>11. If prefix is specified for hex/binary, it replaces the default 0x/0b prefix. Thus, to remove the 0x/0b prefix, one can specified --prefix "".</p>
+<pre>   $ cal --hex --prefix "" 256
+   100
+</pre>
+<p></p>
+<pre>   $ cal --hex --prefix file  256
+   file100
+</pre>
+<p></p>
+<pre>   $ cal --hex --prefix file --width 10 256
+      file100
+</pre>
+<p></p>
+<pre>   $ cal --hex --prefix file --width 10 --fill 0 256
+   file000100
+</pre>
+<p></p>
+<p>12. Note that the expression is always the last argument to the 'calculate' command.  Thus, the following example evaluates -h as an expression. Thus the command fails if the variable h does not exist.</p>
+<pre>   $ calculate -h
+</pre>
+<p></p>
+<p>13. To display a sequence of numbers similar to the "seq" command in bash:</p>
+<pre>   $ cal 'seq(1,3)'
+   1
+   2
+   3
+</pre>
+<p></p>
+<p>If we want to join these numbers in a single line, we will have to specify the separator string explicitly and hence we have to specify all the three values: first, increment, last. This ordering is defined by the standard Linux 'seq' command.</p>
+<pre>   $ cal 'seq(1,1,3, " ")'
+   1 2 3
+</pre>
+<p></p>
+<p>14. Convert strings</p>
+<p>a) Convert a string to hex code separated by a space:</p>
+<pre>   $ cal 'tohex("abc")'
+   61 62 63
+</pre>
+<p></p>
+<pre>   $ cal 'tohex("abc", ", ")'
+   61, 62, 63
+</pre>
+<p></p>
+<pre>   $ cal -h -w 10 'tocode("abc", ", ")'
+         0x61,       0x62,       0x63
+</pre>
+<p></p>
+<pre>   $ cal -h -w 6 'tocode("abc", ", ")'
+     0x61,   0x62,   0x63
+</pre>
+<p></p>
+<pre>   $ cal -h -w 6 -f 0 'tocode("abc", ", ")'
+   0x0061, 0x0062, 0x0063
+</pre>
+<p></p>
+<pre>   $ cal -h -w 4 -f 0 -p "" 'tocode("abc", "")'
+   006100620063
+</pre>
+<p></p>
+<p>b) Escape non alphanumeric characters</p>
+<pre>   $ sscat file1.txt
+   Symbols on QWERTY keyboard:
+   1) First row: ` 1234567890 -=
+   2) First row shifted: ~!@#$%^&amp;*()_+
+   3) Other symbols:  {}| []\ :" ;' &lt;&gt;? ,./
+</pre>
+<p></p>
+<pre>   Use the default behavior of hexescape():
+      $ sscat file1.txt | calculate 'hexescape(__)'
+      Symbols on QWERTY keyboard:
+      1@x29 First row: @x60 1234567890 -=
+      2@x29 First row shifted: @x7e@x21@x40@x23@x24@x25@x5e@x26@x2a@x28@x29_+
+      3@x29 Other symbols:  @x7b@x7d@x7c @x5b@x5d@x5c :@x22 @x3b@x27 @x3c@x3e@x3f ,.@x2f
+</pre>
+<p></p>
+<pre>   Specifically exclude left parenthesis, colon, and space (alphanumeric
+   characters are always excluded):
+      $ sscat file1.txt | calculate 'hexescape(__,"): ")'
+      Symbols on QWERTY keyboard:
+      1) First row: @x60 1234567890 @x2d@x3d
+      2) First row shifted: @x7e@x21@x40@x23@x24@x25@x5e@x26@x2a@x28)@x5f@x2b
+      3) Other symbols:  @x7b@x7d@x7c @x5b@x5d@x5c :@x22 @x3b@x27 @x3c@x3e@x3f @x2c@x2e@x2f
+</pre>
+<p></p>
+<pre>  Restore data by resolving escape sequences with strline or mse filter.
+      $ sscat file1.txt | calculate 'hexescape(__,"): ")' | strline -E @
+      $ sscat file1.txt | calculate 'hexescape(__,"): ")' | mse 'echo %.__'
+      Symbols on QWERTY keyboard:
+      1) First row: ` 1234567890 -=
+      2) First row shifted: ~!@#$%^&amp;*()_+
+      3) Other symbols:  {}| []\ :" ;' &lt;&gt;? ,./
+</pre>
+<p></p>
+<pre>   $ sscat test.txt
+   abc'def "hello"
+   0123456789 1234
+   $ sscat test.txt | calculate x=to8bit(__)
+</pre>
+<p></p>
+<p>15. Cast</p>
+<pre>   $ cal -h 'uint16(-1)'
+   0xffff
+   $ cal -h 'uint16(-1)*3'
+   0x2fffd
+</pre>
+<p></p>
+<p>16. Built-in functions isempty(s), isemptyvalue(s), isemptytoken(s)</p>
+<p>These functions are documented in the mse-functions man page. The argument s can be</p>
+<pre>    (1) a macro or expression containing macros; e.g. isempty(%1), isempty(a%val+5)
+    (2) or the name of a variable, e.g., isempty(amount)
+    (3) or an arbitrary expression; e.g., isempty(x+3*y/7), isempty("hello")
+</pre>
+<p></p>
+<p>The first two functions are synonymous; they are designed to test if s is a variable that either is undefined or has an empty string value. To this end, if s contains macros, the functions will expand them first before checking the result to test if it is a variable.</p>
+<p>The third function is designed to test if s is an empty token. But if s contains macros, the function will expand them before checking the result.</p>
+<p>All three functions will display 1 if the final result is empty, 0 otherwise.</p>
+<p>See example 19 in the 'mse' man page.</p>
+<pre>   a) Variable defined with an empty value
+</pre>
+<p></p>
+<pre>   $ env-set z  ""
+   $ cal isempty(z)   # variable z expands to empty
+   1
+   $ cal isemptytoken(z)  # variable z is not evaluated so the token is not empty
+   0
+</pre>
+<p></p>
+<pre>   b) Variable defined with a non-empty value
+</pre>
+<p></p>
+<pre>   $ env-set x  abc
+   $ cal isempty(x)         # x expands to abc so the argument is not empty
+   0
+   $ cal isempty(%x)        # %x expands to abc, then test abc so the argument is not empty
+   1
+   $ cal isemptytoken(x)    # the argument is not evaluated so the token is not empty
+   0
+   $ cal isemptytoken(%x)   # the argument becomes abc so the token is not empty
+   0
+</pre>
+<p></p>
+<pre>   c) Undefined variable treated as an empty string
+</pre>
+<p></p>
+<pre>   $ env-unset y
+   $ cal isempty(y)
+   e
+   $ cal isempty(%y)
+   1
+   $ cal isemptytoken(y)       # the argument is not evaluated so the token is not empty
+   0
+   $ cal isemptytoken(%y)      # the argument becomes empty after the macro is evaluated
+   1
+</pre>
+<p></p>
+<pre>   d) Undefined positional parameter treated as an empty string
+</pre>
+<p></p>
+<pre>   $ cal isempty(%1)           # positional parameter %1 is non-existent, hence empty
+   1
+   $ cal isemptytoken(%1)      # ditto
+   1
+</pre>
+<p></p>
+<pre>   e) Variable is absent (missing)
+</pre>
+<p></p>
+<pre>   By design, if the argument is missing, the functions return 1.
+</pre>
+<p></p>
+<pre>   $ calculate isempty()
+   1
+   $ calculate isemptytoken()
+   1
+</pre>
+<p></p>
+<p>17. Filter</p>
+<pre>   $ sscat file.txt  # 3 lines of data
+   Just a test
+   abc'def' "xy'z"
+   123456789 12345
+</pre>
+<p></p>
+<pre>   Display the line lengths (excluding the ending newlines):
+   $ sscat file.txt | calculate 'strlen(__)'
+   11
+   15
+   15
+</pre>
+<p></p>
+<pre>   Display the line lengths including the ending newline:
+   $ sscat file.txt | calculate 'strlen(___)'
+   12
+   16
+   16
+</pre>
+<p></p>
+<pre>   Multiply the line number by 3:
+   $ sscat file.txt | calculate '____*3'
+   3
+   6
+   9
+</pre>
+<p></p>
+<p>18. Embedded options</p>
+<pre>   Rerun example 10 using embedded options:
+</pre>
+<p></p>
+<pre>   $ calculate '[--prefix file --width 10 --fill 0] 15'
+   file000015
+</pre>
+<p></p>
+<p>The embedded options style is normally not needed when running the 'calculate' command. But it is the only way for specifying options to any expression that is evaluated by the 'calculate' library. For example,</p>
+<pre>  $ mse 'x = [-h] 3*4; echo %x;'   # mse's arithmetic assignment uses the 'calculate' library.
+  0xc
+</pre>
+<p></p>
+<pre>  $ sscat numbers.txt
+  10
+  20
+  30
+</pre>
+<p></p>
+<pre>  $ sscat numbers.txt | strquery --calculate [-h]__*3  # strquery uses the 'calculate' library.
+  0x1e
+  0x3c
+  0x5a
+  0x78
+</pre>
+<p></p>
+<p>The following examples use a complex formatter that is exactly as used in strtoken:</p>
+<pre>  $ mse 'x = [-t "The answer is %[1,W10,Jc,F*]"] 3*4; echo %x;'
+  The answer is ****12****
+</pre>
+<p></p>
+<pre>  # The result above can be produced by
+  $ calculate 3*4 | strtoken -n %[1,W10,Jc,F*]
+</pre>
+<p></p>
+<pre>  $ mse 'x = [-t "The answer is %{1,W10,Jc,F*,Th}"] 3*4; echo %x;'
+  The answer is ***0xc****
+</pre>
+<p></p>
+<pre>  # The result above can be produced by
+  $ calculate 3*4 | strtoken -n %[1,W10,Jc,F*,Th]
+</pre>
+<p></p>
+<p>19. Date time functions</p>
+<pre>  $ cal datetime()
+  2015-09-06 22:41:23-07:00
+</pre>
+<p></p>
+<pre>  $ cal dateTime()
+  2015-09-06T22:41:29-07:00
+</pre>
+<p></p>
+<pre>  $ cal date()
+  2015-09-06
+</pre>
+<p></p>
+<pre>  $ cal time()
+  22:41:38-07:00
+</pre>
+<p></p>
+<pre>  $ cal -h seconds()   # current time in number of seconds since midnight 1970/01/01
+  0x55ed2448
+</pre>
+<p></p>
+<pre>  $ cal -h seconds64() # current time in 64-bit integer
+  0x55ed244c00000000   # 0x55ed244c is number of seconds, 0x00000000 is number of nanoseconds
+</pre>
+<p></p>
+<pre>  # Convert a given date time string to the number of seconds since midnight 1970/01/01:
+  $ cal -h 'seconds("2015-09-06T22:41:29-07:00")'
+  0x55ed2389
+</pre>
+<p></p>
+<pre>  $ cal -h 'seconds64("2015-09-06T22:41:29-07:00")'
+  0x55ed238900000000
+</pre>
+<p></p>
+<pre>  $ cal datetime(0x55ed238900000000)      #  convert to date time string with second resolution
+  2015-09-06 22:41:29-07:00
+</pre>
+<p></p>
+<pre>  $ cal datetimef(0x55ed238900000000)     # convert to date time string with nanosecond resolution
+  2015-09-06 22:41:29.000000000-07:00
+</pre>
+<p></p>
+<pre>  $ cal datetimefm(0x55ed238900000000)     # convert to date time string with millisecond resolution
+  2015-09-06 22:41:29.000-07:00
+</pre>
+<p></p>
+<pre>  $ cal timef(0x55ed238900000000)         # get the time part with fractional second
+  22:41:29.000000000-07:00
+</pre>
+<p></p>
+<pre>  $ cal timefm(0x55ed238900000000)         # get the time part with millisecond resolution
+  22:41:29.000-07:00
+</pre>
+<p></p>
+<p>We can add a time offset to a date time by using a date time function with two variables. The first parameter is date time and the second is the time offset. Both the parameters can be specified as integer or string.</p>
+<p>If the offset is an integral number of seconds, it can be specified as an integer number:</p>
+<pre>  $ cal datetimefm(0x55ed238900000000, 10)
+  2015-09-06 22:41:39.000-07:00
+</pre>
+<p></p>
+<p>Otherwise, it must be specified as a string:</p>
+<pre>  $ cal 'datetimefm(0x55ed238900000000, "10.5")'        # fractional seconds
+  2015-09-06 22:41:39.500-07:00
+</pre>
+<p></p>
+<pre>  $ cal 'datetimefm(0x55ed238900000000, "2d1h5m10.5")'  # use different units
+  2015-09-08 23:46:39.500-07:00
+</pre>
+<p></p>
+<p>If the first parameter is meant to be the current date time, it can be specified as 0:</p>
+<pre>  $ cal datetimefm(0, 10)         # assuming current date time is: 2015-09-06 22:41:29.000-07:00
+  2015-09-06 22:41:39.000-07:00
+</pre>
+<p></p>
+<p>The first parameter can be specified as a human-readable date time string:</p>
+<pre>  $ cal 'datetimefm("2015-09-06 22:41:29.000-07:00", 10)'
+  2015-09-06 22:41:39.000-07:00
+</pre>
+<p></p>
+<pre>  $ cal 'datetimefm("2015-09-06 22:41:29.000-07:00", "2d1h5m10.5")'
+  2015-09-08 23:46:39.500-07:00
+</pre>
+<p></p>
+<p>20. Change date time function output by specifying a template formatter</p>
+<p>Although most of the date time functions display a string, they maintain an integer time value, which can be used for display if a template formatter is supplied. See Section C of the strtoken man page for more information and examples.</p>
+<pre>  $ cal -t %[1,TI] datetime()   # display date time in ISO format
+  2015-12-22T22:19:55-08:00
+</pre>
+<p></p>
+<pre>  $ cal -t %[1,Tw] datetime()   # display date time in weekday format
+  Tue Dec 22 22:22:26 2015
+</pre>
+<p></p>
+<pre>  $ cal -t %[1,T+[%H:%M:%S]] datetime()   # display information based on strftime format
+  22:25:46
+</pre>
+<p></p>
+<pre>  $ mse ' x = [-t %[1,T+[%H:%M:%S]]] datetime(); echo %x'  # embedded calculate command's options
+  22:25:46
+</pre>
+<p></p>
+<p>21. Casting result</p>
+<p>The calculate result is signed 64 bit by default. It can be cast to a different data type using various built-in functions (e.g., intX, uintX where X = 8, 16, 32, 64) or a template output with C-formatter.</p>
+<pre>  $ calculate -t %[1,Cc] 254
+  -2
+</pre>
+<p></p>
+<pre>  $ calculate int8(254)
+  -2
+</pre>
+<p></p>
+<p>22. Check if a number belongs to a list</p>
+<pre>  $ calculate 'belong(3,"1-10,14,15,20-30/2")'
+  $ calculate belong(3,'"1-10,14,15,20-30/2"')  # alternative
+  1
+</pre>
+<p></p>
+<p>Note that the belong function requires the second argument be a string, i.e., a token surrounded by either a pair of double or single quotes. But if we type:</p>
+<pre>  $ calculate belong(3,"1-10,14,15,20-30/2")
+</pre>
+<p></p>
+<p>then the Bali shell will interpret the double quotes and deliver only the following string to the calculate command:</p>
+<pre>      "belong(3,1-10,14,15,20-30/2)"
+</pre>
+<p></p>
+<p>This will cause the command to fail.</p>
+<p>23. Validate string using match_ctype function</p>
+<pre>  $ echo Fri Apr 29 02:24:10 PDT 2016 | calculate 'match_ctype(__,"8P*ds2d:2d:2d.( PDT )4d")'
+  1
+</pre>
+<p></p>
+<p>24. Display real numbers in various formats:</p>
+<p>If both --scientific and --fixed are not specified, the --precision option indicates the total number of significant digits, which is maxed out at 18.</p>
+<pre>  $ calculate 4./3          # default precision
+  1.33333
+</pre>
+<p></p>
+<pre>  $ calculate -P 17 4./3
+  1.3333333333333333
+  # 23456789 1234567
+</pre>
+<p></p>
+<pre>  $ calculate -P 18 4./3
+  1.33333333333333333
+  $ calculate -P 19 4./3
+  1.33333333333333333
+  # 23456789 12345678    ==&gt; maxed out at a total of 18 significant decimal digits for fixed-point notation
+</pre>
+<p></p>
+<p>If --scientific or --fixed is specified, the maximum number of significant decimal digits is 19, including the digits before the decimal point. Consequently,</p>
+<pre>   * The fractional part in scientific notation is maxed out at 18 digits after the decimal point.
+     If the --precision option specifies a number larger than 18, it is internally reset to 18.
+</pre>
+<p></p>
+<pre>   * The fractional part in fixed-point notation (specified by -F option) is maxed out at 19 minus
+     the number of digits before the decimal point. If the --precision option specifies a number
+     larger than 18, a few extra trailing digits may be displayed but they are garbage.
+</pre>
+<p></p>
+<pre>  $ cal -P 17 -S 4./3
+  1.33333333333333333e+00
+  # 123456789 1234567
+</pre>
+<p></p>
+<pre>  $ cal -P 18 -S 4./3
+  1.333333333333333333e+00
+  $ calculate -P 19 -S 4./3
+  1.333333333333333333e+00
+  # 123456789 12345678     =&gt; maxed out at 18 decimal digits after the decimal point for scientific notation
+</pre>
+<p></p>
+<pre>  $ cal -P 17 -F 4./3
+  1.33333333333333333
+  # 123456789 1234567
+</pre>
+<p></p>
+<pre>  $ cal -P 18 -F 4./3
+  1.333333333333333333          # 18 digits in the fractional part
+  # 123456789 12345678
+  $ calculate -P 25 -F  4./3
+  1.333333333333333333          # maxed out at 19 - 1 = 18 digits in the fractional part
+  $ calculate -P 30 -F  1003./3
+  334.333333333333333343        # maxed out at 19-3 = 16 digits in the fractional part; trailing "43" is garbage.
+  #   123456789 12345678
+</pre>
+<p></p>
+<p>25. Support for escape sequences in the BALI environment</p>
+<p>The default BALI environment does not support escape sequences because the escape character is NUL (not defined) as shown below:</p>
+<pre>  $ env-config
+  Environment type : BALI Console Environment
+  Macro support    : disabled
+  The following settings are now irrelevant:
+      Escape character       : (not defined)
+      . . . . . (omitted for brevity) . . . .
+</pre>
+<p></p>
+<p>The following command uses the default BALI environment, hence, escape sequences are treated as literal:</p>
+<pre>  $ calculate str(@aptr)
+  @aptr
+</pre>
+<p></p>
+<p>To enable support for escapes in the 'calculate' command without changing the BALI environment configuration, tell the command to use a separate escape character by specifying the --escape-char option:</p>
+<pre>  $ calculate --escape-char @ str(@aptr)
+  *ptr
+</pre>
+<p></p>
+<p>Or use the esc() function, which silently prepends its own escape character to the argument before resolving the resulting string:</p>
+<pre>  $ calculate esc(aptr)
+  *ptr
+</pre>
+<p></p>
+<p>Thus, it is possible to specify a string that contains special characters to the BALI shell without ever using quotes:</p>
+<pre>  $ calculate esc(Q)+str(It)+esc(q)+esc(_)+str(Monday)+esc(Q)    # (a)
+  "It's Monday"
+</pre>
+<p></p>
+<p>The same result can be obtained by the following command:</p>
+<pre>  $ calculate -e @ dqstr(It@qs@_Monday)                          # (b)
+  "It's Monday"
+</pre>
+<p></p>
+<p>Note the following command fails to give the same result:</p>
+<pre>  $ calculate -e @ @QIt@qs@_Monday@Q                             # (c)
+  It's Monday
+</pre>
+<p></p>
+<p>This is because the 'calculate' cannot tell if the expression in (c) represents string or numerical data. Only after resolving the escapes in (c) to obtain a result surrounded by double quotes:</p>
+<pre>      "It's Monday"
+</pre>
+<p></p>
+<p>does the command know that the token is a string whose value is:</p>
+<pre>      It's Monday
+</pre>
+<p></p>
+<p>This result is quite different from (a) and (b). Consider (a). The leading token in the expression of (a) is the quoting functions esc() concatenated with other quoting functions. This fact tells 'calculate' that the entire result is a string. Therefore, the command does not have to rely on the surrounding quotes of the result to determine if the result is a string or a number. Because of this, if the result is surrounded by single or double quotes, the quotes themselves are part of the result as shown in (a).</p>
+<p>26. Support for escape sequences in the global minishell environment</p>
+<p>The default global minishell environment supports macros starting with '%', and escape sequences starting with '@', as shown below:</p>
+<pre>  $ mse-config
+  Environment type : Global Minishell Environment
+  Macro support    : enabled
+  The following settings are used:
+      Escape character       : @
+      Macro symbol           : %
+      . . . . . (omitted for brevity) . . . .
+</pre>
+<p></p>
+<p>Thus, the following command automatically resolves escape sequences when run in the default minishell environment:</p>
+<pre>  $ calculate --minishell str(@aptr)
+  *ptr
+</pre>
+<p></p>
+<p>To disable escape sequences for the calculate command without changing the support for escapes in the minishell environment, tell the command to use a NUL escape character. This is accomplished by specifying value 0 (zero) to the --escape-char option:</p>
+<pre>  $ calculate --minishell --escape-char 0 str(@aptr)
+  *ptr
+</pre>
+<p></p>
+<p>27. String concatenation and repeat operators</p>
+<pre>  $ calculate '"Hello" + " there"'    # string concatenation
+  Hello there
+</pre>
+<p></p>
+<pre>  $ calculate '"Hello "*3'            # string repeat
+  Hello Hello Hello
+</pre>
+<p></p>
+<pre>  $ calculate '3*"Hello "'            # string repeat
+  Hello Hello Hello
+</pre>
+<p></p>
+<p>28. String constructors</p>
+<pre>  # string(): if the argument is a defined variable, return its value as a string
+  $ env xyz 180
+  $ calculate string(xyz)*3
+  180180180
+</pre>
+<p></p>
+<pre>  # string(): if the argument is not a defined variable, return the argument as a string
+  # after trimming leading and trailing spaces.
+  $ calculate 'string( Abc )*3'
+  AbcAbcAbc
+</pre>
+<p></p>
+<pre>  # str(): Every character in the argument is significant
+  $ calculate 'str( 123 Hello 456 ) + "!"'         # str and mstr have the same behavior
+   123 Hello 456 !
+</pre>
+<p></p>
+<pre>  # qstr(): Add single quotes to str()
+  $ calculate 'qstr( 123 Hello 456 ) + "!"'        # qstr and mqstr have the same behavior
+  ' 123 Hello 456 '!
+</pre>
+<p></p>
+<pre>  # dqstr(): Add double quotes to str()
+  $ calculate 'dqstr( 123 Hello 456 ) + "!"'       # dqstr and mdqstr have the same behavior
+  " 123 Hello 456 "!
+</pre>
+<p></p>
+<pre>  $ calculate str(Hello)+sp(3)+str(123)     # sp(n) produces n spaces
+  Hello   123
+</pre>
+<p></p>
+<pre>  # sq(n) produces n single quotes, dq(n) produces n double quotes
+  $ calculate sq(3)+str(Hello)+dq(3)
+  '''Hello"""
+</pre>
+<p></p>
+<pre>  # esc(xyz) prepends an internal escape to the argument and then resolves it
+  $ calculate esc(qHello)+esc(q)
+  'Hello'
+</pre>
+<p></p>
+<p>29. Support for expressions spanning over many arguments</p>
+<p>By default, only the last argument to 'calculate' is considered the expression to compute; all arguments before the last are considered options.</p>
+<pre>  $ calculate 3*4 - 5          # cannot recognize two arguments "3*4" and "-"
+  Unrecognized argument: 3*4
+</pre>
+<p></p>
+<pre>  $ calculate --start 3*4 - 5  #  Specify where the expression really starts
+  7
+</pre>
+<p></p>
+<pre>  $ calculate --start str(Hello there)     # expression consists of 2 arguments
+  Hello there
+</pre>
+<p></p>
+<pre>  $ calculate --start qstr(Hello there)
+  'Hello there'
+</pre>
+<p></p>
+<pre>  $ calculate --start dqstr(Hello there)
+  "Hello there"
+</pre>
+<p></p>
+<p>30. String functions and logical operators</p>
+<pre>  $ env-set name California
+  $ calculate --start name &gt;= str(Arkansas) .and. name &lt;= str(Hawaii) .and. strlen(name) &gt; 5
+  1
+</pre>
+<p></p>
+<pre>  $ calculate strcmp_ic(name,str(california))==0   # ignore case
+  1
+</pre>
+<p></p>
+<pre>  # Extract the first occurrence of a pattern from a string
+  $ calculate 'regex_extract("abc123--456--789", "[0-9]+")'
+  123
+</pre>
+<p></p>
+<pre>  # Extract the second occurrence of a pattern from a string
+  $ calculate 'regex_extract("abc123--456--789", "[0-9]+", "o=2")'
+  456
+</pre>
+<p></p>
+<pre>  # Store information of the second occurrence in variables prefix with "var":
+  $ calculate 'regex_extract("abc123--456--789", "[0-9]+", "o=2", "var")'
+  456
+  $ env | grep var
+  var_len=3
+  var_offset=8
+  var_token=456
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Dev/backquote.html">backquote</a> <a href="../../Dev/calculate.html">calculate</a> <a href="../../Dev/env.html">env</a> <a href="../../Filter/Dev/env-set.html">env-set</a> <a href="../../Filter/Dev/env-unset.html">env-unset</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/mse-functions.html">mse-functions</a> <a href="../../Filter/Dev/mse-run.html">mse-run</a> <a href="../../Filter/Dev/mse-set.html">mse-set</a> <a href="../../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../../Topic/offset-and-length.html">offset-and-length</a> <a href="../../User/ssrun.html">ssrun</a> <a href="../../Filter/Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a> <a href="../../Supervisor/timestamp-decode.html">timestamp-decode</a> <a href="../../Supervisor/timestamp-encode.html">timestamp-encode</a> <a href="../../Dev/wrfile.html">wrfile</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

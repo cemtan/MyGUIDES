@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>virusscan-icap-engine-modify</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>virusscan-icap-engine-modify</h1>
+<p>Modify an existing ICAP virus scanning engine</p>
+<h1>Syntax</h1>
+<pre>virusscan-icap-engine-modify [--service-name &lt;service name&gt;] [--port &lt;port number&gt;] [--enable | --disable] [--confirm] &lt;host&gt; 
+</pre>
+
+<h1>Description</h1>
+<p>The virusscan-icap-engine-modify command is used to modify an existing ICAP virus scanning engine in the current ICAP engine list. Service name, port number and enabled/disabled status can all be modified. At least one of these parameters is required. If the current virus scanning mode is RPC then no action will be taken. Note that if virus scanning is on, but all virus scan engines are disabled, CIFS access to files might be denied if the best effort scanning is disabled.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --service-name &lt;service name&gt;</strong></dt>
+<dd><p>New name of the service to be used.</p></dd>
+<dt><strong>-p, --port &lt;port number&gt;</strong></dt>
+<dd><p>New port number to be used.</p></dd>
+<dt><strong>--enable</strong></dt>
+<dd><p>Is used to enable an ICAP engine for virus scanning.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>Is used to disable an ICAP engine for virus scanning.</p></dd>
+<dt><strong>--confirm</strong></dt>
+<dd><p>If the --confirm option is not supplied, and the user is attempting to disable the last ICAP server, the user will be prompted to confirm the request.</p></dd>
+<dt><strong>&lt;host&gt;</strong></dt>
+<dd><p>A hostname, or an IP address, that identifies the host running the ICAP virus scanning engine.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To modify the ICAP engine icapengine.example.com with a new port number:</p>
+<pre>virusscan-icap-engine-modify --port 1342 icapengine.example.com
+</pre>
+<p></p>
+<p>To modify the ICAP engine icapengine.example.com with a new port number and service name:</p>
+<pre>virusscan-icap-engine-modify --service-name SYMCScanResp-AV --port 1342 icapengine.example.com
+</pre>
+<p></p>
+<p>To enable the ICAP engine using an IP address:</p>
+<pre>virusscan-icap-engine-modify --enable 192.168.43.100
+</pre>
+<p></p>
+<p>To disable the ICAP engine icapengine.example.com</p>
+<pre>virusscan-icap-engine-modify --disable icapengine.example.com
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/virusscan-icap-engine-add.html">virusscan-icap-engine-add</a> <a href="../Supervisor/virusscan-icap-engine-delete.html">virusscan-icap-engine-delete</a> <a href="../Supervisor/virusscan-icap-engine-delete-all.html">virusscan-icap-engine-delete-all</a> <a href="../Supervisor/virusscan-icap-engine-list.html">virusscan-icap-engine-list</a> <a href="../Supervisor/virusscan-mode-get.html">virusscan-mode-get</a> <a href="../Supervisor/virusscan-mode-set.html">virusscan-mode-set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

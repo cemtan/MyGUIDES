@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-throttle-unmapping</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-throttle-unmapping</h1>
+<p>Limit the rate at which a span&#39;s vacated chunks are unmapped</p>
+<h1>Syntax</h1>
+<pre>span-throttle-unmapping &lt;span-instance-name&gt; [&lt;rate-in-MiB-per-second-or-0-to-remove-throttle&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command is used after 'span-unmap-vacated-chunks'.</p>
+<h2>PURPOSE</h2>
+<p>'span-unmap-vacated-chunks' triggers two processes: an unmapping process and a zeroing process.  The unmapping process runs on the server, and it sends the storage a series of commands to unmap previously-used space, making it available for reuse elsewhere.  The zeroing process runs entirely on the storage, and it zero-initializes unmapped HDP pages before returning them to the HDP pool.</p>
+<p>The zeroing process starts as soon as the first process has begun, but often takes much longer to run.  While it is in progress, the performance of the storage is reduced, especially on HUS and AMS storage.  The server has no facility for monitoring or managing the zeroing process.</p>
+<p>Even if you run 'span-unmap-vacated-chunks' at a time of light load, there is a danger than the zeroing process will not have finished when load increases.  The purpose of 'span-throttle-unmapping' is to make the unmapping process runs no faster than the zeroing process, so that, if you cancel the unmapping process at times of peak load, there will not be a performance-sapping backlog of HDP pages that need to be zeroed.</p>
+<h2>WHAT THIS COMMAND DOES</h2>
+<p>This command makes the unmapping process wait between unmapping one chunk and unmapping the next.  You specify a rate in MiB/sec, where 1MiB = 2**20 bytes.  The server calculates the necessary delay (if any) between each chunk and the next, depending on how long the previous chunk took to unmap, so that the specified rate is not exceeded.</p>
+<p>The rate you specify, which must be between 10 and 1,000,000MiB/sec, is a maximum: over the course of several hours, it will not be exceeded.  There is no guarantee that the specified rate can be achieved: unmapping rate depends on the storage configuration and the I/O load on the system.</p>
+<h2>MANAGING THROTTLES</h2>
+<p>If you unmap space on more than one span at once, a different rate can be applied to each span.  Some spans can be throttled while others are not.</p>
+<p>If you cancel an unmapping process, any throttle is discarded.  If you restart the unmapping process, any throttle that may be needed must be reapplied.</p>
+<h2>WHAT THIS COMMAND DOES NOT DO</h2>
+<p>This command does not control the rate at which individual chunks are unmapped.  If you cancel an unmapping process, it is possible that part of the chunk that was being unmapped at the time will still need to be zeroed.  Using small chunks will limit this effect.</p>
+<p>This command has no influence over the zeroing process that runs on the storage.  The server has no way to monitor or influence that process.</p>
+<h2>HOW TO USE THROTTLING</h2>
+<p>Suppose that peak load occurs from 9am to 5pm and you know that, at times of light load, a particular HDP pool can zero unmapped HDP pages at a rate of 400GiB/hr.  A quick calculation shows that 400GiB/hr = 114MiB/sec.  Leaving a margin for error, you start an unmapping process at 5pm and immediately throttle it to 100MiB/sec:</p>
+<pre>span-unmap-vacated-chunks Projects; span-throttle-unmapping Projects 100
+</pre>
+<p></p>
+<p>Just before 9am the next morning, you cancel the unmapping process if it is still running:</p>
+<pre>span-stop-unmapping Projects
+</pre>
+<p></p>
+<p>If the HDP pool can zero unmapped space as fast as you estimated, there will not be a significant queue of HDP pages waiting to be zeroed, and the performance of your storage will rise to normal levels almost immediately.</p>
+<h2>ALTERNATIVE TO THROTTLING</h2>
+<p>Consider using the 'span-unmap-vacated-chunks' command's --min-chunk-number and --max-chunk-number options.  They enable you to unmap a restricted range of chunks and then stop.  If you know from experience that an HDP pool can zero-initialize (for example) 5TiB of space overnight, you can instruct the server to unmap, say, 4TiB of space each night, in the knowledge that performance will have returned to normal by the next morning.</p>
+<p>HUS and AMS are the storage platforms whose performance is most affected by zero-initialization.  On these platforms, a second alternative is to enable the server to unmap all vacated chunks at full speed, but to use your storage configurator to adjust the format priority upwards and downwards to ensure good client performance at times of peak load but good zero-initialization progress at other times.</p>
+<h1>Examples</h1>
+<p>To throttle the unmapping process on span Projects to 100MiB/sec:</p>
+<pre>span-throttle-unmapping Projects 100
+</pre>
+<p></p>
+<p>To remove the throttle, enabling the unmapping process to run as fast as possible:</p>
+<pre>span-throttle-unmapping Projects 0
+</pre>
+<p></p>
+<p>To display the throttling rate (if any) for span Projects:</p>
+<pre>span-throttle-unmapping Projects
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/span-stop-unmapping.html">span-stop-unmapping</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

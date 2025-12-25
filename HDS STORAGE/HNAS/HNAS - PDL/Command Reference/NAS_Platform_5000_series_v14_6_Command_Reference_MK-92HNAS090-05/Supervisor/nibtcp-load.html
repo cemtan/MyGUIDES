@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nibtcp-load</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>nibtcp-load</h1>
+<p>Load information for NIBTCP FPGA</p>
+<h1>Syntax</h1>
+<pre>nibtcp-load [--block-list|--profile-list] | [-s|--summary] [--profile [&lt;threshold%&gt;]]
+</pre>
+
+<h1>Description</h1>
+<p>The *-load commands are used to diagnose some performance problems by showing how busy parts of the hardware are.</p>
+<p>Only use under instruction from your support provider.</p>
+<dl>
+<dt><strong>--block-list</strong></dt>
+<dd><p>This option lists the names of all of the blocks. For those blocks which support vlsi profiling, the name of the profiler instance is also included in brackets.</p></dd>
+<dt><strong>--profile-list</strong></dt>
+<dd><p>This option lists the names of the profiler instances supported by this command (see --profile option).</p></dd>
+<dt><strong>-s, --summary</strong></dt>
+<dd><p>Display results without the bar graph.</p></dd>
+<dt><strong>--profile [&lt;threshold%&gt;]</strong></dt>
+<dd><p>This option will also execute the profiler for those blocks for which the load exceeds the supplied threshold (0 - 100). The default 'threshold' is 80%. The command execution time will depend upon the number blocks which are profiled.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fdp-load.html">fdp-load</a> <a href="../Supervisor/fsa-load.html">fsa-load</a> <a href="../Supervisor/mbi-load.html">mbi-load</a> <a href="../Supervisor/nibrx-load.html">nibrx-load</a> <a href="../Supervisor/nibtx-load.html">nibtx-load</a> <a href="../Supervisor/nicc-load.html">nicc-load</a> <a href="../Supervisor/nvi-load.html">nvi-load</a> <a href="../Supervisor/obj-load.html">obj-load</a> <a href="../Supervisor/si-load.html">si-load</a> <a href="../Supervisor/tdp-load.html">tdp-load</a> <a href="../Supervisor/wdir-load.html">wdir-load</a> <a href="../Supervisor/wfile-load.html">wfile-load</a> <a href="../Supervisor/wlog-load.html">wlog-load</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

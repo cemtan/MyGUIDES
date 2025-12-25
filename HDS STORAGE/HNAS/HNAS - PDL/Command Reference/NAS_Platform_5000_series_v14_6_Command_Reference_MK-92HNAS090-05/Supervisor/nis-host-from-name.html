@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nis-host-from-name</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>nis-host-from-name</h1>
+<p>test nisclient::api::HostRecordFromName</p>
+<h1>Syntax</h1>
+<pre>nis-host-from-name name
+Alias:       NisHostFromName
+</pre>
+
+<h1>Description</h1>
+<p>The nis-host-from-addr and nis-host-from-name commands are used to find a host record given its name or its address</p>
+<p>The address can be an IPv4 address or an IPv6 address.</p>
+<h1>Examples</h1>
+<p>To find a hostname given an IP address:</p>
+<pre>    nis-host-from-addr 10.1.1.7
+</pre>
+<p></p>
+<pre>    nis-host-from-addr fdca:f995:220a:0:58c1:e76e:d2c4:9f1c
+</pre>
+<p></p>
+<p>To find a host given its name:</p>
+<pre>    nis-host-from-name test
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/nis-host-from-addr.html">nis-host-from-addr</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-reveal</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>filesystem-reveal</h1>
+<p>Reveal a filesystem -- undo &#39;filesystem-hide&#39;</p>
+<h1>Syntax</h1>
+<pre>filesystem-reveal &lt;span-or-filesystem-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The 'filesystem-hide' command prepares a filesystem for span- or storage-level maintenance by making it unavailable for checking, fixing, mounting and formatting.  'filesystem-reveal' reverses this action.  Use it after storage- or span-level maintenance is complete.</p>
+<p>'filesystem-reveal' sends the Filesystem a message, indicating that the specified file system can now be mounted (or auto-mounted), but it returns control quickly, without waiting for the message to be processed.  A script using this command may need follow it with 'span-wait-for-loading --mount' to ensure that the file system is ready for use before the next command is run.  If you wish to determine whether the notification has been processed without waiting for it to complete, run 'filesystem-list-queues' and check for the filesystem in the 'Availability' queue.  Typically, when you are working interactively, the message is processed fast enough to render a manual check unnecessary.</p>
+<p>It is also possible to hide an entire span.  If you hide both a filesystem and its host span, you'll need to reveal them both (in either order) before any Filesystem I/O is possible.</p>
+<p>Hiding spans and filesystems doesn't prevent them from being shown by 'span-list' and 'filesystem-list'.  If either a filesystem or its host span is hidden, 'filesystem-list -a' will display the filesystem as 'Hiddn'; 'span-list', 'filesystem-list' and 'trouble' will print warnings.</p>
+<h1>Examples</h1>
+<pre>filesystem-reveal Accounts
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-hide.html">filesystem-hide</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/span-hide.html">span-hide</a> <a href="../Supervisor/span-reveal.html">span-reveal</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

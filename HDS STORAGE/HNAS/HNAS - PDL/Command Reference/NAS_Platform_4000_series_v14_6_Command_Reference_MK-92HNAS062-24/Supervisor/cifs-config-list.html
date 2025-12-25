@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-config-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cifs-config-list</h1>
+<p>List currently-configured CIFS serving names for the EVS in context.</p>
+<h1>Syntax</h1>
+<pre>cifs-config-list [ --passwords ]
+</pre>
+
+<h1>Description</h1>
+<p>This command permits you to list CIFS name and CIFS domain records for an EVS.  Optionally, you can also display the machine trust account passwords associated with each CIFS name.</p>
+<p>The output format is somewhat cluttered since this command is meant for diagnostic purposes and not for routine CIFS configuration maintenance. For routine CIFS name operations, use the cifs-name command instead.</p>
+<h1>Examples</h1>
+<p>To display the CIFS-name configuration for EVS 2 without trust account passwords:</p>
+<pre>vn 2 cifs-config-list
+</pre>
+<p></p>
+<p>To display the CIFS name configuration for EVS 2 with trust account passwords:</p>
+<pre>vn 2 cifs-config-list --passwords
+</pre>
+<p></p>
+<p>To display the CIFS-name configuration with trust account passwords for all EVSs in the cluster:</p>
+<pre>for-each-evs cifs-config-list --passwords
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-name.html">cifs-name</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

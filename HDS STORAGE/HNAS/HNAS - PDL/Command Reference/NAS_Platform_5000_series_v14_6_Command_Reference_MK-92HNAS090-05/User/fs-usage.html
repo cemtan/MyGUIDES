@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-usage</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>fs-usage</h1>
+<p>Set/list events when the file system hits certain levels</p>
+<h1>Syntax</h1>
+<pre>fs-usage [-f &lt;fs type&gt;] [-w &lt;warning level&gt;] [-s &lt;severe level&gt;] [-r &lt;reset level&gt;] [-a (allow | disallow)] &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Display or set behavior when file system's usage reaches certain levels.</p>
+<p>A file system's usage thresholds allow warnings to be generated when the file system reaches a certain capacity. If the file system continues to fill up, an additional severe warning occurs. The original warning will only occur once, unless the usage falls below the reset level and then rises again. Finally, the file system can be blocked from further writes when the usage reaches the severe threshold.</p>
+<p>There are three sets of threshold settings: 'livefs', 'snapshotspace' and 'totalfs'. This allows for greater control in managing your storage.  For instance, by setting the snapshotspace warning low enough, you will be able to recognize early if valuable snapshots need to be backed up more aggressively before they are deleted due to storage limitations. On the other hand, by setting the totalfs thresholds low, you may be alerted to an impending capacity squeeze in time to acquire additional storage to alleviate it.</p>
+<p><strong>Note:</strong> For file systems that support dedupe, snapshotspace threshold setting is not applicable, and both livefs and totalfs threshold settings apply to the total file system usage.</p>
+<p>The usage thresholds are set to default values during file system format.  The default values are contained in system variables which can be altered with the <strong>"set"</strong> command. The variables are listed along with their manufacturing defaults:</p>
+<pre>	set LiveFilesystemUsageStopsGrowingAtSevere    false
+	set LiveFilesystemUsageWarningDefaultPct       90
+	set LiveFilesystemUsageWarningResetDefaultPct  80
+	set LiveFilesystemUsageSevereDefaultPct        97
+</pre>
+<p></p>
+<pre>	set SnapshotsUsageWarningDefaultPct            90
+	set SnapshotsUsageWarningResetDefaultPct       80
+	set SnapshotsUsageSevereDefaultPct             97
+</pre>
+<p></p>
+<pre>	set TotalVolumeUsageWarningDefaultPct          95
+	set TotalVolumeUsageWarningResetDefaultPct     90
+	set TotalVolumeUsageSevereDefaultPct           97
+</pre>
+<p></p>
+<p>However, once a file system has been formatted, it is this command that must be used to change the usage threshold settings.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-f</strong></dt>
+<dd><p>FS type: specifies what aspect of the file system you want to view or alter: 'livefs', 'snapshotspace' or 'totalfs'.</p></dd>
+<dt><strong>--warning, -w &lt;level&gt;</strong></dt>
+<dd><p>Warning Level: Log a warning event when this percentage of the specified file system type is reached. Setting this level to zero disables warning events from being raised.</p></dd>
+<dt><strong>--severe, -s &lt;level&gt;</strong></dt>
+<dd><p>Severe Level: Log a severe event when this percentage of the specified file system type is reached. Setting this level to zero disables severe events from being raised.</p></dd>
+<dt><strong>--reset, -r &lt;level&gt;</strong></dt>
+<dd><p>Reset level: Reset the trigger so events are logged next time the limit is reached when the specified file system type decreases to this percentage.</p></dd>
+<dt><strong>--allow, -a allow|disallow</strong></dt>
+<dd><p>Allow the file system to expand above the severe limit. For file systems that support dedupe, this applies to the total usage. For other file systems, it applies to the live file system usage.</p></dd>
+</dl>
+<p>Note that a nonzero value of live file system's severe level can affect how protocols report file system capacity and free space. Basically, if the severe level is a hard limit (i.e., space usage cannot exceed the severe level), it will become one of the constraints on the calculation of file system capacity seen by protocol clients. See the 'df' man page for detailed explanation.</p>
+<h1>Examples</h1>
+<p>Set the warning, severe and reset levels for snapshot space:</p>
+<pre>server:$ fs-usage -f snapshotspace -w 50 -s 70 -r 40 fs1
+</pre>
+<p></p>
+<pre>Snapshot Space:
+	 Warning : 50
+	 Severe  : 70
+	 Reset   : 40
+</pre>
+<p></p>
+<p>Display all file system types for the file system:</p>
+<pre>server:$ fs-usage fs1
+</pre>
+<p></p>
+<pre>Live File System:
+	 Warning : 75
+	 Severe  : 85
+	 Reset   : 65
+Allow the live file system to exceed the severe limit
+</pre>
+<p></p>
+<pre>Snapshot Space:
+	 Warning : 50
+	 Severe  : 70
+	 Reset   : 40
+</pre>
+<p></p>
+<pre>Total File System:
+	 Warning : 70
+	 Severe  : 80
+	 Reset   : 60
+</pre>
+<p></p>
+<p>Display just the live file system:</p>
+<pre>server:$ fs-usage -f livefs fs1
+</pre>
+<p></p>
+<pre>Live File System:
+	 Warning : 75
+	 Severe  : 85
+	 Reset   : 65
+Allow the live file system to exceed the severe limit
+</pre>
+<p></p>
+<p>Alter the warning level for the live file system:</p>
+<pre>server:$ fs-usage -f livefs -w 70 fs1
+</pre>
+<p></p>
+<pre>Live File System:
+	 Warning : 70
+	 Severe  : 85
+	 Reset   : 65
+Allow the live file system to exceed the severe limit
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../Supervisor/set.html">set</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

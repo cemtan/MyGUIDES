@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-keytab-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cifs-keytab-list</h1>
+<p>Lists keytabs for ADS CIFS names</p>
+<h1>Syntax</h1>
+<pre>cifs-keytab-list [--all | -a] [ &lt;name1&gt; [ &lt;name2&gt; [ &lt;name3&gt; ... ] ] ]
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-keytab-list command lists the keytab used by ADS CIFS names for Kerberos authentication.</p>
+<p>Up to eight ADS CIFS names on the current evs can be specified</p>
+<pre>cifs-keytab-list &lt;name1&gt; &lt;name2&gt; &lt;name3&gt; ... &lt;name8&gt;
+</pre>
+<p></p>
+<p>Otherwise, --all lists the keytabs for all ADS CIFS names on the current evs</p>
+<pre>cifs-keytab-list --all
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>To list the keytabs for all ADS CIFS names configured for the current evs</p>
+<pre>cifs-keytab-list --all
+</pre>
+<p></p>
+<p>To list the keytab for a particular ADS CIFS name configured for the current evs</p>
+<pre>cifs-keytab-list &lt;name&gt;
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-name.html">cifs-name</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

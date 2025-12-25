@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>protocol-character-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>protocol-character-set</h1>
+<p>Get/Set NIS, NFS or both character sets</p>
+<h1>Syntax</h1>
+<pre>protocol-character-set [--all Latin-1 | UTF-8] [--nis Latin-1 | UTF-8] [--nfs Latin-1 | UTF-8 | EUC-KR | EUC-JP | EUC-CN]
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to configure the character set encoding used by NIS (to interpret the passwd.byname, passwd.byuid, group.byname and group.bygid maps) and the character set encoding used by NFSv2/v3* to represent meta-data such as filenames or export names.  If the --all option is specified then both the NFSv2/v3 and NIS encodings will be set to the value supplied unless the --nfs or --nis options are used, in which case the individual setting will override the general one. Note NFSv2 and NFSv3 use the same setting so cannot have different values.</p>
+<p>* Other protocols are not affected by the setting</p>
+<dl>
+<dt><strong>NFSv4</strong></dt>
+<dd><p>always uses UTF-8</p></dd>
+<dt><strong>FTP</strong></dt>
+<dd><p>always uses UTF-8</p></dd>
+<dt><strong>SMB1</strong></dt>
+<dd><p>auto negotiates to use either UCS-2LE, or Latin-1</p></dd>
+<dt><strong>SMB2</strong></dt>
+<dd><p>always uses UCS-2LE</p></dd>
+</dl>
+<p>The character set defines the encoding used between the client and the HNAS. It does not affect how data are stored, which is always in UTF-8, with one exception; for legacy reasons the value of a symbolic link when the HNAS (--nfs) is set to Latin-1 is stored directly in Latin-1.</p>
+<p>A setting other than UTF-8 therefore implies run-time translation of client requests and responses, with corresponding run-time overhead.</p>
+<p>The default setting for both NFS and NIS is Latin-1, this will change in a future HNAS release to UTF-8. The setting should reflect the actual encoding used by the client, otherwise errors/inconsistencies can occur:</p>
+<dl>
+<dt><strong>Example#1 (Wrong HNAS encoding set; Latin-1):</strong></dt>
+<dd><p>If a client sends data in UTF-8, but the HNAS is configured as Latin-1, then the HNAS will re-encode the (UTF-8) data as "Latin-1 encoding into UTF-8" which will produce a nonsense name. Later when the same name is viewed by the <strong>same client</strong> the translation will be reversed and all will appear correct. However if another client uses a different protocol, such as SMB, to view the name it will see a nonsense name.</p></dd>
+<dd><p>Take care, if this situation exists today, consult your support provider.</p></dd>
+<dt><strong>Example#2 (Wrong client encoding used):</strong></dt>
+<dd><p>When an NFSv3 client sends data in EUC-KR, but the HNAS was configured to expect UTF-8, some names may be invalid in UTF-8 and produce errors.</p></dd>
+<dt><strong>Example#3 (Sharing between NFS and SMB):</strong></dt>
+<dd><p>Consider an NFSv3 client using Latin-1 with the HNAS correctly configured to Latin-1. A Windows user creates a Filename using UCS-2 characters not present in Latin-1. In this case the NFSv3 client will see the shortname of the file (see the <strong>shortname</strong> command)</p></dd>
+<dt><strong>Example#4 (Symbolic links and Latin-1):</strong></dt>
+<dd><p>If a symlink is created by an NFSv3 client while the encoding is set to Latin-1 the link will be stored on the HNAS in Latin-1 and may be unusable via SMB/CIFS.</p></dd>
+<dt><strong>Example#5 (NFS exports not usable):</strong></dt>
+<dd><p>The GNU-Linux/Unix System command "showmount" displays NFSv2/v3 exports. On the HNAS an NFS export can be created while the NFS encoding is set to e.g. UTF-8. Later if the encoding is changed to Latin-1 and the export name contains characters not in Latin-1, the export name will not be shown and cannot be used in a mount(8) command.</p></dd>
+</dl>
+<p>The <strong>trouble nfsencoding</strong> command can highlight some issues e.g with export names.</p>
+<p>Care needs be taken when an HNAS was used originally with a setting of Latin-1, then later changed, e.g. to UTF-8; especially if the clients were not actually using Latin-1, some of the issues above may exist.</p>
+<p>Problems with encoding are often masked because tests and checks are carried out with US-ASCII, which encodes the same in all the supported encodings. The native encoding used on the HNAS is UTF-8. If UTF-8 is selected at installation-time no translations will happen (avoiding the issues above) and the performance overhead will be avoided.</p>
+<p>For a new HNAS configuration, an initial setting of UTF-8 should be considered as it allows for a flexible usage between protocols. Later releases of HNAS will default to UTF-8 at installation-time.</p>
+<p>Usage:</p>
+<pre>protocol-character-set [(--all|-a) (Latin-1 | UTF-8)] [(--nis|-i) (Latin-1 | UTF-8)] [(--nfs|-f) (Latin-1 | UTF-8 | EUC-KR | EUC-JP | EUC-CN)]
+</pre>
+<p></p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a, --all (Latin-1 | UTF-8)</strong></dt>
+<dd><p>The character set to use for both NIS and NFS.</p></dd>
+<dt><strong>-i, --nis (Latin-1 | UTF-8)</strong></dt>
+<dd><p>The character set to use for NIS.</p></dd>
+<dt><strong>-f, --nfs (Latin-1 | UTF-8 | EUC-KR | EUC-JP | EUC-CN)</strong></dt>
+<dd><p>The character set to use for NFSv2/3.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>protocol-character-set --all UTF-8
+</pre>
+<p></p>
+<pre>protocol-character-set --nfs UTF-8
+</pre>
+<p></p>
+<pre>protocol-character-set --nfs Latin-1 --nis UTF-8
+</pre>
+<p></p>
+<pre>protocol-character-set --nfs EUC-KR --nis UTF-8
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context if Multi-tenancy is enabled, otherwise Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/shortname.html">shortname</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

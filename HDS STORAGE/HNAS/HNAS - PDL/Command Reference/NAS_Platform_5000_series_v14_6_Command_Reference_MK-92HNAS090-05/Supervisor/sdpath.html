@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sdpath</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sdpath</h1>
+<p>Control preferred paths to SDs</p>
+<h1>Syntax</h1>
+<pre>sdpath [ [-h &lt;host port id&gt;] [-t &lt;target port name&gt;] | --reset | --rebalance ] [&lt;system drives&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The sdpath command is used to show or change the current storage device path being used by the server. The server is equipped with a multi-path driver and will use alternate paths to storage devices behind RAID controllers. This means that if the server is connected to a pair of RAID controllers that have two storage devices presented, the server will choose one RAID controller as a primary path to the first storage device and the other RAID controller as a primary path to the second device. The server will also dynamically change paths in the event that one path has failed. Often the automatic selection algorithm will be good enough, but sometimes manual configuration will provide better distribution of load.</p>
+<dl>
+<dt><strong>&lt;system drives&gt;</strong></dt>
+<dd><p>Select which system drives to display or act on. See the sd-spec man page for more details. Only licensed devices will be selected. If this argument is omitted, all licensed system drives will be selected.</p></dd>
+<dt><strong>-h &lt;1..N&gt;</strong></dt>
+<dd><p>Set preferred host port for the selected system drive(s) (-1 for no preference)</p></dd>
+<dt><strong>-t &lt;WWPN&gt;</strong></dt>
+<dd><p>Set preferred target port for the selected system drive(s) (0 for no preference). This option should not be used in switchless cluster environments (See notes below).</p></dd>
+<dt><strong>--reset</strong></dt>
+<dd><p>Clear host and target port preferences for the selected system drive(s)</p></dd>
+<dt><strong>--rebalance</strong></dt>
+<dd><p>Trigger review of path selection for the selected system drive(s)</p></dd>
+</dl>
+<p>With no options, path information is shown for the selected device(s). A '&gt;' indicates the preferred target port (if any) for a device; '*' indicates the one currently in use. '!' appears instead of '*' when a device is open on an unavailable target port; this can happen when a target port becomes unavailable and the device has not yet been closed or switched to another one, or (in a HA cluster) where the device is in use by another pnode but not visible locally. The RAID controller field is informative only - the values shown cannot be used for path configuration. The values of this field should be treated as opaque identifiers, and their presentation may change between software revisions.</p>
+<p>Changes to path preferences should take effect immediately (if possible), and on all nodes in a cluster.</p>
+<p>For optimal performance, it is recommended that preferred host ports be set for all system drives used by the server or none of them, and that preferred target ports be set for all or none served by the same RAID controllers.</p>
+<p>The --rebalance option operates only on the cluster node on which it is run. However, changes to SD paths prompted by it running may trigger changes on other nodes in a cluster to keep the view of the storage consistent.</p>
+<p>In switchless clusters the pnodes must be connected to different target ports and setting a preferred target port in this environment will cause unpredictable results.  However, it is permissible to configure preferred host ports in this type of configuration.</p>
+<h1>Examples</h1>
+<p>Four system drives are in use; the automatic load-balancing algorithm has divided them equally between two host ports and between two RAID controllers:</p>
+<pre>server:$ sdpath
+Device 0      Preferred host port: None (Current: 1)
+ Ports:  Raid controller                                       Port name
+     *   00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+         00/A/QH8H0N1F                                         3651704D4825C379
+Device 1      Preferred host port: None (Current: 1)
+ Ports:  Raid controller                                       Port name
+     *   00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+         00/A/QH8H0N1F                                         3651704D4825C379
+Device 2      Preferred host port: None (Current: 2)
+ Ports:  Raid controller                                       Port name
+         00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+     *   00/A/QH8H0N1F                                         3651704D4825C379
+Device 3      Preferred host port: None (Current: 2)
+ Ports:  Raid controller                                       Port name
+         00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+     *   00/A/QH8H0N1F                                         3651704D4825C379
+</pre>
+<p></p>
+<p>Set both a preferred host port and a preferred target port for system drive 0:</p>
+<pre>server:$ sdpath -h  1 -t 3651704D4825C379 0
+</pre>
+<p></p>
+<p>And the path used for that device has been changed accordingly:</p>
+<pre>server:$ sdpath
+Device 0      Preferred host port: 1    (Current: 1)
+ Ports:  Raid controller                                       Port name
+         00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+     *&gt;  00/A/QH8H0N1F                                         3651704D4825C379
+Device 1      Preferred host port: None (Current: 1)
+ Ports:  Raid controller                                       Port name
+     *   00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+         00/A/QH8H0N1F                                         3651704D4825C379
+Device 2      Preferred host port: None (Current: 2)
+ Ports:  Raid controller                                       Port name
+         00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+     *   00/A/QH8H0N1F                                         3651704D4825C379
+Device 3      Preferred host port: None (Current: 2)
+ Ports:  Raid controller                                       Port name
+         00/A/4OU1KQ9N                                         3BB7DDAE0A297CF0
+     *   00/A/QH8H0N1F                                         3651704D4825C379
+</pre>
+<p></p>
+<p>The distribution is now uneven, as preferences have not been set for the other devices.</p>
+<p>Clear preferred-path configuration on all licensed SDs:</p>
+<pre>server:$ sdpath --reset
+</pre>
+<p></p>
+<p>Request a rebalance on all SDs in a particular storage rack:</p>
+<pre>server:$ sdpath --rebalance :k=NLSAS_R2
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/backup-device-port.html">backup-device-port</a> <a href="../Supervisor/fc-host-port-load.html">fc-host-port-load</a> <a href="../Supervisor/fc-target-port-load.html">fc-target-port-load</a> <a href="../Topic/sd-spec.html">sd-spec</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

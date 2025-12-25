@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tcpipperfstats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>tcpipperfstats</h1>
+<p>Report TCP/IP connection information.</p>
+<h1>Syntax</h1>
+<pre>tcpipperfstats [-r] [-s] [-f]
+</pre>
+
+<h1>Description</h1>
+<p>tcpipperfstats reports sequence numbers for all existing TCP connections.</p>
+<p>The tcpipperfstats command takes the following options:</p>
+<dl>
+<dt><strong>-s, --store</strong></dt>
+<dd><p>Remember current values as a base for relative sequence numbers.</p></dd>
+<dt><strong>-f, --forget</strong></dt>
+<dd><p>Stop using any base values that were set with --store.</p></dd>
+<dt><strong>-r, --relative</strong></dt>
+<dd><p>Report sequence numbers relative to the initial sequence numbers used in the TCP/IP handshake.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>To get an idea of how much data has been used by tcpip connections:
+     tcpipperfstats -r
+</pre>
+<p></p>
+<pre>To get an idea of how much data is being used per second on tcpip connections:
+     tcpipperfstats -s
+     sleep 1
+     tcpipperfstats
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/connstats.html">connstats</a> <a href="../User/icmpstats.html">icmpstats</a> <a href="../User/ip-stats-other.html">ip-stats-other</a> <a href="../User/tcpstats.html">tcpstats</a> <a href="../User/udpstats.html">udpstats</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dsb-set-file-counts</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>dsb-set-file-counts</h1>
+<p>Set file counts on the latest DSB</p>
+<h1>Syntax</h1>
+<pre>dsb-set-file-counts &lt;file-counts&gt; &lt;fs&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Set the file count values of the specified file system's latest dynamic super block. This command only works on WFS-2 format file systems. The file system needs to be unmounted for this operation.</p>
+<p>This command should be run if checkfs reports that the file counts stored in the DSB do not match the actual file counts.</p>
+<dl>
+<dt><strong>&lt;file-counts&gt;</strong></dt>
+<dd><p>Space separated values of file counts to be set, in the following order: Non Regular Directory Block Character SymLink Socket Fifo HardLinked</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To set file counts to (Non:1 Regular:2 Directory:3 Block:4 Character:5 SymLink:6 Socket:7 Fifo:8 HardLinked:9) on file system "fs1"</p>
+<pre>dsb-set-file-counts 1 2 3 4 5 6 7 8 9 fs1
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/checkfs.html">checkfs</a> <a href="../Supervisor/dsb.html">dsb</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mkdir</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>mkdir</h1>
+<p>Creates directories</p>
+<h1>Syntax</h1>
+<pre>mkdir [-p|--parents] [-v|--verbose] [--] &lt;dir1&gt; [&lt;dir2&gt;...]
+</pre>
+
+<h1>Description</h1>
+<p>WARNING: This command bypasses all security checks and doesn't ask for confirmation, so make sure you know what you're doing.</p>
+<p>The mkdir command is used to create one or more directories. If a directory name begins with a dash, it cannot be specified as the first argument to mkdir. It should be specified after a stand-alone option "--" or after another directory name that does not begin with a dash.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--parents, -p</strong></dt>
+<dd><p>Do not fail if the directory exists, make parent directories as needed.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display a status message for each directory.</p></dd>
+<dt><strong>--</strong></dt>
+<dd><p>Optional to signify the end of options and hence all subsequent arguments are directory names to create. Useful if the first directory name begins with a dash.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. To create the directories 'dir1', 'dir2' and 'dir3' in the current working directory:</p>
+<pre>   mkdir dir1 dir2 dir3
+</pre>
+<p></p>
+<p>2. Create parent directories if needed:</p>
+<pre>   mkdir -p xdir/ydir/zdir
+</pre>
+<p></p>
+<p>3. Two ways to create a directory whose name begins with a dash:</p>
+<pre>   mkdir -- -testdir  # after stand-alone option --
+   mkdir adir -bdir   # after another directory
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cd.html">cd</a> <a href="../Supervisor/rmdir.html">rmdir</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

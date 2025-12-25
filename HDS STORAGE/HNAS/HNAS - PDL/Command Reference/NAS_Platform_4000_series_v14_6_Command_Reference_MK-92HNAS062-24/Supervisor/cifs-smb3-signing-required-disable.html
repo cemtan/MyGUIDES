@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-smb3-signing-required-disable</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cifs-smb3-signing-required-disable</h1>
+<p>Disables SMB3 signing required</p>
+<h1>Syntax</h1>
+<pre>cifs-smb3-signing-required-disable 
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-smb3-signing-required-disable command is used to disable signing required on the SMB3 service for the current EVS. Signing required is either disabled or enabled in a SMB3 server. If signing required is enabled all SMB3 packets will be signed (after the initial negotiation which signals the requirement). This is displayed as "SMB3 signing is required". If signing required is disabled it can be requested by the client on a per-session or per-packet basis. This is displayed as "SMB3 signing is NOT required".</p>
+<h1>Examples</h1>
+<pre>$ cifs-smb3-signing-required-disable
+</pre>
+<p></p>
+<pre>SMB3 signing is NOT required on EVS 1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-smb3-signing-required-default.html">cifs-smb3-signing-required-default</a> <a href="../Supervisor/cifs-smb3-signing-required-enable.html">cifs-smb3-signing-required-enable</a> <a href="../Supervisor/cifs-smb3-signing-status.html">cifs-smb3-signing-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

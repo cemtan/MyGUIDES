@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mclist</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>mclist</h1>
+<p>Show outstanding management requests on this cluster node</p>
+<h1>Syntax</h1>
+<pre>mclist [--incoming | -i] [--outgoing | -o] [&lt;minimum-age-in-milliseconds&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>When one of the server's subsystems needs to ask another subsystem to do something, it uses a mechanism called a 'management call'.  If you run 'mclist' on a particular server, it lists management calls made by that server that have not yet returned.</p>
+<p>The --incoming or -i switch lists management calls being served by this server.  The --outgoing or -o switch lists management calls made by this server.  If you supply neither switch, the command lists both incoming and outgoing calls.  A single call can loop back from the server to itself, and may therefore appear in both lists.</p>
+<p>If you supply a minimum age (in milliseconds), calls that are more recent than that age will not be listed.  By default, the command lists all calls that are still in progress.</p>
+<p>The command prints the following information:</p>
+<dl>
+<dt><strong>Request</strong></dt>
+<dd><p>The name of the call.</p></dd>
+<dt><strong>Age</strong></dt>
+<dd><p>How long ago the call was made.</p></dd>
+<dt><strong>Context</strong></dt>
+<dd><p>Identifies where the call was made from.  The two colon-separated values are the originating cluster node ID and a request sequence number that is specific to that cluster node.</p></dd>
+<dt><strong>Peer</strong></dt>
+<dd><p>Shows which server is serving the call.  A value of 0 indicates a loop-back call that is made and served by the same cluster node.</p></dd>
+<dt><strong>Thread</strong></dt>
+<dd><p>Identifies the thread on the local board that either made the call or is busy serving it.</p></dd>
+</dl>
+<p>Calls are presented in chronological order, oldest first.</p>
+<h1>Examples</h1>
+<p>The following command lists all incoming and outgoing calls on cluster node 1:</p>
+<pre>server:$ pn 1 mclist
+</pre>
+<p></p>
+<pre>Incoming management calls:
+</pre>
+<p></p>
+<pre>Request                                    Age (secs)   Context        Peer   Thread
+----------------------------------------   ----------   ------------   ----   -----------------------------------
+SC_MAKE_SPAN                                    0.463       2:0027d2      2   "Bali Console (executing mkspan Quad 8-11)" (@0x00007F69A1C2C710, id 121, state dW)
+SC_GET_FS                                       0.109       1:00270a      0   "Bluestone bossock" (@0x00007F6A0CC6A610, id 1198, state W)
+QUERY_FILESYSTEM_V1                             0.112       1:00270a      1   "Bluestone bossock" (@0x00007F6A0CC6A610, id 1198, state W)
+</pre>
+<p></p>
+<pre>Outgoing management calls:
+</pre>
+<p></p>
+<pre>Request                                    Age (secs)   Context        Peer   Thread
+----------------------------------------   ----------   ------------   ----   -----------------------------------
+SC_MAKE_SPAN                                    0.476       2:0027d2      0   "Bali Console (executing mkspan Quad 8-11)" (@0x00007F69A1C2C710, id 121, state dW)
+SC_GET_FS                                       0.123       1:00270a      0   "Bluestone bossock" (@0x00007F6A0CC6A610, id 1198, state W)
+QUERY_FILESYSTEM_V1                             0.125       1:00270a      0   "Bluestone bossock" (@0x00007F6A0CC6A610, id 1198, state W)
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The following command lists all calls older than two seconds made by whichever cluster node runs the command:</p>
+<pre>mclist --outgoing 2000
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/mcstats.html">mcstats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

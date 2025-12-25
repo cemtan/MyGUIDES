@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>vlsi-profiler-add-chip</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>vlsi-profiler-add-chip</h1>
+<p>Add all state machines for a chip to automated vlsi profiling.</p>
+<h1>Syntax</h1>
+<pre>vlsi-profiler-add-chip &lt;chip&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to mark all the state machines for a chip as "eligible for profiling" for the automated vlsi-profiler. The vlsi-profiler works by reading the busyness of all given state-machines, and if one has reached the minimum threshold of busyness (vlsi-profiler-threshold-set), it will be profiled.</p>
+<p>Note that state-machines added to the profiler are not guaranteed to ever be profiled. This is because their busyness may never surpass the minimum (though if the profile-threshold were set to 0%, that would make them always eligible).</p>
+<p>The state machines are read every 10 seconds, but there is a 30 minute cooldown between profiles for individual state-machines to avoid constant profiling.</p>
+<p>State machines added to the profiler will only be eligible for profiling on that node, and are not persistent between resets.</p>
+<p>The chip name must be entered as lower case. The command 'vlsi-profiler-supported-list' displays the list of state machines supported by the automated vlsi-profiler.</p>
+<h1>Examples</h1>
+<p>Add the state machines from NIBRX:</p>
+<pre>vlsi-profiler-add-chip nibrx
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fdp-load.html">fdp-load</a> <a href="../Supervisor/fsa-load.html">fsa-load</a> <a href="../Supervisor/mbi-load.html">mbi-load</a> <a href="../Supervisor/mfb-load.html">mfb-load</a> <a href="../Supervisor/nibrx-load.html">nibrx-load</a> <a href="../Supervisor/nibtcp-load.html">nibtcp-load</a> <a href="../Supervisor/nibtx-load.html">nibtx-load</a> <a href="../Supervisor/nicc-load.html">nicc-load</a> <a href="../extra/nvi-load.html">nvi-load</a> <a href="../Supervisor/obj-load.html">obj-load</a> <a href="../Supervisor/si-load.html">si-load</a> <a href="../Supervisor/tdp-load.html">tdp-load</a> <a href="../Supervisor/vlsi-profiler-add.html">vlsi-profiler-add</a> <a href="../Supervisor/vlsi-profiler-delete.html">vlsi-profiler-delete</a> <a href="../Supervisor/vlsi-profiler-delete-all.html">vlsi-profiler-delete-all</a> <a href="../Supervisor/vlsi-profiler-list.html">vlsi-profiler-list</a> <a href="../Supervisor/vlsi-profiler-supported-list.html">vlsi-profiler-supported-list</a> <a href="../Supervisor/vlsi-profiler-threshold-set.html">vlsi-profiler-threshold-set</a> <a href="../Supervisor/vlsi-profiler-threshold-show.html">vlsi-profiler-threshold-show</a> <a href="../Supervisor/wdir-load.html">wdir-load</a> <a href="../Supervisor/wfile-load.html">wfile-load</a> <a href="../Supervisor/wlog-load.html">wlog-load</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-fpga-log</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>scsi-fpga-log</h1>
+<p>dump/clear FPGA log</p>
+<h1>Syntax</h1>
+<pre>scsi-fpga-log [-d, --dump][-c, --clear][-s, --size][-h, --help]
+</pre>
+
+<h1>Description</h1>
+<p>Dumps or clears the FPGA log.</p>
+<p>There is a single FPGA log that logs fast path (FPGA) SCSI command responses that have returned with a SCSI check condition status. The log will be empty if no fast path I/O SCSI check conditions have occurred. Console output may be stopped or aborted with a key press or by CTRL-C.</p>
+<p>A log entry indicates the SCSI command that generated the SCSI status, as follows:</p>
+<dl>
+<dt><strong>Command Name</strong></dt>
+<dt><strong>H&lt;n&gt;</strong></dt>
+<dd><p>Host port that issued the command.</p></dd>
+<dt><strong>P&lt;n&gt;</strong></dt>
+<dd><p>The SCSI port number of the target device the command was sent to.</p></dd>
+<dt><strong>[xxxxxx]</strong></dt>
+<dd><p>Fibre Channel address of the target port the command was sent to.</p></dd>
+<dt><strong>DevID &lt;ID&gt;</strong></dt>
+<dd><p>The device ID of the device that command was sent to.</p></dd>
+<dt><strong>LUN n</strong></dt>
+<dd><p>The LUN of the target device.</p></dd>
+<dt><strong>&lt;: the SCSI status returned by the target device&gt;</strong></dt>
+<dd><p>Description of the SCSI status returned by the target device.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong><strong>-d, --dump</strong></strong></dt>
+<dd><p>Displays the contents of the SCSI FPGA log. The last 20 entries are output if no range is specified.</p></dd>
+<dl>
+<dt><strong>-h, --hport &lt;1..n&gt;</strong></dt>
+<dd><p>Filters by host port.</p></dd>
+<dt><strong>-p, --port &lt;ID&gt;</strong></dt>
+<dd><p>Filters by the target SCSI port ID.</p></dd>
+<dt><strong>-i, --id &lt;ID&gt;</strong></dt>
+<dd><p>Filters by the target device ID.</p></dd>
+<dt><strong>-a, --all | -n &lt;[-]no of entries to dump&gt;</strong></dt>
+<dd><p>Outputs all entries, last n entries or first n entries if n is negative. If n = 0, dumps entire log; by default, dumps last 20 entries.</p></dd>
+</dl>
+<dt><strong><strong>-c, --clear</strong></strong></dt>
+<dd><p>Clears the FPGA SCSI log.</p></dd>
+<dl>
+<dt><strong>-C, --Conf</strong></dt>
+<dd><p>Clears the log without requesting confirmation.</p></dd>
+</dl>
+<dt><strong><strong>-s, --size</strong></strong></dt>
+
+<p>Shows the current and maximum sizes of the SCSI FPGA log.</p>
+
+<dt><strong><strong>-h, --help</strong></strong></dt>
+<dd><p>Shows help.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To dump the last 20 entries from the log:</p>
+<pre>scsi-fpga-log -d
+</pre>
+<p></p>
+<p>To dump the entire log:</p>
+<pre>scsi-fpga-log -d -a
+</pre>
+<p></p>
+<p>To dump last 10 entries filtered by device ID 2:</p>
+<pre>scsi-fpga-log -d -i 2 -n 10
+</pre>
+<p></p>
+<p>To dump the entire FPGA log filtered by hport 1:</p>
+<pre>scsi-fpga-log -d -h 1 -a
+</pre>
+<p></p>
+<p>To clear the FPGA log with no confirmation:</p>
+<pre>scsi-fpga-log -c -C
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fsi-cache-flush</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>fsi-cache-flush</h1>
+<p>Flush FSI cache of all clean data</p>
+<h1>Syntax</h1>
+<pre>fsi-cache-flush 
+Alias:       cache-flush
+</pre>
+
+<h1>Description</h1>
+<p>The FSI cache mainly contains file attributes and a path-to-file index but it is also used for cached credentials, cached symbolic link targets, cached security descriptors and for free-space bitmap caching in the file system repair utilities. The FSI cache shares memory with a general purpose heap. It can sometimes be advantageous to empty the FSI cache before a particularly heap-intensive operation or to verify that cached information can be regenerated.</p>
+<h1>Examples</h1>
+<p>To flush the FSI cache on every node in the cluster:</p>
+<pre>for-each-cnode fsi-cache-flush
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/credentials-reassess.html">credentials-reassess</a> <a href="../Supervisor/for-each-cnode.html">for-each-cnode</a> <a href="../Supervisor/heap-info.html">heap-info</a> <a href="../Supervisor/heap-size.html">heap-size</a> <a href="../Supervisor/heap-vptr.html">heap-vptr</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

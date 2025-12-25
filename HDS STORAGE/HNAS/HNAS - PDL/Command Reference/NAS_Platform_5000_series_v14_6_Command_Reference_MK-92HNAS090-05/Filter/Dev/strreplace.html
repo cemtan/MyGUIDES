@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strreplace</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>strreplace</h1>
+<p>Replace all occurrences of a token with another in a region of a line</p>
+<h1>Syntax</h1>
+<pre>... | strreplace &lt;old token&gt; [&lt;new token&gt;] [-r|--regex/Fwivjk]
+	[--all | --last | {--occurrence-numbers|-c &lt;number-list&gt;}]
+	[--discard-blank-lines|-d]
+	[--oldtoken-escape-char|-o &lt;char1&gt;] [--newtoken-escape-char|-n &lt;char2&gt;]
+	[--from-string|-f/rwivjk &lt;string1&gt; | --start-index|-s &lt;index1&gt;]
+	[--to-string|-t/rwivjk &lt;string2&gt; | --end-index|-e &lt;index2&gt;]
+	[--if-strquery|-i &lt;arguments&gt; | --unless-strquery|-u &lt;arguments&gt; | --if &lt;arguments&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This filter replaces a token in the standard input line with a new token.</p>
+<p>Note that all options must be specified after the new token. If the new token is an empty string, it is specified with "" and can be omitted if there are no options. An empty new token means to delete the old token from the line.</p>
+<dl>
+<dt><strong>&lt;old token&gt;</strong></dt>
+<dd><p>The old token to be replaced. Mandatory.</p></dd>
+<dd><p>The old token can be a regular expression if option --regex is specified in the third argument.</p></dd>
+<dt><strong>&lt;new token&gt;</strong></dt>
+<dd><p>The new token to be replaced with.</p></dd>
+<dd><p>If there is only one argument after 'strreplace', the argument is interpreted as the old token and the new token as empty. In this case, the old token in the line will be deleted.</p></dd>
+<dd><p>If there are more than one argument after 'strreplace', the old token is always the second argument. In this case, if the old token is empty, it must be specified as "" so that the old token in the line will be deleted.</p></dd>
+<dt><strong>--regex/F,w,i,v,j=&lt;mchars&gt;,k=&lt;nchars&gt;</strong></dt>
+<dd><p>Specify that the old token is a regular expression.</p></dd>
+<dd><p>The six sub-options F, w, i, v, j, and k support regular expression parsing and their meanings are described in detail in the regex-options man page. It is sufficient to summarize them as follows:</p></dd>
+</dl>
+<pre>      * F : fixed string (i.e., &lt;old token&gt; is not a regular expression)
+      * w : count only tokens that are well delimited (word tokens)
+      * i : ignoring case in matching
+      * v : inverted matching
+      * j=&lt;n&gt; : stretch the start boundary of the match by n characters,
+                n can be negative. The default is n = 0.
+      * k=&lt;n&gt; : stretch the end boundary of the match by n characters,
+                n can be negative. The default is n = 0.
+</pre>
+<p></p>
+<pre>    If option --regex is not specified, or is specified with suboption F, the &lt;old token&gt; is a fixed string.
+</pre>
+<p></p>
+
+<p>Suboption F is handy when the string is not a regular expression. For instance, suppose we want to change the line</p>
+
+<pre>        "See references [1-5] below."
+</pre>
+<p></p>
+<pre>    into
+</pre>
+<p></p>
+<pre>        "===[1-5]==="
+</pre>
+<p></p>
+
+<p>One method is to specify inverted matching for a fixed string, i.e., specify --regex/Fv. Because inverted matching yields two strings "See references " and " below", we need to specify option --all to replace all occurrences of matches with "===".</p>
+
+<pre>        echo  "See references [1-5] below" | strreplace [1-5] === --regex/Fv --all
+</pre>
+<p></p>
+<dl>
+<dt><strong>--all, -a</strong></dt>
+<dd><p>All occurrences of the old token in the line will be replaced. By default, only the first old token in the line will be replaced.</p></dd>
+<dt><strong>--last, -l</strong></dt>
+<dd><p>Replace the last old token in the line only.</p></dd>
+<dt><strong>--occurrence-numbers, -c &lt;number-list&gt;</strong></dt>
+<dd><p>Replace only the specified list of occurrence numbers of the old token.</p></dd>
+<dd><p>The list contains one or more numbers or ranges of numbers separated by commas (e.g., "3,5,9-15"). Each number can be negative, zero, or positive. A zero means all occurrences of the old token in the line. A negative value means the occurrence is counted from right to left where -1 means the rightmost occurrence. A positive value means the occurrence is counted from left to right where 1 means the leftmost occurrence. Thus, if a line has a total of 6 occurrences of "abc", the valid occurrence numbers are 0, 1 through 6, and -1 through -6. If an occurrence number is outside the valid range, it will be ignored.</p></dd>
+<dd><p>A range can be specified in the form of "start-end/stepsize" or "start:end/stepsize" such as "3-8/2" or "3:8/2" meaning "3,5,7". If the magnitude of the step size is 1, it can be omitted and its value, +1 or -1, is automatically computed based on the comparison of the start and end values. The command does not fail if the range over-specifies the number of occurrences.</p></dd>
+<dd><p>Note --all and --last are legacy options. They can be replaced with -c 0 and -c -1, respectively. The three options --all, --last, and --occurrence-numbers are mutually exclusive. If none of them is specified, only the leftmost old token (occurrence #1) in the line will be replaced.</p></dd>
+<dt><strong>--discard-blank-lines, -d</strong></dt>
+<dd><p>If an output line contains only white spaces, do not display it.</p></dd>
+<dt><strong>--oldtoken-escape-char, -o &lt;char1&gt;</strong></dt>
+<dd><p>Specify that the old token contains escape sequences where the escape character is &lt;char1&gt;. By default, no characters in the old token are special.</p></dd>
+<dt><strong>--newtoken-escape-char, -n &lt;char2&gt;</strong></dt>
+<dd><p>Specify that the new token contains escape sequences where the escape character is &lt;char2&gt;. By default, no characters in the new token are special.</p></dd>
+</dl>
+<p>By default, the entire line is scanned for all occurrences of the old token. The scanning can be restricted to a certain part (region) of the line. The start of the search region can be specified by a string or an index. Similarly, the end of the region can be specified by a string or an index. By convention, all characters in the line are indexed sequentially starting from 0 (i.e., index 0 is the first character).</p>
+<dl>
+<dt><strong>--from-string, -f/r,w,i,v,j=&lt;mchars&gt;,k=&lt;nchars&gt; &lt;string1&gt;</strong></dt>
+<dd><p>Specify the string that starts the search region. By default, &lt;string1&gt; is a fixed string. If suboption /r is specified, &lt;string1&gt; is a regular expression. Other suboptions have the same meaning as explained in the --regex description.</p></dd>
+<dt><strong>--start-index, -s &lt;index1&gt;</strong></dt>
+<dd><p>Specify the index that starts the search region. Options -f and -s are mutually exclusive. By default, index1 is 0, which is the first character of the standard input line.</p></dd>
+<dt><strong>--to-string, -t/r,w,i,v,j=&lt;mchars&gt;,k=&lt;nchars&gt; &lt;string2&gt;</strong></dt>
+<dd><p>Specify the string that ends the search region. By default, &lt;string2&gt; is a fixed string. If suboption /r is specified, &lt;string2&gt; is a regular expression. Other suboptions have the same meaning as explained in the --regex description.</p></dd>
+<dt><strong>--end-index, -e &lt;index2&gt;</strong></dt>
+<dd><p>Specify the index that ends the search region. If non-negative, the index is counted from the left where 0 is the first character. If negative, the index is counted from the right where -1 is the end of the line. Thus, -2 means the search region extends to, but excluding, the last character of the line, -3 means the search region extends to, but excluding, the next to the last character of the line, etc. If a negative index reaches beyond the start of the line, it will wrap back to the end of the line. For example, if the line has only two charaters, index2 = -4 points to the same character as -1, -5 same as -2, etc.</p></dd>
+<dd><p>If index2 is not specified, the search region extends to the end of the line. Options -t and -e are mutually exclusive.</p></dd>
+<dt><strong>--if-strquery, -i &lt;arguments&gt;</strong></dt>
+<dd><p>Specify conditional replacement: replacement occurs if the strquery command returns true.</p></dd>
+<dd><p>If this option is specified, it must be the last option on the command line. All tokens that appear after --if-strquery to the end of the command line are treated as if they were specified to the 'strquery' command:</p></dd>
+</dl>
+<pre>            strquery --quiet --first-line %.__ &lt;arguments&gt;
+</pre>
+<p></p>
+
+<p>where %.__ represents a standard input line to the 'strline' filter. The 'strquery' command will be evaluated without producing any output as described in its man page. The command will return an integer result where a positive value is interpreted as true, 0 as false, and negative as error. If the result is true, replacement is carried out. Otherwise, keep the standard input line unchanged.</p>
+<p>--unless-strquery, -u &lt;arguments&gt;</p>
+<p>It specifies conditional replacement: replacement occurs unless the strquery command returns true.</p>
+<p>This option is similar to --if-strquery. If the 'strquery' command is evaluated to true for a standard input line, keep the line unchanged. Otherwise, replacement is carried out.</p>
+<p>--if &lt;arguments&gt;</p>
+<p>This option is similar to --if-strquery in that it must be the last option on the command line. All tokens that appear after --if to the end of the command line are concatenated together with a space inserted in between. The resulting string is treated as an expression specified to the 'calculate' command. Therefore, it can have options to the 'calculate' command embedded in the expression.</p>
+<p>The expression is evaluated in the current minishell environment. If the result is non-zero, the test is interpreted as true and replacement is carried out. Otherwise, the input line remains intact.</p>
+
+<h1>Examples</h1>
+<p>1. Simple replacement</p>
+<pre>   $ echo "touch fs1" | strreplace fs1 fs2
+   touch fs2
+</pre>
+<p></p>
+<p>2. Specific replacements</p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB   # replace 1st occurrence
+   AB cd ab ef ab mn ab xy
+</pre>
+<p></p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 2
+   ab cd AB ef ab mn ab xy
+</pre>
+<p></p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c -1
+   ab cd ab ef ab mn AB xy
+</pre>
+<p></p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c -2
+   ab cd ab ef AB mn ab xy
+</pre>
+<p></p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 0
+   AB cd AB ef AB mn AB xy
+</pre>
+<p></p>
+<p>3. Specify a range of occurrences</p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 1,3-4
+   AB cd ab ef AB mn AB xy
+</pre>
+<p></p>
+<p>All the following commands are equivalent to the above and produce the same output:</p>
+<pre>   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 1,-1:-2   # using colon as range indicator, stepsize is -1
+   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 1,-2:-1   # stepsize is +1
+   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 1,-1--2   # using dash as range indicator, stepsize is -1
+   $ echo "ab cd ab ef ab mn ab xy" | strreplace ab AB -c 1,-2--1   # stepsize is +1
+</pre>
+<p></p>
+<p>Note that if the step size is not specified, it is assumed to be +1 or -1 depending on whether the start value is smaller or greater than the end value.</p>
+<p>4. Unconditional replacement</p>
+<pre>   $ sscat file1
+   Tom has a meeting on Monday
+   Dave has a meeting on Monday
+</pre>
+<p></p>
+<pre>   $ sscat file1 | strreplace Monday Friday
+   Tom has a meeting on Friday
+   Dave has a meeting on Friday
+</pre>
+<p></p>
+<p>5. Conditional replacement</p>
+<p>To replace "Monday" with "Friday" for Dave only:</p>
+<pre>   $ sscat file1 | strreplace Monday Friday --if has(.line,mstr(Dave))
+   $ sscat file1 | strreplace Monday Friday --if-strquery --has Dave           # same result
+   Tom has a meeting on Monday
+   Dave has a meeting on Friday
+</pre>
+<p></p>
+<p>The expression specified to --if uses the built-in functions mstr and has, both of which are documented in the 'mse-functions' and 'calculate' man pages. Note that '--if-strquery --has Dave' invokes the 'strquery' filter to operate on the same standard input line, i.e.,</p>
+<pre>   $ sscat file1 | strquery --has Dave
+   0
+   1
+</pre>
+<p></p>
+<p>Only when the 'strquery' filter returns '1' (true) does the 'strreplace' filter replaces "Monday" with "Friday". The output of 'strquery' was suppressed because it was run implicitly in quiet mode.</p>
+<p>6. The old string is a regular expression</p>
+<p>To replace all digits with xxxxx:</p>
+<pre>   $ echo Total amount: 1975  | strreplace [0-9]+ xxxxx -r
+   Total amount: xxxxx
+</pre>
+<p></p>
+<p>To replace any numeric patterns of two to three digits with xxx:</p>
+<pre>   $ echo Day 10 Month 8 Year 2018  | strreplace "[[:digit:]]{2,3}" xxx -r --all
+   Day xxx Month 8 Year xxx8
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Dev/backquote.html">backquote</a> <a href="../../Filter/Dev/calculate.html">calculate</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/mse-functions.html">mse-functions</a> <a href="../../Topic/quoted-text.html">quoted-text</a> <a href="../../Supervisor/sscat.html">sscat</a> <a href="../../Filter/Dev/strjoin.html">strjoin</a> <a href="../../Filter/Dev/strline.html">strline</a> <a href="../../Filter/Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strsplit.html">strsplit</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nis-cache-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>nis-cache-list</h1>
+<p>Lists the NIS cache contents</p>
+<h1>Syntax</h1>
+<pre>nis-cache-list [--verbose] [--key &lt;name&gt;] [--map &lt;name&gt;]
+Alias:       ldap-cache-list
+</pre>
+
+<h1>Description</h1>
+<p>Displays the NIS cache contents and its current size.</p>
+<p>For NIS/YP cache the current size represents the total number of cache keys, whereas for NIS/LDAP it also includes the total number of cache records.</p>
+<p>Options are:</p>
+<dl>
+<dt><strong>--verbose</strong></dt>
+<dd><p>By default, the output is limited to 1000 entries. Use --verbose option to display the entire contents.</p></dd>
+<dt><strong>--key &lt;name&gt;</strong></dt>
+<dd><p>Display entries matching the key.</p></dd>
+<dt><strong>--map &lt;name&gt;</strong></dt>
+<dd><p>Display entries matching the map. This option is only applicable for NIS/YP cache. It can be combined with --key option.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>For NIS/YP:</p>
+<pre>    $ nis-cache-list --map passwd.byuid --key 1234
+    Key=[1234] Map=[passwd.byuid] Record=[user1234:...]
+</pre>
+<p></p>
+<pre>    $ nis-cache-list --map passwd.byuid
+    Key=[1234] Map=[passwd.byuid] Record=[user1234:...]
+    Key=[1235] Map=[passwd.byuid] Record=[user1235:...]
+    Key=[1236] Map=[passwd.byuid] Record=[user1236:...]
+    Key=[1237] Map=[passwd.byuid] Record=[user1237:...]
+    Key=[1238] Map=[passwd.byuid] Record=[user1238:...]
+    Key=[1239] Map=[passwd.byuid] Record=[user1239:...]
+    Key=[1240] Map=[passwd.byuid] Record=[user1240:...]
+    Key=[1241] Map=[passwd.byuid] Record=[user1241:...]
+    Key=[1242] Map=[passwd.byuid] Record=[user1242:...]
+</pre>
+<p></p>
+<pre>    $ nis-cache-list --verbose
+    NIS cache current size: 17
+</pre>
+<p></p>
+<pre>    Key=[1234] Map=[passwd.byuid] Record=[user1234:...]
+    Key=[1235] Map=[passwd.byuid] Record=[user1235:...]
+    Key=[1236] Map=[passwd.byuid] Record=[user1236:...]
+    Key=[1237] Map=[passwd.byuid] Record=[user1237:...]
+    Key=[1238] Map=[passwd.byuid] Record=[user1238:...]
+    Key=[1239] Map=[passwd.byuid] Record=[user1239:...]
+    Key=[1240] Map=[passwd.byuid] Record=[user1240:...]
+    Key=[1241] Map=[passwd.byuid] Record=[user1241:...]
+    Key=[1242] Map=[passwd.byuid] Record=[user1242:...]
+    Key=[user1234] Map=[passwd.byname] Record=[user1234:...]
+    Key=[user1235] Map=[passwd.byname] Record=[user1235:...]
+    Key=[user1236] Map=[passwd.byname] Record=[user1236:...]
+    Key=[user1237] Map=[passwd.byname] Record=[user1237:...]
+    Key=[user1238] Map=[passwd.byname] Record=[user1238:...]
+    Key=[user1239] Map=[passwd.byname] Record=[user1239:...]
+    Key=[user1240] Map=[passwd.byname] Record=[user1240:...]
+    Key=[user1240] Map=[passwd.byname] Record=[user1240:...]
+</pre>
+<p></p>
+<p>For NIS/LDAP:</p>
+<pre>    $ nis-cache-list --key nestedNetgroupLevel002
+    Key=[nestedNetgroupLevel002]
+    Record=
+      memberNisNetgroup: nestedNetgroupLevel001
+      nisNetgroupTriple: (host-0011.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0012.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0013.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0014.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0015.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0016.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0017.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0018.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0019.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0020.dept.example.com,-,-)
+</pre>
+<p></p>
+<pre>    $ nis-cache-list
+    NIS cache current size: 23
+</pre>
+<p></p>
+<pre>    Key=[nestedNetgroupLevel001]
+    Record=
+      nisNetgroupTriple: (host-0001.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0002.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0003.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0004.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0005.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0006.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0007.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0008.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0009.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0010.dept.example.com,-,-)
+    Key=[nestedNetgroupLevel002]
+    Record=
+      memberNisNetgroup: nestedNetgroupLevel001
+      nisNetgroupTriple: (host-0011.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0012.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0013.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0014.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0015.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0016.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0017.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0018.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0019.dept.example.com,-,-)
+      nisNetgroupTriple: (host-0020.dept.example.com,-,-)
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/domainname.html">domainname</a> <a href="../Supervisor/nis-broadcast-mode.html">nis-broadcast-mode</a> <a href="../Supervisor/nis-cache-flush.html">nis-cache-flush</a> <a href="../Supervisor/nis-rebind.html">nis-rebind</a> <a href="../User/nis-server.html">nis-server</a> <a href="../Supervisor/nis-set.html">nis-set</a> <a href="../User/nis-show.html">nis-show</a> <a href="../Supervisor/nis-state.html">nis-state</a> <a href="../User/ypwhich.html">ypwhich</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>query</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>query</h1>
+<p>Queries the specified file system</p>
+<h1>Syntax</h1>
+<pre>query [-r | --reset] &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Displays the current state of the specified file system.</p>
+<p>Usage:</p>
+<p>query [-r | --reset] &lt;file-system&gt;</p>
+<dl>
+<dt><strong>&lt;file-system&gt;</strong></dt>
+<dd><p>The file system to query.</p></dd>
+</dl>
+<p>Options:</p>
+<dl>
+<dt><strong>[-r | --reset]</strong></dt>
+<dd><p>Reset the data read/written counters.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>An example of the output for an unmounted file system:</p>
+<pre>server:$ query fs1
+Device ID                       : 1024
+Current state                   : Not mounted
+Available for use               : Yes
+Formatted                       : Yes
+Mounted                         : No
+Thin provisioned                : No
+File system version             : 2
+Read only                       : No
+WORM                            : No
+Dedupe                          : Supported and enabled
+Will mount automatically        : No
+Status of last mount attempt    : Success
+Size                            : 5.68 GB (6098518016 bytes)
+Block size                      : 4 KB (4096 bytes)
+Free space                      : 3.518 GB (3777138688 bytes)
+</pre>
+<p></p>
+<p>An example of the output for a mounted file system:</p>
+<pre>server:$ query fs1
+Device ID                       : 1024
+Current state                   : FS mounted
+Available for use               : Yes
+Formatted                       : Yes
+Mounted                         : Yes
+Thin provisioned                : No
+File system version             : 2
+Read only                       : No
+WORM                            : No
+Dedupe                          : Supported and enabled
+Will mount automatically        : Yes
+Status of last mount attempt    : Success
+Size                            : 5.68 GB (6098518016 bytes)
+Block size                      : 4 KB (4096 bytes)
+Free space                      : 3.518 GB (3777208320 bytes)
+Data read                       : 2.047 MB (0 B/second)
+Data written                    : 2.039 MB (0 B/second)
+Ops/second                      : 0
+</pre>
+<p></p>
+<p>An example of the output for a mounted file system for which thin provisioning is enabled:</p>
+<pre>server:$ query fs0
+Device ID                       : 1025
+Current state                   : FS mounted
+Available for use               : Yes
+Formatted                       : Yes
+Mounted                         : Yes
+Thin provisioned                : Yes
+File system version             : 2
+Read only                       : No
+WORM                            : No
+Dedupe                          : Not supported
+Will mount automatically        : Yes
+Status of last mount attempt    : Success
+Size                            : 203 GB (218238025728 bytes)
+Block size                      : 32 KB (32768 bytes)
+Free space                      : 201 GB (215867326464 bytes)
+Thin Size                       : 5.00 TB (5496752832512 bytes)
+Thin Free space                 : 5.00 TB (5494382133248 bytes)
+Data read                       : 16 B (0 B/second)
+Data written                    : 0 B (0 B/second)
+Ops/second                      : 0
+</pre>
+<p></p>
+<p>The thin provisioning (TP) discussed here is the file system-level TP discussed in the 'filesystem-thin' man page, rather than the storage-level TP discussed in 'hdp'.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/hdp.html">hdp</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

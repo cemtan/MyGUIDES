@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-perf-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>fs-perf-stats</h1>
+<p>Report average file system performance statistics</p>
+<h1>Syntax</h1>
+<pre>fs-perf-stats [--by-fs [-p &lt;pnode-id&gt;] [-v]] [--by-pnode [-f &lt;fs-label&gt;] [-v]] [--disable] [--enable] [--reset]
+</pre>
+
+<h1>Description</h1>
+<p>Displays average file system performance statistics.</p>
+<p>Usage:</p>
+<pre>fs-perf-stats [OPTION]...
+</pre>
+<p></p>
+<dl>
+<dt><strong>--by-fs [--pnode-filter &lt;pnode-id&gt;] [--verbose]</strong></dt>
+<dd><p>Display stats by file system.</p></dd>
+<dl>
+<dt><strong>--pnode-filter, -p</strong></dt>
+<dd><p>Only display stats for the specified pnode.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display stats for all operations.</p></dd>
+</dl>
+<dt><strong>--by-pnode [--fs-filter &lt;fs-label&gt;] [--verbose]</strong></dt>
+<dd><p>Display stats by the pnode from which operations originated.</p></dd>
+<dl>
+<dt><strong>--fs-filter, -f</strong></dt>
+<dd><p>Only display stats for the specified file system.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display stats for all operations.</p></dd>
+</dl>
+<dt><strong>--reset, -r</strong></dt>
+<dd><p>Reset statistics.</p></dd>
+<dt><strong>--enable</strong></dt>
+<dt><strong>--disable</strong></dt>
+<dd><p>Enable or disable statistics gathering.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>fs-perf-stats --by-fs
+Average file system performance statistics over last 46 seconds
+           All nodes |   Read  Write |   Read  Write |  Total  Total |
+      to File System |  ops/s  ops/s |   MB/s   MB/s |  ops/s   MB/s |
+-------------------- | ------ ------ | ------ ------ | ------ ------ |
+             Span1FS |    178      0 |      5      0 |    178      5 |
+-------------------- | ------ ------ | ------ ------ | ------ ------ |
+               TOTAL |    178      0 |      5      0 |    178      5 |
+</pre>
+<p></p>
+<pre>fs-perf-stats --by-pnode
+Average file system performance statistics over last 49 seconds
+    All file systems |   Read  Write |   Read  Write |  Total  Total |
+           from Node |  ops/s  ops/s |   MB/s   MB/s |  ops/s   MB/s |
+-------------------- | ------ ------ | ------ ------ | ------ ------ |
+                   1 |      0      0 |      0      0 |      0      0 |
+           (local) 2 |    167      0 |      5      0 |    167      5 |
+                   3 |      0      0 |      0      0 |      0      0 |
+                   4 |      0      0 |      0      0 |      0      0 |
+                   5 |      0      0 |      0      0 |      0      0 |
+                   6 |      0      0 |      0      0 |      0      0 |
+                   7 |      0      0 |      0      0 |      0      0 |
+-------------------- | ------ ------ | ------ ------ | ------ ------ |
+               TOTAL |    167      0 |      5      0 |    167      5 |
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

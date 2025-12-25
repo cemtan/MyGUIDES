@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>directory-services-config-dump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>directory-services-config-dump</h1>
+<p>Dumps directory services configuration for an EVS in context</p>
+<h1>Syntax</h1>
+<pre>directory-services-config-dump 
+</pre>
+
+<h1>Description</h1>
+<p>The directory-services-config-dump command displays the directory services information for current EVS security context. The main purpose of this command is to allow augmentation scripts to automatically retrieve this information. Hence, it is displayed in a machine-readable format using Ruby syntax and resembling the syntax of the ldap.conf.rb file. Currently, it has been implemented for NIS and LDAP only.</p>
+<p>This command accepts no arguments. The directory services have to be configured using other commands: domainname, ldap-schema, ldap-search-config, ldap-security, ldap-server, nis-ldap-mode and nis-server.</p>
+<h1>Examples</h1>
+<p>Display the current NIS and LDAP settings:</p>
+<pre>vn 1 directory-services-config-dump
+</pre>
+<p></p>
+<pre>NISDomain = "organization.example.com"
+NISServer = nil
+Schema = LdapSchema::RFC2307
+Context = "CN=Directory Manager"
+Transport = :simple_tls
+Scope = Net::LDAP::SearchScope_WholeSubtree
+SearchUsers = nil
+SearchGroups = "ou=Groups,DC=organization,DC=example,DC=com"
+SearchNetgroup = nil
+SearchHost = nil
+Search = "DC=organization,DC=example,DC=com"
+Host = "10.0.0.10"
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/domainname.html">domainname</a> <a href="../Topic/ldap.html">ldap</a> <a href="../Supervisor/ldap-schema.html">ldap-schema</a> <a href="../Supervisor/ldap-search-config.html">ldap-search-config</a> <a href="../Supervisor/ldap-server.html">ldap-server</a> <a href="../User/localgroup.html">localgroup</a> <a href="../Supervisor/nis-ldap-mode.html">nis-ldap-mode</a> <a href="../User/nis-server.html">nis-server</a> <a href="../Supervisor/nis-state.html">nis-state</a> <a href="../User/primary-group-list.html">primary-group-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>user-authenticate-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>user-authenticate-stats</h1>
+<p>Reports network user authentication statistics</p>
+<h1>Syntax</h1>
+<pre>user-authenticate-stats [-r|--reset]
+</pre>
+
+<h1>Description</h1>
+<p>Reports network user authentication statistics.</p>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Reset the statistics.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>$ user-authenticate-stats
+Elapsed Time
+ Samples=     163  Total=    834 ms  Min=1.09 ms  Av=5.12 ms  Max=40.4 ms
+ Last reset 51.1 s ago
+</pre>
+<p></p>
+<pre>        95|              ~ #
+        47|              # #
+        23|              # #
+        11|              #~#~
+         5|              ####
+         2|              ####
+         1|              #### #
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          128ns   33us     8ms     2s  34s
+</pre>
+<p></p>
+<pre>Mechanism Call Count
+ Samples=     163  Total=       191  Min=     1  Av=     1  Max=     2
+ Last reset 51.1 s ago
+</pre>
+<p></p>
+<pre>       135| #
+       129| #
+       124| #
+       118| #
+       113| #
+       108| #
+       102| #
+        97| #
+        91| #
+        86| #
+        81| #
+        75| #
+        70| #
+        64| #
+        59| #
+        54| #
+        48| #
+        43| #
+        37| #
+        32| #~
+        27| ##
+        21| ##
+        16| ##
+        10| ##
+         5| ##
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+           0                              31
+</pre>
+<p></p>
+<pre>NT Mechanism Time
+ Samples=     111  Total=    677 ms  Min=3.40 ms  Av=6.10 ms  Max=40.3 ms
+ Last reset 51.1 s ago
+</pre>
+<p></p>
+<pre>        96|                #
+        48|                #
+        24|                #
+        12|               ~#
+         6|               ##~
+         3|               ###
+         1|               ### #
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          128ns   33us     8ms     2s  34s
+</pre>
+<p></p>
+<pre>NIS Mechanism Time
+ Samples=      80  Total=    151 ms  Min=1.05 ms  Av=1.88 ms  Max=16.1 ms
+ Last reset 51.1 s ago
+</pre>
+<p></p>
+<pre>        74|              #
+        37|              #
+        18|              #
+         9|              #
+         4|              #  ~
+         2|             ##  #
+         1|             ### #
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          128ns   33us     8ms     2s  34s
+</pre>
+<p></p>
+<pre>NT Authentications
+    Total: 111
+  Success: 55 ( 49.549%)
+</pre>
+<p></p>
+<pre>NIS Authentications
+    Total: 80
+  Success: 54 ( 67.500%)
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/user-authenticate.html">user-authenticate</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

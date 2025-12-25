@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>evsfs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>evsfs</h1>
+<p>EVS file system management</p>
+<h1>Syntax</h1>
+<pre>evsfs 
+	add &lt;filesystem-specifier&gt; &lt;evs-specifier&gt;
+	delete &lt;filesystem-specifier&gt; &lt;evs-specifier&gt; [--override-pdm]
+	list [&lt;evs-specifier&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>List and manage EVS file systems in a cluster.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>add &lt;filesystem-specifier&gt; &lt;evs-specifier&gt;</strong></dt>
+<dd><p>Assigns a file system with no EVS assignment to an EVS. Only the EVS to which it is assigned is allowed to mount a file system.</p></dd>
+<dt><strong>delete &lt;filesystem-specifier&gt; &lt;evs-specifier&gt; [--override-pdm]</strong></dt>
+<dd><p>Removes a file system from an EVS.  The file system must be unmounted before the removal.  From now on, no EVS will be able to mount the file system.</p></dd>
+<dd><p>If the file system is currently participating in a data migration path, removing it from an EVS may result in unexpected loss of data.  If all file systems involved in the data migration path are deleted from one EVS and added to another, the data migration path will be resurrected.  Data migration paths can only be detected on mounted file systems, but an 'evsfs delete' command requires an unmounted file system.  An attempt is made to detect any data migration dependencies from currently mounted file systems and, if any are found, a warning will result, stopping the deletion.  The '--override-pdm' flag will enable the deletion to proceed, despite the risks.</p></dd>
+<dt><strong>list [&lt;evs-specifier&gt;]</strong></dt>
+<dd><p>Displays the EVS file system mapping.  Use this command to find out which file systems are bound to each EVS.  If you specify an EVS, only that EVS's file systems will be listed.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To add a file system to an EVS:</p>
+<pre>evsfs add myfilesystem 1
+</pre>
+<p></p>
+<p>To list all file systems assigned to an EVS:</p>
+<pre>evsfs list 1
+FS ID         FS Label      FS Permanent ID   EVS ID   EVS Label
+-----   --------------   ------------------   ------   ---------
+ 1024   ny-octopus-fs0   0x6438f46bfff77ba4        1       EVS01
+</pre>
+<p></p>
+<p>To list all file systems:</p>
+<pre>evsfs list
+FS ID         FS Label      FS Permanent ID   EVS ID   EVS Label
+-----   --------------   ------------------   ------   ---------
+ 1024   ny-octopus-fs0   0x6438f46bfff77ba4        1       EVS01
+ None   Unknown          0x686b320f87199b26        2       EVS02
+</pre>
+<p></p>
+<p>To remove a file system from an EVS:</p>
+<pre>evsfs delete myfilesystem 1
+</pre>
+<p></p>
+<p>To remove a file system from an EVS, specifying its permanent ID:</p>
+<pre>evsfs delete 0x686b320f87199b26 2
+</pre>
+<p></p>
+<p>To remove a file system from an EVS, specifying its device ID:</p>
+<pre>evsfs delete 1024 1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../User/evs.html">evs</a> <a href="../Topic/evs-specifier.html">evs-specifier</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Topic/filesystem-specifier.html">filesystem-specifier</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/unmount.html">unmount</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>path-mtu-flush</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>path-mtu-flush</h1>
+<p>Flush Path MTU Table</p>
+<h1>Syntax</h1>
+<pre>path-mtu-flush [-i &lt;interface&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The 'path-mtu-flush' command flushes the contents of the Path MTU table. Path MTU Discovery only applies to IPv6 traffic and operates in accordance with RFC-1981.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-i, --interface &lt;name&gt;</strong></dt>
+<dd><p>Limits the flush operation to table entries associated with the named interface.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To clear the Path MTU table of all entries for interface 'ag1':</p>
+<pre>    path-mtu-flush -i ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/mtu.html">mtu</a> <a href="../User/path-mtu-show.html">path-mtu-show</a> <a href="../User/route.html">route</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

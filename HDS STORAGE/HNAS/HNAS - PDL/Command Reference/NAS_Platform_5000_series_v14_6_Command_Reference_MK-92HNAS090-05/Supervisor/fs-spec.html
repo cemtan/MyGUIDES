@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-spec</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>fs-spec</h1>
+<p>List filters available for specifying multiple filesystems at the command line</p>
+<h1>Syntax</h1>
+<pre>fs-spec 
+</pre>
+
+<h1>Description</h1>
+<p>Some commands support a flexible syntax for specifying several filesystems at once.  Their names are shown in the see-also section below.  This man page describes the syntax shared by all these commands.</p>
+<h2>TERMS, GROUPS AND FILTERS</h2>
+<p>The syntax is best demonstrated by example:</p>
+<p>Because several different commands support the same syntax and we do not wish to be distracted by details of individual commands, we shall use a hypothetical command simply called 'cmd'.  Here are some sample commands:</p>
+<pre>cmd SomeFileSystem
+cmd fs1/fs2/fs3/fs4
+cmd MySpan
+cmd MySpan:unmounted
+</pre>
+<p></p>
+<p>The first of these commands operates on a single filesystem.  The second operates on four filesystems.  The third operates on all filesystems on span 'MySpan'.  The fourth operates only on filesystems that reside on span 'MySpan' and are currently unmounted.</p>
+<p>Let's focus on the last of these commands.  The word before the colon is called a <strong>group</strong>, because it specifies a group of filesystems (i.e. all the filesystems on the span).  The word after the colon is called a <strong>filter</strong>, because it accepts all the unmounted filesystems on the span and rejects the rest.</p>
+<p>The whole text 'MySpan:unmounted' -- a group with optional filters -- is called a <strong>term</strong>.</p>
+<h3>Multiple filters, or none at all</h3>
+<p>It is possible to chain filters together, like this:</p>
+<pre>cmd SomeSpan:mounted:thin
+</pre>
+<p></p>
+<p>This command operates on all file systems on span SomeSpan that are both mounted and thinly provisioned (as defined by the 'filesystem-thin' command).  The command does not operate on any unmounted file systems or any thickly provisioned file systems.</p>
+<p>Technically speaking, filters are ANDed together.  This means that a filesystem must satisfy <strong>all</strong> the criteria specified by the filters in order for the command to operate on it.</p>
+<p>Conversely, if you do not wish to use a filter, none is necessary:</p>
+<pre>cmd SomeSpan
+</pre>
+<p></p>
+<p>This command operates on all filesystems on span SomeSpan, without filtering any of them out.</p>
+<h3>Numeric filters</h3>
+<p>The filters shown so far are <strong>Boolean:</strong> either a filesystem satisfies a criterion or it doesn't.  Some other filters are <strong>numeric:</strong> they return a number, and you specify a comparison.  For example,</p>
+<pre>cmd all:capacity&gt;800
+</pre>
+<p></p>
+<p>operates on all filesystems, on all spans, whose capacity exceeds 800GiB.  The available comparisons are conventional:</p>
+<dl>
+<dt><strong>&lt;</strong></dt>
+<dd><p>Less then</p></dd>
+<dt><strong>&lt;=</strong></dt>
+<dd><p>Less than or equal to</p></dd>
+<dt><strong>=</strong></dt>
+<dd><p>Equal to</p></dd>
+<dt><strong>&gt;=</strong></dt>
+<dd><p>Greater than or equal to</p></dd>
+<dt><strong>&gt;</strong></dt>
+<dd><p>Greater than</p></dd>
+</dl>
+<p>The '=' comparison can accept a range of numbers:</p>
+<pre>cmd all:in-evs=800
+cmd all:capacity=800-1200
+</pre>
+<p></p>
+<p>The first of these operates on all filesystems whose capacity is exactly 800GiB, while the second operates on all filesystems whose capacity is between 800GiB and 1200GiB.</p>
+<h3>Multiple terms</h3>
+<p>There must be no white space anywhere in a term.</p>
+<p>A command can accept several terms, separated by slashes or (for some commands) by spaces:</p>
+<pre>cmd all:unmounted all:in-evs=3
+</pre>
+<p></p>
+<p>For any command that can accept further arguments after the filesystem names, you will generally need to use slashes and avoid white space:</p>
+<pre>cmd all:unmounted/all:in-evs=3 on
+</pre>
+<p></p>
+<p>The first term, 'all:unmounted', specifies all unmounted file systems; the second, 'all:in-evs=3', specifies all file systems bound EVS 3.  Therefore, 'cmd' will operate on any file system that is unmounted, or bound to EVS 3, or both.  (In this hypothetical example, the last word, 'on', is some unrelated part of the syntax of the 'cmd' command.)</p>
+<p>This use of slashes is unrelated to their use in path names.  When you specify one or more file systems using the syntax described in this man page, you cannot specify paths in the same argument.</p>
+<p>Specifying a filesystem multiple times, whether explicitly (by typing its name) or as part of a larger group, is equivalent to specifying it just once.  The order in which you specify filesystems is not significant.</p>
+<h3>Shortcuts</h3>
+<p>Many filters have single-character shortcuts.  For example,</p>
+<pre>cmd all:mounted
+cmd all:unmounted
+</pre>
+<p></p>
+<p>These commands an be written more concisely, but less readably, as:</p>
+<pre>cmd all:m
+cmd all:M
+</pre>
+<p></p>
+<h3>Negation</h3>
+<p>As demonstrated here, Boolean filters have counterparts that negate them. For example, :unmounted selects all file systems that :mounted does not.</p>
+<p>Numeric filters do not have counterparts: instead, invert the comparison, like this:</p>
+<pre>cmd all:capacity&lt;800
+cmd all:capacity&gt;=800
+</pre>
+<p></p>
+<h3>Restrictions</h3>
+<p>A single term cannot use the same filter more than once, as in 'all:capacity&lt;400:capacity&gt;600'; this term, if permitted, would specify all filesystems whose capacity was both smaller than 400GiB and larger than 600GiB -- i.e. no filesystems at all.  The system also forbids 'all:mounted:mounted', which pointlessly applies the same filter twice.  Nor can a single term use a Boolean filter and its opposite, as in 'all:mounted:unmounted', which would specify all mounted, unmounted file systems -- again, no file systems at all.</p>
+<p>Instead of 'all:capacity&gt;=400:capacity&lt;=600', use 'all:capacity=400-600'.</p>
+<p>However, different terms in the same command are not bound by these rules:</p>
+<pre>cmd all:in-evs=3:capacity&gt;400 all:in-evs=4:capacity&gt;800
+</pre>
+<p></p>
+<p>This command operates on all file systems bound to EVS 3 whose capacity exceeds 400GiB and all file systems bound to EVS 4 whose capacity exceeds 800GiB.</p>
+<p>A command can accept a maximum of 32 terms, but a term that directly specifies a filesystem name does not count towards this limit.</p>
+<h2>THE AVAILABLE GROUPS</h2>
+<p>Five groups are available.</p>
+<h3>A filesystem instance name</h3>
+<p>This is the simplest group: you simply specify a filesystem name directly.  For example:</p>
+<pre>cmd Alpha/Bravo/Charlie
+</pre>
+<p></p>
+<p>This command, which uses three terms, operates on filesystems Alpha, Bravo and Charlie.</p>
+<p>If you prefer, you can specify a filesystem's 1024-based device ID or its 0-based volume number instead of its name.  These three ways of specifying filesystems can be mixed in any combination.</p>
+<p>Unlike all other groups, a filesystem name does not accept filters.</p>
+<h3>A span instance name</h3>
+<p>This group specifies all filesystems on a single span.  We have already seen an example:</p>
+<pre>cmd SomeSpan
+</pre>
+<p></p>
+<p>This command operates on all filesystems on span SomeSpan.</p>
+<p>This group accepts filters.</p>
+<h3>The word 'all'</h3>
+<p>This group specifies all loaded filesystems in the system.  For example:</p>
+<pre>cmd all
+</pre>
+<p></p>
+<p>This command operates on all loaded filesystems.</p>
+<p>The 'all' group accepts filters.</p>
+<p>If you do not specify any filesystems at all, some commands, including 'filesystem-list', act as if you had specified 'all'.</p>
+<p>If you have a loaded span or filesystem called 'all' then specify 'all' if you wish to work with all filesystems and 'ALL' if you wish to work with the single span or filesystem of that name.  This works because span and filesystem names are looked up case-insensitively, but the special 'all' token is not.</p>
+<p>For the first term in a command, the word 'all' can be omitted.  The following commands both operate on all file systems whose free space is below 15%:</p>
+<pre>cmd all:free-pc&lt;15
+cmd :free-pc&lt;15
+</pre>
+<p></p>
+<p>To help guard against mistakes, this shorthand is available only for the first time.  The following syntax is not accepted:</p>
+<pre>cmd :in-evs=1 :free-pc&lt;15          # INVALID
+</pre>
+<p></p>
+<p>If you really wish to operate on all file systems bound to EVS 1 <strong>and</strong> all file systems with less than 15% free space, you need to specify 'all' for at least the second term:</p>
+<pre>cmd :in-evs=1 all:free-pc&lt;15       # Fine: two terms
+</pre>
+<p></p>
+<h3>The word 'evs'</h3>
+<p>The word 'evs' is a convenient shorthand for 'all:this-evs'.  It matches all loaded file systems that are bound to the current service EVS.  For example:</p>
+<pre>vn 1 cmd evs
+</pre>
+<p></p>
+<p>operates on all file systems bound to EVS 1.</p>
+<p>The 'evs' group accepts filters.</p>
+<p>As with the 'all' token described above, if you have a span or filesystem called 'evs', type 'EVS' to specify that span or filesystem (because span and filesystem names are looked up case-insensitively') or 'evs' to specify all file systems bound to the current EVS.</p>
+<h3>A filesystem name glob</h3>
+<p>A glob is a wildcard that matches multiple filesystem names.  For example:</p>
+<pre>cmd Project*
+</pre>
+<p></p>
+<p>This command operates on all filesystems whose names start with the word 'Project'.</p>
+<p>A glob can contain the following special tokens in any position:</p>
+<dl>
+<dt><strong><strong></strong>*</strong></dt>
+<dd><p>matches any number of characters</p></dd>
+<dt><strong>?</strong></dt>
+<dd><p>matches any single character</p></dd>
+<dt><strong>[a-z]</strong></dt>
+<dd><p>matches any single character in the range a-z</p></dd>
+<dt><strong>[^a-z]</strong></dt>
+<dd><p>matches any single character not in the range a-z</p></dd>
+<dt><strong>\x</strong></dt>
+<dd><p>matches x</p></dd>
+</dl>
+<p>Any other character matches itself.</p>
+<p>Pattern-matching is always case-insensitive.</p>
+<p>This group accepts filters.</p>
+<h2>THE AVAILABLE FILTERS</h2>
+<p>This man page does not list all available filters.  To see them, run the 'fs-spec' console command.  However, a few filters warrant further discussion:</p>
+<h3>:l-healthy, :l-unhealthy, :r-healthy, :r-unhealthy</h3>
+<p>The letter 'l' is short for 'local', and refers to the server on which the command is run.  The letter 'r' is short for 'remote', and refers to the server running the service EVS to which the file system is bound.  If a file system is not bound to an EVS, it cannot be mounted, and it therefore matches :r-unhealthy rather than :l-healthy.</p>
+<h3>:this-evs, :not-this-evs, :in-evs</h3>
+<p>Only one of these three filters can be used in any one term, meaning that this syntax is invalid:</p>
+<pre>cmd all:this-evs:in-evs=3          # INVALID
+cmd all:this-evs:not-this-evs      # INVALID
+</pre>
+<p></p>
+<p>In addition, none of these three filters can be used in a term that starts with the 'evs' group:</p>
+<pre>cmd evs:this-evs                   # INVALID
+cmd evs:in-evs=2                   # INVALID
+</pre>
+<p></p>
+<h3>:confined, :t0confined, :t1confined</h3>
+<p>The :confined filter measures the capacity beyond which `filesystem-confine' has prevented a filesystem from auto-expanding:</p>
+<pre>cmd all:confined&lt;=500              # Can't auto-expand beyond 500GiB
+</pre>
+<p></p>
+<p>A filesystem confined to its current capacity by 'filesystem-confine F 0' returns zero, and therefore passes the test given here.  Conversely, an unconfined filesystem is treated as being confined to a very large number.</p>
+<p>A tiered filesystem has two confining capacities: one per tier.  The :confined filter looks at the confining capacity on Tier 1, which is the larger of the two tiers.  Conversely, for an untiered filesystem, :t0confined and :t1confined return the single confining capacity (if any) for the filesystem.  Add a :tiered or :untiered filter if you wish to discriminate between the two cases.</p>
+<h3>:confined versus :sconfined</h3>
+<p>:confined does not check whether the host span is confined.  :sconfined, in contrast, treats any filesystem as confined to 0 if its host span is confined, on the grounds that the filesystem cannot auto-expand.</p>
+<p>:t0sconfined and :t1sconfined work in a similar way for tiered filesystems.</p>
+<h2>A WORD ABOUT PRECEDENCE</h2>
+<p>Formally, colon binds more tightly than slash and whitespace.  Less formally,</p>
+<pre>cmd Span1/Span2:mounted
+</pre>
+<p></p>
+<p>operates on all mounted file systems on Span2 and also on all file systems, mounted or otherwise, on Span1.  To operate on all mounted file systems on either of the two spans, it is necessary to say:</p>
+<pre>cmd Span1:mounted/Span2:mounted
+</pre>
+<p></p>
+<p>Or:</p>
+<pre>cmd Span1:mounted Span2:mounted
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../User/filesystem-limits.html">filesystem-limits</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-list-expansions.html">filesystem-list-expansions</a> <a href="../Supervisor/filesystem-release.html">filesystem-release</a> <a href="../Supervisor/filesystem-replay-expansions.html">filesystem-replay-expansions</a> <a href="../Supervisor/filesystem-syslock.html">filesystem-syslock</a> <a href="../Supervisor/filesystem-sysunlock.html">filesystem-sysunlock</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/filesystem-update-description.html">filesystem-update-description</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

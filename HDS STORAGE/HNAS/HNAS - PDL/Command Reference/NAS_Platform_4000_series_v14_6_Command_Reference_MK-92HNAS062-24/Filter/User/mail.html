@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mail</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>mail</h1>
+<p>Mail command output</p>
+<h1>Syntax</h1>
+<pre>... | mail [-s subject] recipient ...
+</pre>
+
+<h1>Description</h1>
+<p>Command output can be piped through <code>mail</code> to send it to the specified email address.  <code>mail</code> may not be used as a command.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-s subject</strong></dt>
+<dd><p>The subject of the email.</p></dd>
+<dt><strong>recipient</strong></dt>
+<dd><p>One or more recipients email addresses.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Send the current event log:</p>
+<pre>event-log-show | mail -s "Latest event log" support@example.com
+</pre>
+<p></p>
+<p>It is possible to send the output of multiple commands by combining <code>mail</code> with <code>ssrun</code>:</p>
+<pre>ssrun -c "ver ; ssls" | mail -s "Version and ssfs listing" support@example.com
+</pre>
+<p></p>
+<p>Alternatively commands can be combined in a script and then run with <code>ssrun</code>:</p>
+<pre>server:$ ssmk test.scr
+Enter data, ending with "." on a line by itself
+echo first command
+echo second command
+.
+server:$ ssrun test.scr | mail -s "script output" support@example.com
+server:$ ssrm test.scr
+Deleted test.scr
+server:$
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/nail.html">nail</a> <a href="../../Supervisor/sscat.html">sscat</a> <a href="../../Supervisor/ssls.html">ssls</a> <a href="../../Supervisor/ssmk.html">ssmk</a> <a href="../../Supervisor/ssrm.html">ssrm</a> <a href="../../User/ssrun.html">ssrun</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

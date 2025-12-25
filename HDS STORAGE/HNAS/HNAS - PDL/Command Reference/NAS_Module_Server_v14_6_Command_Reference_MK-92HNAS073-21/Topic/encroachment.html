@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>encroachment</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>encroachment</h1>
+
+<h1>Description</h1>
+<p>The man page describes the server's system for preventing, detecting and responding to encroachments -- data blocks overwritten by servers of other types.</p>
+<h2>THE ENCROACHMENT AREA</h2>
+<p>This server does not use a master boot record (MBR).  Instead, it uses Cod to record the layout of spans and filesystems on disk.</p>
+<p>Nevertheless, whenever a system drive (SD) is brought into a span by such commands as 'span-create' and 'span-expand', the server writes a fake to block 0 of the SD.  This fake MBR, which is called the "encroachment area", has two purposes:</p>
+<ol>
+<li>It marks as much as possible of the SD as being in use by the server, so that a user of a foreign server (a server of a different type) will see that the SD is in use and not create a new partition on it.</li>
+<li>If a foreign server overwrites any block of an SD, it is likely to start with block 0.  So this server checks the contents of the encroachment area when the span loads at boot time and again every few minutes, making sure that its contents have not changed.</li>
+</ol>
+<p>No user data or configuration is stored in the encroachment area.  If necessary, it can be recreated.</p>
+<p>If you delete a span, the fake MBR is deleted so that other servers report the storage as free for reuse.</p>
+<h2>WHAT THE SERVER DOES IF AN ENCROACHMENT OCCURS</h2>
+<p>If the server detects an encroachment at boot time, the span and filesystems will load normally and be visible in the output of commands such as 'span-list -f', but it will be impossible to mount file systems.</p>
+<p>If the server detects an encroachment some time after booting, it forcibly unmounts all file systems on the span and prevents them from being remounted.</p>
+<p>In both cases, warnings appear in the event log and the output of the 'trouble' and 'span-list' commands.  Commands that normally update Cod will fail.</p>
+<h2>HOW TO RESPOND TO AN ENCROACHMENT</h2>
+<p>One popular operating system, if it comes into contact with any SD, overwrites a few bytes in block 0 without asking permission.  Other operating systems are less cavalier but can nevertheless be used to create partitions in an MBR.  The purpose of this server's encroachment system is to detect these encroachments as early as possible, before the foreign server has time to write large amounts of data to the SD.</p>
+<p>If this server reports an encroachment:</p>
+<ol>
+<li>Immediately break the foreign server's contact with this server's SDs, even by powering down storage if necessary.</li>
+<li>Identify the foreign server that caused the encroachment.  Determine how much data is likely to have been overwritten.  It is likely that any operation that took only a second or two, or happened automatically, has overwritten only the encroachment area and not caused permanent data-loss.  However, any operation that took more than a few seconds, such as formatting a partition, is likely to have overwritten this server's structures, requiring an expert salvage operation.</li>
+<li>If you are certain that only block 0 has been overwritten, use 'span-write-encroachment-areas' to rewrite the encroachment areas on all SDs in the span and make its file systems mountable again.</li>
+<p>Otherwise, contact your support provider.  Do not reboot the server in an attempt to solve the problem: that might discard the only remaining copy of the Cod, making even partial recovery more difficult.</p>
+</ol>
+<h2>HOW TO AVOID AN ENCROACHMENT</h2>
+<p>It is safe to connect several servers of this type to the same storage, even if they are not in a high-availability cluster.  Each server will use SD-licensing and the cluster UUIDs stored in span Cod to avoid damaging another server's or cluster's data.</p>
+<p>Foreign servers, in contrast, should not be physically connected to this server's storage.  If, in exceptional circumstances, this rule has to be broken, switch-zoning or other mechanisms must be used to ensure that foreign servers cannot overwrite this server's storage.</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-dump-encroachment-area.html">sd-dump-encroachment-area</a> <a href="../Supervisor/sd-expedite-encroachment-check.html">sd-expedite-encroachment-check</a> <a href="../Supervisor/sd-identify-encroachment.html">sd-identify-encroachment</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Dev/sd-write-encroachment-area.html">sd-write-encroachment-area</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-cluster-uuids.html">span-list-cluster-uuids</a> <a href="../Supervisor/span-reload-protection.html">span-reload-protection</a> <a href="../Dev/span-write-encroachment-areas.html">span-write-encroachment-areas</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

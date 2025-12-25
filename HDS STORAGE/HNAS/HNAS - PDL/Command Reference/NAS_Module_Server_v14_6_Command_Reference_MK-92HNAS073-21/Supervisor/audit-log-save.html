@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>audit-log-save</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>audit-log-save</h1>
+<p>Save a copy of the current file system audit log for a file system</p>
+<h1>Syntax</h1>
+<pre>audit-log-save [--confirm] [--empty] &lt;file-system&gt; &lt;backup-file&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>Do not prompt for confirmation.</p></dd>
+<dt><strong>-e, --empty</strong></dt>
+<dd><p>Empty the current file system audit log after it has been saved.</p></dd>
+<dt><strong>file-system</strong></dt>
+<dd><p>File system label.</p></dd>
+<dt><strong>backup-file</strong></dt>
+<dd><p>The name of the file into which the audit log records should be saved.</p></dd>
+</dl>
+<p>The audit-log-save command saves the file system audit log records from the current audit log for a file system into a file on the same file system.</p>
+<p>The backup file name must end with the ".evt" extension.</p>
+<p>If the --empty option is specified, the current audit log will be emptied after the records have been saved into the backup file.</p>
+<p>If the backup file already exists or the --empty option is specified, the command will prompt for confirmation unless the --confirm option is specified.</p>
+<p>Do not save backup files into the .audit directory which contains the audit log and automated backups. The files in this directory are managed automatically and the presence of additional event log files can cause problems.</p>
+<h1>Examples</h1>
+<p>To save the audit log from file system fs0 into the file "backups/audit.evt":</p>
+<pre>audit-log-save fs0 backups/audit.evt
+</pre>
+<p></p>
+<p>To save the audit log from file system fs0 into the file "backup.evt" and then clear the audit log without further confirmation:</p>
+<pre>audit-log-save --empty --confirm fs0 backup.evt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/audit-log-clear.html">audit-log-clear</a> <a href="../Supervisor/audit-log-consolidated-cache.html">audit-log-consolidated-cache</a> <a href="../Dev/audit-log-consolidated-cache-clear.html">audit-log-consolidated-cache-clear</a> <a href="../Supervisor/audit-log-consolidated-cache-reset.html">audit-log-consolidated-cache-reset</a> <a href="../Dev/audit-log-consolidated-cache-save.html">audit-log-consolidated-cache-save</a> <a href="../Supervisor/audit-log-consolidated-cache-show.html">audit-log-consolidated-cache-show</a> <a href="../Supervisor/audit-log-perf.html">audit-log-perf</a> <a href="../Supervisor/audit-log-show.html">audit-log-show</a> <a href="../Supervisor/audit-log-stats.html">audit-log-stats</a> <a href="../Supervisor/filesystem-audit.html">filesystem-audit</a> <a href="../Supervisor/filesystem-audit-reset.html">filesystem-audit-reset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

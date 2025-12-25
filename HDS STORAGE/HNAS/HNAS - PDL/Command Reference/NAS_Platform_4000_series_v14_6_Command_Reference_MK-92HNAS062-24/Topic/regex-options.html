@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>regex-options</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>regex-options</h1>
+
+<h1>Description</h1>
+<p>A number of dev-level commands and filters support optional sub-options to an option. The syntax for specifying sub-options is to specify both the option and its sub-options as a single command line argument as follows. First, specify the option name (either long or short name format), then a forward slash, and finally the sub-options.</p>
+<p>The sub-options syntax is used widely to support regular expressions options, which occur in strreplace, strtoken, strquery, and strline. The goal of this man page is to describe the syntax for specifying all sub-options to an option.</p>
+<h2>A. Overview</h2>
+<p>In general, the syntax for specifying a regular expression is as follows:</p>
+<pre>    --&lt;option name&gt; &lt;pattern&gt;
+</pre>
+<p></p>
+<p>It is commonly desirable to change the behavior of a regular expression such as choosing inverted match, case-insensitive match, etc. This can be supported by adding additional options as follows:</p>
+<pre>    --&lt;option name&gt; --inverted --case-insensitive &lt;pattern&gt;
+</pre>
+<p></p>
+<p>It can be seen that the two new options are secondary to &lt;option name&gt;. However, this syntax is impractical when the command has more than one regular expression because it is impossible to associate which additional options belong to which regular expressions.</p>
+<p>A better solution is to extend the syntax of an option by appending the secondary sub-options to it as follows:</p>
+<pre>    --&lt;option name&gt;[/&lt;sub-option list&gt;] &lt;pattern&gt;
+</pre>
+<p></p>
+<p>Note that sub-options are always optional, hence, the square brackets can be omitted from the syntax for readability purposes:</p>
+<pre>    --&lt;option name&gt;/&lt;sub-option list&gt; &lt;pattern&gt;
+</pre>
+<p></p>
+<p>The sub-option list consists of one or more comma-delimited sub-options, which can be listed in any order. A sub-option can be either a flag or a name-value pair separated by an equal sign. For instance,</p>
+<pre>    --option/suboptionA,suboptionB,suboptionC=18 &lt;pattern&gt;
+</pre>
+<p></p>
+<p>By design, all sub-options to regular expression options are single letter names. Therefore, the commas and equal signs are optional because there is no ambiguity. In general, the commas are mandatory if the syntax for &lt;sub-option list&gt; contains at least one sub-option name that is longer than one letter.</p>
+<p>Example:</p>
+<p>1. ... | strreplace &lt;old-string&gt; &lt;new-string&gt;  [--regex/w,i,F]</p>
+<p>By legacy design, the first two arguments to 'strreplace' are always interpreted as the old and new strings, respectively. To indicate that &lt;old-string&gt; is a regular expression, one has to specify an additional --regex option somewhere after &lt;new-string&gt;. Thus, for strreplace, the --regex option is not followed by a pattern because the pattern is already specified in the first argument.</p>
+<p>2. strtoken  -X|--regex/w,i,F,j=&lt;m&gt;,k=&lt;n&gt; &lt;pattern&gt;</p>
+<p>The syntax means the user can specify any of the following formats:</p>
+<pre>  a) Without sub-options:
+        strtoken  -X  &lt;pattern&gt;          # short option name
+        strtoken  --reg  &lt;pattern&gt;       # partial long option name
+        strtoken  --regex  &lt;pattern&gt;     # full long option name
+</pre>
+<p></p>
+<pre>  b) With one or more comma-delimited sub-options:
+        strtoken  -X/w,i,F,j=&lt;m&gt;,k=&lt;n&gt; &lt;pattern&gt;
+        strtoken  --reg/w,i,F,j=&lt;m&gt;,k=&lt;n&gt; &lt;pattern&gt;
+        strtoken  --regex/w,i,F,j=&lt;m&gt;,k=&lt;n&gt; &lt;pattern&gt;
+</pre>
+<p></p>
+<pre>  c) The commas are optional:
+        strtoken  -X/wiFj=&lt;m&gt;k=&lt;n&gt; &lt;pattern&gt;
+        strtoken  --reg/wiFj=&lt;m&gt;k=&lt;n&gt; &lt;pattern&gt;
+        strtoken  --regex/wiFj=&lt;m&gt;k=&lt;n&gt; &lt;pattern&gt;
+</pre>
+<p></p>
+<pre>  d) The commas and equal signs can be omitted:
+        strtoken  -X/wiFj&lt;m&gt;k&lt;n&gt; &lt;pattern&gt;
+        strtoken  --reg/wiFj&lt;m&gt;k&lt;n&gt; &lt;pattern&gt;
+        strtoken  --regex/wiFj&lt;m&gt;k&lt;n&gt; &lt;pattern&gt;
+</pre>
+<p></p>
+<p>Because sub-option names of regular expression options are only one letter, there is no ambiguity if the comma and equal sign delimiters are omitted. Thus, the syntax of strtoken can be abbreviated as follows:</p>
+<pre>        strtoken  -X|--regex/wiFj#k# &lt;pattern&gt;
+</pre>
+<p></p>
+<p>where '#' represents a number.</p>
+<p>The two sub-options j and k are used to stretch the pattern matching as described below</p>
+<p>Suppose we want to find where the pattern "[0-9]+" occurs in the text line "ABC-abc-ABC-abc-12345678912345-xyz-XYZ-xyz".</p>
+<p>Specifically, we want to find the start and the end of the match as pictured below.</p>
+<pre>                 start=8       end=21
+                   |            |
+                   | j=2        | k=2
+                   | |          | |
+           --------+-+----------+-+--
+    line : abc-ABC-12345678912345-mnp       line has 25 characters
+                   xxxxxxxxxxxxxx           xx...xx denotes the match
+           -----+--+----------+-+----
+    index: 0123456789-123456789-12345       index ranges from 0 to 25
+           -----+--+---------+--+----
+                |  |         |  |
+                | j=0        |  k=0         j = 0 corresponds to the start of the match
+                |            |              k = 0 corresponds to the end of the match
+              j=-3          k=-3
+</pre>
+<p></p>
+<p>Note that the match is "12345678912345", which is the index interval [8,22], or [start,end]. By using index offsets j and k, we can refer to a variable interval [start+j, end+k]. For example, [start-3,end+2] refers to "BC-12345678912345-m".</p>
+<pre>    $ echo abc-ABC-12345678912345-mnp | strtoken -X/j=-3,k=2 [0-9]+ %1
+    BC-12345678912345-m
+</pre>
+<p></p>
+<h2>B. Common regular expression sub-options</h2>
+<p>The complete list of sub-options is described below. However, a specific command may choose to support only a subset of the list.</p>
+<dl>
+<dt><strong>F</strong></dt>
+<dd><p>Specify that &lt;pattern&gt; is a fixed string (not a regular expression).</p></dd>
+<dd><p>This option is normally available if a command chooses the regular expression format as the default expression type of &lt;pattern&gt;. Thus, the user has to specify F to change the type to regular expression.</p></dd>
+<dt><strong>r</strong></dt>
+<dd><p>Specify that &lt;pattern&gt; is a regular expression.</p></dd>
+<dd><p>This option is normally available if a command chooses the fixed string format as the default expression type of &lt;pattern&gt;. Thus, the user has to specify r to change the type to regular expression.</p></dd>
+<dt><strong>i</strong></dt>
+<dd><p>Ignore case distinctions in both the pattern and the input text. By default, both are case-sensitive.</p></dd>
+<dt><strong>v</strong></dt>
+<dd><p>Specify invert-matching (choose tokens that do not match the pattern).</p></dd>
+<dt><strong>w</strong></dt>
+<dd><p>Retain only those matched tokens that form whole words. Word constituent characters for a whole word consist of letters, digits, and the underscore.</p></dd>
+<dt><strong>o=&lt;occurrence number n, default 1&gt;</strong></dt>
+<dd><p>Specify the occurrence number n of the pattern in a line, starting from 1. The default is n = 1, which is the first occurrence of the pattern in a line. Occurrence 0 is undefined. If n exceeds the total number of occurrences in a line, there will be no match.</p></dd>
+<dd><p>Note that n can be negative: -1 is the last occurrence in the line, -2 is the next to the last occurrence, etc. If a negative value goes beyond the first occurrence in a line, there will be no match.</p></dd>
+<dt><strong>j=&lt;m characters, default 0&gt;</strong></dt>
+<dd><p>Stretch the matched token's starting boundary by &lt;m&gt; characters. If m is positive, stretch to the right; if the new ending boundary is beyond the end of text, reset it to the end of text. If m is negative, stretch to the left;  it the starting boundary is beyond the start of text, reset it to the start of text.</p></dd>
+<dt><strong>k=&lt;n characters, default 0&gt;</strong></dt>
+<dd><p>Similar to sub-option j, but apply to the matched token's ending boundary instead.</p></dd>
+<dd><p>Suppose the text length is L, and the matched token is found to start at offset A and end at offset B. If sub-options j and/or k are specified, the starting and ending boundaries of the matched token will change as follows.</p></dd>
+</dl>
+<pre>       start = A + m, reset to 0 if start &lt; 0, and reset to L if start &gt; L
+       end = B + n, reset to 0 if end &lt; 0, and reset to L if end &gt; L
+</pre>
+<p></p>
+
+<p>If start == end, the resulting token is empty. If the stretching causes start to exceed end, the final result is a reverse string. For instance,</p>
+
+<pre>     line : "abcdefg", start : 5, end : 2 =&gt; final token : "fedc"
+</pre>
+<p></p>
+<h2>C. Sub-options specific to regular expression delimiters</h2>
+<p>The strtoken filter supports building a list of tokens that are delimited by a certain string on the left and another on the right. These are called left and right delimiters, which can be regular expressions or fixed strings. They are specified by the --left-delimiter and --right-delimiter options, which can have extra sub-options as follows.</p>
+<dl>
+<dt><strong>t</strong></dt>
+<dd><p>Specify that the delimiter string is part of the matched token. As a result, the matched token becomes longer.</p></dd>
+<dt><strong>S</strong></dt>
+<dd><p>Specify that if the delimiters are nested, parse them all and keep all nested tokens. It is sufficient to specify this sub-option to just one delimiter (either left or right), and the sub-option will apply to both delimiters.</p></dd>
+<dd><p>The default is to skip over nested delimiters. For example, if the left and right delimiters are fixed strings "(" and ")", parsing an input line such as "(((a)))" will result in 3 matched tokens:</p></dd>
+</dl>
+<pre>    * Parsing the outermost pairs results in "((a))" token.
+    * Parsing the next nested pairs results in "(a)" token.
+    * Parsing the innermost nested pairs results in "a" token.
+</pre>
+<p></p>
+<pre>    Example:
+        $ echo (((a))) (bc) | strtoken --left --right %0
+        ((a)) bc
+        $ echo (((a))) (bc) | strtoken --left/S --right/S %0
+        ((a)) (a) a bc
+        $ echo (((a))) (bc) | strtoken --left/S --right/S %3
+        a
+</pre>
+<p></p>
+<dl>
+<dt><strong>M</strong></dt>
+<dd><p>Specify that if the delimiters are nested, select only the innermost token. It is sufficient to specify this sub-option to just one delimiter (either left or right), and the sub-option will apply to both delimiters.</p></dd>
+<dd><p>Note that sub-option M and S are mutually exclusive.</p></dd>
+</dl>
+<pre>    Example:
+        $ echo (((a))) (bc) | strtoken --left/M --right/M %0
+        a bc
+</pre>
+<p></p>
+<h2>D. Sub-options specific to sorting</h2>
+<p>The strtoken filter can extract tokens that match a given regular expression. The list of matched tokens can then be further sorted before display. The sorting can be either alphabetically or numerically based on the following sup-options.</p>
+<dl>
+<dt><strong>a</strong></dt>
+<dd><p>Sort the list in ascending order. If n and N is not specified, the list is sorted alphabetically.</p></dd>
+<dt><strong>d</strong></dt>
+<dd><p>Sort the list in descending order. Note that sub-options a and d are mutually exclusive. If n and N is not specified, the list is sorted alphabetically.</p></dd>
+<dt><strong>n</strong></dt>
+<dd><p>Sort the list numerically by treating all numbers as signed.</p></dd>
+<dd><p>Note that if the list contains mixed tokens (some numeric, some alphabetic), it will be divided in to two sub-lists: one numeric sub-list to be sorted numerically, and one alphabetic sub-list to be sorted alphabetically. The resulting sorted sub-lists will be joined together at the end, with the numeric sub-list preceding the alphabetic sub-list.</p></dd>
+<dt><strong>N</strong></dt>
+<dd><p>Sort the list numerically by treating all numbers as unsigned.</p></dd>
+<dt><strong>c</strong></dt>
+<dd><p>Specify case-insensitive sorting for alphabetic sorting.</p></dd>
+<dt><strong>q</strong></dt>
+<dd><p>Specify unique sorting; i.e., keep only one instance of duplicate data.</p></dd>
+<dt><strong>e</strong></dt>
+<dd><p>Treat the specified sort key as an arithmetic/logical/string expression, evaluate it using the syntax of &lt;expression&gt; of the 'calculate' command, then sort the result.</p></dd>
+</dl>
+<h1>Examples</h1>
+<h2>A. Find tokens matching a regular expression</h2>
+<p>Syntax:</p>
+<pre>   strtoken (-X|--regex)[/iwvFj=&lt;m&gt;k=&lt;n&gt;] &lt;pattern&gt;
+</pre>
+<p></p>
+<pre>       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X 0x[0-9a-f]+ %0
+       0x20 0x30
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X/w 0x[0-9a-f]+ %0
+       0x20
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X/iw 0x[0-9a-f]+ %0
+       0x20 0X40
+       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X/v 0x[0-9a-f]+ %0
+       abc 15   xyz  mnp 0X40
+</pre>
+<p></p>
+<p>Normalize spacing to a single space</p>
+<pre>       $ echo abc 15 0x20 xyz 0x30mnp 0X40| strtoken -X/v 0x[0-9a-f]+ %0 | strtoken %0
+       abc 15 xyz mnp 0X40
+</pre>
+<p></p>
+<p>Extend or shrink the resulting string by specifying offsets</p>
+<pre>       $ echo abcd123xyzt | strtoken -X [0-9]+  %0
+       123
+       $ echo abcd123xyzt | strtoken -X/j=-1,k=2  [0-9]+ %0
+       d123xy
+</pre>
+<p></p>
+<p>If -v is specified, the specified offsets apply to the inverted-matching tokens as follows:</p>
+<pre>       $ echo abcd123xyzt456mnp | strtoken -X/v [0-9]+  /%1--%2==%3/
+       /abcd--xyzt==mnp/
+       $ echo abcd123xyzt456mnp | strtoken -X/vj=-1,k=2  [0-9]+  /%1--%2==%3/
+       /abcd12--3yxzt45==6mnp/
+</pre>
+<p></p>
+<h2>B. Find tokens delimited by two regular expressions</h2>
+<p>Syntax:</p>
+<pre>   strtoken --left-delimiter/FMStiwvj=&lt;m&gt;k=&lt;n&gt; &lt;pattern&gt; --right-delimiter/FMSiwvk=&lt;m&gt;k=&lt;n&gt; &lt;pattern&gt;
+</pre>
+<p></p>
+<p>a) Select tokens between two delimiters, exclusively.</p>
+<pre>       $ echo abcd-123-xyz | strtoken --left cd  --right xy %0
+       -123-
+</pre>
+<p></p>
+<p>Same as (a), but add offsets to the left and right boundaries</p>
+<pre>       $ echo abcd-123-xyz | strtoken --left/j=1 cd  --right/k=-1 xy %0
+       123
+</pre>
+<p></p>
+<p>b) Select tokens between two delimiters, inclusively.</p>
+<pre>       $ echo abcd-123-xyz | strtoken --left/t cd  --right/t xy %0
+       cd-123-xy
+</pre>
+<p></p>
+<p>Same as (b), but add offsets to the new left and right boundaries:</p>
+<pre>       $ echo abcd-123-xyz | strtoken --left/tj=-1 cd --right/t xy %0
+       bcd-123-xy
+       $ echo abcd-123-xyz | strtoken --left/tj=1 cd --right/tk=-1 xy %0
+       d-123-x
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Filter/Dev/strjoin.html">strjoin</a> <a href="../Filter/Dev/strline.html">strline</a> <a href="../Filter/Dev/strquery.html">strquery</a> <a href="../Filter/Dev/strreplace.html">strreplace</a> <a href="../Filter/Dev/strsplit.html">strsplit</a> <a href="../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

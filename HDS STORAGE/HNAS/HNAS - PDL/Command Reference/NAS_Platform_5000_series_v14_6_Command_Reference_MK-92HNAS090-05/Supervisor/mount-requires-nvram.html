@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mount-requires-nvram</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>mount-requires-nvram</h1>
+<p>Queries/sets the mount policy regarding NVRAM.</p>
+<h1>Syntax</h1>
+<pre>mount-requires-nvram [--on | --off]
+</pre>
+
+<h1>Description</h1>
+<p>Manages the cluster's mount policy. By default, a server will fail to mount a file system for which a record can not be found in NVRAM. Changes made using the command are persistent across reboots.</p>
+<p>The "mount policy" affects whether a mount succeeds, rather than whether a mount is automatically attempted. The latter is the "automount" policy, which is managed with the automount command.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--on</strong></dt>
+<dd><p>The file system's NVRAM record must exist for the mount to be allowed to proceed.</p></dd>
+<dt><strong>--off</strong></dt>
+<dd><p>The mount is allowed to proceed even if the file system's NVRAM record is missing.</p></dd>
+</dl>
+<p>With no arguments, the command displays the mount policy.</p>
+<h1>Examples</h1>
+<p>Display the current mount policy:  mount-requires-nvram  Mount will fail if the file system's NVRAM record can not be found.</p>
+<p>Change the current mount policy:  mount-requires-nvram --off  Mount may succeed if the file system's NVRAM record can not be found.</p>
+<pre>mount-requires-nvram --on
+ Mount will fail if the file system's NVRAM record can not be found.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/automount.html">automount</a> <a href="../Supervisor/mount.html">mount</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

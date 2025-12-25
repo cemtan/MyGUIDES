@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-refresh</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>scsi-refresh</h1>
+<p>Force a refresh of SCSI state</p>
+<h1>Syntax</h1>
+<pre>scsi-refresh [-a, --all] [-d, --disks] [-f, --force] [-t, --tapes][-l, --local]
+Alias:       ref
+</pre>
+
+<h1>Description</h1>
+<p>Forces a refresh of server SCSI state. With no parameters, refreshes disk devices only.</p>
+<p>This command requests the server to re-validate its SCSI device inventory and refresh its internal state.</p>
+<p>Requesting the server to re-validate the status of tape devices will cause the server to send SCSI commands to the tape library which may interfere with a tape backup if one is running at the time. For this reason, by default, tape devices that are in use are not refreshed. Use the --force parameter to override this. By default, scsi-refresh will run on all nodes of the cluster.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Refresh all devices.</p></dd>
+<dt><strong>-d, --disks</strong></dt>
+<dd><p>Refresh disk devices (default).</p></dd>
+<dt><strong>-t, --tapes</strong></dt>
+<dd><p>Refresh tape devices but not tape devices that are in use.</p></dd>
+<dt><strong>-f, --force</strong></dt>
+<dd><p>Refresh all tape devices, including those that are in use.</p></dd>
+<dd><p>Note: This option has no effect unless either the -t or -a option is specified and there are tape drives on the system.</p></dd>
+<dt><strong>-l, --local</strong></dt>
+<dd><p>Specify the local flag to run on the cluster node only.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>scsi-refresh
+</pre>
+<p></p>
+<p>Refresh state of all disk devices across all cluster node.</p>
+<pre>scsi-refresh -a
+</pre>
+<p></p>
+<p>Refresh state of all SCSI devices across all cluster node.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

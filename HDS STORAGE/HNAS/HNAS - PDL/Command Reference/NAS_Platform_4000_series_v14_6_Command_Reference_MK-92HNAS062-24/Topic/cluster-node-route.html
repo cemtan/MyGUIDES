@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-node-route</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cluster-node-route</h1>
+
+<h1>Description</h1>
+<p>In the standard routing mode, the static routing configuration is cluster-wide. This implies that all traffic from all cluster nodes destined for a specific off-subnet address may be channelled via the same gateway. With cluster-node-routing enabled, static routes can configured separately and differently, for each cluster node. This allows off-subnet cluster traffic to be spread over multiple gateways.</p>
+<p>It is not possible to use both cluster-node and standard routes simultaneously. The routing table will contain routes of only either type at any given time. It is, however, possible to configure cluster-node-routes when operating in standard routing mode, and vice-versa. Switching between modes reloads the routing configuration. This will cause the routing, ARP and NDP caches to be flushed.</p>
+<p>Dynamic routes created in response to ICMP Router Discovery or RIP messages are typically seen by all heads in a cluster. Such dynamic routes may well act so as to undo the effects of cluster-node-routes, and therefore it is advisable to disable RIP and IRDP.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-node-route-disable.html">cluster-node-route-disable</a> <a href="../Supervisor/cluster-node-route-enable.html">cluster-node-route-enable</a> <a href="../Supervisor/cluster-node-route-gateway-add.html">cluster-node-route-gateway-add</a> <a href="../Supervisor/cluster-node-route-gateway-delete.html">cluster-node-route-gateway-delete</a> <a href="../Supervisor/cluster-node-route-host-add.html">cluster-node-route-host-add</a> <a href="../Supervisor/cluster-node-route-host-delete.html">cluster-node-route-host-delete</a> <a href="../User/cluster-node-route-list.html">cluster-node-route-list</a> <a href="../Supervisor/cluster-node-route-net-add.html">cluster-node-route-net-add</a> <a href="../Supervisor/cluster-node-route-net-delete.html">cluster-node-route-net-delete</a> <a href="../Topic/routing.html">routing</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

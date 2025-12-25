@@ -1,0 +1,181 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>set</h1>
+<p>Sets a variable (or lists them)</p>
+<h1>Syntax</h1>
+<pre>set [[-d | -h | -b | -s | -r] &lt;variable name&gt; [&lt;value&gt;]] | -x | +x
+</pre>
+
+<h1>Description</h1>
+<p>The set command configures various advanced server parameters and should only be used under guidance from your support provider.</p>
+<p>Each option configured with "set" is referred to as a "variable". These "set" variables each have a name, a type and a value of that type. Variable names are arbitrary strings, whereas the values can be booleans, integers (formatted in decimal or hexadecimal), strings or raw memory. The value given to some variable names is used by the code to configure particular features. Other variables may be freely "set" but have no special effect. One consequence is that there is no error reporting if the wrong variable name is used.</p>
+<p>"set" variables are specific to a board type, but apply to all instances of that board type, cluster-wide. They are robustly persistent, even across board-swaps and major upgrades. They are not, however, transferred by a server-farm migration (which transfer EVS settings), nor copied by the Clone Server Settings feature. "set" variables may take immediate effect or require a reboot, depending on the using code.</p>
+<p>The values of configured "set" variables are not listed in showall.txt but, nonetheless, can easily be divined from server diagnostics. To do this, decompress registry5.tgz and use a text viewer to inspect registry5.db0 or registry5.db1 (only one of which will be present in any given registry5.tgz). The registry is a collection of key-value pairs. The key for "set" variables is \S\var\&lt;board type&gt;\&lt;variable name&gt;, where "board type" is "tcp" (nim), "smb" (fsm), "wdp" (sim) or, on single-board platforms, "mmb". Values are encoded in a human-readable format, except for values of type "raw", where the registry encodes non-printable characters. This encoding is grokked by the regdump and regundump scripts.</p>
+<p>The list of variable names with special effects varies from release to release. That list is not currently available through any supervisor-level command. "set" variables are not currently documented. Setting variables to extreme values may provoke extreme behavior.</p>
+<p>An alternative configuration mechanism is managed with the telcset command and its siblings. Generally, these two configuration mechanisms are used for entirely separate purposes. As if to add to the confusion, in a few cases, tuning variables are mirrored into telcs for access early during boot. The documentation for the poolstats command details one class of configuration option which behaves that way. In such cases, the "set" variable is always the master control.</p>
+<p>255 bytes is the maximum length of a variable's name. The maximum length of a string value is, somewhat implausibly, 254 bytes (though the architectural restriction is considerably higher, being in the low numbers of KiB).</p>
+<dl>
+<dt><strong>-d</strong></dt>
+<dd><p>Force value to be interpreted as decimal</p></dd>
+<dt><strong>-h</strong></dt>
+<dd><p>Force value to be interpreted as hexadecimal</p></dd>
+<dt><strong>-b</strong></dt>
+<dd><p>Force value to be interpreted as a boolean</p></dd>
+<dt><strong>-s</strong></dt>
+<dd><p>Force value to be interpreted as a string</p></dd>
+<dt><strong>-r</strong></dt>
+<dd><p>Force value to be interpreted as raw</p></dd>
+<dt><strong>&lt;variable name&gt;</strong></dt>
+<dd><p>The name of the variable being set.  If the variable name is unspecified a list of current variables are shown.</p></dd>
+<dt><strong>&lt;value&gt;</strong></dt>
+<dd><p>The value to set the variable to.  An attempt to automatically derive the variable type is made based on this value, but can be overridden by the various switches.  If value is unspecified then the current value (if any) of the specified variable is shown.</p></dd>
+<dt><strong>-x</strong></dt>
+<dd><p>Enable shell execution tracing, as with bash.</p></dd>
+<dt><strong>+x</strong></dt>
+<dd><p>Disable shell execution tracing, as with bash.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>List all variables currently customized on this cluster:</p>
+<pre>server:$ set
+LN tcp       versioncurrent = '7.0.2048.09\20adhoc'
+LN tcp      versionprevious = '7.0.2048.09\20adhoc'
+G  smb auto-heap-pool-size-StackPool-102403 = '0x74b' (1867 dec)
+G  smb       bossock-fibers = '0x2ee' (750 dec)
+G  smb cifs-administrators-only-log-access = '0x0' (0 dec)
+G  smb      posixshortnames = '0x1' (1 dec)
+G  smb           shortnames = '0x1' (1 dec)
+G  smb smb2_log_normal_closes = '0x1' (1 dec)
+G  tcp               TzSpec = 'A'
+G  tcp auto-heap-pool-size-LongTermDeque = '0x4b2a' (19242 dec)
+G  tcp auto-heap-pool-size-PolledTimerImplementation = '0x1915' (6421 dec)
+G  tcp cluster-node-route-mode = '0x0' (0 dec)
+G  tcp                  dst = '0x1' (1 dec)
+G  tcp            gmtoffset = '0xffff9d90' (4294942096 dec)
+G  tcp           omniaccess = '0x1' (1 dec)
+G  tcp          ssmtpserver = '192.168.41.8'
+G  tcp              use_dst = '0x1' (1 dec)
+G  tcp          zone_offset = '0xffff8f80' (4294938496 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Fc::FcLog, Sib::Fc::FcLog::Log_Record_t, 102400&gt;::Record_t&lt;Sib::Fc::FcLog::Log_Record_t&gt;, 102400u&gt;::BufferAllocation = '0x8' (8 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Fc::FcLoopMapLog, Sib::Fc::FcLoopMapLog::Log_Record_t, 10240&gt;::Record_t&lt;Sib::Fc::FcLoopMapLog::Log_Record_t&gt;, 10240u&gt;::BufferAllocation = '0x4' (4 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Fcp::FcpLog, Sib::Fcp::FcpLog::LogRecord_t, 102400&gt;::Record_t&lt;Sib::Fcp::FcpLog::LogRecord_t&gt;, 102400u&gt;::BufferAllocation = '0x1' (1 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Fpga::MessageLog, Sib::Fpga::MessageLog::Log_Record_t, 4096&gt;::Record_t&lt;Sib::Fpga::MessageLog::Log_Record_t&gt;, 4096u&gt;::BufferAllocation = '0x1' (1 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Scsi::FpgaChkCondLog, Sib::Scsi::FpgaChkCondLog::LogRecord_t, 40960&gt;::Record_t&lt;Sib::Scsi::FpgaChkCondLog::LogRecord_t&gt;, 40960u&gt;::BufferAllocation = '0x1' (1 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Scsi::LuStateChangeLog, Sib::Scsi::LuStateChangeLog::LogRecord_t, 4096&gt;::Record_t&lt;Sib::Scsi::LuStateChangeLog::LogRecord_t&gt;, 4096u&gt;::BufferAllocation = '0x16' (22 dec)
+G  wdp auto-heap-pool-size-RingBuffer&lt;Sib::Common::Log&lt;Sib::Scsi::ScsiLog, Sib::Scsi::ScsiLog::LogRecord_t, 19456&gt;::Record_t&lt;Sib::Scsi::ScsiLog::LogRecord_t&gt;, 19456u&gt;::BufferAllocation = '0x1f' (31 dec)
+G  wdp           linkspeed0 = '0x1' (1 dec)
+G  wdp           linkspeed1 = '0x1' (1 dec)
+G  wdp           linkspeed2 = '0x1' (1 dec)
+G  wdp           linkspeed3 = '0x1' (1 dec)
+G  wdp            linktype0 = '0x0' (0 dec)
+G  wdp            linktype1 = '0x0' (0 dec)
+G  wdp            linktype2 = '0x0' (0 dec)
+G  wdp            linktype3 = '0x0' (0 dec)
+G  wdp            weeklybcc = '0x0' (0 dec)
+server:$
+</pre>
+<p></p>
+<p>The first column usually contains "G" for "global", indicating a variable that applies to all nodes in a cluster. "L", for "local", means that, contrary to the description above, the variable's name is special-cased to be node-specific. No mechanism is provided for adding new local-node variables at run-time. The current list of local-node variables is provided here solely to persuade the reader that the variable they care about is global. Most of the variables listed here should never be altered via the "set" command, but instead are configured by other commands or programmatically maintained:</p>
+
+<p>clusteripaddr, clustername, clusteruuid, ipaddr, ipgateway, ipmask, ipport, mode, name, qdipaddr, qdname, qduuid, serv_ipaddr, serv_ipmask, serv_ipport, serv_name, thermalshutdown, upgrade, upnodeid, versioncurrent, versionprevious</p>
+
+<p>The second and immediately adjacent column usually contains a space but, when it contains "N", indicates that the variable is not only node-specific but specific to this node. That is to say that the absence of "N" means that the line refers to a variable that's local to a different node in the cluster. The third column contains the board name, encoded as "tcp", "smb" or "wdp" for multi-board platforms or "mmb" for single-board ones. These initial columns are absent when the "set" command is used with a variable's name. When used like that, only variables on the local board are visible.</p>
+<p>After the initial columns, we see a number of spaces designed to right-justify the variable's name, if it's short enough. After the string " = " we then find the value, presented as a single-quoting string. Numeric values are presented in hex with a decode in "dec" for "decimal". No escaping is performed for embedded quotes:</p>
+<pre>server:$ set "'quoted'" "'quoted'"
+server:$ set | grep quoted
+G  tcp             'quoted' = ''quoted''
+server:$
+</pre>
+<p></p>
+<p>Nor are double quotes specially treated:</p>
+<pre>server:$ set '"' '"'
+server:$ set
+...
+G  tcp                    " = '"'
+...
+server:$
+</pre>
+<p></p>
+<p>Embedded spaces are quirkily rendered as \20.</p>
+<pre>server:$ set "traditional greeting" "hello world"
+server:$ set "traditional greeting"
+       traditional greeting = 'hello\20world'
+server:$
+</pre>
+<p></p>
+<p>Unprintable characters with a character code of less than 16 are rendered with a forward slash:</p>
+<pre>server:$ set "traditional greeting" $'hello\nworld'
+server:$ set
+...
+G  tcp traditional greeting = 'hello/aworld'
+...
+server:$
+</pre>
+<p></p>
+<p>The escaping characters themselves, forward slash and backslash, are both backslash quoted when they appear in the value:</p>
+<pre>server:$ set "vee shape \/" "vee shape \/"
+server:$ set
+...
+G  tcp         vee shape \/ = 'vee\20shape\20\\\/'
+...
+server:$
+</pre>
+<p></p>
+<p>Embedded NUL characters are treated as an argument terminator (by the CLI in general - this isn't specific to the "set" command):</p>
+<pre>server:$ set $'embedded\x00null' $'embedded\x00null'
+server:$ set | grep embedded
+G  tcp             embedded = 'embedded'
+server:$
+</pre>
+<p></p>
+<p>Force the "from" email address.</p>
+<pre>set -s mailfrom user@example.com
+</pre>
+<p></p>
+<p>Making it more obvious which command's output you're looking at when running a script:</p>
+<pre>server:$ set -x
+server:$ heap-vptr "--density"; heap-density --no-vptr; heap-vptr --previous-free-block-size-ge 64K
++ heap-vptr --density
+&lt;snipped&gt;
+100 0xbd800000
++ heap-vptr --previous-free-block-size-ge 64K
+...
+2 HeapVPtrAllocationHeader&lt;char, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x12256770)
+3 HeapVPtrAllocationHeader&lt;std::_Rb_tree_node&lt;std::pair&lt;I2CLocation const, DramEEPROM&gt; &gt;, std::__malloc_alloc_template&lt;0&gt; &gt; (vptr 0x125BA800)
+There were 5 allocated blocks starting with a vptr of which only 5 were displayed.
+There were 1 allocated blocks starting without a vptr, making for a total of 6 allocated blocks.
+server:$ set +x
++ set +x
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/poolstats.html">poolstats</a> <a href="../Supervisor/set-for-evs.html">set-for-evs</a> <a href="../Dev/telcdoc.html">telcdoc</a> <a href="../Dev/telclist.html">telclist</a> <a href="../Dev/telcset.html">telcset</a> <a href="../Dev/telcunset.html">telcunset</a> <a href="../Supervisor/unset.html">unset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

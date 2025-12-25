@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>global-id-cache-dump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>global-id-cache-dump</h1>
+<p>Dump current state of Global Id change cache</p>
+<h1>Syntax</h1>
+<pre>global-id-cache-dump 
+</pre>
+
+<h1>Description</h1>
+<p>There are a number of objects on the NAS server which are tracked and cached based on a globally unique identifier.  There are a series of caches of these globally unique identifiers which are used to identify when individual objects have been changed in some way, i.e. added, updated, or deleted.  This command is used to print out all of these caches and hence the output can be quite large.</p>
+<h2>SCOPING</h2>
+<p>There is one cache per tracked class on each cluster node regardless on the natural scope of the objects identified by the cached globally unique identifiers.  For a description of all the tracked classes and their scoping see the global-id-map-dump manual page.</p>
+<h1>Examples</h1>
+<p>Display all caches:</p>
+<pre>global-id-cache-dump
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/global-id-cache-query-export.html">global-id-cache-query-export</a> <a href="../Supervisor/global-id-cache-query-group-mappings.html">global-id-cache-query-group-mappings</a> <a href="../Supervisor/global-id-cache-query-quota.html">global-id-cache-query-quota</a> <a href="../Supervisor/global-id-cache-query-share.html">global-id-cache-query-share</a> <a href="../Supervisor/global-id-cache-query-user-mappings.html">global-id-cache-query-user-mappings</a> <a href="../Supervisor/global-id-counter-dump.html">global-id-counter-dump</a> <a href="../Supervisor/global-id-map-dump.html">global-id-map-dump</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

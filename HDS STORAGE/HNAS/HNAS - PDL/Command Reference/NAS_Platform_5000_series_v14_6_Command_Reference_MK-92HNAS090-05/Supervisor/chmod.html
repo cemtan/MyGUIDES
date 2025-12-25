@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>chmod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>chmod</h1>
+<p>Change Unix file access permissions</p>
+<h1>Syntax</h1>
+<pre>chmod &lt;mode&gt; &lt;file1&gt; [&lt;file2&gt;...]
+</pre>
+
+<h1>Description</h1>
+<p>WARNING: This command bypasses all security checks and doesn't ask for confirmation, so make sure you know what you're doing.</p>
+<p>The chmod command is used to change the Unix access permissions (i.e. mode) for a set of files and/or directories. The format of a mode, as used by the chmod command, is one of:</p>
+<dl>
+<dt><strong>Symbolic</strong></dt>
+</dl>
+<pre>chmod &lt;[augo] { [+-=] [rwxst] } [,...]&gt; &lt;filename&gt;
+</pre>
+<p></p>
+<p>The letters 'augo' control which users' access permissions will be modified. Options are all users (a), the file's owner user (u), other users in the file's group (g) or all other users that are neither the file's owner nor in the file's group (o).</p>
+<p>The + and - operators add and remove the given permissions from the mode respectively. The = operator sets the mode to that given.</p>
+<p>The letters 'rwxst' identify which permissions shall be added, removed or set. Options are read (r), write (w), execute (x), set user ID/set group ID (s) or sticky bit (t).</p>
+<p>In order to set the extended mode bits (Set User ID/Set Group ID/Sticky) you must use the letter 's' for user and group but the letter 't' for other. User and group will ignore the 't' permission modifier and other will ignore the 's'.</p>
+<dl>
+<dt><strong>Numeric</strong></dt>
+</dl>
+<pre>chmod &lt;nnnn&gt; &lt;filename&gt;
+</pre>
+<p></p>
+<p>Where nnnn is an octal number specifying the mode.</p>
+<p>A numeric mode is from one to four octal digits (0 -7), derived by adding up the bits with values 4, 2, and 1. Omitted digits are assumed to be leading zeros. The first digit selects the set user ID (4) and set group ID (2) and restricted deletion or sticky (1) attributes. The second digit selects permissions for the user who owns the file: read (4), write (2), and execute (1); the third selects permissions other users in the file’s group, with the same values; and the fourth for other users not in the file’s group, with the same values.</p>
+<p>NOTE: Set Group ID is ignored and cannot be set or cleared using numeric format. In order to set/clear Set Group ID you must use symbolic format (g+s | g-s).</p>
+<h1>Examples</h1>
+<h2>Symbolic</h2>
+<p>To allow all users to read the file 'myfile':</p>
+<pre>chmod a+r myfile
+</pre>
+<p></p>
+<p>To deny write and execute rights to the files 'file1', 'file2' and 'file3' to everyone apart from their owners:</p>
+<pre>chmod go-wx file1 file2 file3
+</pre>
+<p></p>
+<p>To allow write and execute but deny read to group of file 'foo' and deny any access to others:</p>
+<pre>chmod g+wx-r,o= foo
+</pre>
+<p></p>
+<p>NOTE: There can be no spaces in the mode-specifier. If you use a comma to extend the mode-set you must follow it with the next specifier without a space.</p>
+<h2>Numeric</h2>
+<p>To allow user read, write and execute permissions, allow group read and execute and deny others access:</p>
+<pre>chmod 0750 foo
+</pre>
+<p></p>
+<p>Or you may omit the leading 0:</p>
+<pre>chmod 750 foo
+</pre>
+<p></p>
+<p>To set the same permissions but with Set User ID</p>
+<pre>chmod 4750 foo
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cd.html">cd</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

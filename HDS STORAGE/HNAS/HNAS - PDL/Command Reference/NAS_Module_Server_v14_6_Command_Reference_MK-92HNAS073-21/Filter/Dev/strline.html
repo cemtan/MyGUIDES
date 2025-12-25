@@ -1,0 +1,630 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strline</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>strline</h1>
+<p>Select lines and display them in full or in part</p>
+<h1>Syntax</h1>
+<pre>... | strline [select-line-options] [change-line-options] [general-options]
+	select-line-options ::=  [-g|--goto &lt;line number&gt;]
+	                         ( [search-options] [range&#39;s first line]  [range&#39;s last line] )
+	                         | --remove-lines &lt;line-list&gt; | --keep-lines &lt;line-list&gt;
+	                         | --longer-than &lt;length&gt; | --shorter-than &lt;length&gt;
+	                         | --if-strquery &lt;arguments&gt; | --unless-strquery &lt;arguments&gt; | --if &lt;arguments&gt;
+	                         | (--time-starts &lt;datetime1&gt; [--time-ends &lt;datetime2&gt;] )
+	search-options      ::=  [--search-tokens-at-column &lt;column number, default 0&gt;]
+	                         [--ncolumns-to-search-tokens &lt;num columns, default: end of line&gt;]
+	range&#39;s first line  ::=  [--ftoken[/r,w,i,v,o=&lt;occurrence #&gt;] &lt;token1&gt; [--isftoken-time]
+	                         [--fcount &lt;occurrence count&gt;]] [--fdelta &lt;line offset&gt;]
+	range&#39;s last line   ::=  ( [--ltoken[/r,w,i,v,o=&lt;occurrence #&gt;] &lt;token2&gt; [--isltoken-time]
+	                         [--lcount &lt;occurrence count&gt;]] [--ldelta &lt;line offset&gt;] )
+	                         |[--nlines &lt;number of lines in range&gt;]
+	change-line-options ::=  --trim
+	                         | --left-trim
+	                         | --right-trim
+	                         ( (--head-to[/r,w,i,v,k=&lt;m chars&gt;,o=&lt;occurrence #&gt;] &lt;string1&gt;
+	                            | --before[/r,w,i,v,j=&lt;m chars&gt;,o=&lt;occurrence #&gt;] &lt;string1&gt;
+	                            | --tail-from[/r,w,i,v,k=&lt;m chars&gt;,o=&lt;occurrence #&gt;] &lt;string1&gt;
+	                            | --after[/r,w,i,v,k=&lt;m chars&gt;,o=&lt;occurrence #&gt;] &lt;string1&gt;
+	                            ) [--occurrence &lt;number&gt;] )
+	                         | --create-columns &lt;column-list&gt;
+	                         | --delete-columns &lt;column-list&gt;
+	general-options     ::=  [--add-line-number] [--no-blank-input-lines] [--no-blank-output-lines]
+	                         [--escape-enabled | --escape-char &lt;char&gt;]
+	                         [--macro-enabled  | --macro-symbol &lt;char&gt;]
+	                         [--decode-output  | --encode-output  | --encode-exception &lt;character-list&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Command output may be piped through strline to select certain lines and display them in full or in part.</p>
+<h2>A. Introduction</h2>
+<p>The strline filter behaves like a grep filter with additional support for modifying the data before display.</p>
+<p>The output lines from the preceding command are numbered sequentially starting from 1. The positions of the characters in these lines are numbered sequentially from left to right, starting from 0. These positions are known as index or column numbers. If the index/column number is negative, it is counted backwards from the end of the line: -1 for the last character, -2 for the next-to-last character, etc.</p>
+<p>A line list or column list is a string that contains one or more numbers, or ranges of numbers, separated by commas. A range can be specified in the form of "start:end/stepsize" or "start-end/stepsize". For example, both "3:8/2" and "3-8/2" mean "3,5,7".  The command does not fail if the range over-specifies the number of values.</p>
+<p>In general, the filter works as follows:</p>
+<pre>  1. If macro and escape options are specified, the filter will resolve all macros and
+     escape sequences in the values of the following string options before reading the input:
+        --head-to, --before, --after, --tail-from,
+        --ftoken, --ltoken, --encode-exception
+  2. Read text from the standard input, one line at a time.
+  3. Select only those lines that satisfy the select-line-options and change-line-options.
+  4. Decide what to do with the selected lines:
+       a) encode them with hex escape sequences if --encode-output is specified, or
+       b) decode them to resolve all escapes and macros if --decode-output is specified, or
+       c) leave them unchanged.
+     Options (a) and (b) require specifying the escape character and the macro symbol.
+  5. Write the result to the standard output.
+</pre>
+<p></p>
+<h3>A1. Encoding data</h3>
+<p>The filter supports an option to encode the output data. Encoding the output data is to transform certain characters in the data that are special to the BALI shell so that the resulting data can be passed safely to a command line in the BALI shell. Hence, not all characters in the string need to be encoded.</p>
+<p>The default decoding rules are as follows:</p>
+<pre>   (1) All alphanumeric characters, newlines, and the macro symbol are not encoded.
+   (2) All other characters, including the escape character, are always encoded.
+</pre>
+<p></p>
+<p>If a character does not follow the default encoding rules, it has to be added to the encoding exception list. The filter accesses this list via the --encode-exception option.</p>
+<p>If a character needs to be encoded, the filter will convert it to a 4-byte sequence as described in Table 2 of the quote-text man page:</p>
+<pre>    &lt;escape-char&gt;x&lt;hex-digit&gt;&lt;hex-digit&gt;
+</pre>
+<p></p>
+<h3>A2. Decoding data</h3>
+<p>Decoding is the process of restoring an encoded string to its original value. The string may have been encoded with escape sequences or contain macro tokens. To decode successfully the filter needs to know what character is used as an escape character and what character is used as a macro symbol. If the escape character is not specified, the data is assumed to contain no escape sequences. Similarly, if the macro symbol is not specified, the data is assumed to contain no macro tokens. For more information, see the 'macro-support' and 'quoted-text' man pages.</p>
+<h3>A3. Flexible date time formats</h3>
+<p>The filter has four options that can accept a date time string value:</p>
+<pre>     --time-starts
+     --time-ends
+     --ftoken if --isftoken-time is specified
+     --ltoken if --isltoken-time is specified
+</pre>
+<p></p>
+<p>The date time string can be in the following formats:</p>
+<pre>  1. Strict formats:
+         (a) Local date time: yyyy-mm-dd hh:mm:ss[.&lt;fraction&gt;]
+         (b) Absolute date time with UTC offset: yyyy-mm-dd hh:mm:ss[.&lt;fraction&gt;]{+|-}hh:mm
+</pre>
+<p></p>
+<pre>  2. Flexible formats:
+         (a) &lt;date&gt; [{+|-}(&lt;time-offset&gt;)]
+         (b) &lt;date&gt; &lt;time&gt; [{+|-}(&lt;time-offset&gt;)]
+         (c) &lt;date&gt;T&lt;time&gt; [{+|-}(&lt;time-offset&gt;)]     # ISO date time format
+         (d) &lt;Weekday&gt; &lt;Month&gt; &lt;day&gt; hh:mm:ss [&lt;3-letter timezone&gt;] yyyy
+             where supported timezones are GMT, UTC, EST, CST, MST, PST, EDT, CDT, MDT, and PDT.
+                e.g. "Fri Sep  4 22:39:02 PDT 2015"
+</pre>
+<p></p>
+<pre>         (e) [+|-]&lt;time-offset&gt;
+             Specify the offset time relative to when strline was started.
+                e.g. "-3h40m10" means 3 hours 40 minutes 10 seconds ago (before strline was started)
+     where
+                &lt;date&gt; ::= yyyy-mm-dd
+                &lt;time&gt; ::= hh:mm[:ss[.&lt;fraction&gt;]][ ][{+|-}hh:mm]
+         &lt;time-offset&gt; ::= [&lt;num-days&gt;d][&lt;num-hours&gt;h][&lt;num-minutes&gt;m][&lt;num-seconds&gt;[.&lt;fraction&gt;][s]]
+</pre>
+<p></p>
+<pre>     If only the date part, yyyy-mm-dd, is specified, the time part is assumed to be "00:00:00".
+     Note the flexible formats allow unrecognized tokens to follow a valid date time in
+     formats (a) through (e). The filter simply stops parsing after the valid date time string.
+</pre>
+<p></p>
+<pre>  3. Environment variable:
+         (a) &lt;environment-variable-name&gt;
+             Specify the environment variable that stores the date time in strict or flexible formats.
+</pre>
+<p></p>
+<pre>         (b) &lt;macro-symbol&gt;&lt;environment-variable-name&gt;
+             Same as (a), but the --macro-symbol or --macro-enabled option must be specified.
+</pre>
+<p></p>
+<p>Examples of valid time offsets ('s' unit is optional):</p>
+<pre>     "3d", "-3d10h", "3d10h18", "-3d10h18m25", "10h18m25.421",
+     "-10h18m25s", "10h18m25.421s", "45.18"
+</pre>
+<p></p>
+<p>Examples of valid date times without offsets:</p>
+<pre>     "2016-04-06"
+     "2016-04-06 18:30", "2016-04-06T18:30",
+     "2016-04-06 18:30:55", "2016-04-06T18:30:55"
+     "2016-04-06 18:30:55.453", "2016-04-06T18:30:55.453",
+     "2016-04-06 18:30:55.453", "2016-04-06T18:30:55.453"
+     "2016-04-06 18:30:55.453-07:00", "2016-04-06T18:30:55.453-07:00"
+</pre>
+<p></p>
+<p>Time offsets can be added to the flexible date times above. For instance,</p>
+<pre>     "2016-04-06 +(10m3s)"
+     "2016-04-06T18:30:55.453-07:00 -(10m3.25s)"
+</pre>
+<p></p>
+<p>Note that a space is required before the plus or minus sign preceding the parenthesized time offset.</p>
+<p>Finally, unsupported tokens can appear after any valid date time string without causing the filter to fail:</p>
+<pre>     "2016-04-06 18:30:45.446-07:00 HNAS-3090 HDS NAS OS Console"
+     "2016-04-06 18:55:25-07:00  Daylight saving time is in effect"
+</pre>
+<p></p>
+<h2>B. Select Line Options</h2>
+<dl>
+<dt><strong>--goto, -g &lt;line number&gt;</strong></dt>
+<dd><p>Go to the specified line number. The standard input lines are numbered starting from 1 for the first line.</p></dd>
+</dl>
+<p>Then select the lines to process by specifying at most one of the following five options:</p>
+<dl>
+<dt><strong>Select a range of lines</strong></dt>
+<dd><p>See section C.</p></dd>
+<dt><strong>--remove-lines, -r &lt;list of line numbers&gt;</strong></dt>
+<dd><p>The list of output lines from the preceding command that strline will discard. For instance, -r 1,5:8,10 means strline will discard all lines 1, 5, 6, 7, 8, and 10.</p></dd>
+<dt><strong>--keep-lines, -k &lt;list of line numbers&gt;</strong></dt>
+<dd><p>The list of lines to be retained for strline to process.</p></dd>
+<dt><strong>--longer-than, -l &lt;length&gt;</strong></dt>
+<dd><p>The filter will process only those lines whose lengths are greater than &lt;length&gt;. All other lines will be discarded.</p></dd>
+<dt><strong>--shorter-than, -s &lt;length&gt;</strong></dt>
+<dd><p>The filter will process only those lines whose lengths are shorter than &lt;length&gt;. All other lines will be discarded.</p></dd>
+<dt><strong>--if-strquery &lt;arguments&gt;</strong></dt>
+<dd><p>If this option is specified, it must be the last option on the command line. All tokens that appear after --if-strquery to the end of the command line are treated as if they were specified to the 'strquery' command:</p></dd>
+</dl>
+<pre>            strquery --quiet --first-line %.___ &lt;arguments&gt;
+</pre>
+<p></p>
+
+<p>where %.__ represents a standard input line to the 'strline' filter. The 'strquery' command will be evaluated without producing any output as described in its man page. The command will return an integer result where a positive value is interpreted as true, 0 as false, and negative as error. If the result is true, the standard input line will be selected. Otherwise, it will be discarded.</p>
+<p>--unless-strquery &lt;arguments&gt;</p>
+<p>This option is similar to --if-strquery. If the 'strquery' command is evaluated to true for a standard input line, the input line will be discarded. Otherwise, it will be selected.</p>
+<p>--if &lt;arguments&gt;</p>
+<p>This option is similar to --if-strquery in that it must be the last option on the command line. All tokens that appear after --if to the end of the command line are concatenated together with a space inserted in between. The resulting string is treated as an expression specified to the 'calculate' command. Therefore, it can have options to the 'calculate' command embedded in the expression.</p>
+<p>The expression is evaluated in the current minishell environment. If the result is non-zero, the test is interpreted as true and the input line is selected. Otherwise, the input line is discarded.</p>
+<p>--time-starts, -S &lt;datetime1&gt;</p>
+<p>--time-ends, -N &lt;datetime2&gt;</p>
+<p>Select only lines that have the leading date time value between &lt;datetime1&gt; and &lt;datetime2&gt;, which are the flexible date times described in Section A3.</p>
+<p>These options can be used when the standard input lines start with a date time string such as those in the dblog. The date time string is converted to a time value in milliseconds since midnight of 1970-01-01. If this value falls between the specified flexible date time values &lt;datetime1&gt; and &lt;datetime2&gt;, the line will be selected. If the value is outside the range, or if the line does not start with any date time string, the line will be discarded.</p>
+<p>If &lt;datetime1&gt; is not specified, use the first date time of all input lines. If &lt;datetime2&gt; is not specified, use the last date time of all input lines.</p>
+
+<h2>C. Select Range of Lines</h2>
+<p>A range of lines is defined by the first line and the total number of lines, or the first line and and the last line.</p>
+<p>To introduce the terminology used in this section, consider an example. Suppse a text file has many lines containing "SECTION", "NEXT", and we want to display a range of lines based on these tokens. For convenience, a line containing such tokens is called a token line.</p>
+<p>Two use cases are frequently encountered.</p>
+<p>Use case #1: Range specified by first line and total count of lines</p>
+<pre>  - Go to 3 lines below the 5th "SECTION" line.
+  - Display 20 lines and stop.
+</pre>
+<p></p>
+<p>Thus, the first line of the range is described by the number of the token line occurrence, and the additional number of lines, or delta, to reach the start of the range.</p>
+<p>Use case #2: Range specified by first line and last line</p>
+<pre>  - Go to 3 lines below the 5th "SECTION" line.
+  - Display line by line, and start counting the number of "NEXT" lines encountered.
+  - Stop after displaying 10 lines below the 6th "NEXT" line.
+</pre>
+<p></p>
+<p>Thus, the last line of the range is described by the number of the token line occurrences, and the additional number of lines, or delta, to reach the end of the range.</p>
+<p>By default, the entire text line is searched for the token. But it is possible to ask strline to limit its search within a number of columns starting from a certain column number.</p>
+<dl>
+<dt><strong>--search-tokens-at-column &lt;column number M&gt;</strong></dt>
+<dd><p>Limit the search for tokens starting from column (or index) M. By default, tokens are searched from index 0 of the text line.</p></dd>
+<dt><strong>--ncolumns-to-search-tokens &lt;num columns N, default: end of line&gt;</strong></dt>
+<dd><p>Limit the search for tokens within from N columns starting from column M (see --search-tokens-at-column). By default, the search is carried out from column M to the end of the text line.</p></dd>
+<dd><p>Note that if both --search-tokens-at-column and --ncolumns-to-search-tokens are not specified, the search is performed over the entire text line.</p></dd>
+<dt><strong>--ftoken[/r,w,i,v,o=&lt;occurrence-number&gt;]  &lt;token1 to find first line&gt;</strong></dt>
+<dd><p>Specify the token for use to search for the first line of the range. If not specified, the first token line is assumed to be the first standard input line. Note that the search for 'token1' is performed within N columns starting from column M of each text line.</p></dd>
+<dd><p>By default, the specified token is a fixed string. It can be a regular expression if sub-option r is specified.</p></dd>
+<dd><p>The sub-options r, w, i, v, o are described in detail in the regex-options man page. It suffices to summarize them as follows:</p></dd>
+</dl>
+<pre>          * r : &lt;token1&gt; is a regular expression (default: fixed string)
+          * w : consider only word tokens
+          * i : ignoring case in matching
+          * v : inverted matching
+          * o=&lt;n&gt; : occurrence number of the match
+</pre>
+<p></p>
+
+<p>Sub-option o needs clarification by example. If '--ftoken/o=3 book' is specified, the first line of the range is the first input line to contain at least 3 occurrences of "book" in the line.</p>
+<p>Note that if --goto option is specified, the skipped lines are not checked to count the occurrences of the token1 line.</p>
+<p>--isftoken-time</p>
+<p>Specify that &lt;token1&gt; is a flexible date time string (see Section A3). In this case, &lt;token1&gt; will be converted to the number of milliseconds since midnight of 1970-01-01. The first line that has a date time value later than or equal to &lt;token1&gt; will be considered the first line of the range.</p>
+<p>--fcount &lt;occurrence count of token1 line, default 1&gt;</p>
+<p>Specify the occurrence number of the line containing &lt;token1&gt;. The first input line that contains &lt;token1&gt; is 1, the second input line that contains &lt;token1&gt; is 2, etc. Thus, '--fcount 5' means the first line of the range is the 5th input line that contains &lt;token1&gt;. Thus, the meaning of --fcount is different from the occurrence sub-option --ftoken/o.</p>
+<p>--fdelta &lt;line offset, default 0&gt;</p>
+<p>Specify the line offset from the token1 line to reach the first line of the range.</p>
+<p>Currently, fdelta supports offset greater than or equal to -1024. The offset of the token1 line is defined to be 0. The offset of any other line is positive/negative if the line is after/before the token1 line. If the offset is 1, the token1 line is excluded from the range.</p>
+<p>--nlines &lt;number of lines in range&gt;</p>
+<p>Specify the number of lines in the range, i.e., the total number of lines to select starting from the first line of the range. If this number exceeds the number of input lines available, the latter number will be used.</p>
+<p>--ltoken[/r,w,i,v,o=&lt;occurrence-number&gt;]  &lt;token2 to find last line&gt;</p>
+<p>Specify the token used to find the last line of the range. If not specified, the last token line is assumed to be the end of the standard input.</p>
+<p>Note that the search for 'token2' is performed within N columns starting from column M of each text line (see --search-tokens-at-column and --ncolumns-to-search-tokens).</p>
+<p>The sub-options r, w, i, v, o have the same meaning as described in the --ftoken option.</p>
+<p>--isltoken-time</p>
+<p>Specify that &lt;token2&gt; is a flexible date time string (see Section A3). In this case, &lt;token2&gt; will be converted to the number of milliseconds since midnight of 1970-01-01. The first line that has a date time value later than or equal to &lt;token2&gt; will be considered the last line of the range.</p>
+<p>--lcount &lt;occurrence count of token2 line, default 1&gt;</p>
+<p>Specify the occurrence number of the token2 line. Note that the occurrence of the token2 line is not counted until the first line of the range has been processed.</p>
+<p>--ldelta &lt;line offset, default 0&gt;</p>
+<p>Specify the line offset from the &lt;token2&gt; line to reach the last line of the range.</p>
+<p>Currently, fdelta supports offset greater than or equal to -1024. The offset of the token2 line is defined to be 0. The offset of any other line is positive/negative if the line is after/before the token2 line. If the offset is -1, the token2 line is excluded from the range. If a negative offset is going back more than the first line of the range, the range becomes empty.</p>
+<p>If this option is specified but --ltoken is not, the token2 line is assumed to be the last line of the standard input.</p>
+
+<p>To select a range of lines, the user must specify at least one of the five options listed above.</p>
+<p>Note that --nlines and --ltoken are mutually exclusive. If both are not specified, the last line of the range is assumed to be the last standard input line.</p>
+<h2>D. Change Line Options:</h2>
+<p>These options apply to the lines that are selected by the strline filter.</p>
+<p>Specify at most one of the following options:</p>
+<dl>
+<dt><strong>--trim, -T</strong></dt>
+<dd><p>Trim all white spaces at the start and end of the line.</p></dd>
+<dt><strong>--left-trim, -L</strong></dt>
+<dd><p>Trim all white spaces at the start of the line.</p></dd>
+<dt><strong>--right-trim, -R</strong></dt>
+<dd><p>Trim all white spaces at the end of the line.</p></dd>
+<dt><strong>--before|-B[/r,w,i,v,j=&lt;m chars&gt;,o=&lt;occurrence number&gt;] &lt;string1&gt;</strong></dt>
+<dd><p>Retain all characters from the start of the line to before the n-th occurrence of &lt;string1&gt;. The value of n can be specified by either the --occurrence option or the o sub-option; the default is 1. Discard all the remaining characters in the line. If the n-th occurrence is not found, strline will display nothing.</p></dd>
+<dd><p>All sub-options, except j, are similar to those associated with --ftoken option. The j suboption means stretching the start boundary of the match by m characters where m can be negative. For detailed information, see the regex-option man page.</p></dd>
+<dd><p>Note that the former name of this option is --head-upto|-h &lt;string1&gt;. It is still supported but will be phased out.</p></dd>
+<dt><strong>--head-to|-H[/r,w,i,v,k=&lt;m chars&gt;,o=&lt;occurrence number&gt;] &lt;string1&gt;</strong></dt>
+<dd><p>Retain all characters from the start of the line up to the n-th occurrence of &lt;string1&gt;, including &lt;string1&gt;. The value of n can be specified by either the --occurrence option or the o sub-option; the default is 1. Discard all the remaining characters in the line. If the n-th occurrence is not found, strline will not display anything.</p></dd>
+<dd><p>All sub-options, except k, are similar to those associated with --before option. The k suboption means stretching the end boundary of the match by m characters where m can be negative. For detailed information, see the regex-option man page.</p></dd>
+<dt><strong>--tail-from|-t[/r,w,i,v,k=&lt;m chars&gt;,o=&lt;occurrence number&gt;] &lt;string1&gt;</strong></dt>
+<dd><p>Retain all the characters starting from the n-th occurrence of &lt;string1&gt; to the end of the line. The value of n can be specified by either the --occurrence option or the o sub-option; the default is 1. All the characters before &lt;string1&gt; are discarded. If the n-th occurrence is not found, strline will not display anything.</p></dd>
+<dd><p>All sub-options, except k, are similar to those associated with --before option. The k suboption means stretching the end boundary of the match by m characters where m can be negative. For detailed information, see the regex-option man page.</p></dd>
+<dt><strong>--after|-A[/r,w,i,v,k=&lt;m chars&gt;,o=&lt;occurrence number&gt;] &lt;string1&gt;</strong></dt>
+<dd><p>Retain all the characters after the n-th occurrence of &lt;string1&gt; to the end of the line. The value of n can be specified by either the --occurrence option or the o sub-option; the default is 1. All the preceding characters, including &lt;string1&gt;, are discarded. If the n-th occurrence is not found, strline will display nothing.</p></dd>
+<dd><p>All sub-options are similar to those associated with --tail-from option.</p></dd>
+<dt><strong>--occurrence, -o &lt;number&gt;</strong></dt>
+<dd><p>This option can only be specified for --head-to, --before, --tail-from, --after. It specifies the occurrence number of the token to search in the line. All occurrences of a token are numbered 1, 2, etc if counted from left to right, or -1, -2, etc if from right to left. Occurrence zero is invalid. The default is 1.</p></dd>
+<dd><p>Note that the occurrence number can also be specified via sub-option o to --head-to, --before, --tail-from, and --after.</p></dd>
+<dt><strong>--create-columns, -c &lt;column-list&gt;</strong></dt>
+<dd><p>Create and display a new string based on characters in the output lines of the preceding command. The chosen characters are specified as an ordered list. For example, -c 3-5,1,9 means creating a new string that consists of characters from columns 3, 4, 5, 1, and 9 in that order. If a character specified in the column-list does not exist, it will be ignored. Note that the convention on the column numbers is explained in the DESCRIPTION section.</p></dd>
+<dt><strong>--delete-columns, -d &lt;column-list&gt;</strong></dt>
+<dd><p>Delete all characters at the specified columns in the column list. If a character specified in the column-list does not exist, it will be ignored. The remaining characters form a new string that strline will display.</p></dd>
+</dl>
+<h2>E. General Options</h2>
+<dl>
+<dt><strong>--add-line-number, -a</strong></dt>
+<dd><p>Prefix each output line with an input line number followed by a colon (similar to 'grep -n'). The input line numbers start from 1.</p></dd>
+<dt><strong>--no-blank-input-lines, -n</strong></dt>
+<dd><p>Discard all input lines that are blank, i.e., skip all blank lines from the output of the preceding command. Blank lines are those that contain only white space characters.</p></dd>
+<dd><p>Note that the former name of this option is --no-blank-lines|-n. It is still supported but will be phased out.</p></dd>
+<dt><strong>--no-blank-output-lines, -j</strong></dt>
+<dd><p>Do not display all blank output lines from the filter.</p></dd>
+<dt><strong>--decode-output, -D</strong></dt>
+<dd><p>Resolve all macros and escape sequences in the output before display.</p></dd>
+<dt><strong>--encode-output, -x</strong></dt>
+<dd><p>Encode the data with hex escape sequences before display. By default, all characters are encoded except the following:</p></dd>
+</dl>
+<pre>        * all alphanumeric characters,
+        * the newline,
+        * the macro symbol, and
+        * all characters in the default exception list: " .,:+-_="
+</pre>
+<p></p>
+<dl>
+<dt><strong>--encode-exception, -X &lt;exception list&gt;</strong></dt>
+<dd><p>Specify the encode exception list to override the default exception list. In other words, if this option is specified, all characters are encoded except the following:</p></dd>
+</dl>
+<pre>        * all alphanumeric characters,
+        * the newline,
+        * the macro symbol, and
+        * all characters in the exception list specified by -X
+</pre>
+<p></p>
+
+<p>Both -x and -X turn on the encoding option. Thus, there is no need to specify both -x and -X simultaneously.</p>
+<p>If either -x or -X is specified, the filter encodes the standard input data before display.</p>
+<p>Both the encoding and decoding processes need to know what the escape character and the macro symbol are. How to specify these characters are described in the subsequent options.</p>
+<p>--escape-enabled, -e</p>
+<p>Default the escape character to the backslash</p>
+<p>--escape-char, -E &lt;char&gt;</p>
+<p>Set the escape character to the specified character, which can be specified in hex format (e.g., -E 0x40). Note if both -e and -E are specified, -e will be ignored. If both are not specified, or if -E 0x00 or -E 0 (-E followed by zero) is specified, the escape character mechanism is not supported.</p>
+<p>--macro-enabled, -m</p>
+<p>Default the macro symbol to the percent sign (%).</p>
+<p>--macro-symbol, -M &lt;char&gt;</p>
+<p>Set the macro symbol to the specified character, which can be specified in hex format (e.g., -M 0x25). Note if both -m and -M are specified, -m will be ignored. If both are not specified, or if -M 0x00 or -M 0 (-M followed by zero) is specified, macros are not supported.</p>
+<p>--bali-env, -b</p>
+<p>This option is meaningful only when macros are supported, i.e., when either -m or -M is specified.</p>
+<p>If macros are supported and -b is specified, the filter will use variables in the BALI shell environment to resolve all macro tokens in the standard input. The 'env-set' and 'env' commands can be used to set and list variables in the BALI shell environment, respectively.</p>
+<p>If macros are supported and -b is not specified, the filter will resolve macros by searching first in the global minishell environment, then in the BALI shell environment. The 'mse-set' and 'mse-env' commands can be used to set and list variables in the global minishell environment, respectively.</p>
+
+<h1>Examples</h1>
+<p>1. Prefix all output lines with their line numbers (similar to standard Linux command grep -n)</p>
+<pre>   $ cat file1 | strline -a
+</pre>
+<p></p>
+<p>2. Discard all blank lines from file1</p>
+<pre>   $ cat file1 | strline -n
+</pre>
+<p></p>
+<p>3. Display only lines 10 through 20, 35, 50, and 70-80</p>
+<pre>   $ cat file1 | strline -k 10-20,35,50,70-80
+</pre>
+<p></p>
+<p>4. Get the characters from columns 2, 3 and 5:</p>
+<pre>   $ echo abcdef | strline -c 2-3,5
+   cdf
+</pre>
+<p></p>
+<p>5. Delete characters 3 and 4:</p>
+<pre>   $ echo abcdef | strline -d 3-4
+   abcf
+</pre>
+<p></p>
+<p>6. Encode data by specifying an escape character (option -e or -E) and the encoding option (-x or -X):</p>
+<pre>   $ sscat file.txt
+   Symbols on QWERTY keyboard:
+   1) First row: ` 1234567890 -=
+   2) First row shifted: ~!@#$%^&amp;*()_+
+   3) Other symbols:  {}| []\ :" ;' &lt;&gt;? ,./
+</pre>
+<p></p>
+<pre>   $ sscat file.txt | strline -E @ -x
+   Symbols on QWERTY keyboard:
+   1@x29 First row: @x60 1234567890 -=
+   2@x29 First row shifted: @x7e@x21@x40@x23@x24@x25@x5e@x26@x2a@x28@x29_+
+   3@x29 Other symbols:  @x7b@x7d@x7c @x5b@x5d@x5c :@x22 @x3b@x27 @x3c@x3e@x3f ,.@x2f
+</pre>
+<p></p>
+<p>Encode data, excluding the right parenthesis:</p>
+<pre>   $ sscat file.txt | strline -E @ -X ") "
+   Symbols on QWERTY keyboard@x3a
+   1) First row@x3a @x60 1234567890 @x2d@x3d
+   2) First row shifted@x3a @x7e@x21@x40@x23@x24@x25@x5e@x26@x2a@x28)@x5f@x2b
+   3) Other symbols@x3a  @x7b@x7d@x7c @x5b@x5d@x5c @x3a@x22 @x3b@x27 @x3c@x3e@x3f @x2c@x2e@x2f
+</pre>
+<p></p>
+<p>7. Decode data</p>
+<p>a) Decode data with strline -D:</p>
+<pre>   $ sscat file.txt | strline -E @ -x | sswrdata --append encodedText.txt
+   $ sscat encodedText.txt | strline -E @  -D
+   Symbols on QWERTY keyboard:
+   1) First row: ` 1234567890 -=
+   2) First row shifted: ~!@#$%^&amp;*()_+
+   3) Other symbols:  {}| []\ :" ;' &lt;&gt;? ,./
+</pre>
+<p></p>
+<p>b) Decode data with echo -E</p>
+<pre>   $ sscat encodedText.txt | mse echo -E 0x40 %.line
+</pre>
+<p></p>
+<p>c) Decode data using mse directive RCC/me:</p>
+<pre>   - RCC: Resolve in child context
+   - RCC/m =&gt; letter m: Resolve macros in the first pass
+   - RCC/me =&gt; letter e: Resolve escape sequences in the second pass
+</pre>
+<p></p>
+<pre>   $ sscat encodedText.txt | mse RCC/me echo %.line
+</pre>
+<p></p>
+<p>8. Display all lines that contain "Monday" and "Friday":</p>
+<pre>   $ sscat file2.txt | strline --if-strquery --has Monday --has Friday --cal .X+.Y==2
+   $ sscat file2.txt | strline --if has(.line,mstr(Monday)) .and. has(.line,mstr(Friday))
+   $ sscat file2.txt | strline --if has(.line,Monday) .and. has(.line,Friday)
+</pre>
+<p></p>
+<p>Note that we have dropped mstr() from the last command line because the second arguments to has() are single tokens, each of which is not a variable. If Monday is a variable, mstr() must be used to make Monday a literal string.</p>
+<p>9. Display all lines unless they begin with "Monday" and contain "Friday":</p>
+<pre>   $ sscat file2.txt | strline --unless-strquery --start-with Monday --has Friday --cal .X+.Y==2
+</pre>
+<p></p>
+<p>10. Extract the leading part of a line</p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --before xyz
+   abc
+   $ echo abcxyz123xyz456xyz789 | strline --before xyz -o 2  # before the second occurrence of "xyz"
+   abcxyz123
+   $ echo abcxyz123xyz456xyz789 | strline --before xyz -o -1 # before the last occurrence of "xyz"
+   abcxyz123xyz456
+</pre>
+<p></p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --before/r [0-9]+        # regular expression
+   abc
+   $ echo abcxyz123xyz456xyz789 | strline --before/r [0-9]+ -0 2   # regular expression, before the second match
+   abcxyz123xyz
+   $ echo abcxyz123xyz456xyz789 | strline --before/r [0-9]+ -0 -1  # regular expression, before the last match
+   abcxyz123xyz456xyz
+</pre>
+<p></p>
+<p>To include the delimiter in the result, specify --head-to:</p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --head-to xyz
+   abcxyz
+   $ echo abcxyz123xyz456xyz789 | strline --head-to xyz -o 2
+   abcxyz123xyz
+</pre>
+<p></p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --head-to/r [0-9]+
+   abcxyz123
+   $ echo abcxyz123xyz456xyz789 | strline --head-to/r [0-9]+ -o 2
+   abcxyz123xyz456
+</pre>
+<p></p>
+<p>11. Extract the trailing part of a line</p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --after xyz
+   123xyz456xyz789
+   $ echo abcxyz123xyz456xyz789 | strline --after xyz -o 2   # after the second occurrence of "xyz"
+   456xyz789
+   $ echo abcxyz123xyz456xyz789 | strline --after xyz -o -1  # after the last occurrence of "xyz"
+   789
+</pre>
+<p></p>
+<p>To include the token in the result, specify --tail-from:</p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --tail-from xyz
+   xyz123xyz456xyz789
+</pre>
+<p></p>
+<p>12. Extract the middle part of a line</p>
+<pre>   To extract "xyz456" in the example above:
+</pre>
+<p></p>
+<pre>   $ echo abcxyz123xyz456xyz789 | strline --tail xyz -o 2 | strline --before xyz -o -1
+</pre>
+<p></p>
+<p>13. To display 10 lines</p>
+<p>a. Starting from line 50:</p>
+<pre>   $ cat file | strline --goto 50 --nlines 10
+   $ cat file | strline --fdelta 49 --nlines 10    # because the first line is number 1
+</pre>
+<p></p>
+<p>b. Starting from the line containing "SECTION" token:</p>
+<pre>   $ cat file | strline --ftoken SECTION --nlines 10
+</pre>
+<p></p>
+<p>c. Starting from 3 lines below the line containing "SECTION" token:</p>
+<pre>   $ cat file | strline --ftoken SECTION --fdelta 3 --nlines 10
+</pre>
+<p></p>
+<p>d. Starting from 4 lines above the 5th occurrence of the "SECTION" line:</p>
+<pre>   $ cat file | strline --ftoken SECTION --fcount 5 --fdelta -4 --nlines 10
+</pre>
+<p></p>
+<p>14. To display lines between two known lines</p>
+<p>a. From the line containing "SECTION" to line containing "NEXT", inclusive:</p>
+<pre>   $ cat file | strline --ftoken SECTION --ltoken NEXT
+</pre>
+<p></p>
+<p>b. From the line containing "SECTION" to line containing "NEXT", exclusive:</p>
+<pre>   $ cat file | strline --ftoken SECTION --ltoken NEXT --ldelta -1
+</pre>
+<p></p>
+<p>c. From the line containing "SECTION" to 5 lines below line containing "NEXT":</p>
+<pre>   $ cat file | strline --ftoken SECTION --ltoken NEXT --ldelta 5
+</pre>
+<p></p>
+<p>d. From 3 lines below the line containing "SECTION" to 10 lines below line containing "NEXT":</p>
+<pre>   $ cat file | strline --ftoken SECTION --fdelta 3 --ltoken NEXT --ldelta 10
+</pre>
+<p></p>
+<p>e. From the first line to 10 lines below line containing "NEXT":</p>
+<pre>   $ cat file | strline --ltoken NEXT --ldelta 10
+</pre>
+<p></p>
+<p>Note that the first token line is defaulted to line number 1.</p>
+<p>13. Show context lines above and below the first token line</p>
+<p>Show 10 lines above and 5 lines below for a total of 16 lines:</p>
+<pre>   $ cat file | strline --ftoken NEXT --fdelta -10  --nlines 16
+</pre>
+<p></p>
+<p>14. Show all lines except the last 10 lines</p>
+<pre>   $ cat file | strline --ldelta -10
+</pre>
+<p></p>
+<h2>Processing dblog</h2>
+<p>15. Display the last 10 lines of dblog</p>
+<p>Use 'tail' because strline does not support this feature:</p>
+<pre>   $ dblog | tail -10
+</pre>
+<p></p>
+<p>16. Display all commands in the current dblog of server named "mercury10":</p>
+<pre>   $ dblog | strline --after 'mercury10:$ ' --no-blank-output-lines
+</pre>
+<p></p>
+<p>17. To display all lines in dblog between two timestamp strings:</p>
+<pre>   $ dblog | strline --ftoken '2016-04-06 19:13:27.174-07:00' --ltoken '2016-04-06 19:25:29.769-07:00'
+</pre>
+<p></p>
+<p>Note that the two timestamps are treated as literal text and exact text matching is required.</p>
+<p>18. Same as (16) but force strline to interpret the specified tokens as flexible date times:</p>
+<pre>   $ dblog | strline --ftoken 2016-04-06T19:13:27.174-07:00 --isftoken-time --ltoken 2016-04-06T19:25:29.769-07:00 --isltoken-time
+</pre>
+<p></p>
+<p>Note that exact text matching is not required. The filter works as follows:</p>
+<pre>    - Convert the --ftoken and --ltoken flexible date times to numerical time values,
+      say first_time and last_time, respectively.
+    - Read input lines, line by line.
+    - If a line starts with a date time string, convert it to a numerical time value.
+    - If the time value is smaller than first_time, do not display the line.
+    - The first line that has the time equal to or exceeding first_time, display it.
+    - Continue to display all subsequent lines, even those without a leading timestamp,
+      until the line that has the time exceeding last_time.
+</pre>
+<p></p>
+<p>Thus, this method does not require the specification of the two exact timestamp strings in dblog. For instance, one can simply specify (noting the difference in the seconds):</p>
+<pre>   $ dblog | strline --ftoken 2016-04-06T19:13:00-07:00 --isftoken-time --ltoken 2016-04-06T19:25:00-07:00 --isltoken-time
+</pre>
+<p></p>
+<p>If the local timezone is UTC-07:00, one can further simplify:</p>
+<pre>   $ dblog | strline --ftoken 2016-04-06T19:13 --isftoken-time --ltoken 2016-04-06T19:25 --isltoken-time
+</pre>
+<p></p>
+<p>Then all lines listed between these two time values will be displayed whether or not they contain a timestamp.</p>
+<p>Because --ftoken and --ltoken accept flexible date times, one can also specify a time offset, or a date time plus a time offset:</p>
+<pre>   $ dblog | strline --ftoken '2016-04-06T19:13 -(10h30m)' --isftoken-time --ltoken -2h15m --isltoken-time
+</pre>
+<p></p>
+<p>19. Use time range specified by --time-starts and --time-ends</p>
+<p>Note that this method excludes all lines that do not have a timestamp.</p>
+<p>To show all lines with timestamps that are after a specified date time:</p>
+<pre>   $ dblog | strline --time-starts '2016-03-29'                     # after 2016-03-29 00:00:00 (local time)
+   $ dblog | strline --time-starts '2016-03-29 02:20:52.868-07:00'  # quotes needed because of space after "29"
+   $ dblog | strline --time-starts 2016-03-29T02:20:52.868-07:00    # no quotes if using ISO date time format
+</pre>
+<p></p>
+<p>20. Same as (19) but 3 days 10 hours 20 minutes before/after the specified date time</p>
+<pre>   $ dblog | strline --time-starts '2016-03-29 02:20:52.868-07:00 - (3d10h20m)'  # before specified time
+   $ dblog | strline --time-starts '2016-03-29 02:20:52.868-07:00 + (3d10h20m)'  # after specified time
+   $ dblog | strline --time-starts -3d10h20m'  # 3 days 10 hours 20 minutes ago
+</pre>
+<p></p>
+<p>Note that if a valid date time value is followed by unsupported tokens, strline simply ignores them:</p>
+<pre>   $ dblog | strline --time-starts '2016-03-29 02:20:52.868-07:00 abc def'          # "abc" is unsupported
+   $ dblog | strline --time-starts '2016-03-29 02:20:52.868-07:00 - (3d10h20m) xyz' # "xyz" in unsupported
+</pre>
+<p></p>
+<p>21. Same as (19) but use a date time environment variable</p>
+<p>This method is useful when displaying the logging of specific tests in dblog. To this end, the date time is saved in an environment variable just before starting the tests. For instance,</p>
+<pre>   $ setdate | mse-set -t when      # -t causes mse-env to echo the input
+   2016-03-29 02:39:10-07:00        Daylight saving time is in effect
+   . . . . . . . . . . . . . . . . . . .
+   . . . . . (run some tests). . . . . .
+   . . . . . . . . . . . . . . . . . . .
+   $ dblog | strline --time-starts when         # using variable without a macro symbol
+</pre>
+<p></p>
+<p>Note that the trailing tokens starting with "Daylight" are not recognized, and hence, causes the filter to stop parsing.</p>
+<p>The following commands are equivalent, which search the variable first in the global minishell environment, then the BALI shell environment.</p>
+<pre>   $ dblog | strline --time-starts when
+   $ dblog | strline -m --time-starts %when     # enable macro with default macro symbol (%)
+   $ dblog | strline -M ^ --time-starts ^when   # define macro symbol to be '^'
+</pre>
+<p></p>
+<p>22. Same as (21) but use the BALI shell environment:</p>
+<pre>   $ setdate | env-set -t when
+   2016-04-07 02:31:24-07:00        Daylight saving time is in effect
+   . . . . . . . . . . . . . . . . . . .
+   . . . . . (run some tests). . . . . .
+   . . . . . . . . . . . . . . . . . . .
+   $ dblog | strline --time-starts when
+</pre>
+<p></p>
+<pre>   # Verify BALI variable
+   $ env --name when
+   when=2016-04-07 02:31:24-07:00        Daylight saving time is in effect
+</pre>
+<p></p>
+<p>23. To show all lines in dblog that have timestamps since 2 minutes 10 seconds ago:</p>
+<pre>   $ dblog | strline --time-starts -2m10
+</pre>
+<p></p>
+<p>24. To show all lines in dblog that have timestamps between 10 seconds ago and 3 seconds ago:</p>
+<pre>   $ dblog | strline --time-starts -10 --time-ends -3
+</pre>
+<p></p>
+<p>25. Notes on dblog and audit-mgmt-log commands</p>
+<p>The dblog's 'sincemarker' option and the audit-mgmt-log's --since option provide essentially the same functionality as strline's '--time-starts' option.  However, the 'sincemarker' option does not work well with multiple threads because the marker is global and can be changed by any thread. This issue is avoided in strline because its options are specified with specific times.</p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/audit-mgmt-log.html">audit-mgmt-log</a> <a href="../../Dev/backquote.html">backquote</a> <a href="../../Supervisor/dblog.html">dblog</a> <a href="../../Dev/env.html">env</a> <a href="../../Filter/Dev/env-set.html">env-set</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Topic/macro-support.html">macro-support</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Topic/mse-env.html">mse-env</a> <a href="../../Filter/Dev/mse-set.html">mse-set</a> <a href="../../Topic/quoted-text.html">quoted-text</a> <a href="../../Filter/Dev/strjoin.html">strjoin</a> <a href="../../Filter/Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strreplace.html">strreplace</a> <a href="../../Filter/Dev/strsplit.html">strsplit</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>search-directory</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>search-directory</h1>
+<p>Searches the contents of a specified Directory for a particular target and dumps it to the console</p>
+<h1>Syntax</h1>
+<pre>search-directory [-f &lt;file-system&gt;] [-c &lt;cookie&gt; | -o &lt;object-number&gt; | -n &lt;name&gt;] [-i &lt;entries&gt;] [-x | -w] [--snapshot-name &lt;snapshot name&gt; | --snapshot-checkpoint-number &lt;snapshot checkpoint number&gt; | --snapshot-index &lt;snapshot index&gt;] -d &lt;directory-object-number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>search-directory is used to print out portions of a directory's contents in a variety of different formats. It may be used to search for a particular entry by three criteria: object-number, cookie or entry-name. It may be run with the file system mounted or unmounted. search-directory is typically used as a diagnostic tool when problems with a directory have been encountered, and is not intended as a fancy ls.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-f &lt;file-system&gt;</strong></dt>
+<dd><p>The file system on which the directory resides</p></dd>
+<dt><strong>-c &lt;cookie&gt;</strong></dt>
+<dd><p>Cookie of entry for which to search</p></dd>
+<dt><strong>-o &lt;object-number&gt;</strong></dt>
+<dd><p>Object Number of entry for which to search</p></dd>
+<dt><strong>-n &lt;name&gt;</strong></dt>
+<dd><p>Name of entry for which to search</p></dd>
+<dt><strong>-i &lt;number-of-entries&gt;</strong></dt>
+<dd><p>Number of entries to display</p></dd>
+<dt><strong>-x</strong></dt>
+<dd><p>Display in hexadecimal format</p></dd>
+<dt><strong>-w</strong></dt>
+<dd><p>Display in WDIR format</p></dd>
+<dt><strong>--snapshot-name &lt;snapshot-name&gt;</strong></dt>
+<dd><p>Search in the given snapshot, rather than the live file system. Can only be used on WFS-2 file systems.</p></dd>
+<dt><strong>--snapshot-checkpoint-number &lt;checkpoint-number&gt;</strong></dt>
+<dd><p>Search in the given snapshot, rather than the live file system. Can only be used on WFS-2 file systems.</p></dd>
+<dt><strong>--snapshot-index &lt;snapshot-index&gt;</strong></dt>
+<dd><p>Search in the given snapshot, rather than the live file system. Can only be used on WFS-2 file systems.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To print the entry with cookie 23 for directory 0xa000 on file system 0:</p>
+<pre>search-directory -f 0 -c 23 -d 0xa000
+</pre>
+<p></p>
+<p>To print the entry whose name is 'humptydumpty' for directory 0xe8000 on file system 1:</p>
+<pre>search-directory -f 1 -n humptydumpty -d 0xe8000
+</pre>
+<p></p>
+<p>To obtain a hexadecimal dump of the contents of the directory at 0xf0000 on file system testfs:</p>
+<pre>search-directory -x -f testfs -d 0xf0000
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

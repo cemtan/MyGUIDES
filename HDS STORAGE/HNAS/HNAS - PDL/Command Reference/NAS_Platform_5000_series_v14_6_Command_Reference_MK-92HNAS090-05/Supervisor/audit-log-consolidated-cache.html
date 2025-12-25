@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>audit-log-consolidated-cache</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>audit-log-consolidated-cache</h1>
+<p>Configure or display the file system audit log consolidated cache</p>
+<h1>Syntax</h1>
+<pre>audit-log-consolidated-cache &lt;operation&gt;
+where &lt;operation&gt; is one of:
+    add [-s &lt;cache-file-size&gt;] [-n &lt;cache-file-name&gt;] &lt;fs-label&gt;
+    delete
+    enable
+    disable
+    list
+</pre>
+
+<h1>Description</h1>
+<p>The audit-log-consolidated-cache command allows the user to display, add, delete, enable and disable the file system audit log consolidated cache file required for reporting file system audit events to Windows clients. Only one consolidated cache file can be configured per EVS. Audit events from all file systems assigned to that EVS are collected into this single consolidated cache file.</p>
+<p>Filesystem auditing can sustain event logging at up to 8000 auditable operations per second. This figure refers to an average auditing load. In order to smooth out periods of high load it is recommended to increase the size of the EventLogEventCache (see below). This will buffer events and allow any tool used to read the cache time to retrieve the audited events. At a higher average rate of events this buffer may wrap before all events can be read.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>List the details of the audit log consolidated cache file for the current EVS.</p></dd>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable use of the configured audit log consolidated cache file for the current EVS. The audit log consolidated cache file is retained but marked as inactive, and can be reenabled with the enable command.</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable use of the configured audit log consolidated cache file for the current EVS.</p></dd>
+<dt><strong>add [-s &lt;cache-file-size&gt;] [-n &lt;cache-file-name&gt;] &lt;file-system&gt;</strong></dt>
+<dd><p>An audit log consolidated cache file is configured and enabled for the current EVS and stored on the file system specified.</p></dd>
+<dt><strong>delete</strong></dt>
+<dd><p>The configured audit log consolidated cache file for the current EVS is disabled and removed from the system.</p></dd>
+</dl>
+<p>The options for add are:</p>
+<dl>
+<dt><strong>[ -s &lt;cache-file-size&gt; ]</strong></dt>
+<dd><p>Set the maximum size to which the audit log consolidated cache file will be allowed to grow. Default 10MB.</p></dd>
+<dd><p>By default the size will be assumed to be bytes; a suffix of KB, MB or GB can be used to specify the size in other units.</p></dd>
+<dd><p>If it is necessary for more file system audit events to be accessible from a Windows client then a larger size than 10MB can be specified. However, as events from the audit log consolidated cache file are cached in memory while they are being accessed from a Windows client, the size is limited to a maximum of 50MB. Increasing the size of the audit log consolidated cache file may exceed the size of the EventLogEventCache::Event heap pool, causing the Windows event viewer to be returned no events, in which case it will be necessary to increase the size of the EventLogEventCache::Event pool. The console warning event will indicate how many FS events there were, for example</p></dd>
+<dd><p>Warning: Number of FS events (103013) exceeds pool size limit of 50000 for EventLogEventCache::Event: this event happened once since reset on the FSA2</p></dd>
+<dd><p>which, if the audit-log-consolidated-cache file has reached its maximum size, may indicate that 120000 is a suitable value to set, for example</p></dd>
+<dd><p>fsm set auto-heap-pool-size-EventLogEventCache::Event 120000</p></dd>
+<dd><p>followed by a reboot.</p></dd>
+<dd><p>Also, if the audit log consolidated cache file is too large it may cause the Windows event viewer to experience time outs. The time out values are dependent on the Windows client.</p></dd>
+<dd><p>Care must be taken when configuring the file system log file sizes. For example, it may not help to configure file system log files larger than the audit log consolidated cache file as Windows is only able to view as many events as can be stored in the audit log consolidated cache file. On the other hand, configuring file system log files that are much smaller than the audit log consolidated cache file may lead to the file system log files being overwritten before Windows has been able to view the overwritten events. The "set" variable audit-cifs-rpc-max-num-records-to-cache limits the number of events that can be copied from the file system log files to the audit log consolidated cache file each time the Windows client views the FS log. If this limit is exceeded a warning event is issued and the audit log consolidated cache file wraps. Because the audit log consolidated cache file wraps when this limit is exceeded there is no benefit to setting this variable to a value which is larger than the number of events that the audit log consolidated cache file can contain, as it will simply increase the overhead involved in viewing events from Windows. If the size of the audit log consolidated cache file is configured to a size larger than its default, then this value can be increased, but this may cause the AuditEvent memory pool size to be exceeded, or it may lead to Windows event viewer time outs. The time out values are dependent on the Windows client.</p></dd>
+<dt><strong>[ -n &lt;cache-file-name&gt; ]</strong></dt>
+<dd><p>Set the name of the audit log consolidated cache file relative to the filesystem root. The file must have a suffix of ".evt". Default ".audit/audit_cache.evt"</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Configure an audit log consolidated cache file for the current EVS.</p>
+<pre>audit-log-consolidated-cache add Span0FS
+</pre>
+<p></p>
+<p>Disable the configured audit log consolidated cache file for the current EVS.</p>
+<pre>audit-log-consolidated-cache disable
+</pre>
+<p></p>
+<p>Display the configured audit log consolidated cache file for the current EVS.</p>
+<pre>audit-log-consolidated-cache list
+</pre>
+<p></p>
+<pre>Filesystem             : Span0FS
+State                  : Disabled
+Audit filename         : .audit/audit_cache.evt
+Maximum Log Size       : 10 MB (10485760 B)
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/audit-log-clear.html">audit-log-clear</a> <a href="../Supervisor/audit-log-consolidated-cache-reset.html">audit-log-consolidated-cache-reset</a> <a href="../Supervisor/audit-log-consolidated-cache-show.html">audit-log-consolidated-cache-show</a> <a href="../Supervisor/audit-log-consolidated-cache-stats.html">audit-log-consolidated-cache-stats</a> <a href="../Supervisor/audit-log-perf.html">audit-log-perf</a> <a href="../Supervisor/audit-log-save.html">audit-log-save</a> <a href="../Supervisor/audit-log-show.html">audit-log-show</a> <a href="../Supervisor/audit-log-stats.html">audit-log-stats</a> <a href="../Supervisor/filesystem-audit.html">filesystem-audit</a> <a href="../Supervisor/filesystem-audit-reset.html">filesystem-audit-reset</a> <a href="../Supervisor/poolstats.html">poolstats</a> <a href="../Supervisor/set.html">set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

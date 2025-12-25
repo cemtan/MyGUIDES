@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>console-context</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>console-context</h1>
+<p>Change the context for the current console</p>
+<h1>Syntax</h1>
+<pre>console-context [([--evs &lt;id|name&gt; [--local-cnode]|--admin [--local-cnode]|--cnode &lt;id&gt;|--cnode-hosting-evs &lt;evs-id|evs-name&gt;] [--board &lt;board&gt;] [&lt;command&gt; [args]])|--reset]
+</pre>
+
+<h1>Description</h1>
+<p>Within the server there are a number of entities that can be managed.  They are</p>
+<dl>
+<dt><strong>The Admin Service</strong></dt>
+<dd><p>There is one instance of this entity per cluster.  It provides certain management functions (e.g. an ssh server, cron scheduler) and manages cluster wide resources (e.g. storage pools).</p></dd>
+<dt><strong>An EVS</strong></dt>
+<dd><p>This is the main file serving entity.  Each EVS appears to clients on the network as a separate server.  Certain configuration (e.g. shares, exports) are specific to an EVS.</p></dd>
+<dt><strong>A cluster node</strong></dt>
+<dd><p>This is the physical head unit.  Some information (e.g. statistics, logs) is specific to a cluster node.</p></dd>
+</dl>
+<p>In order to manage these entities using a command line interface, a context must be set using the console-context command.  When you initiate a new console using ssh or ssc, this will initially connect to the cluster node hosting the Admin Service.</p>
+<p>For general day to day management of the server, the --evs and --admin options should be adequate:</p>
+<dl>
+<dt><strong>--evs &lt;id|name&gt;</strong></dt>
+<dd><p>Runs commands in the context of an EVS.  When a command pertains directly to an EVS, it will be run on the cluster node currently hosting that EVS.  Other commands will run locally.</p></dd>
+<dt><strong>--admin</strong></dt>
+<dd><p>Runs commands in the context of the Admin Service.  When a command pertains directly to the Admin Service it will be run on the cluster node currently hosting the Admin Service.  Other commands will run locally.</p></dd>
+</dl>
+<p>However, some advanced options are provided:</p>
+<dl>
+<dt><strong>--cnode &lt;id&gt;</strong></dt>
+<dd><p>Runs all commands on the specified cluster node.  This does not change the EVS or Admin Service context.</p></dd>
+<dt><strong>--cnode-hosting-evs &lt;evs-id|evs-name&gt;</strong></dt>
+<dd><p>Changes the EVS context to the specified EVS, determines the cluster node that hosts the specified EVS, then runs all commands on that cluster node. Note that a value of zero for evs-id means the cluster node that hosts the Admin Service. Once set, this cluster node will not change even if the specified EVS is later migrated to a different cluster node.</p></dd>
+<dd><p>Thus, this option has the same effect as if the console-context command were run twice. The first run uses --evs option with the specified evs-id. The second run uses --cnode opton with the id of the cluster node that hosts the specified EVS context.</p></dd>
+<dt><strong>--local-cnode</strong></dt>
+<dd><p>For --evs and --admin, runs <strong>all</strong> commands on the current cluster node but in the context of the EVS or Admin Service.  The default is to forward commands pertaining directly to an EVS or the Admin Service to the cluster node currently hosting that service.</p></dd>
+<dt><strong>--board</strong></dt>
+<dd><p>Runs on the specified board, unless the requested command does not exist on that board.  For use by your support provider.</p></dd>
+<dt><strong>--reset</strong></dt>
+<dd><p>Must be specified on its own.  Resets the context to the default, that is the Admin Service in context, no forwarding to a specific cluster node or board.</p></dd>
+</dl>
+<p>After the options you may specify a command and arguments.  This will run just this command in the context set up, then return to the previous context.</p>
+<p>ssrun -c can be useful when trying to run complicated commands.</p>
+<p>Without any arguments, the command displays the current context information.</p>
+<h1>Examples</h1>
+<p>1. To show the current context:</p>
+<pre>   server:$ console-context
+   Current evs: 1
+   Current cnode 1
+   Commands will be run on cnode 1
+</pre>
+<p></p>
+<p>2. To start managing EVS "sales":</p>
+<pre>   server:$ console-context --evs sales
+</pre>
+<p></p>
+<p>3. To start managing the Admin Service, and run all commands on the cluster node hosting the Admin Service:</p>
+<pre>   server:$ console-context --admin
+</pre>
+<p></p>
+<p>4. For examples 5 and 6 below, the following cluster configuration is assumed:</p>
+<pre>   hm800sw2-hnas2:$ evs list
+</pre>
+<p></p>
+<pre>   Node     EVS ID        Type              Label     Enabled     Status                           IP Address     Port
+   ----     ------     -------     --------------     -------     ------     --------------------------------     ----
+      1                Cluster     hm800sw2-hnas1         Yes     Online                    172.20.179.30         CTL1
+                                                                             fdca:f995:220a:8410:1:0:2:80         CTL1
+                                                                                           192.168.233.30         eth0
+                                                                                              10.251.48.1         eth1
+                                                                                           2002::afb:3001         eth1
+      1          1     Service         hm800sw2-s         Yes     Online                    172.20.179.31          ag1
+      2                Cluster     hm800sw2-hnas2         Yes     Online                    172.20.179.40         CTL2
+                                                                             fdca:f995:220a:8410:1:0:2:81         CTL2
+                                                                                           192.168.233.31         eth0
+                                                                                              10.251.52.1         eth1
+                                                                                           2002::afb:3401         eth1
+      2          0       Admin         hm800sw2-a         Yes     Online                      10.251.48.3         eth1
+                                                                                              10.251.48.2         eth1
+                                                                                           2002::afb:3002         eth1
+      2          2     Service        hm800sw2-s1         Yes     Online                    172.20.179.32          ag1
+</pre>
+<p></p>
+<pre>   hm800sw2-hnas2:$ console-context
+   Admin Service in context
+   Current cnode 2
+</pre>
+<p></p>
+<p>5. To change to EVS 1 context and run all commands on the cluster node that currently hosts the EVS 1 context, run either</p>
+<pre>   hm800sw2-hnas2:$ console-context --cnode-hosting-evs 1
+   Current evs: 1
+   Current cnode 2
+   Commands will be run on cnode 1
+   hm800sw2-hnas1[hm800sw2-s]:$
+</pre>
+<p></p>
+<p>or the following two commands:</p>
+<pre>   hm800sw2-hnas2:$ console-context --evs 1    # or evs-select 1
+   Current evs: 1
+   Current cnode 2
+</pre>
+<p></p>
+<pre>   hm800sw2-hnas2[hm800sw2-s]:$ console-context --cnode 1
+   Current evs: 1
+   Current cnode 2
+   Commands will be run on cnode 1
+   hm800sw2-hnas1[hm800sw2-s]:$
+</pre>
+<p></p>
+<p>Now, migrate EVS 1 to cluster node 2:</p>
+<pre>   hm800sw2-hnas1[hm800sw2-s]:$ evs migrate -e 1 -n 2 --confirm
+   hm800sw2-hnas1[hm800sw2-s]:$ evs list | grep Service
+      2          1     Service         hm800sw2-s         Yes     Online                    172.20.179.31          ag1
+      2          2     Service        hm800sw2-s1         Yes     Online                    172.20.179.32          ag1
+</pre>
+<p></p>
+<p>This migration does not affect the console-context that was set previously:</p>
+<pre>   hm800sw2-hnas1[hm800sw2-s]:$ console-context
+   Current evs: 1
+   Current cnode 2
+   Commands will be run on cnode 1
+</pre>
+<p></p>
+<p>6. To change EVS to Admin Service and run all commands on the cluster node that currently hosts the Admin Service context, run either</p>
+<pre>   hm800sw2-hnas1[hm800sw2-s]:$ console-context --cnode-hosting-evs 0
+   Admin Service in context
+   Current cnode 2
+   Commands will be run on cnode 2
+   hm800sw2-hnas2:$
+</pre>
+<p></p>
+<p>or the following two commands:</p>
+<pre>   hm800sw2-hnas1[hm800sw2-s]:$ evs-select 0
+   hm800sw2-hnas1:$ console-context --cnode 2
+   Admin Service in context
+   Current cnode 2
+   Commands will be run on cnode 2
+   hm800sw2-hnas2:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Console</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../User/evs-select.html">evs-select</a> <a href="../Supervisor/for-each-board.html">for-each-board</a> <a href="../Supervisor/for-each-cnode.html">for-each-cnode</a> <a href="../Supervisor/for-each-evs.html">for-each-evs</a> <a href="../User/ssrun.html">ssrun</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

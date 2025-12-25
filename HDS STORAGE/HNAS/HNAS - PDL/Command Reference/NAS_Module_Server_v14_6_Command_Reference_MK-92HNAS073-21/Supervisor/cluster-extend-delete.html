@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-extend-delete</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cluster-extend-delete</h1>
+<p>Delete the extended cluster</p>
+<h1>Syntax</h1>
+<pre>cluster-extend-delete [-c | --confirm]
+</pre>
+
+<h1>Description</h1>
+<p>Removes the configuration changes made by the 'cluster-extend-join' command. It removes the cluster pair consisting of nodes 3 and 4 from the extended unified cluster. If one of the nodes is already removed, it removes the remaining node in the cluster pair. This command needs quorum in Configured state and all the nodes to be in ONLINE state. It cannot be used to remove the last two nodes of the extended cluster. The last two nodes should be removed using the 'cluster-extend-unconfigure' command.</p>
+<p>The 'cluster-extend-delete' operation is a two stage process in which nodes removed from the extended cluster reboot to a single node configuration first. In the second stage, they reboot again to form a two-node unified cluster. This command should not be used for a single node re-installation scenario. To remove one of the cluster nodes from an extended configuration, the 'cluster-node-delete' command should be used.</p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>-c, --confirm</strong></dt>
+<dd><p>Do not prompt for confirmation.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-extend-join.html">cluster-extend-join</a> <a href="../User/cluster-extend-status.html">cluster-extend-status</a> <a href="../Supervisor/cluster-extend-unconfigure.html">cluster-extend-unconfigure</a> <a href="../Supervisor/cluster-node-delete.html">cluster-node-delete</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

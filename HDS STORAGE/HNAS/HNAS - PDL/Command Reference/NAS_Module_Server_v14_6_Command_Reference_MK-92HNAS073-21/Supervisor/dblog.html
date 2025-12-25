@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dblog</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>dblog</h1>
+<p>View console output</p>
+<h1>Syntax</h1>
+<pre>dblog [last|current] [sincemarker] [all]
+</pre>
+
+<h1>Description</h1>
+<p>The server maintains a set of logs containing extra information over and above the event log.  These are accessible using this command.</p>
+<p>Options</p>
+<dl>
+<dt><strong>last</strong></dt>
+<dd><p>Shows the logs from the previous server boot.</p></dd>
+<dt><strong>current</strong></dt>
+<dd><p>Shows the logs from this server boot (default).</p></dd>
+<dt><strong>sincemarker</strong></dt>
+<dd><p>Shows the logs since the last time this command was run with this option.  This only works on the current logs, and will not function correctly if multiple processes are running this.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To print the log from the last session:</p>
+<pre>dblog last
+</pre>
+<p></p>
+<p>To print the current log since the last time this command was run:</p>
+<pre>dblog sincemarker
+</pre>
+<p></p>
+<p>To set up a cron job to mail daily additions to this log:</p>
+<pre>crontab add -m user@example.com @daily "dblog sincemarker"
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

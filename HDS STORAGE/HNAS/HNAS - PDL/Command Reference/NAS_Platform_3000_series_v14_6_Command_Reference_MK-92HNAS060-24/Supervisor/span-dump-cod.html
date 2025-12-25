@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-dump-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-dump-cod</h1>
+<p>Dump one or all currently loaded spans in the same format as &#39;sd-dump-cod&#39;</p>
+<h1>Syntax</h1>
+<pre>span-dump-cod [--terse | --compact-gzip-base64] [&lt;span-instance-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Produces a formatted dump of the Cod for a loaded span, in the same format as 'sd-dump-cod'.  Whereas 'sd-dump-cod' reads Cod from disk (and ignores spans loaded into memory), 'span-dump-cod' dumps Cod equivalent to a currently loaded span and its filesystems (and ignores the Cod stored on disk).  It can therefore be run even if storage is unhealthy.</p>
+<p>If you don't specify a span instance name, 'span-dump-cod' dumps Cod for all currently loaded spans.</p>
+<p>The --terse (or -t) switch dumps the chunk table more concisely.  It has no effect on other types of Cod.</p>
+<p>The --compact-gzip-base64 (or -c) switch takes a compact integrated Cod backup (as if you had run 'span-back-up-cod --compact', compresses it, Base64-encodes it and displays it on the console.  Its purpose is to provide a Cod backup in a concise textual form.  The server cannot use this Cod backup, but an off-line program called the Cod Converter can convert it into an integrated Cod backup (for use with 'span-restore-cod'), a single-SD Cod backup (for use with 'sd-restore-cod') or a textual listing (as produced by 'span-dump-cod' without the -c switch).</p>
+<p>'span-dump-cod' runs in showall.txt, providing a textual Cod backup as part of every set of diagnostics.</p>
+<h1>Examples</h1>
+<pre>span-dump-cod Accounts
+</pre>
+<p></p>
+<pre>span-dump-cod
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../Supervisor/sd-restore-cod.html">sd-restore-cod</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

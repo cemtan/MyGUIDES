@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-assign-to-cluster</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-assign-to-cluster</h1>
+<p>Make a span manageable and its filesystem mountable by a new cluster</p>
+<h1>Syntax</h1>
+<pre>span-assign-to-cluster  [--danger-ignore-sd-sites] [--danger-ignore-stale-cod] &lt;span-base-or-instance-name&gt; [&lt;cluster-uuid&gt; &lt;cluster-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Every span is normally assigned to a cluster (or a stand-alone server).  Other clusters on which the storage is visible and licensed will load the span (so that, for example, it is visible in the 'span-list' command) but will refuse to mount, check or fix the file systems on the span or to reconfigure the span or its filesystems in any way.</p>
+<p>When a span is not assigned to the local cluster, 'span-list' and 'filesystem-list' will display warnings.  'filesystem-list -a' will show a status of 'Clust'.  File systems won't show up in 'df'.  'trouble' will advise you either to assign the span to the local cluster or to unlicense (deny access to) its system drives.</p>
+<p>The way a cluster protects its spans from interference by other clusters is to include its own cluster UUID (its unique ID) in the Cod.  (Cod is explained in the 'cod' man page.)  When a cluster loads a span at boot time, it compares its own cluster UUID with the UUIDs stored in Cod; if they differ, it loads the span but treats it as belonging to another cluster.</p>
+<p>The 'span-assign-to-cluster' command removes a span's existing cluster assignments (if any) and assigns the span to the specified cluster or to the local cluster:</p>
+<ul>
+<li>To assign the span to another cluster, specify both the cluster's UUID and its name; to find them, run 'cluster-show' on the other cluster.</li>
+<li>To assign the span to the local cluster, specify the span instance name but omit both the UUID and the name.  The server will now be able to mount the file systems on the span, and will do so at once if they were previously mounted.  Never do this if the span is assigned to a cluster that still exists, because the cluster from which you take the span will not be notified.</li>
+</ul>
+<p>Assigning one of a set of storage-based snapshots to a cluster will have the side effect of assigning all its sibling snapshots to the same cluster.</p>
+<h2>SAFE USE OF THIS COMMAND</h2>
+<p>If you wish to move a span from Cluster A to Cluster B, and if Cluster A still exists, never run 'span-assign-to-cluster' on Cluster B.  The two clusters cannot communicate with one another, and Cluster A will be unaware of the change.  Both clusters will behave as if they owned the cluster, and data will be at risk.  Instead, follow one of the safe procedures below.</p>
+<h2>MOVING A SPAN SAFELY BETWEEN CLUSTERS</h2>
+<p>This procedure safely moves a span from Cluster A to Cluster B, both of which exist at the start of the procedure:</p>
+<ul>
+<li>Unmount all the span's file systems on cluster A.  To identify them, use 'span-list -f &lt;span-instance-name&gt;' or 'filesystem-list -a &lt;span-instance-name&gt;'.</li>
+<li>On Cluster B, run 'cluster-show' in order to determine Cluster B's UUID and name.</li>
+<li>Run 'span-assign-to-cluster' on cluster A, specifying the span instance name and cluster B's UUID and name.</li>
+<li>Unlicense the system drives (SDs) on cluster A, by typing 'span-deny-access &lt;span-instance-name&gt;'.  That command's other effects are described in its man page.</li>
+<li>If necessary, license the system drives on cluster B.  Use 'sd-list -A' to find unlicensed system drives; use 'sd-allow-access &lt;device-ID&gt;' to license any one of them; wait a few seconds for the span to load; optionally, use 'span-list' to check that the span has loaded; then type 'span-allow-access &lt;span-instance-name&gt;' to license the rest of the system drives.</li>
+<li>Alternatively, if the SDs were already licensed on cluster B, run 'sd-rescan-cod &lt;span-instance-name&gt;' on cluster B to make it detect the new cluster UUID stored in the Cod.</li>
+<li>On cluster B, run 'filesystem-list -a &lt;span-instance-name&gt;' to see whether the filesystems have been bound to an EVS.  If not, use the 'evsfs' command to add an EVS binding for each filesystem in turn.</li>
+<li>If desired, mount file systems on Cluster B.</li>
+<li>If the move to Cluster B is permanent, use Lun security and/or switch-zoning to prevent Cluster A from accessing the SDs in the span, and then, on Cluster A, run 'sd-forget all:unhealthy:not-in-a-span' to remove the system drives from Cluster A's registry.</li>
+</ul>
+<h2>MOVING A SPAN TO A CLUSTER THAT DOES NOT YET EXIST</h2>
+<p>This procedure is used when a system is upgraded from block storage to unified.</p>
+<ul>
+<li>On Cluster A, unmount all the file systems on the span.</li>
+<li>On Cluster A, use 'cluster-show' to find Cluster A's name.</li>
+<li>On Cluster A, use 'span-remove-cluster-uuid &lt;span-instance-name&gt; &lt;cluster-name&gt;' to remove the span's assignment to Cluster A.</li>
+<li>On Cluster A, use 'span-deny-access &lt;span-instance-name&gt;' to unload the span and unlicense its SDs.</li>
+<li>Take the necessary measures to prevent Cluster A from accessing the system drives.</li>
+<li>On Cluster A, remove the now-inaccessible SDs from the registry by running 'sd-forget all:unhealthy:not-in-a-span'.</li>
+</ul>
+<p>After new Cluster B has been constructed, finish the procedure as follows:</p>
+<ul>
+<li>Expose the SDs to Cluster B by assigning host Luns to them using your storage configurator.</li>
+<li>Use 'sd-allow-access' to license one of the SDs in the span.  (You can identify them using 'sd-list --raid-names --not-in-a-span'.)  Wait a few seconds, use 'span-list' to confirm that the span has loaded, and use 'span-allow-access &lt;span-instance-name&gt;' to license the rest of the SDs in the span.</li>
+<li>Use 'span-list &lt;span-instance-name&gt;' to identify all the file systems on the span.</li>
+<li>Use 'evsfs' to bind each file system to an EVS.</li>
+<li>Mount all the file systems if desired.</li>
+</ul>
+<h2>TAKING A SPAN FROM A CLUSTER THAT NO LONGER EXISTS</h2>
+<p>If a cluster has been destroyed or lost, or if it has been set up from scratch and its cluster UUID has changed, it is safe to use 'span-assign-to-cluster' to assign a surviving span to a new or replacement cluster:</p>
+<ul>
+<li>If the SDs are not yet licensed on the new cluster, use 'sd-allow-access' to license one or more of them.  Wait a few seconds, run 'span-list' to check that the span has loaded from Cod, and then use 'span-allow-access' to license the rest of the SDs in the span.  Otherwise, run 'sd-rescan-cod &lt;span-instance-name&gt;' to ensure that the surviving cluster is aware of any recent Cod-changes.</li>
+<li>Run 'span-assign-to-cluster', specifying the span instance name but omitting the cluster UUID and name.  The command will automatically assign the span to the local cluster.</li>
+<li>Run 'span-list -f &lt;span-instance-name&gt;' to identify the file systems on the span.</li>
+<li>Use 'evsfs' to assign each file system to an EVS.</li>
+<li>Mount the file systems if desired.</li>
+</ul>
+<h2>ASSIGNING A SPAN TO MULTIPLE CLUSTERS</h2>
+<p>When storage-based mirroring is used, it is sometimes necessary to assign a span to more than one cluster.  The 'storage-based-mirror' man page explains when and how to do this.</p>
+<h2>SWITCHES</h2>
+<p>The following switches enable the command to run when it would normally fail.  Think three times before using any of these switches: it is almost always better to fix the condition that's causing the command to fail than to use an override.</p>
+<dl>
+<dt><strong>--danger-ignore-sd-sites</strong></dt>
+<dd><p>Runs even if the primary SDs in the span aren't all at the same site.</p></dd>
+<dt><strong>--danger-ignore-stale-cod</strong></dt>
+<dd><p>Runs even if the span's Cod is stale and no longer reflects the state of the span in memory.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>span-assign-to-cluster Accounts
+</pre>
+<p></p>
+<p>Assigns the 'Accounts' span to the local cluster.</p>
+<pre>span-assign-to-cluster Rendering e67305b0-3ced-11c4-2c67-ea5bc79b8d52 RenderFarm
+</pre>
+<p></p>
+<p>Assigns the 'Rendering' span to the cluster with the specified UUID and name.</p>
+<p>See the 'span-list-cluster-uuids' man page for more examples.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/cluster-show.html">cluster-show</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-allow-access.html">span-allow-access</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-cluster-uuids.html">span-list-cluster-uuids</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Supervisor/trouble.html">trouble</a> <a href="../Supervisor/unmount.html">unmount</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

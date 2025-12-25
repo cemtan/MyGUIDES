@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>quota</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>quota</h1>
+<p>Add/remove/list quotas</p>
+<h1>Syntax</h1>
+<pre>quota &lt;operation list|get|add|mod|remove&gt;
+	list    [--verbose] [--filter &lt;[f|v][t|u|g][d|e]&gt;] &lt;file-system&gt; [&lt;vivol-name&gt;]
+	get     [--verbose] [[--user | --group &lt;[domain\]name&gt;] --disable-mapping]
+	        &lt;file-system&gt; [&lt;vivol-name&gt;]
+	add|mod [[--user | --group &lt;[domain\]name&gt;] --disable-mapping]
+	        [--usage-limit &lt;n[K|M|G|T|P|E]&gt;] [--file-count-limit &lt;n&gt;]
+	        [--usage-hard-limit &lt;yes|no&gt;] [--file-count-hard-limit &lt;yes|no&gt;]
+	        [--usage-warn &lt;n&gt;] [--usage-critical &lt;n&gt;] [--usage-reset &lt;n&gt;]
+	        [--fcount-warn &lt;n&gt;] [--fcount-critical &lt;n&gt;] [--fcount-reset &lt;n&gt;]
+	        [--generate-events &lt;yes|no&gt;] [--force] &lt;file-system&gt; [&lt;vivol-name&gt;]
+	remove  [[--user | --group &lt;[domain\]name&gt;] --disable-mapping]
+	        &lt;file-system&gt; [&lt;vivol-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The quota command is used to manage file system quotas.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>quota list [--verbose] [--filter &lt;[f|v][t|u|g][d|e]&gt;] &lt;file-system&gt; [&lt;vivol-name&gt;]</strong></dt>
+<dd><p>List quotas matching filter (all of them if '--filter' is not specified) at file system or virtual volume scope.</p></dd>
+<dl>
+<dt><strong>--verbose</strong></dt>
+<dd><p>Display a verbose listing with Global ID and Last Modified time</p></dd>
+<dt><strong>-f, --filter</strong></dt>
+<dd><p>Filter quota listing (specifying vivol-name overrides 'f'):</p></dd>
+<dl>
+<dt><strong>f</strong></dt>
+<dd><p>match file system quotas</p></dd>
+<dt><strong>v</strong></dt>
+<dd><p>match virtual volume quotas</p></dd>
+<dt><strong>t</strong></dt>
+<dd><p>match virtual volume tree quotas</p></dd>
+<dt><strong>u</strong></dt>
+<dd><p>match user quotas</p></dd>
+<dt><strong>g</strong></dt>
+<dd><p>match group quotas</p></dd>
+<dt><strong>d</strong></dt>
+<dd><p>match default quotas</p></dd>
+<dt><strong>e</strong></dt>
+<dd><p>match explicit quotas</p></dd>
+</dl>
+</dl>
+<dt><strong>quota get [--verbose] [[--user | --group &lt;[domain\]name&gt;] --disable-mapping] &lt;file-system&gt; [&lt;vivol-name&gt;]</strong></dt>
+<dd><p>Retrieve a single quota.</p></dd>
+<dl>
+<dt><strong>--verbose</strong></dt>
+<dd><p>Display a verbose listing with Global ID and Last Modified time</p></dd>
+<dt><strong>-u, --user</strong></dt>
+<dd><p>Retrieve quota for specified user</p></dd>
+<dt><strong>-g, --group</strong></dt>
+<dd><p>Retrieve quota for specified group</p></dd>
+<dt><strong>-d, --disable-mapping</strong></dt>
+<dd><p>Don't map between NFS and NT users/groups</p></dd>
+</dl>
+<dt><strong>quota add|mod [[--user | --group &lt;[domain\]name&gt;] --disable-mapping] [--usage-limit &lt;n[K|M|G|T|P|E]&gt;] [--file-count-limit &lt;n&gt;] [--usage-hard-limit &lt;yes|no&gt;] [--file-count-hard-limit &lt;yes|no&gt;] [--usage-warn &lt;n&gt;] [--usage-critical &lt;n&gt;] [--usage-reset &lt;n&gt;] [--fcount-warn &lt;n&gt;] [--fcount-critical &lt;n&gt;] [--fcount-reset &lt;n&gt;] [--generate-events &lt;yes|no&gt;] [--force] &lt;file-system&gt; [&lt;vivol-name&gt;]</strong></dt>
+<dd><p>Add/modify a quota.</p></dd>
+<dt><strong>quota remove [[--user | --group &lt;[domain\]name&gt;] --disable-mapping] &lt;file-system&gt; [&lt;vivol-name&gt;]</strong></dt>
+<dd><p>Remove a quota.</p></dd>
+<dl>
+<dt><strong>-u, --user</strong></dt>
+<dd><p>User to target quota at</p></dd>
+<dt><strong>-g, --group</strong></dt>
+<dd><p>Group to target quota at</p></dd>
+<dt><strong>-d, --disable-mapping</strong></dt>
+<dd><p>Don't map between NFS and NT users/groups</p></dd>
+<dt><strong>-1, --usage-limit</strong></dt>
+<dd><p>Quota's space consumption limit (bytes)</p></dd>
+<dt><strong>-2, --file-count-limit</strong></dt>
+<dd><p>Quota's file count limit. Note that for virtual volume quotas, the root of the virtual volume is counted as belonging to the virtual volume - hence an empty virtual volume will show a file count of one.</p></dd>
+<dt><strong>-s, --usage-hard-limit</strong></dt>
+<dd><p>Set hard usage limit:</p></dd>
+<dl>
+<dt><strong>yes</strong></dt>
+<dd><p>hard (default). The usage limit can become one of the constraints on the calculation of file system capacity/free space for protocol clients if the variable 'user-quotas-visible' is set to true. See the df man page for detailed explanation.</p></dd>
+<dt><strong>no</strong></dt>
+<dd><p>soft</p></dd>
+</dl>
+<dd><p>If the usage limit is defined for a vivol quota and if the vivol is configured to report space based solely on vivol quota, protocol clients will report the usage limit, either hard or soft, as the file system capacity. Again, see the df man page for detailed explanation.</p></dd>
+<dt><strong>-f, --file-count-hard-limit</strong></dt>
+<dd><p>Set hard file count limit:</p></dd>
+<dl>
+<dt><strong>yes</strong></dt>
+<dd><p>hard (default)</p></dd>
+<dt><strong>no</strong></dt>
+<dd><p>soft</p></dd>
+</dl>
+<dt><strong>-w, --usage-warn</strong></dt>
+<dd><p>Usage warning threshold (%)</p></dd>
+<dt><strong>-p, --usage-critical</strong></dt>
+<dd><p>Usage critical threshold (%)</p></dd>
+<dt><strong>-r, --usage-reset</strong></dt>
+<dd><p>Amount by which usage must fall below a threshold before re-logging its event (%)</p></dd>
+<dt><strong>-a, --fcount-warn</strong></dt>
+<dd><p>File count warning threshold (%)</p></dd>
+<dt><strong>-b, --fcount-critical</strong></dt>
+<dd><p>File count critical threshold (%)</p></dd>
+<dt><strong>-c, --fcount-reset</strong></dt>
+<dd><p>Amount by which file count must fall below a threshold before re-logging its event (%)</p></dd>
+<dt><strong>-e, --generate-events</strong></dt>
+<dd><p>Add quota's events to the event log (default: no)</p></dd>
+<dt><strong>-o, --force</strong></dt>
+<dd><p>Don't prompt if quota limits are modified below current usage</p></dd>
+</dl>
+</dl>
+<h2>Quota Logging</h2>
+<p>Quota warnings and errors are logged in two logtraces:</p>
+<dl>
+<dt><strong>quota:debug</strong></dt>
+<dd><p>This logtrace contains quota messages of all severity levels, including errors.</p></dd>
+<dt><strong>quota:error</strong></dt>
+<dd><p>This logtrace contains only quota error messages. All messages in this logtrace are also saved in dblog.</p></dd>
+</dl>
+<p>The 'logtrace' command can be used to dump/disable/resize the quota logtraces. For example, to avoid spamming the dblog with quota error messages, run the following command:</p>
+<pre>    logtrace off quota:error
+</pre>
+<p></p>
+<p>To change the logtrace sizes persistently across reboots, use the 'set' command:</p>
+<pre>   set quota-debug-logtrace-length-in-KiB  &lt;number of KiB&gt;
+   set quota-error-logtrace-length-in-KiB  &lt;number of KiB&gt;
+</pre>
+<p></p>
+<h2>Quota Space Tracking</h2>
+<p>By default, quota space tracking is enabled for all file systems. But it can be disabled at various levels as follows.</p>
+<dl>
+<dt><strong>1. Disable quota space tracking cluster-wide</strong></dt>
+<dd><p>Run the command 'set quota-disable-space-tracking true'.</p></dd>
+<dt><strong>2. Disable quota space tracking on a single file system</strong></dt>
+<dd><p>Run the command 'filesystem-space-tracking off' on the file system.</p></dd>
+<dt><strong>3. Disable quota space tracking on inconsistent files</strong></dt>
+<dd><p>This is the default behavior, which is controlled by the 'quota-tolerate-errors' variable.</p></dd>
+<dd><p>By default, this variable is true, meaning the quota processing of inconsistent files will be skipped, and hence, the existing space usage is not affected by any file size changes of these files. The value of this variable can be changed by the 'set' command. On file system remount, the quota space trackers file will be automatically cleared (see space-tracker command) and get rebuilt from scratch to correct all inconsistencies.</p></dd>
+</dl>
+<h2>Quota Mode</h2>
+<p>How quota usage for a file is computed depends on its file system's quota mode (see the fs-quota-mode command).</p>
+<p>Neither file-size-based quotas nor usage-based quotas track metadata overhead. Quotas only track live file system usage, not snapshots. Space saved through deduplication is not reflected in quotas.</p>
+<p>File-size-based quotas consider the size of a file to be its logical length (the length shown by 'ls -l'). That the file's data may have been migrated to an external location is ignored, as is whether it possesses any sparse blocks.</p>
+<p>Usage-based quotas compute the size of a file from the number of local blocks that it currently uses. A file which has been externally migrated uses zero local (non-metadata) blocks, so will appear to a usage-based quota to be of size zero. A local file may have sparse blocks, and such a file will appear smaller (possibly very much smaller) to a usage-based quota than to a file-size-based quota.</p>
+<p>Careful consideration should be made when deciding the quota mode for a file system which can be changed by fs-quota-mode command.</p>
+<p>File clones introduce a complication in the case of usage-based quotas. Two (or more) clones share a backing object called a snapshot-file. When a clone has not been modified since the cloning operation took place, it shares all its userdata blocks with the snapshot-file, so it owns no non-metadata blocks in its own right. Therefore a non-modified clone appears to a usage-based quota to be of size zero. Furthermore, the snapshot-file itself is not tracked by quotas. Only as a clone is modified and so diverges from its snapshot-file will it gain blocks which are visible to a usage-based quota.</p>
+<h1>Examples</h1>
+<p>Limit the user 'joe' to 1G on fs0:</p>
+<pre>quota add --user joe --usage-limit 1G --usage-warn 80 --usage-critical 95 fs0
+</pre>
+<p></p>
+<p>Limit the group 'engineering' to 10G on the virtual volume 'vivol0':</p>
+<pre>quota add --group engineering --usage-limit 10G --usage-warn 80 --usage-critical 95 fs0 vivol0
+</pre>
+<p></p>
+<p>Limit the size of the virtual volume 'vivol0' to 100G:</p>
+<pre>quota add --usage-limit 100G --usage-warn 80 --usage-critical 95 fs0 vivol0
+</pre>
+<p></p>
+<p>Remove the quota for user 'joe' on fs0:</p>
+<pre>quota remove --user joe fs0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/default-quota.html">default-quota</a> <a href="../User/df.html">df</a> <a href="../Supervisor/fs-quota-mode.html">fs-quota-mode</a> <a href="../Supervisor/fs-space-reporting-based-solely-on-vivol-quota.html">fs-space-reporting-based-solely-on-vivol-quota</a> <a href="../Supervisor/logtrace.html">logtrace</a> <a href="../Supervisor/quota-event.html">quota-event</a> <a href="../Supervisor/set.html">set</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

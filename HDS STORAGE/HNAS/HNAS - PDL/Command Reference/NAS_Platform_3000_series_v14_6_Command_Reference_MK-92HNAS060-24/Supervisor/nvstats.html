@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nvstats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>nvstats</h1>
+<p>Print statistics relating to NVRAM usage</p>
+<h1>Syntax</h1>
+<pre>nvstats [--file-system | -f &lt;file system name or number&gt;] [-r|--reset] [-s|--summary]
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>[[--file-system | -f] &lt;file system name or number&gt;]</strong></dt>
+<dd><p>Restrict output to this file system.</p></dd>
+<dt><strong>[-r|--reset]</strong></dt>
+<dd><p>Reset the historical counters.</p></dd>
+<dt><strong>[-s|--summary]</strong></dt>
+<dd><p>Display summary statistics only.</p></dd>
+</dl>
+<p>The nvstats command allows you to monitor the NVRAM usage on a cluster node.</p>
+<p>Definition of terms used:</p>
+<dl>
+<dt><strong>VLSI LWM</strong></dt>
+<dd><p>VLSI low water mark of free NVRAM pages</p></dd>
+<dt><strong>S/W LWM</strong></dt>
+<dd><p>Software low water mark of free NVRAM pages</p></dd>
+<dt><strong>TotalPages</strong></dt>
+<dd><p>Total number of NVRAM pages available on this cluster node</p></dd>
+<dt><strong>HWM</strong></dt>
+<dd><p>Software high water mark of NVRAM pages used</p></dd>
+<dt><strong>UsedPages</strong></dt>
+<dd><p>Software estimate of NVRAM pages currently in use</p></dd>
+<dt><strong>FreePages</strong></dt>
+<dd><p>Software estimate of NVRAM pages currently not in use</p></dd>
+<dt><strong>NumBusyFS</strong></dt>
+<dd><p>Count of file systems that are "busy" with write activity</p></dd>
+<dt><strong>BusyThreshold</strong></dt>
+<dd><p>NVRAM page use count that will cause a file system to be declared "busy"</p></dd>
+<dt><strong>NVRAMWaitedAllocs</strong></dt>
+<dd><p>Number of times that threads have waited for NVRAM</p></dd>
+<dt><strong>NVRAMWaitingAllocs</strong></dt>
+<dd><p>Number of threads currently waiting for NVRAM</p></dd>
+<dt><strong>MountedFS</strong></dt>
+<dd><p>Count of mounted file systems</p></dd>
+<dt><strong>MountedFSPagesInUse</strong></dt>
+<dd><p>Count of NVRAM pages currently allocated to mounted file systems</p></dd>
+<dt><strong>MinPagesPerMountedFS</strong></dt>
+<dd><p>Minimum number of NVRAM pages allocated to a mounted file system</p></dd>
+<dt><strong>MaxPagesPerMountedFS</strong></dt>
+<dd><p>Maximum number of NVRAM pages allocated to a mounted file system</p></dd>
+<dt><strong>UnmountedFS</strong></dt>
+<dd><p>Count of unmounted file systems</p></dd>
+<dt><strong>UnmountedFSPagesInUse</strong></dt>
+<dd><p>Count of NVRAM pages currently allocated to unmounted file systems</p></dd>
+<dt><strong>FailedFS</strong></dt>
+<dd><p>Is this file system failed?</p></dd>
+<dt><strong>MountedFS</strong></dt>
+<dd><p>Is this file system mounted?</p></dd>
+<dt><strong>BusyFS</strong></dt>
+<dd><p>Is this file system busy?</p></dd>
+<dt><strong>ActivePagesConsumed</strong></dt>
+<dd><p>Count of NVRAM pages currently being used by i/o operations</p></dd>
+<dt><strong>ActiveBytesAvail</strong></dt>
+<dd><p>Count of NVRAM bytes available in active pages</p></dd>
+<dt><strong>ReservedPagesConsumed</strong></dt>
+<dd><p>Count of NVRAM pages allocated to this file system but not currently in use</p></dd>
+<dt><strong>ReservedBytesAvail</strong></dt>
+<dd><p>Count of NVRAM bytes available in reserved pages</p></dd>
+<dt><strong>CheckpointScheduled</strong></dt>
+<dd><p>Has a checkpoint been scheduled for this file system?</p></dd>
+<dt><strong>CheckpointInProgress</strong></dt>
+<dd><p>Is a checkpoint currently in progress for this file system?</p></dd>
+<dt><strong>PagesInCheckpoint</strong></dt>
+<dd><p>Count of NVRAM pages in the current checkpoint</p></dd>
+<dt><strong>PagesInPreviousCheckpoint</strong></dt>
+<dd><p>Count of NVRAM pages in the previous checkpoint</p></dd>
+<dt><strong>TotalCheckpoints</strong></dt>
+<dd><p>Total checkpoints since file system was mounted</p></dd>
+<dt><strong>TotalForcedCheckpoints</strong></dt>
+<dd><p>Total checkpoints forced by lack of free NVRAM since file system was mounted</p></dd>
+<dt><strong>CheckpointTriggerLevel</strong></dt>
+<dd><p>Count of NVRAM pages consumed that will trigger a checkpoint for this file system</p></dd>
+<dt><strong>NVRAMWaitedAllocs</strong></dt>
+<dd><p>Number of times that threads have waited for NVRAM since file system was mounted</p></dd>
+<dt><strong>NVRAMWaitingAllocs</strong></dt>
+<dd><p>Number of threads currently waiting for NVRAM for this file system</p></dd>
+<dt><strong>NVRAMWaitedWriteSmooths</strong></dt>
+<dd><p>Number of times that threads have waited due to the NVRAM write-smoothing algorithm since file system was mounted</p></dd>
+<dt><strong>numReservers</strong></dt>
+<dd><p>Number of threads currently holding NVRAM reservations for this file system</p></dd>
+<dt><strong>Write smoothing MiB/s</strong></dt>
+<dd><p>Current rate at which the write-smoothing algorithm allows writes to be submitted. The write-smoothing algorithm attempts to match client throughput with the storage backend throughput.</p></dd>
+<dt><strong>NVRAMWaitedAllocsPerf</strong></dt>
+<dd><p>An ASCII art graph showing the amount of time threads have had to wait for NVRAM to become available. Graph not shown if --summary is used.</p></dd>
+<dt><strong>NVRAMReservationPerf</strong></dt>
+<dd><p>An ASCII art graph showing the amount of NVRAM reserved for operations (in bytes). Graph not shown if --summary is used.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ nvstats
+VLSI LWM=499 S/W LWM=493
+TotalPages=501 HWM=8 UsedPages=8 FreePages=493
+NumBusyFS=0 BusyThreshold=10 NVRAMWaitedAllocs=0 NVRAMWaitingAllocs=0
+MountedFS=1 MountedFSPagesInUse=8 MinPagesPerMountedFS=8 MaxPagesPerMountedFS=501
+UnmountedFS=1 UnmountedFSPagesInUse=0
+NVRAMWaitedAllocsPerf=  (no samples)
+ Last reset 42.4 min ago
+</pre>
+<p></p>
+<pre>         1|
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          1us  16 256u 4m 65ms 1s 17s 268s
+</pre>
+<p></p>
+<pre>File system testfs1:
+FailedFS=0 MountedFS=1 BusyFS=0 ActivePagesConsumed=1 ActiveBytesAvail=416592
+ReservedPagesConsumed=7 ReservedBytesAvail=7340032
+CheckpointScheduled=0 CheckpointInProgress=0 PagesInCheckpoint=0
+PagesInPreviousCheckpoint=1 TotalCheckpoints=77 TotalForcedCheckpoints=0
+CheckpointTriggerLevel=250 NVRAMWaitedAllocs=0 NVRAMWaitingAllocs=0
+NVRAMWaitedWriteSmooths=0 numReservers=1 Write smoothing MiB/s=0
+NVRAMWaitedAllocsPerf=  (no samples)
+ Last reset 32.9 min ago
+</pre>
+<p></p>
+<pre>         1|
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          1us  16 256u 4m 65ms 1s 17s 268s
+</pre>
+<p></p>
+<pre>NVRAMReservationPerf=  Samples=     192 Total=    338 us Min=  1 us Av=  1 us Max= 15 us
+ Last reset 32.9 min ago
+</pre>
+<p></p>
+<pre>       146|#
+        73|#
+        36|##
+        18|##
+         9|##
+         4|##
+         2|###
+         1|####
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          1us  16 256u 4m 65ms 1s 17s 268s
+</pre>
+<p></p>
+<pre>File system testfs2:
+FailedFS=0 MountedFS=0 BusyFS=0 ActivePagesConsumed=0 ActiveBytesAvail=0
+ReservedPagesConsumed=0 ReservedBytesAvail=0
+CheckpointScheduled=0 CheckpointInProgress=0 PagesInCheckpoint=0
+PagesInPreviousCheckpoint=0 TotalCheckpoints=0 TotalForcedCheckpoints=0
+CheckpointTriggerLevel=0 NVRAMWaitedAllocs=0 NVRAMWaitingAllocs=0
+NVRAMWaitedWriteSmooths=0 numReservers=0 Write smoothing MiB/s=0
+NVRAMWaitedAllocsPerf=  (no samples)
+ Last reset 32.8 min ago
+</pre>
+<p></p>
+<pre>         1|
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          1us  16 256u 4m 65ms 1s 17s 268s
+</pre>
+<p></p>
+<pre>NVRAMReservationPerf=  (no samples)
+ Last reset 32.8 min ago
+</pre>
+<p></p>
+<pre>         1|
+          +--------------------------------
+           |   |   |   |   |   |   |   |
+          1us  16 256u 4m 65ms 1s 17s 268s
+</pre>
+<p></p>
+<pre>server:$ nvstats -s -f testfs1
+File system testfs1:
+FailedFS=0 MountedFS=1 BusyFS=0 ActivePagesConsumed=0 ActiveBytesAvail=0
+ReservedPagesConsumed=8 ReservedBytesAvail=8388608
+CheckpointScheduled=0 CheckpointInProgress=0 PagesInCheckpoint=0
+PagesInPreviousCheckpoint=1 TotalCheckpoints=5 TotalForcedCheckpoints=0
+CheckpointTriggerLevel=246 NVRAMWaitedAllocs=0 NVRAMWaitingAllocs=0
+NVRAMWaitedWriteSmooths=0 numReservers=0 Write smoothing MiB/s=0
+NVRAMWaitedAllocsPerf=  (no samples)
+ Last reset 35.8 min ago
+NVRAMReservationPerf=  Samples=       3 Total=      8 us Min=  1 us Av=  2 us Max=  3 us
+ Last reset 35.8 min ago
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/nvmirroring.html">nvmirroring</a> <a href="../User/nvpages.html">nvpages</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

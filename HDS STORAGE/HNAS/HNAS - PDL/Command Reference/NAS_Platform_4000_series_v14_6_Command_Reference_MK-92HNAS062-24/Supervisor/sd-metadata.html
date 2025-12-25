@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-metadata</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>sd-metadata</h1>
+<p>List SDs&#39; encroachment and Cod</p>
+<h1>Syntax</h1>
+<pre>sd-metadata [--primaries | -p | --secondaries | -s] [--unspanned | -u] &lt;System-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Each system drive (SD) has a set of metadata structures used by the spanning system: the encroachment area and three types of Cod (configuration on disk).  The 'sd-metadata' command produces a concise summary of the metadata on each SD.</p>
+<h2>Choosing which system drives to list</h2>
+<p>You can specify a set of SDs in several ways: see the 'sd-spec' man page for details.  In addition, 'sd-metadata' has three switches that restrict the SDs shown in the summary:</p>
+<dl>
+<dt><strong>-p, --primaries</strong></dt>
+<dd><p>Shows only SDs that are mirrored primaries, or which don't form part of a mirror relationship: useful for producing more manageable lists when troubleshooting Cod-damage on mirrored systems.</p></dd>
+<dt><strong>-s, --secondaries</strong></dt>
+<dd><p>Shows only SDs that are mirrored secondaries: useful when matching up mirrored primaries and secondaries by inspecting span Cod.</p></dd>
+<dd><p>Unless you have used 'sd-peg' (which should be very rare), a mirrored P-Vol is treated as a primary SD and an S-Vol as a secondary.  The 'storage-based-mirror' man page gives more details.</p></dd>
+<dt><strong>-u, --unspanned</strong></dt>
+<dd><p>Shows only SDs that aren't part of a currently-loaded span.  Useful when troubleshooting damaged span Cod.</p></dd>
+</dl>
+<p>These three switches can be used in combination with the facilities described in the 'sd-spec' page.</p>
+<p>If you don't provide any command-line arguments, all SDs are listed.</p>
+<h2>Understanding the output</h2>
+<p>The output of this command is very dense.  Each line describes one SD.  A sample line on a healthy system might look like this:</p>
+<pre>27 P ELSFCH; 27 [Accounts]: Accounts, DF429AE2E56B12A5, 83E5A2115F877DA0; 7, 232
+</pre>
+<p></p>
+<p>The meaning of these fields is as follows:</p>
+<dl>
+<dt><strong>27</strong></dt>
+<dd><p>This is the system drive's device ID -- the same number used with commands such as 'sd-list'.</p></dd>
+<dt><strong>P</strong></dt>
+<dd><p>Shows the SD's status and mirror role.  The codes used are:</p></dd>
+<dl>
+<dt><strong>P</strong></dt>
+<dd><p>Healthy primary or unmirrored SD (usually a P-Vol)</p></dd>
+<dt><strong>S</strong></dt>
+<dd><p>Healthy secondary SD (usually an S-Vol; this status is shown whether or not a mirror relationship has been configured into the server by 'sd-mirror')</p></dd>
+<dt><strong>L</strong></dt>
+<dd><p>Unlicensed SD -- one to which you have not allowed access</p></dd>
+<dt><strong>F</strong></dt>
+<dd><p>Failed SD, to which I/O is impossible</p></dd>
+<dt><strong>N</strong></dt>
+<dd><p>An SD that the server has not seen since it booted</p></dd>
+<dt><strong>A</strong></dt>
+<dd><p>An SD which is still considered healthy, but which is momentarily inaccessible to the server</p></dd>
+<dt><strong>?</strong></dt>
+<dd><p>Status or mirror role unknown</p></dd>
+</dl>
+<dd><p>Unless an SD's status is 'P' or 'S', 'sd-metadata' will print no further information about the SD, because disk I/O is (at least temporarily) impossible.</p></dd>
+<dt><strong>ELSFCH</strong></dt>
+<dd><p>These six letters show whether each of six important data structures is present or absent.  An uppercase letter (such as 'E') means that the structure is present and intact; a lowercase letter (such as 'e') means that it is absent or damaged.  A dash means one of two things:</p></dd>
+<ul>
+<li>The command didn't check the structure, because it isn't expected to exist.  (For example, an SD not used in a span doesn't have an encroachment area.)</li>
+<li>The command tried to check the structure, but experienced an I/O error.</li>
+</ul>
+<dd><p>The letters and structures are:</p></dd>
+<dl>
+<dt><strong>E</strong></dt>
+<dd><p>Encroachment area</p></dd>
+<dt><strong>S</strong></dt>
+<dd><p>Four-byte span-Cod signature</p></dd>
+<dt><strong>F</strong></dt>
+<dd><p>Four-byte filesystem-catalogue signature</p></dd>
+<dt><strong>C</strong></dt>
+<dd><p>Four-byte chunk-table signature</p></dd>
+</dl>
+<dd><p>Note that these letters show whether encroachment areas are intact, but they don't verify that Cod is intact -- they only show whether the three Cod signatures are present.  To check the Cod, use 'sd-dump-cod'.</p></dd>
+<dt><strong>27 [Accounts]</strong></dt>
+<dd><p>Shows that the SD contains span Cod expected to appear on SD 27, and that SD 27 is part of the currently-loaded span called 'Accounts'.  If the Cod contained details of a mirror relationship (configured into the server by the 'sd-mirror' command), you would see both halves of the mirror here, like this:</p></dd>
+<dd><p>27 [Accounts] = 33 [Accounts]</p></dd>
+<dd><p>If the SD were not part of a loaded span, the square brackets and the span instance name would not appear.  If Cod is damaged, it's possible for an SD to contain Cod but not be part of a loaded span.</p></dd>
+<dt><strong>Accounts, DF429AE2E56B12A5, 83E5A2115F877DA0</strong></dt>
+<dd><p>Summarizes the span Cod on the SD: shows the span's instance name, its permanent ID, and its configuration ID.  The configuration ID is a version number that increases every time the span's configuration is modified.  When a span is loaded at boot time, these three values must be identical on all the SDs in the span.  In certain circumstances (for example, after 'span-restore-cod' has been run), it's possible for an SD to be part of a span but not to have any span Cod.</p></dd>
+<dt><strong>7</strong></dt>
+<dd><p>Shows the generation number of the filesystem catalogue.  The generation number is incremented every time the filesystem catalogue is updated.  When a span and its filesystems are loaded at boot time, all the SDs in the span must have filesystem catalogues with the same generation number.  If the generation numbers differ, the filesystems will not load.</p></dd>
+<dt><strong>232</strong></dt>
+<dd><p>Shows the generation number of the chunk table.  The generation number is incremented every time the chunk table is updated.  When a span and its filesystems are loaded at boot time, all the SDs in the span must have chunk tables with the same generation number.  If the generation numbers differ, the chunks won't load: the server will know which filesystems are on the span, but not which areas of disk space are allocated to each one.  As a result, it won't be possible to mount or check the file systems until the Cod is corrected.</p></dd>
+<dt><strong>Errors</strong></dt>
+<dd><p>If certain problems are found, an extra field will appear after the ELSFCH letters: an exclamation mark ('!') followed by one or more error codes.  These errors refer to the span that includes the SD, rather than to the SD itself:</p></dd>
+<dl>
+<dt><strong>S</strong></dt>
+<dd><p>The span has inconsistent Cod, and can't be loaded.</p></dd>
+<dt><strong>D</strong></dt>
+<dd><p>At least one of this span's primary SDs has failed (is dead).  The server can't mount the file systems on this span.</p></dd>
+<dt><strong>M</strong></dt>
+<dd><p>At least one SD on this span has suffered an encroachment, either now or in the past.</p></dd>
+<dt><strong>F</strong></dt>
+<dd><p>The span's filesystem catalogue is unloadable.  Start by comparing the filesystem catalogues on all the SDs in the span.</p></dd>
+<dt><strong>C</strong></dt>
+<dd><p>The span's chunk table is unloadable.  Start by comparing the chunk tables on all the SDs in the span.</p></dd>
+<dt><strong>H</strong></dt>
+<dd><p>The span is hidden: all its file systems are protected from being mounted, checked or fixed.  Typical reasons are that one of the span's SDs is being copied, or that you have run 'span-hide'.</p></dd>
+</dl>
+<dd><p>'S' refers to the span in Cod; all the other errors refer to the span loaded into memory.  The two are normally the same, but may differ if you have recently run Cod-management commands or if a Cod-write has failed recently.</p></dd>
+</dl>
+<h1>Examples</h1>
+<h2>Example 1: Configuring mirror relationships into the server</h2>
+<p>In the first example, we have created a span and configured mirror relationships into the storage.  We now need to use the 'sd-mirror' command to tell the server about these mirror relationships.  We first run 'sd-metadata' to verify that the Cod on the span is correct:</p>
+<pre>server:$ sd-metadata trio
+   1 P ESFC; 1 [Trio]: Trio, cd647142fba8d5d0, 4638acf4086d7acb; 4, 2
+   3 P ESFC; 3 [Trio]: Trio, cd647142fba8d5d0, 4638acf4086d7acb; 4, 2
+   5 P ESFC; 5 [Trio]: Trio, cd647142fba8d5d0, 4638acf4086d7acb; 4, 2
+server:$
+</pre>
+<p></p>
+<p>Next, we inspect the Cod on the secondary SDs that aren't already used in spans:</p>
+<pre>server:$ sd-metadata --secondaries --unspanned
+   0 S ESFC; 1 [Trio]: Trio, cd647142fba8d5d0, 4638acf4086d7acb; 4, 2
+   2 S ESFC; 3 [Trio]: Trio, cd647142fba8d5d0, 4638acf4086d7acb; 4, 2
+   4 S ESFC; 5 [Trio]: Trio, cd647142fba8d5d0, 4638acf4086d7acb; 4, 2
+server:$
+</pre>
+<p></p>
+<p>We see that SD 0 has a copy of the Cod from SD 1, SD 2 has a copy of the Cod from SD 3, and SD 4 has a copy of the Cod from SD 5.  So we issue an 'sd-mirror' command to configure the mirrors into the server, and then run 'sd-metadata' one last time to verify that the two halves of each mirror have identical Cod:</p>
+<pre>server$ sd-mirror trio 1=0 3=2 5=4
+Success
+server:$ sd-metadata trio
+   0 S ESFC; 1 [Trio] = 0 [Trio]: Trio, cd647142fba8d5d0, 4638ad1e540e4a84; 4, 2
+   1 P ESFC; 1 [Trio] = 0 [Trio]: Trio, cd647142fba8d5d0, 4638ad1e540e4a84; 4, 2
+   2 S ESFC; 3 [Trio] = 2 [Trio]: Trio, cd647142fba8d5d0, 4638ad1e540e4a84; 4, 2
+   3 P ESFC; 3 [Trio] = 2 [Trio]: Trio, cd647142fba8d5d0, 4638ad1e540e4a84; 4, 2
+   4 S ESFC; 5 [Trio] = 4 [Trio]: Trio, cd647142fba8d5d0, 4638ad1e540e4a84; 4, 2
+   5 P ESFC; 5 [Trio] = 4 [Trio]: Trio, cd647142fba8d5d0, 4638ad1e540e4a84; 4, 2
+server:$
+</pre>
+<p></p>
+<p>(For most purposes, the automated 'sd-mirror-prepare' and 'sd-mirror-detect' are simpler than using 'sd-metadata' and 'sd-mirror'.)</p>
+<h2>Example 2: Diagnosing an unloadable span</h2>
+<p>Suppose that 'span-list' doesn't show one of the spans that should have loaded when the server booted.  The event log mentions bad Cod.  We can summarize the Cod on all SDs that aren't in loaded spans:</p>
+<pre>server:$ sd-metadata -u -p
+   7 P ESFC !S; 7: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 1, 1
+   9 P ESFC !S; 9: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 1, 1
+  11 P ESFC !S; 11: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 1, 1
+  13 P -sFC !S; --, --, --, 1, 1
+  15 P ESFC !S; 15: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 1, 1
+server:$
+</pre>
+<p></p>
+<p>The 'P' status tells us that the SDs are online.  However, the small 's' by SD 13 tells us that the SD is missing its span Cod signature, and the nearby dashes tell us that the server didn't look for encroachment because of the missing signature.  (Nevertheless, the other two Cod signatures are present.)  The '!S' printed by each SD tells us what we already know: that the SD is part of an unloadable span.</p>
+<p>In this case, SD 13 still has its other two Cod signatures.  This rules out catastrophic damage: we know that the SD hasn't been accidentally reinitialized, for example.  It's possible that someone has inadvertently run 'sd-wipe-cod-signature' on this SD.  The first thing to try in this case would be 'sd-copy-span-cod' or 'sd-restore-cod-signature', followed in either case by 'sd-rescan-cod'.</p>
+<h2>Example 3: Unloadable filesystems</h2>
+<p>Suppose that a span loads, but its filesystems don't.  'span-list' shows the span, but prints a warning that the filesystems couldn't be loaded.  The event log mentions failed Cod writes on span Quintet.  We can summarize the Cod on all SDs in the span like this:</p>
+<pre>server:$ sd-metadata quintet
+   7 P ESFC !F; 7 [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 9
+   9 P ESFC !F; 9 [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 9
+  11 P ESFC !F; 11 [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 9
+  13 P ESFC !F; 13 [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 4, 9
+  15 P ESFC !F; 15 [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 9
+server:$
+</pre>
+<p></p>
+<p>We can see that SD 13 has an earlier version of the filesystem catalogue than the other SDs in the span.  '!F' confirms that the filesystem catalogue is unloadable.  The solution is to fix any underlying storage-level problem, and then use 'span-propagate-filesystem-cod 7' and 'sd-rescan-cod Quintet'.</p>
+<h2>Example 4: Unloadable chunks</h2>
+<p>Example 4 is similar to example 3.  Suppose that the server fails to update the chunk table after expanding a filesystem.  Filesystems will appear in 'filesystem-list', but will not be mountable.  The Cod will look like this:</p>
+<pre>server:$ sd-metadata quintet
+   7 P ESFC 7; [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 10
+   9 P ESFC 9; [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 10
+  11 P ESFC 11; [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 10
+  13 P ESFC 13; [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 9
+  15 P ESFC 15; [Quintet]: Quintet, cd6471411132a5c8, 4638af0b29a0b59a; 5, 10
+server:$
+</pre>
+<p></p>
+<p>In this case, SD 13 has an earlier version of the chunk table than the other SDs in the span.  The solution is the same as in Example 3.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Topic/encroachment.html">encroachment</a> <a href="../Dev/sd-copy-span-cod.html">sd-copy-span-cod</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-restore-cod-signature.html">sd-restore-cod-signature</a> <a href="../Supervisor/sd-translate-offset.html">sd-translate-offset</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../Supervisor/span-propagate-filesystem-cod.html">span-propagate-filesystem-cod</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

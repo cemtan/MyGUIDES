@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>profile-pause</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>profile-pause</h1>
+<p>Pauses profiling until a continue</p>
+<h1>Syntax</h1>
+<pre>profile-pause 
+</pre>
+
+<h1>Description</h1>
+<p>The profile- commands manage the taking and display of program counter sampling profiles. The defaults are marked with an asterisk. Where "thread" is mentioned on this man page this refers to an underlying OS thread and not a BOS fiber.</p>
+<h2>COMMANDS</h2>
+<dl>
+<dt><strong>profile [--all] [--call-graph] [--code-analysis] [--confirm] [--cpu-stats] [--dump separate|combined*] [--filter &lt;filter-reg-exp&gt;] [--instruction-profile] [--no-symbols] [--scheduler-stats] [--selection bos|non-bos|all*] &lt;seconds_to_profile_for&gt;</strong></dt>
+<dd><p>Profiles then dumps results</p></dd>
+<dt><strong>profile-on</strong></dt>
+<dd><p>Clears profiling results and starts profiling</p></dd>
+<dt><strong>profile-off [--all] [--call-graph] [--code-analysis] [--cpu-stats] [--dump separate|combined*] [--filter &lt;filter-reg-exp&gt;] [--instruction-profile] [--no-symbols] [--scheduler-stats] [--selection bos|non-bos|all*]</strong></dt>
+<dd><p>Stops profiling and dumps results</p></dd>
+<dt><strong>profile-pause</strong></dt>
+<dd><p>Pauses profiling until a profile-continue command is issued</p></dd>
+<dt><strong>profile-continue</strong></dt>
+<dd><p>Resumes profiling after a profile-pause command is issued</p></dd>
+<dt><strong>profile-dump [--all] [--call-graph] [--code-analysis] [--cpu-stats] [--dump separate|combined*] [--filter &lt;filter-reg-exp&gt;] [--instruction-profile] [--no-symbols] [--scheduler-stats] [--selection bos|non-bos|all*]</strong></dt>
+<dd><p>Dumps current profiling results</p></dd>
+<dt><strong>profile-clear</strong></dt>
+<dd><p>Clears profiling results</p></dd>
+<dt><strong>profile-status</strong></dt>
+<dd><p>Shows whether profiling is running</p></dd>
+<dt><strong>profile-threads</strong></dt>
+<dd><p>Shows the threads that can be profiled</p></dd>
+</dl>
+<h2>OPTIONS</h2>
+<p>The options are as follows:</p>
+<dl>
+<dt><strong>--all</strong></dt>
+<dd><p>Display the entire profile. By default the lower 20% (constrained by a minimum of 20 lines) is not displayed as this is usually not interesting.</p></dd>
+<dt><strong>--call-graph</strong></dt>
+<dd><p>Resolve the callers of the profiled entries. Beneath each profiled entry will be a table of the callers associated with that entry sorted in order of increasing frequency.</p></dd>
+<dt><strong>--code-analysis</strong></dt>
+<dd><p>Displays additional analysis with respect to the code identified by the profile. This information is intended for use by engineering in order to help optimise code placement.</p></dd>
+<dt><strong>--confirm</strong></dt>
+<dd><p>If requesting a profile length of more than one hour then it needs to be confirmed.</p></dd>
+<dt><strong>--cpu-stats</strong></dt>
+<dd><p>Display the CPU load statistics across the period of the profile. The output is compatible with that which is reported by the Linux "top" command. Refer to the relevant Linux man page for information about the column meanings. Note that if the profile-pause/profile-continue commands have been issued then the collection of CPU load statistics will not be paused during this time.</p></dd>
+<dt><strong>--dump separate|combined*</strong></dt>
+<dd><p>Dump separate profiles for each selected thread or a combined profile for the selected threads. Note that threads for which no samples were collected are always excluded.</p></dd>
+<dt><strong>--filter &lt;filter-reg-exp&gt;</strong></dt>
+<dd><p>Filter the results using the specified regular expression on the name of the thread. This filter is applied after the --selection option. See the profile-threads command for a list of threads. Note that the profiler always collects samples for all threads this only impacts the rendering.</p></dd>
+<dt><strong>--instruction-profile</strong></dt>
+<dd><p>Generate an instruction level profile i.e. do not collect all samples within a function into a single entry. This is a useful option to find expensive instructions such as atomic operations. For a frequently called function by passing the output through grep you can also get a mini-profile of where the time is being spent in the function.</p></dd>
+<dt><strong>--no-symbols</strong></dt>
+<dd><p>Disables symbolic profiling in favour of addresses.</p></dd>
+<dt><strong>--scheduler-stats</strong></dt>
+<dd><p>Display the scheduler statistics across the period of the profile. Note that if the profile-pause/profile-continue commands have been issued then the collection of scheduler statistics will not be paused during this time.</p></dd>
+<dt><strong>--selection bos:non-bos:all*</strong></dt>
+<dd><p>Applied before any --filter option this filters the results according to the thread type. Note that the profiler always collects samples for all threads this only impacts the rendering.</p></dd>
+</dl>
+<h2>NOTES</h2>
+<p>The profiler has a negligible impact on performance. As such the profiler doesn't disrupt normal operation and hence doesn't invalidate the very results that it obtains. The core profiling engine doesn't require or use any locks or atomic instructions and thus doesn't inadvertently serialise the execution of OS threads.</p>
+<p>For each line in the profile there is a report of the percentage of the CPU time spent at the given location; the amount of CPU time spent at the given location and finally the location itself. Note that when using symbolic profiling and without the --instruction-profile option then the location corresponds to the entire function.</p>
+<p>The location can be an address if the --no-symbols option is applied. If not applied then the location will be the address followed by the symbol corresponding to the function. The symbol will be followed by an offset into the function and the size of the function. Unless the option --instruction-profile has been applied the offset is always zero. The address will be the start of the function by default but will be the precise instruction if --instruction-profile has been applied.</p>
+<p>Sometimes with symbolic profiles "symbol not found" may be reported. This is normal and will be augmented with the address. "Sometimes" by attaching GDB to the process and doing "info sym &lt;address&gt;" then GDB may be able to retrieve a symbol.</p>
+<p>The software is always doing something. Familiarity with what it's doing when idle is essential to understanding when it's doing something else. The examples will give you a clue, but experience is useful here.</p>
+<p>On a busy system with multiple CPUs the total CPU time can exceed the duration of the profile. This is normal and correct.</p>
+<p>CPU time spent by other processes will not be reflected in the profiles generated via these commands. Total CPU time consumed may be higher than the profiles suggest. Use the --cpu-stats option to see total CPU load. Use Linux tools such as top, perf and oprofile to find out where the CPU time is going at a system level.</p>
+<p>CPU time spent in the underlying OS kernel will be accounted for on the instruction immediately after or in the function that performs the kernel entry. This can result in some instructions/functions apparently taking a large amount of time.</p>
+<p>A couple of environment variables tailor behaviour of the profiler. If SERVER_PROFILE_ALL is defined it will make all registered threads in the process profileable. By default profiling is disabled for "uninteresting" pthreads in order to save memory. SERVER_PROFILE_BUFFER_ORDER (log2 of the desired buffer size) allows the size of the underlying buffer (which is allocated per thread) in the profiling engine to be adjusted. It defaults to 20 (a 1MiB buffer). A longer buffer may improve accuracy/resolution for long profiles if interested in the very low sample count entries. A shorter buffer will save memory. The default size is a good compromise. These environment variables are not for use in the production environment.</p>
+<p>"profile 10" with some selection of options is the only command you ever want. The other commands are just there to confuse you!</p>
+<h1>Examples</h1>
+<p>This was taken on an idle system:</p>
+<pre>$ profile 10
+Profiling for 10 s...
+Profiling finished.
+ 18.965%,      44 ms ...
+  1.724%,       4 ms          0x6235870 ticker_callback(void*)+0x0/0x85
+  1.724%,       4 ms          0x6235820 ms_timer_tick()+0x0/0x43
+  1.724%,       4 ms          0x622eb20 CurrentTimeBase::tickProtector()+0x0/0x9d
+  1.724%,       4 ms          0x5cf3000 std::ostream&amp; std::pf_num_put&lt;int, char, std::char_traits&lt;char&gt; &gt;(std::ostream&amp;, int, char const*, char, bool)+0x0/0xeb
+  1.724%,       4 ms          0x1c3d640 bool maths::operator&lt;=&lt;unsigned int&gt;(maths::Wrapping&lt;unsigned int&gt; const&amp;, maths::Wrapping&lt;unsigned int&gt; const&amp;)+0x0/0x12
+  1.724%,       4 ms          0x24d6320 gbic::Transceiver::GetVendorName()+0x0/0x2cd
+  1.724%,       4 ms          0x43bc050 bool ChipAssertsInfo::decode_assert_register&lt;HardwareRegister&lt;unsigned int, false&gt; &gt;(ReflectionInfo const&amp;, bool, std::ostream&amp;, std::ostream&amp;, ChipAssertKind, bool&amp;, char const*, unsigned int, HardwareRegister&lt;unsigned int, false&gt;&amp;)+0x0/0xa5a
+  1.724%,       4 ms          0x4733d90 nibtcpm2_assert_decoding_fatal(AssertDecodingStreams&amp;, NibTcpM2Registers*)+0x0/0x22b
+  1.724%,       4 ms          0x476a580 NiccM2RegistersHelper::int_ram_read32(unsigned long)+0x0/0x2b
+  1.724%,       4 ms          0x4790fb0 get_sim2_tach1_bytes_read_last_sec()+0x0/0x4a
+  1.724%,       4 ms          0x50871d0 SizeBasedPools&lt;LongTermSizeBasedPoolPolicy, 64ul&gt;::findPoolByKey(unsigned long)+0x0/0x39d
+  1.724%,       4 ms          0x523c720 asyncwork::Team&lt;net::arp::Dispatcher, RCPtr&lt;net::arp::Task&gt;, asyncwork::AsyncWorkTraits&lt;RCPtr&lt;net::arp::Task&gt; &gt; &gt;::OnTaskStart(RCPtr&lt;net::arp::Task&gt; const&amp;)+0x0/0x6
+  1.724%,       4 ms          0x523cf90 asyncwork::Team&lt;net::arp::Dispatcher, RCPtr&lt;net::arp::Task&gt;, asyncwork::AsyncWorkTraits&lt;RCPtr&lt;net::arp::Task&gt; &gt; &gt;::run()+0x0/0xe5b
+  1.724%,       4 ms          0x581e8e0 another_ms_flies_by(timespec const&amp;)+0x0/0x8b2
+  1.724%,       4 ms          0x5820890 TimerQueue::Poll()+0x0/0xb0
+  1.724%,       4 ms          0x5bbd6d0 alarms::AlarmQueue::run()+0x0/0x133c
+  1.724%,       4 ms          0x5cf2210 std::streambuf::xsputn(char const*, long)+0x0/0xd1
+  3.448%,       8 ms     0x7f8d83aead70 pthread_cond_wait@@GLIBC_2.3.2+0x0/0x1f7
+  5.172%,      12 ms          0x4731d30 NibRxM2RegistersHelper::int_ram_read32(unsigned long)+0x0/0x37
+  5.172%,      12 ms     0x7f8d84047d90 pselect+0x0/0x1f7
+  6.896%,      16 ms     0x7f8d83aeb220 pthread_cond_signal@@GLIBC_2.3.2+0x0/0xa9
+ 10.344%,      24 ms          0x4759960 NibTxM2RegistersHelper::int_ram_read32(unsigned long)+0x0/0x37
+ 10.344%,      24 ms     0x7f8d8401d030 __nanosleep+0x0/0x76
+ 10.344%,      24 ms          0x581fe30 TimerQueue::Cancel(Timer*)+0x0/0x5c
+The profile above is for the following threads:
+thread:SSFSDecoupler   affinity:0xf samples:     2 cpu_time:8 ms
+thread:Farm_1          affinity:0x2 samples:     1 cpu_time:4 ms
+thread:Timer           affinity:0xf samples:     4 cpu_time:16 ms
+thread:Ticker          affinity:0xf samples:    16 cpu_time:64 ms
+thread:BOS_Worker_0    affinity:0x1 samples:    13 cpu_time:52 ms
+thread:BOS_Worker_1    affinity:0x2 samples:     9 cpu_time:36 ms
+thread:BOS_Worker_2    affinity:0x4 samples:     5 cpu_time:20 ms
+thread:BOS_Worker_3    affinity:0x8 samples:     5 cpu_time:20 ms
+thread:ExtInterrupt    affinity:0xf samples:     1 cpu_time:4 ms
+thread:DL_WFS_NETPRILO affinity:0xf samples:     2 cpu_time:8 ms
+</pre>
+<p></p>
+<pre>Total profile time          :10 s
+Total CPU time in profile(s):232 ms
+Total samples in profile(s) :58
+</pre>
+<p></p>
+<p>On the same idle system restrict interest to just the BOS threads and also report the CPU statistics:</p>
+<pre>$ profile --selection bos --cpu-stats 10
+Profiling for 10 s...
+Profiling finished.
+ 19.444%,      28 ms ...
+  2.777%,       4 ms          0x5cfe170 OutputStreamPadding&lt;std::ostream&gt;::outputPadding() const+0x0/0x39
+  2.777%,       4 ms          0x5cf22f0 std::ostream::sentry::sentry(std::ostream&amp;)+0x0/0x51
+  2.777%,       4 ms          0x5bed420 boost_shim::intrusive_ptr_add_ref(boost_shim::RCObject*)+0x0/0xa
+  2.777%,       4 ms          0x59c3ef0 log_sampler::add(int)+0x0/0xda
+  2.777%,       4 ms          0x5847c00 BitFieldRegister::Register::Field::operator unsigned int() const+0x0/0x1b
+  2.777%,       4 ms          0x54b15d0 BoringEvent&lt;GeneralAutomaticEvent&lt;DefaultWaitingQueue&lt;GeneralIntrusiveList&lt;MemberCaster&lt;Waiter&lt;PartiallyGuardedIntrusiveListLink&gt;, Waiter&lt;PartiallyGuardedIntrusiveListLink&gt;, PartiallyGuardedIntrusiveListLink, &amp;(Waiter&lt;PartiallyGuardedIntrusiveListLink&gt;::link)&gt; &gt; &gt; &gt; &gt;::Wait(unsigned long)+0x0/0x7c
+  2.777%,       4 ms          0x5230ef0 wrapped_free+0x0/0x3bf
+  2.777%,       4 ms          0x5060510 HeapPool::Return(void*)+0x0/0xe
+  2.777%,       4 ms          0x4fb3d50 StatisticsProvider::mustBeRegisteredForId(unsigned long) const+0x0/0x11f
+  2.777%,       4 ms          0x479d2f0 SiM2RegistersHelper::pcmem_write32(unsigned long, unsigned int)+0x0/0x31
+  2.777%,       4 ms          0x473fa60 NibTcpM2RegistersHelper::int_ram_read32(unsigned long)+0x0/0x37
+  2.777%,       4 ms          0x4729230 get_nibrxm2_seeq_0_rx_bytes_last_second()+0x0/0x51
+  2.777%,       4 ms          0x41cb960 fsb::net::vlsi::DpvTdpBufferPinger::InitBuffers()+0x0/0x669
+  2.777%,       4 ms          0x24cc4b0 gbic::Transceiver::GetPartNumber_NoSync()+0x0/0xdf
+  2.777%,       4 ms           0x425610 GeneralWaitingQueue&lt;GeneralIntrusiveList&lt;MemberCaster&lt;Waiter&lt;UnguardedIntrusiveListLink&gt;, Waiter&lt;UnguardedIntrusiveListLink&gt;, UnguardedIntrusiveListLink, &amp;(Waiter&lt;UnguardedIntrusiveListLink&gt;::link)&gt; &gt; &gt;::begin()+0x0/0xf
+  5.555%,       8 ms          0x581fe30 TimerQueue::Cancel(Timer*)+0x0/0x5c
+  5.555%,       8 ms          0x5bbd6d0 alarms::AlarmQueue::run()+0x0/0x133c
+  5.555%,       8 ms          0x43bc050 bool ChipAssertsInfo::decode_assert_register&lt;HardwareRegister&lt;unsigned int, false&gt; &gt;(ReflectionInfo const&amp;, bool, std::ostream&amp;, std::ostream&amp;, ChipAssertKind, bool&amp;, char const*, unsigned int, HardwareRegister&lt;unsigned int, false&gt;&amp;)+0x0/0xa5a
+  5.555%,       8 ms     0x7f8d83aead70 pthread_cond_wait@@GLIBC_2.3.2+0x0/0x1f7
+  8.333%,      12 ms          0x4759960 NibTxM2RegistersHelper::int_ram_read32(unsigned long)+0x0/0x37
+  8.333%,      12 ms          0x4731d30 NibRxM2RegistersHelper::int_ram_read32(unsigned long)+0x0/0x37
+The profile above is for the following threads:
+thread:BOS_Worker_0    affinity:0x1 samples:    15 cpu_time:60 ms
+thread:BOS_Worker_1    affinity:0x2 samples:     7 cpu_time:28 ms
+thread:BOS_Worker_2    affinity:0x4 samples:     9 cpu_time:36 ms
+thread:BOS_Worker_3    affinity:0x8 samples:     5 cpu_time:20 ms
+</pre>
+<p></p>
+<pre>Total profile time          :9.999 s
+Total CPU time in profile(s):144 ms
+Total samples in profile(s) :36
+</pre>
+<p></p>
+<pre>Cpu   :  1.2%us,  1.5%sy,  0.0%ni, 96.8%id,  0.3%wa,  0.0%hi,  0.0%si,  0.0%st
+Cpu0  :  1.7%us,  1.7%sy,  0.0%ni, 95.5%id,  1.1%wa,  0.0%hi,  0.0%si,  0.0%st
+Cpu1  :  1.1%us,  1.4%sy,  0.0%ni, 97.0%id,  0.2%wa,  0.0%hi,  0.0%si,  0.0%st
+Cpu2  :  1.3%us,  2.4%sy,  0.0%ni, 96.0%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Cpu3  :  0.5%us,  0.5%sy,  0.0%ni, 98.7%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/profile.html">profile</a> <a href="../Supervisor/profile-clear.html">profile-clear</a> <a href="../Supervisor/profile-continue.html">profile-continue</a> <a href="../Supervisor/profile-dump.html">profile-dump</a> <a href="../Supervisor/profile-off.html">profile-off</a> <a href="../Supervisor/profile-on.html">profile-on</a> <a href="../Supervisor/profile-status.html">profile-status</a> <a href="../Supervisor/profile-threads.html">profile-threads</a> <a href="../Supervisor/scheduler-stats.html">scheduler-stats</a> <a href="../Supervisor/thread-list.html">thread-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

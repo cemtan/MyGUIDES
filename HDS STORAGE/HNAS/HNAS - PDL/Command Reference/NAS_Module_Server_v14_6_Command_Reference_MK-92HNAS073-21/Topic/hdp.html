@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>hdp</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>hdp</h1>
+
+<h1>Description</h1>
+<p>This release supports HDP (Hitachi Dynamic Provisioning), a thin-provisioning layer implemented on Hitachi storage.</p>
+<p>This man page does not describe the process of setting up an HDP pool; it is fully explained in storage user guides.  Instead, we confine ourselves to explaining how HDP and the server are integrated.</p>
+<p>In this release, it is safe to use HDP's thin provisioning: in other words, the DP-Vols on an HDP pool can be larger, in total, than the pool volumes that underlie it.  When a filesystem is created or expanded, the server will first check that the pool has enough space; if it has not, the creation or expansion will either fail safely or be limited, depending on circumstances.  If the server determines that enough space exists, it will pre-allocate as much space as necessary by writing to it pre-emptively.  As a result, neither writing data to a filesystem nor manually expanding it can cause a pool to become full and I/Os to fail.</p>
+<p>HDP thin provisioning (TP) is not the same as file system-level TP, which is described in the 'filesystem-thin' man page and is a mechanism that reports artificially large file system sizes to protocol clients.  A span can contain any combination of thickly and thinly provisioned file systems, regardless of whether it resides on HDP DP-Vols or on plain parity groups, and regardless of whether the span itself is thinly provisioned (i.e. the total DP-Vol capacity exceeds the amount of real storage in the HDP pool).</p>
+<h2>BEST PRACTICES</h2>
+<p>Detailed best practices and procedures for HDP are set out in dedicated HDP sections of the 'span-create', 'span-expand', 'span-delete', 'filesystem-create' and 'filesystem-expand' man pages.</p>
+<p>In general, we recommend creating one span per HDP pool.  This pool should start out thinly provisioned by a factor of two or three to one, because HDP's thin provisioning makes it efficient to expand in small increments later on, using the procedure given in the 'span-expand' man page.</p>
+<p>A newly created span's DP-Vols should be placed into a single stripeset (i.e. they should all be mentioned in a single 'span-create' command or GUI equivalent).</p>
+<p>Do not place multiple spans on one pool.  Unless a span is tiered, do not split it across multiple pools.</p>
+<p>Do not expand DP-Vols.  The server will not use the extra space.  To add capacity to a span, follow the guidelines in the 'span-expand' man page.</p>
+<h2>SPACE RECLAMATION</h2>
+<p>Imagine a span whose DP-Vols total 300TiB, but which has only 80TiB of underlying disk space.  The server can write to any 80TiB of space on the span; if it writes to any more, the pool will overflow and the write operation will fail.  The server can write to any region of the span, but not to all of it.  It detects this condition and safely refuses to create or expand filesystems if it would use more disk space than is available.</p>
+<p>If you later expand the pool by adding 20TiB of pool volumes, the server can now write to 100TiB of the 300TiB span.  It will detect the new space and enable you to use it in new and existing filesystems.</p>
+<p>The storage knows nothing about filesystems.  Suppose that filesystem F resides at the very start of the span, at offsets 0 to 60TiB; you delete and recycle it; you create filesystem G; and the server stores it at offsets 60TiB to 120TiB.  Even though the two filesystems never coexist, and even though the server never stores more than 60TiB of data at any one time, the pool will run out of space and I/O will fail unless the pool has at least 120TiB of pool volumes.</p>
+<p>The server avoids this condition by remembering which chunks (fragments of disk space) were used in <em>filesystem F</em> and reusing them when other filesystems are created or expanded.  This record is called the <strong>vacated-chunks list</strong>, and it is stored in Cod.  Whenever a filesystem is created or expanded, any vacated chunks are always allocated in preference to any other unused chunks.  This system requires no manual management and involves no loss of performance and no delay: recycling one filesystem makes its space instantly available for reuse in other filesystems.</p>
+<p>The vacated-chunks list works well if you have followed best practices and placed only one span on the pool.  On systems where this guideline has been violated, 'span-unmap-vacated-chunks' can be used to unmap vacated chunks -- to return their underlying disk space for reuse elsewhere, perhaps in another span on the same pool.  See that command's man page to understand its disadvantages before deciding to place a second span on an HDP pool.</p>
+<p>To see how many vacated chunks a span has and how much space they occupy, use 'span-vacated-chunks'.  Vacated chunks can also be seen in 'span-list --sds', 'span-list-chunks' and 'span-space-distribution'.</p>
+<h3>Deleting spans and reusing DP-Vols</h3>
+<p>If you delete a span but do not delete its DP-Vols, parts of those DP-vols will remain mapped to real space.  With the destruction of the span, the server will lose its only record of where the mapped space lies.  If you reuse the DP-Vols in another span, the server will detect this condition automatically and reclaim the leaked space by launching an unmapper, as if you had run 'span-unmap-vacated-chunks'.  See the 'span-delete' man page for more details.</p>
+<h2>SPACE INEFFICIENCY</h2>
+<p>The server allocates space in whole chunks at a time.  Where a span resides on plain (non-HDP) storage, the server adjusts chunk boundaries to match the available space on each stripeset, so that very little space is wasted.  On an HDP pool, the span's capacity is not bound by the availability of disk space, and there is no correspondence between the available storage and chunk boundaries.  For example, if a span uses 18GiB chunks and only 10GiB of real storage is left on the pool, that last 10GiB cannot be used until further disk space has been added.  The use of small chunks will minimize this effect.</p>
+<p>In addition, some storage reports each DP-Vol's free space to the server only to the nearest gibibyte.  To avoid running out of real disk space, the server must pessimistically assume that free space is almost 1GiB lower than reported by the storage.  Thus, if an HDP pool has 18GiB chunks and ten DP-Vols, the amount of space that cannot be used may be almost as high as 18GiB + 10 GiB = 28GiB, although it will typically be smaller.  To minimize this effect, use no more DP-Vols than are required to provide enough queue depth for the expected expansion of the HDP pool.</p>
+<h2>HITACHI DYNAMIC TIERING -- HDT</h2>
+<p>This release supports HDT in the same way as HDP.</p>
+<p>HDT tiers are not the same as HNAS tiers.  It is reasonable to create some DP-Vols in one HDT tier and some DP-Vols in another HDT tier and to assign the faster DP-Vols to HNAS Tier 0 and the remainder to HNAS Tier 1.  However, this is not the only valid way to use HNAS and HDT together.  It is also possible (though not recommended) to create DP-Vols in two or more different tiers on a single HDT pool, leave those DP-Vols untiered on HNAS, and create a separate span on the DP-Vols in each HDT tier.</p>
+<p>The DP-Vols in a single HNAS stripeset must always come from the same tier in an HDT pool, or else the higher performance of the fastest DP-Vols will be wasted.  (One stripeset is formed when you create a span, and a further stripeset is added when you expand the span with 'span-expand' or GUI equivalent.  No new stripeset is created when you merely add new parity groups or pool volumes to an HDP or HDT pool.)  If you have chosen not to use HNAS tiering then, for the same reason, all stripesets should use DP-Vols from the same HDT tier.  The server does not enforce these restrictions.</p>
+<p>If one HDT tier fills up, HDT will spill new data on to the other tier.  This Spillage is not under the control of the server, and it is not the same as the spillage that the server performs when one HNAS tier fills up.</p>
+<p>The HDP space reported by 'span-list -s' shows how much space is available on the entire HDP or HDT pool, rather than in the tier that hosts the DP-Vols in the stripeset in question.</p>
+<h2>PROTECTION FROM RUNNING OUT OF SPACE</h2>
+<p>In the default configuration, the server checks for free physical space on an HDP pool whenever you create or expand a filesystem.  If too little space exists, the space-allocation is denied, and the system keeps running normally.</p>
+<p>The 'span-hdp-preallocation' command can disable some of these checks and filesystem auto-expansion on HDP pools, making the administrator responsible for both expanding filesystems when necessary and ensuring that enough physical space exists on underlying DP pools.  This mode of operation resembles other operating systems, which do not auto-expand filesystems and are unaware of HDP and thin provisioning.</p>
+<h2>HOST MODE OPTIONS</h2>
+<p>All Hitachi Enterprise RAID array host ports that contain NAS WWN's must have MMO 68 and 7 enabled. Some SW products such as Hitachi Storage Advisor, Hitachi Command Suite and Hitachi Disaster Recovery Solution will enable these HMO's when used to configure NAS storage pools (HDP pools).</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-delete.html">span-delete</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-expedite-hdp-space-check.html">span-expedite-hdp-space-check</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-hdp-thickly-provisioned.html">span-hdp-thickly-provisioned</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-mapped-space.html">span-mapped-space</a> <a href="../Supervisor/span-space-distribution.html">span-space-distribution</a> <a href="../Supervisor/span-stop-unmapping.html">span-stop-unmapping</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Supervisor/span-vacated-chunks.html">span-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

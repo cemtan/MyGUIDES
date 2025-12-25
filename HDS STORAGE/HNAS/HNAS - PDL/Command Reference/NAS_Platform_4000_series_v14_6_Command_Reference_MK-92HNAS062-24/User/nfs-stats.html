@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nfs-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nfs-stats</h1>
+<p>Report or reset NFS statistics</p>
+<h1>Syntax</h1>
+<pre>nfs-stats [-r|--reset] [-b|--boot] [-v|--version &lt;2|3|4&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Displays counts of the NFS requests that have been received by a server since it was rebooted.  The counts are broken down by NFS version and procedure.</p>
+<p>Usage:</p>
+<pre>nfs-stats [-r] [-b] [-v &lt;2|3|4&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Reset NFS statistics.</p></dd>
+<dt><strong>-b, --boot</strong></dt>
+<dd><p>Show NFS statistics since boot. These values are maintained over a reset of the statistics.</p></dd>
+<dt><strong>-v, --version &lt;version&gt;</strong></dt>
+<dd><p>Shows the statistics for the particular NFS version. The supported version options are 2, 3 and 4.</p></dd>
+<dd><p>If this option is not supplied, statistics for all NFS versions are displayed.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display the NFS request count since boot:</p>
+<pre>nfs-stats -b
+</pre>
+<p></p>
+<p>To display the NFS version 3 request count only:</p>
+<pre>nfs-stats -v 3
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/enhanced-perf-stats.html">enhanced-perf-stats</a> <a href="../User/nfs-export.html">nfs-export</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

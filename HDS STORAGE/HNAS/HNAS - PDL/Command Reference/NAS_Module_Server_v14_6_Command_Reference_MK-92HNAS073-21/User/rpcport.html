@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>rpcport</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>rpcport</h1>
+<p>List/modify the port numbers associated with RPC services.</p>
+<h1>Syntax</h1>
+<pre>rpcport list | set &lt;program number&gt; &lt;port number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Displays the list of RPC-based services and the port numbers that they are available on.  This command also allows the port number for a specified service to be changed - the modified port number will take effect after the next server reboot.  You are strongly advised against changing the port number for the PortMapper service as this will cause standard network clients to fail to operate with the server.  Note changes made using this command are persistent across server reboots.  Any changes to the default port numbers must be done with consideration of the ports being used by other services, including those not listed as RPC services.  An event will be raised in the event log if an RPC service fails to start because the port number assigned to it is already in use.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>rpcport list</strong></dt>
+<dd><p>List the current configuration.</p></dd>
+<dt><strong>rpcport set &lt;program number&gt; &lt;port number&gt;</strong></dt>
+<dd><p>Change the port used by an RPC service. The program number for a particular service can be found using the list option above. To revert to the default specify a port number of 0. Note a reboot will be required for modifications to take effect.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>rpcport list
+RPC            Program    Current Port       Port After
+Service        Number     TCP       UDP      Reboot
+----------     -------   -----     -----     -------
+PortMapper     100000    111       111       111
+NFS            100003    2049      2049      2049
+Mountd         100005    4048      4048      4048
+Rquota         100011    1028      1024      Any
+Lockd          100021    4045      4045      4045
+Statd          100024    4050      4050      4050
+</pre>
+<p></p>
+<pre>rpcport set 100005 4049
+Information: The Mountd service port number has been updated to 4049
+fileprotocol/rpc/rpcport set: Updated successfully.  A reboot will be required for the changes to take effect.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

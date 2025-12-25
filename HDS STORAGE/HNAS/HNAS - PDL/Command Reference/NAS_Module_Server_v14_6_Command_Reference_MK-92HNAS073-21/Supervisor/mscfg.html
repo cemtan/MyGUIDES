@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mscfg</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>mscfg</h1>
+<p>Set management server configuration</p>
+<h1>Syntax</h1>
+<pre>mscfg &lt;server&gt; (listhosts | delall [confirm] | port &lt;port&gt; [confirm] | maxconns &lt;conns&gt; | enable | disable [confirm] | restart | restrict (on [confirm] | off) | evsipaddr (on|off) | addhost &lt;host&gt; | removehost &lt;host&gt;)
+</pre>
+
+<h1>Description</h1>
+<p>The mscfg command configures various parameters for the various management server interfaces to the server.</p>
+<p>Valid servers are:</p>
+<dl>
+<dt><strong>HTTP</strong></dt>
+<dd><p>Remote management (API access)</p></dd>
+<dt><strong>HTTPS</strong></dt>
+<dd><p>Remote management (secure API access)</p></dd>
+<dt><strong>rest</strong></dt>
+<dd><p>Native RestAPI management</p></dd>
+<dt><strong>ssc</strong></dt>
+<dd><p>Command line (CLI)</p></dd>
+<dt><strong>vss</strong></dt>
+<dd><p>VSS hardware provider DLL connection</p></dd>
+</dl>
+<p>Options for setting up a restricted list of clients allowed to access each server are</p>
+<dl>
+<dt><strong>listhosts</strong></dt>
+<dd><p>List the authorized hosts (default option)</p></dd>
+<dt><strong>addhost &lt;host&gt;</strong></dt>
+<dd><p>Add a host to the list of authorized hosts.  The host can be in any of the following formats:</p></dd>
+<ul>
+<li>An IPv4 address in dot notation (e.g. 203.0.113.0)</li>
+<li>An IPv4 address range in CIDR notation (e.g. 203.0.133.0/24)</li>
+<li>An IPv4 address range in wildcard notation (e.g. 203.0.133.*)</li>
+<li>An IPv6 address in colon notation (e.g. 2001:db8:fe58:3efa:deca:212::c0a9)</li>
+<li>An IPv6 address range in prefix-length notation (e.g. 2001:db8::/32)</li>
+<li>A hostname</li>
+</ul>
+<dt><strong>removehost &lt;host&gt;</strong></dt>
+<dd><p>Remove a host from the list of authorized hosts</p></dd>
+<dt><strong>delall [confirm]</strong></dt>
+<dd><p>Delete all authorized hosts. If the "confirm" argument is not given then the user is prompted to confirm the action before any changes are made.</p></dd>
+<dt><strong>restrict (on [confirm]|off)</strong></dt>
+<dd><p>Enable or disable restriction of the named server to authorized hosts. If restriction is being turned on for the HTTPS or SSC server and the "confirm" argument is not given then the user is prompted to confirm the action before any changes are made.</p></dd>
+<dt><strong>evsipaddr (on|off)</strong></dt>
+<dd><p>Allow / disallow use of EVS IP addresses by server. This will be disabled and have no effect if multi-tenancy is enabled.</p></dd>
+</dl>
+<p>Other options:</p>
+<dl>
+<dt><strong>port &lt;portno&gt; [confirm]</strong></dt>
+<dd><p>Configuring the HTTPS port is not supported on this platform.</p></dd>
+<dt><strong>maxconns &lt;number&gt;</strong></dt>
+<dd><p>Specify the maximum number of connections to the named server</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable the named server</p></dd>
+<dt><strong>disable [confirm]</strong></dt>
+<dd><p>Disable the named server. If the HTTPS or SSC server is being disabled and the "confirm" argument is not given then the user is prompted to confirm the action before any changes are made.</p></dd>
+<dt><strong>restart</strong></dt>
+<dd><p>Stops the server and then starts it again.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Disable the SSC management server (the "confirm" argument is not given so the user will have to press "y" when prompted to confirm the action):</p>
+<pre>mscfg ssc disable
+</pre>
+<p></p>
+<p>List the hosts allowed to talk to the SSC server:</p>
+<pre>mscfg ssc listhosts
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/msstats.html">msstats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

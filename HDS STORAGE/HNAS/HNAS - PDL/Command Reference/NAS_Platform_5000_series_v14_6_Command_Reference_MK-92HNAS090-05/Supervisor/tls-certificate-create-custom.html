@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tls-certificate-create-custom</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>tls-certificate-create-custom</h1>
+<p>Create a new certificate and private key using the supplied values</p>
+<h1>Syntax</h1>
+<pre>tls-certificate-create-custom [--key-validity &lt;key-validity&gt;] [--key-size &lt;key-size&gt;] [--organizational-unit &lt;organizational-unit&gt;] [--organization &lt;organization&gt;] [--location &lt;location&gt;] [--state &lt;state&gt;] [--country &lt;country&gt;] [--hostname &lt;hostname&gt;] [--confirm]
+</pre>
+
+<h1>Description</h1>
+<p>The tls-certificate-create-custom command is used to create a custom self-signed certificate and private key pair. It will remove <em>all</em> existing certificates and trust chains installed.</p>
+<h2>Warning:</h2>
+<p>Running <strong>tls-certificate-create-custom</strong> will <em>automatically</em> cause the HTTPS server used for server management to restart. Any clients currently connected to it <em>will lose their connection</em> and will need to reconnect.</p>
+<p>This forces clients to connect using the new SSL/TLS certificate.</p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>--help</strong></dt>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Specify this to confirm that you want changes to be made. If you do not specify it, no new SSL/TLS certificate will be created or installed.</p></dd>
+<dt><strong>--key-validity, -v</strong></dt>
+<dd><p>How many days the certificate will be valid for. Note the validity start date will be 1 day prior to the creation date to allow for date/time discrepancies.</p></dd>
+<dt><strong>--key-size, -k</strong></dt>
+<dd><p>The size of the private key. 2048 is the default and recommended value.</p></dd>
+<dt><strong>--organizational-unit, -u</strong></dt>
+<dt><strong>--organization, -o</strong></dt>
+<dt><strong>--location, -l</strong></dt>
+<dt><strong>--state, -s</strong></dt>
+<dt><strong>--country, -c</strong></dt>
+<dt><strong>--hostname, -r</strong></dt>
+<dd><p>Allows specifying the hostname you wish to generate a certificate for. It is recommended to not specify this value as the default will be the fully qualified domain name of the machine it is run on.</p></dd>
+</dl>
+<h1>Examples</h1>
+<dl>
+<dt><strong><strong>tls-certificate-create-custom</strong> --confirm</strong></dt>
+<dd><p>Create a new certificate and private key with the default values.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/tls-certificate-generate-csr.html">tls-certificate-generate-csr</a> <a href="../Supervisor/tls-certificate-import-signed.html">tls-certificate-import-signed</a> <a href="../Supervisor/tls-certificate-import-trust-chain.html">tls-certificate-import-trust-chain</a> <a href="../Supervisor/tls-certificate-show.html">tls-certificate-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

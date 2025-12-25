@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>read-cache-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>read-cache-stats</h1>
+<p>Displays the read cache statistics for the current cluster node</p>
+<h1>Syntax</h1>
+<pre>read-cache-stats [--reset]
+</pre>
+
+<h1>Description</h1>
+<p>Reports on statistics for the read-caching feature for the cluster node on which the command is run.</p>
+<p>Usage:</p>
+<pre>read-cache-stats [--reset]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Reset the statistics.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>        mercury(MMB):$ read-cache-stats
+        Cached file statistics
+        ----------------------
+</pre>
+<p></p>
+<pre>        Last statistics reset time : 2011-12-02 15:04:57+00:00
+</pre>
+<p></p>
+<pre>        Notification generation
+        -----------------------
+</pre>
+<p></p>
+<p>The number of files read, which were not considered for read caching (see the read-cache-settings man page for options that control what's considered "too big" and "not stable"):</p>
+<pre>               201 Read Cache: notifications not sent due to backlog (#)
+                 5 Read Cache: files rejected, named streams (#)
+                 5 Read Cache: files rejected, too big (#)
+              1000 Read Cache: files rejected, not stable  (#)
+</pre>
+<p></p>
+<p>The number of files read, which are suitable for read caching.  A notification is sent to the node that received the read request:</p>
+<pre>               905 Read Cache: candidate files encountered (#)
+</pre>
+<p></p>
+<pre>        Notification processing
+        -----------------------
+               629 Read Cache: notifications not processed due to backlog (#)
+               276 Read Cache: candidate file notifications processed(#)
+</pre>
+<p></p>
+<p>The number of notifications received that resulted in a file being copied into this node's read cache (N.B. not how many files are currently cached):</p>
+<pre>               276 Read Cache: successfully cached files (#)
+</pre>
+<p></p>
+<pre>        Cache flushing
+        --------------
+</pre>
+<p></p>
+<p>The number of times and reasons why files have been flushed from the read cache:</p>
+<pre>                 0 Read Cache: flushes due to active set limit (#)
+                 0 Read Cache: flushes to reclaim space (#)
+                 0 Read Cache: flushes aborted, candidate file still active (#)
+</pre>
+<p></p>
+<pre>        Timings
+        -------
+</pre>
+<p></p>
+<p>How long it's taking to read-lock files before they're copied into the read cache:</p>
+<pre>        Obtaining lock to cache file:
+         Samples=     276  Total=    1.74 s  Min=  3 ms  Av=  6 ms  Max=183 ms
+         Last reset 25.9 min ago
+</pre>
+<p></p>
+<pre>               175|  #
+                87|  #
+                43|  ##
+                21|  ##
+                10|  ###
+                 5|  ###
+                 2|  ### ##
+                 1|  #######
+                  +--------------------------------
+                   |   |   |   |   |   |   |   |
+                  1ms  16 256m 4s 65s    1h  1d
+</pre>
+<p></p>
+<p>How long it's taking to copy files into the read cache:</p>
+<pre>        Obtaining copy of file:
+         Samples=     276  Total=  3.69 min  Min= 13 ms  Av=801 ms  Max=9.31 s
+         Last reset 25.9 min ago
+</pre>
+<p></p>
+<pre>               124|     #
+                62|     #     #
+                31|    ##     #
+                15|    ##     #
+                 7|    ##     #
+                 3|    ##     ###
+                 1|    ## ##  ####
+                  +--------------------------------
+                   |   |   |   |   |   |   |   |
+                  1ms  16 256m 4s 65s    1h  1d
+</pre>
+<p></p>
+<p>How long files remain in the read cache:</p>
+<pre>        Cached file lifetime:
+         Samples=     100  Total=    37.0 h  Min=19.9 min  Av=22.2 min  Max=24.5 min
+         Last reset 25.9 min ago
+</pre>
+<p></p>
+<pre>               100|                     #
+                50|                     #
+                25|                     #
+                12|                     #
+                 6|                     #
+                 3|                     #
+                 1|                     #
+                  +--------------------------------
+                   |   |   |   |   |   |   |   |
+                  1ms  16 256m 4s 65s    1h  1d
+</pre>
+<p></p>
+<p>The number of files kicked out of the read cache on each flush:</p>
+<pre>        Files kicked out on each cache flush
+        ------------------------------------
+         (no samples)
+         Last reset 22.6 min ago
+</pre>
+<p></p>
+<p>The size of files in the read cache:</p>
+<pre>        Cached file size
+        ----------------
+         Samples=     276  Total=12.7 GB (13631489700 B)  Min=  10 B  Av=47.1 MB (49389455 B)  Max=500 MB (524288000 B)
+         Last reset 25.9 min ago
+</pre>
+<p></p>
+<pre>               170|#
+                85|#               #
+                42|#               #
+                21|#               #
+                10|#               #
+                 5|#               # #
+                 2|#               # #
+                 1|#               # #
+                  +--------------------------------
+                   |   |   |   |   |   |   |   |
+                  1KB 16 256  4MB 64  1GB 16 256
+</pre>
+<p></p>
+<p>Stats about the read cache (including the number of files currently cached):</p>
+<pre>        Read cache file system
+        ----------------------
+        Name : ReadCacheFS
+        Current capacity : 115 GB (123278983168 B)
+              Free space : 99.2 GB (106557005824 B)
+</pre>
+<p></p>
+<pre>        Current number of active read-cached files : 176
+        Maximum number of active read-cached files : 250000
+</pre>
+<p></p>
+<p>Stats about file systems from which files are being read cached:</p>
+<pre>        Cached file system
+        ------------------
+        Name : SataFS
+                                  Number of files read-cached : 176
+          Approximate space consumed in read-cache filesystem : 2.93 GB (3145729700 B)
+                                         Read cache hit count : 60812
+                                        Read cache miss count : 276
+                                  Read cache comparison count : 60812
+</pre>
+<p></p>
+<p>Stats about the VLSI acceleration of read caching:</p>
+<pre>        VLSI statistics
+        ---------------
+            798575 Current free spaces in the general table (#)
+            249824 Current free spaces in the handle substitution table (#)
+             60712 Handle substitution table hits (#)
+            111688 Handle substitution table misses (#)
+</pre>
+<p></p>
+<pre>        Lookups in handle substitution table enabled: yes
+        Head of VLSI handle substitution table LRU list:
+          access count=0, access time=2011-12-02 15:23:25+00:00
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

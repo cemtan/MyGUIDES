@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>file-clone-declone</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>file-clone-declone</h1>
+<p>Declone a file&#39;s unnamed stream.</p>
+<h1>Syntax</h1>
+<pre>file-clone-declone [-f &lt;file-system&gt;] &lt;clone&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Takes a cloned file and removes the dependency on its Snapshot File object, turning it into a normal file.  This involves copying data in shared blocks into new unshared blocks.</p>
+<p>A de-cloning task completes asynchronously, so users should consult the event log to discover its result.  A de-cloning task will be aborted if the file it's operating on is re-cloned or its file system is unmounted.</p>
+<p>Currently only one file can be de-cloned at a time.</p>
+<p>De-cloning is not compatible with object-based snapshots.</p>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>The file system to work on.  The currently selected file system is used if this option is not specified.</p></dd>
+<dt><strong>&lt;clone&gt;</strong></dt>
+<dd><p>The path of the file to declone.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To declone /tmp/file-clone</p>
+<pre>$ file-clone-declone /tmp/file-clone
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Topic/file-clone.html">file-clone</a> <a href="../Supervisor/file-clone-report-block-sharing.html">file-clone-report-block-sharing</a> <a href="../Topic/snapshots.html">snapshots</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

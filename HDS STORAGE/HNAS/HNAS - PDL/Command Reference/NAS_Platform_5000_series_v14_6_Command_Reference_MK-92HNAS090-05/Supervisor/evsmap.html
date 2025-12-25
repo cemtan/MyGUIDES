@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>evsmap</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>evsmap</h1>
+<p>EVS/Cluster node map management</p>
+<h1>Syntax</h1>
+<pre>evsmap show | set -e &lt;evs-specifier&gt; -n &lt;node-id&gt; | clear -e &lt;evs-specifier&gt; | save | restore | balance [-c | --confirm] | autofb [on|off]
+</pre>
+
+<h1>Description</h1>
+<p>List and manage the preferred mapping of EVSs in a cluster to provide optimal load balancing.</p>
+<p>The preferred mapping of EVSs to cluster nodes is a user configured mapping. If the user has not set a preference for a given EVS it will not have a preferred mapping and the show option will not display it.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>show</strong></dt>
+<dd><p>Display the current EVS to Cluster Node preferred mapping.</p></dd>
+<dt><strong>set -e &lt;evs-specifier&gt; -n &lt;node-id&gt;</strong></dt>
+<dd><p>Set the preferred cluster node mapping for the specified EVS.</p></dd>
+<dt><strong>clear -e &lt;evs-specifier&gt;</strong></dt>
+<dd><p>Clear the preferred cluster node mapping for the specified EVS.</p></dd>
+<dt><strong>save</strong></dt>
+<dd><p>Save the current EVS Cluster Node locations as the preferred mapping.</p></dd>
+<dt><strong>restore [-c | --confirm]</strong></dt>
+<dd><p>Move all EVSs to the Cluster Nodes indicated by the preferred mapping.</p></dd>
+<dt><strong>balance [-c | --confirm]</strong></dt>
+<dd><p>Distribute all running EVSs to the Cluster Nodes to achieve the optimal load balance.</p></dd>
+<dt><strong>autofb [on|off]</strong></dt>
+<dd><p>Enable/Disable automatic failback to preferred EVS mapping. If Enabled, the EVSs that were migrated to a working node will be migrated back automatically to the recovered node as per the EVS mapping, resulting in a short unplanned EVS down time.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ evsmap show
+</pre>
+<p></p>
+<pre>Cluster Node Id     EVS Id
+---------------     ------
+       1               2
+       2               1
+</pre>
+<p></p>
+<pre>server:$ evsmap restore
+Warning: Restoring the File Services Virtual Node map will
+disrupt File System services to any existing clients.
+Do you want to proceed?(Y/N)[N]:
+y
+Information: Cluster: Node ID 2 has taken EVS EVS01(ID=1) offline.
+Information: Cluster: Node ID 2 has taken EVS EVS01(ID=1) online.
+Information: File System: file system unmounted (fstest)
+Information: Cluster: Node ID 2 has taken EVS EVS02(ID=2) offline.
+Information: Cluster: Node ID 2 has put EVS EVS02(ID=2) online on Node ID 1.
+</pre>
+<p></p>
+<pre>server:$ evsmap autofb
+Automatic evsmap failback is off
+</pre>
+<p></p>
+<pre>server:$ evsmap autofb on
+Enabled automatic evsmap failback
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../User/evs.html">evs</a> <a href="../Topic/evs-specifier.html">evs-specifier</a> <a href="../Supervisor/evsfs.html">evsfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

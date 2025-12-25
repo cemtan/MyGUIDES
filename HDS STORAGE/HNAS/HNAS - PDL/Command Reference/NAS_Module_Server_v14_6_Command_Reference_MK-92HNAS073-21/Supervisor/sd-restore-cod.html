@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-restore-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-restore-cod</h1>
+<p>Write saved span config back to a single system drive</p>
+<h1>Syntax</h1>
+<pre>sd-restore-cod [--ssfs] [--denied] [--fscod] [--spancod] &lt;filename&gt; &lt;SD-device-ID&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Restores a single-SD Cod backup (an SDC) made by the 'sd-back-up-cod' command.  Cod backups are described in the 'cod' man page.</p>
+<p>Specify --spancod or -s if you wish to write the span Cod to the SD; specify --fscod or -f if you wish to write the filesystem Cod (the filesystem catalogue and the chunk table).  You must specify at least one of these switches; you can, if you wish, specify both.</p>
+<p>Before restoring filesystem Cod, see the warnings in the 'cod' man page about filesystem expansion.  If a filesystem has been expanded since the Cod-backup was made, restoring filesystem Cod will corrupt that filesystem; you may be able to recover using 'filesystem-replay-expansions'.</p>
+<p>'sd-restore-cod' will prevent you from writing Cod back to the wrong SD.  If you are logged on as Dev, you can override this constraint by specifying --othersd.  This may possibly be useful if SD Luids have changed.</p>
+<p>If you're using ssc, the file is read from the ssc filesystem (i.e. on the computer running the ssc client); you can choose to read it from the server's SSFS file system instead by providing the --ssfs or -F switch.  In all other environments the file is always read from the SSFS file system.</p>
+<p>If the file is read from SSFS, it is, by default, read from the cluster node where the command is run.  To read it from another server's SSFS file system, use the syntax detailed in the 'ssfs' man page.</p>
+<p>Specifying the --denied switch lets you restore Cod on to an SD to which access has been denied.  In combination with 'sd-back-up-cod' and the Cod converter, this lets you modify the Cod on an SD before allowing access to the SD and loading the Cod into memory.</p>
+<p>This command does not restore backups created by the 'span-back-up-cod' command.  Use 'span-restore-cod' for that.</p>
+<h1>Examples</h1>
+<pre>sd-restore-cod --spancod zero.sdc 0
+sd-restore-cod --fscod --ssfs zero.sdc 0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/cod-backup-dump.html">cod-backup-dump</a> <a href="../Supervisor/cod-backup-list.html">cod-backup-list</a> <a href="../Supervisor/filesystem-replay-expansions.html">filesystem-replay-expansions</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-back-up-cod.html">sd-back-up-cod</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-list-filesystem-cod.html">span-list-filesystem-cod</a> <a href="../Supervisor/span-propagate-filesystem-cod.html">span-propagate-filesystem-cod</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a> <a href="../Topic/ssfs.html">ssfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

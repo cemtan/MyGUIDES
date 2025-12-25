@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>storage-request-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>storage-request-stats</h1>
+<p>Show storage request stats</p>
+<h1>Syntax</h1>
+<pre>storage-request-stats [-r]
+</pre>
+
+<h1>Description</h1>
+<p>This command is used to display or reset statistics on I/O requests processed by the HNAS storage interface layer fast path.</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>reset statistics</p></dd>
+</dl>
+<h2>Description of output</h2>
+<dl>
+<dt><strong>Total Requests &amp; Responses</strong></dt>
+<dd><p>These figures relate to requests issued to the storage interface layer from higher-level code - mainly the file system layer.</p></dd>
+<dt><strong>I/O Requests</strong></dt>
+<dd><p>This section gives the numbers of fast-path SCSI I/O commands sent from the server to the storage. A response will not be counted for a command that times out or whose reponse has to be handled on the slow path. This will therefore create a discrepancy between the request and response counts that persists even when there are no requests in flight.</p></dd>
+<dt><strong>Cache</strong></dt>
+<dd><p>Hit and miss statistics for the sector cache. These relate to 32K cache buffers, but a hit is only recorded if all the blocks needed for a request are present in the buffer.</p></dd>
+<dt><strong>I/O Status Counters</strong></dt>
+<dd><p>The number of requests to the storage (fast-path only) that have been failed, after exhausting all retries; and the number of retries. For more detailed information on the types of errors occurring, see scsi-io-errors.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ storage-request-stats
+Last reset: 2015-11-26 13:30:47+00:00
+</pre>
+<p></p>
+<pre>Total Requests &amp; Responses
+  Requests:            13043641505    Responses:           13043641505
+I/O Requests
+ Disk Reads                          Disk Writes
+  Total Requests:        267816549    Total Requests:        336743930
+  Total Responses:       267816533    Total Responses:       336743822
+ Tape Reads                          Tape Writes
+  Total Requests:                0    Total Requests:                0
+  Total Responses:               0    Total Responses:               0
+Cache
+  Hits:                 4706748667    Misses:               7995960067
+I/O Status Counters
+  Failed:                        0    Resubmitted:                   0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-io-errors.html">scsi-io-errors</a> <a href="../User/storage-throughput-stats.html">storage-throughput-stats</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

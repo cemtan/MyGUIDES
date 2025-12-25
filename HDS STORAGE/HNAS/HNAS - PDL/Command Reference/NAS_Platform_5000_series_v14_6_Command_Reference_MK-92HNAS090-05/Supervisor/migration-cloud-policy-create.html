@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud-policy-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>migration-cloud-policy-create</h1>
+<p>Create an external cloud migration policy</p>
+<h1>Syntax</h1>
+<pre>migration-cloud-policy-create &lt;policy-name&gt; --source-fs-label &lt;source-fs-label&gt; --external-path &lt;external-path&gt; --rule:threshold &lt;rule:threshold&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Creates a cloud migration policy.</p>
+<dl>
+<dt><strong>&lt;policy-name&gt;</strong></dt>
+<dd><p>Name of policy to create. May be up to 255 ASCII characters long. The characters ;:/\'"&lt;&gt;*?| and a space character are not allowed.</p></dd>
+<dt><strong>--source-fs-label, -s &lt;source-fs-label&gt;</strong></dt>
+<dd><p>Name of file system on which to apply policy.</p></dd>
+<dt><strong>--external-path, -p &lt;external-path&gt;</strong></dt>
+<dd><p>Name of file system's external path on which to apply policy. This external path must have been previously created with the migration-add-external-path command.</p></dd>
+<dt><strong>--rule:threshold, -r &lt;rule:threshold&gt;</strong></dt>
+<dd><p>Name of rule to associate with policy. The rule must have been previously created with migration-cloud-rule-create command. The threshold specifies the percentage free space on the file system for the policy to take effect.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-cloud-policy-create DefaultPolicy --source-fs-label fs0 --external-path amazon --rule:threshold jpg:20
+</pre>
+<p></p>
+<p>Creates a policy called DefaultPolicy in which files will be migrated from filesystem fs0 matching the criteria in rule 'jpg' if free space drops below 20%.</p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a> <a href="../Supervisor/migration-cloud-policy-delete.html">migration-cloud-policy-delete</a> <a href="../Supervisor/migration-cloud-policy-list.html">migration-cloud-policy-list</a> <a href="../Supervisor/migration-cloud-policy-modify.html">migration-cloud-policy-modify</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

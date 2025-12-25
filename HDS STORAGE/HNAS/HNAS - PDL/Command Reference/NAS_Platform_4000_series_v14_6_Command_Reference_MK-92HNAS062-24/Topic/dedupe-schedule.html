@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dedupe-schedule</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>dedupe-schedule</h1>
+
+<h1>Description</h1>
+<p>This is an overview of the dedupe-schedule-* set of commands.</p>
+<h2>DEDUPE SCHEDULER</h2>
+<p>The dedupe scheduler allows users to define a schedule to run the 'dedupe-service' command at specific dates and times. This feature is currently available to users with DEV privilege only.</p>
+<p>Once users have used the dedupe-scheduler-* commands to set up 'dedupe-service' tasks, they must abandon using the dedupe-service command for the following reasons:</p>
+<p>a. If they run the dedupe-service command directly, they interfere with the dedupe schedule and the actual dedupe status is unpredictable.</p>
+<p>b. If they set up 'dedupe-service' cron jobs manually, these jobs will not persist. Their jobs will be removed whenever the scheduler adds a new task or deletes an old task. For more information, see the relevant man pages listed at the end of this page.</p>
+<p>Thus, in general, users must avoid using the dedupe-service command if they decide to use the dedupe scheduler. The scheduler provides all commands to add/delete/list tasks in the schedule while making sure that no one can add conflicting tasks to the schedule.</p>
+<h3>Introduction</h3>
+<p>Some terminologies used in the scheduler are in order. State or status is used interchangeably to mean dedupe service status. The act of starting or stopping the dedupe service constitutes an action. An action to start/stop the dedupe service at a given date and time is also known as an event. Two events are compatible if they both have identical action. In general, for the scheduler to work correctly no two events can occur at the same time. A task is simply a number of actions grouped together to achieve a certain objective.  There are many kinds of tasks.</p>
+<p>A task can consist of a single event.  The only responsibility of an event is to trigger a state change at a specified point in time. It does not have an obligation to maintain the status for any period either before or after the event time.  For instance,</p>
+<pre>    Task 1: Monday: Disable dedupe at 08:00
+</pre>
+<p></p>
+<p>A task can maintain the status for a period of time. It has no authority over the status outside the period. For instance,</p>
+<pre>    Task 2: Monday: Dedupe disabled from 08:00 to 20:00
+</pre>
+<p></p>
+<p>To support this status the task must contain two actions: turn off dedupe at the start and turn on dedupe at the end of the period. In addition, its mission is not to allow extra events, even if compatible, to occur within the period because the task is supposed to take exclusive control of the specified period.</p>
+<p>Another kind of task is called a full-day task, also known as a day schedule, which is a collection of events that has a mandate to maintain a certain pattern of states for an entire day. For example,</p>
+<pre>    Task 3: Monday: dedupe disabled from 08:00-12:00, 13:00-18:00, and enabled for the rest of the day.
+</pre>
+<p></p>
+<p>To this end the task must launch a cron job at the start of each time segment to trigger the desired status:</p>
+<pre>      - Run 'dedupe-service --start' at 00:00 Monday
+      - Run 'dedupe-service --stop' at 08:00 Monday
+      - Run 'dedupe-service --start' at 12:00 Monday
+      - Run 'dedupe-service --stop' at 13:00 Monday
+      - Run 'dedupe-service --start' at 18:00 Monday
+</pre>
+<p></p>
+<p>In addition, it must check the entire Monday to make sure it has no other events.</p>
+<h3>Scheduling Support</h3>
+<p>In principle, a full-day task can set up an arbitrary number of states in the day. But those that have at most three states are common for business. For instance,</p>
+<pre>    Weekday:  dedupe disabled from 08:00-20:00 and enabled for the rest of the day
+    Weekend:  dedupe enabled from 00:00-24:00
+</pre>
+<p></p>
+<p>These full-day tasks have at most three events in a day, each of which is triggered at the start of a time segment as shown graphically below:</p>
+<pre>     Event 1            Event 2               Event 3
+     00:00            start time              end time              24:00
+       |                   |                     |                    |
+       [-------------------+---------------------+--------------------]
+         (opposite status)   (enabled/disabled)    (opposite status)
+</pre>
+<p></p>
+<p>Because such full-day tasks are commonly encountered, they merit separate support to make it simple for most users to use. This support is called a full day scheduler, which is also referred to as simple scheduling.</p>
+<p>When the schedule does not follow the full-day pattern above, users need to build a schedule by putting together individual events, each of which can be considered a separate task. This is called event-based scheduling, which is also known as advanced scheduling because of its rich features.</p>
+<p>In short, only two methods of scheduling are supported. They are discussed next.</p>
+<h2>Full Day Scheduling</h2>
+<p>Full day scheduling allows users to set up a full-day task for one or more days of the week where each task guarantees that the dedupe service has the same status for one and only one continuous period of time and an opposite status in the remaining times. Thus its main purpose is to support the following weekly schedule:</p>
+<pre>                        Table 1. Weekday/Weekend Schedule
+  +---------------------------------------------------------------------------+
+  | Task  Day Range       Action             From      To      Other times    |
+  | ----  ---------  ---------------------  -------  -------  --------------- |
+  |  1    Monday     [none/disable/enable]  [hh:mm]  [hh:mm]  opposite status |
+  |  2    Tuesday    [none/disable/enable]  [hh:mm]  [hh:mm]  opposite status |
+  |  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  |
+  |  6    Saturday   [none/disable/enable]  [hh:mm]  [hh:mm]  opposite status |
+  |  7    Sunday     [none/disable/enable]  [hh:mm]  [hh:mm]  opposite status |
+  +---------------------------------------------------------------------------+
+</pre>
+<p></p>
+<p>A full day task can be set up with the following command:</p>
+<pre>  dedupe-schedule-set enable|disable -w|--weekday &lt;weekdayNameList&gt; [-s|--start &lt;hh:mm&gt;] [-e|--end &lt;hh:mm&gt;]
+</pre>
+<p></p>
+<p>Note that the command is responsible for defining and maintaining the dedupe status for the entire day.  To make sure the status is not affected by changes initiated in the preceding day, the task has to launch an appropriate cron job at the start of its day.</p>
+<p>By design, a full-day task occupies the entire day, leaving no room for extra events. Adding another event will destroy the status pattern that the full-day task is supposed to maintain for the whole day. Consequently,</p>
+<pre>   - One cannot add two full-day tasks into the same day
+   - One can reset/replace a full-day task, hence the command name 'dedupe-schedule-set'.
+</pre>
+<p></p>
+<h2>Event-Based Scheduling</h2>
+<p>Event-based, or advanced, scheduling allows users to set up single-event tasks in the schedule. Because of this constraint, a task in event-based scheduling is synonymous with an event. Each task is responsible for changing the dedupe service status at a single point of time and does not have an obligation to maintain the status over any time interval either before or after the specified time.</p>
+<p>Consequently, it has no authority to dictate what other tasks do at their own time slots. Because of this, one can add multiple tasks to the schedule as long as they do not overlap with each other. An example is shown in Table 2.</p>
+<pre>           Table 2. Advanced Schedule
+   +-----------------------------------------------------+
+   | Task ID  Months   Days   Weekdays  Action   Start   |
+   | --------  ------  ------  --------  -------  -----  |
+   |     1                     Mon-Fri   Enable   00:00  |
+   |     2                     Mon-Fri   Disable  08:00  |
+   |     3                     Mon-Fri   Enable   19:00  |
+   |     4                     Sat-Sun   Enable   00:00  |
+   |     5     12      25-31             Enable   08:01  |
+   |     6      1        1               Enable   08:01  |
+   |     7      5      25-31   Mon       Enable   08:01  |
+   |     8      7        4               Enable   08:01  |
+   |     9      9       1-7    Mon       Enable   08:01  |
+   |    10     11      22-28   Thu,Fri   Enable   08:01  |
+   |    ...    ...    ...      ...       ...      ...    |
+   +-----------------------------------------------------+
+</pre>
+<p></p>
+<p>The table above accomplishes the following:</p>
+<pre>   - Effectively turn off dedupe only on Mon-Fri from 08:00 to 19:00
+   - Effectively turn on dedupe on Sat-Sun for the entire day
+   - In addition, turn on dedupe on these special days:
+     Christmas to New Year, last Monday of May, July 4,
+     1st Monday of September, 4th Thu-Fri of November.
+</pre>
+<p></p>
+<p>If both the 'days' and 'weekdays' columns are specified (e.g. tasks 7, 9, 10), the task is carried out only on the days that match both specifications. Note that tasks 5 through 10 are deliberately chosen to start at 8:01 to undo the action of task 2 at 8:00.</p>
+<p>The following CLI supports adding a new single event to the advanced schedule. It requires users with developer (DEV) privilege:</p>
+<pre>   dedupe-schedule-advanced-add enable|disable [-s|--start &lt;hh:mm&gt;]
+         [-d|--day &lt;dayofmonthList&gt;]
+         [-w|--weekday &lt;weekdayNameList&gt;]
+         [-m|--monthly &lt;monthList&gt;]
+</pre>
+<p></p>
+<p>The command will report a conflict if the new event is conflicting with an existing event in the schedule.</p>
+<h3>Mixed Scheduling</h3>
+<p>Conceptually, the dedupe schedule is a calendar where one can add tasks using the simple or advanced scheduling CLI mentioned above. But users are discouraged from mixing simple and advanced scheduling together because they usually give rise to conflicts.  Consider the following example.</p>
+<pre>           Table 3. Mixed Schedule With Conflicts
+   +-----------------------------------------------------------+
+   | Task ID  Months   Days    Weekdays  Action   Start  End   |
+   | --------  ------  ------  --------  -------  -----  ----- |
+   |     1                     Mon-Fri   Disable  08:00  17:00 |
+   |     2                     Sat-Sun   Enable   00:00  24:00 |
+   |     3       7       4               Enable   00:00        |
+   +-----------------------------------------------------------+
+</pre>
+<p></p>
+<p>Note that the 'dedupe-schedule-list' command displays task 1 as a set of 5 tasks, one for each day of Mon-Fri, and task 2 as a set of 2 tasks for Saturday and Sunday. However, these tasks are lumped together for convenience in the following discussion.</p>
+<p>The intention is to enable dedupe all weekends throughout the year and all day long on July 4. But if July 4 falls into a weekday, the actual tasks that happen on July 4 are as follows:</p>
+<pre>      a. At 00:00 enable dedupe   (task 3)
+      b. At 00:00 enable dedupe   (dictated by task 1)
+      c. At 08:00 disable dedupe  (dictated by task 1)
+      d. At 17:00 enable dedupe   (dictated by task 1)
+</pre>
+<p></p>
+<p>Note the occurrences (a) and (b) are concurrent but cause no harm because the actions are compatible. But (c) disables dedupe against our intention for July 4.</p>
+<p>In general, for each day, choose either simple or advanced scheduling but not both to avoid conflicts.</p>
+<h2>Dedupe Scheduling Commands</h2>
+<p>The following is a summary of the dedupe scheduling commands. The complete information is available in the individual command man pages.</p>
+<p>dedupe-schedule-set</p>
+<pre>   Syntax: enable|disable [-w|--weekday &lt;weekdayNameList&gt;] [-s|--start &lt;hh:mm&gt;] [-e|--end &lt;hh:mm&gt;]
+   Support: full-day scheduling
+   Required: DEV privilege
+   Goal: Set up full-day dedupe schedule for one or more days of the week
+</pre>
+<p></p>
+<p>dedupe-schedule-advanced-add</p>
+<pre>   Syntax:  enable|disable [-s|--start &lt;hh:mm&gt;]  [-d|--day &lt;dayofmonthList&gt;]
+               [-w|--weekday &lt;weekdayNameList&gt;]  [-m|--monthly &lt;monthList&gt;]
+               [-i|--ignore-conflict]
+   Support: event-based scheduling (advanced)
+   Required: DEV privilege
+   Goal: Add an arbitrary point-like task to the schedule.
+</pre>
+<p></p>
+<p>dedupe-schedule-list [&lt;taskIdList&gt;]</p>
+<pre>   Support: all tasks in the dedupe calendar
+   Required: DEV privilege
+   Goal: List all tasks in the dedupe schedule.
+</pre>
+<p></p>
+<p>dedupe-schedule-delete &lt;taskIdList&gt;</p>
+<pre>   Support: all tasks in the dedupe calendar
+   Required: DEV privilege
+   Goal: Delete specified tasks from the schedule.
+</pre>
+<p></p>
+<p>dedupe-schedule-delete-all</p>
+<pre>   Support: all tasks in the dedupe calendar
+   Required: DEV privilege
+   Goal: Delete all tasks from the schedule.
+</pre>
+<p></p>
+<p>Note that using any of the commands above, with the exception of 'dedupe-schedule-list',  will result in all existing 'dedupe-service' cron jobs to be removed and new 'dedupe-service' cron jobs to be generated to be consistent with the outstanding tasks in the dedupe schedule. In the removal step all old cron jobs running the 'dedupe-service' command are removed regardless of how they were previously added (by the dedupe scheduler or users using the 'crontab add' command). Therefore, if the scheduler is used to set up a dedupe schedule, users are discouraged from adding 'dedupe-service' cron jobs manually because these jobs will be lost whenever a scheduler command is used to set/add/delete a dedupe task.</p>
+<h2>Typical Scheduling Errors</h2>
+<p>Adding a new task to the dedupe calendar can fail for many reasons. A number of error conditions are explained by specific examples.</p>
+<h3>Scenario 1: Two full-day tasks already booked</h3>
+<p>Consider this schedule:</p>
+<pre>      Task 1: Sat-Sun schedule : dedupe enabled from 0:00 to 24:00
+      Task 2: Mon-Fri schedule : dedupe disabled from 8:00 to 20:00 and enabled otherwise
+</pre>
+<p></p>
+<p>Thus there is no time slot available for new events. Any attempt to add an event to the schedule will fail:</p>
+<pre>  dedupe-schedule-advanced-add disable -s 12:00 -w mon-wed
+</pre>
+<p></p>
+<h3>Scenario 2: Only one full-day task booked</h3>
+<p>Consider this schedule:</p>
+<pre>      Task 1: Sat-Sun schedule : dedupe enabled from 0:00 to 24:00
+      Task 2: disable dedupe at 08:00 on Mon-Wed
+      Task 3: enable dedupe at 19:00 on Mon-Wed
+</pre>
+<p></p>
+<p>Let's run the following commands and see the result:</p>
+<pre>  1. dedupe-schedule-advanced-add enable -s 8:00 -w wed
+     Conflicting with "Task 2: disable dedupe at 8:00 on Mon-Wed weekly"
+     Failed: Conflict with some occurrence(s) of existing task
+</pre>
+<p></p>
+<pre>  2. dedupe-schedule-advanced-add disable -s 8:00 -w wed
+     Failed: Redundant because of "Task 2: disable dedupe at 8:00 on Mon-Wed weekly"
+</pre>
+<p></p>
+<pre>  3. dedupe-schedule-advanced-add disable -s 12:00 -w sat
+     Failed: Day schedule already exists
+</pre>
+<p></p>
+<pre>     This fails because task 1 leaves no room for a new event on Saturday.
+</pre>
+<p></p>
+<pre>  4. dedupe-schedule-set enable weekday -s 8:00 -e 19:00
+     This fails because the new day schedule would have to remove tasks 2 and 3.
+</pre>
+<p></p>
+<pre>  5. dedupe-schedule-advanced-add disable -s 12:00 -w wed
+     This succeeds because all time slots in Mon-Wed are available
+     to new tasks except 08:00 and 19.00.
+</pre>
+<p></p>
+<pre>  6. dedupe-schedule-advanced-add disable -s 12:00 -w wed
+     Failed: Same dedupe task already exists
+</pre>
+<p></p>
+<pre>  7. dedupe-schedule-advanced-add disable -s 8:00 -w tue,thu
+     This succeeds because the intersections between the new task
+     and the old task (task 2) are compatible. The new task is
+     added and no attempt is made to remove duplicates at the intersections.
+</pre>
+<p></p>
+<pre>  8. dedupe-schedule-advanced-add disable -s 8:00 -w mon-fri
+     This succeeds because the new task contains all events in the old
+     task 2 and hence can replace it.
+</pre>
+<p></p>
+<h3>Scenario 3: No full-day schedule booked</h3>
+<p>Consider this weekly event schedule:</p>
+<pre>      Task 1: disable dedupe at 08:00 on Monday
+      Task 2: enable dedupe at 20:00 on Monday
+</pre>
+<p></p>
+<p>Note that all time slots of Monday are available to new tasks except 08:00 and 20:00.  To enable dedupe all day long on January 1st, users may attempt to run this command:</p>
+<pre>   dedupe-schedule-advanced-add enable -s 8:00 -m 1 -d 1
+</pre>
+<p></p>
+<p>This fails because, given enough time, January 1st will fall on a Monday and hence task 1 and the new task would be triggered at the same time. The command will fail unless the tasks have compatible actions (either enable or disable),</p>
+<p>One solution is to specify option --ignore-conflict. Thus users are then fully responsible for the correctness of their schedules.</p>
+<p>Another solution is to specify a different time for the new task, perhaps just 1 minute earlier or later, to obtain the desired effect.  For example,</p>
+<pre>   dedupe-schedule-advanced-add enable -s 8:01 -m 1 -d 1
+</pre>
+<p></p>
+<p>This results in a schedule that has no conflicts at the cost of having an undesired one-minute time window:</p>
+<pre>      Task 1: disable dedupe at 08:00 on Monday
+      Task 2: enable dedupe at 20:00 on Monday
+      Task 3: enable dedupe at 08:01 on day 1 of month 1
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/crontab.html">crontab</a> <a href="../extra/dedupe-schedule-advanced-add.html">dedupe-schedule-advanced-add</a> <a href="../extra/dedupe-schedule-delete.html">dedupe-schedule-delete</a> <a href="../extra/dedupe-schedule-delete-all.html">dedupe-schedule-delete-all</a> <a href="../extra/dedupe-schedule-list.html">dedupe-schedule-list</a> <a href="../extra/dedupe-schedule-set.html">dedupe-schedule-set</a> <a href="../Supervisor/dedupe-service.html">dedupe-service</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

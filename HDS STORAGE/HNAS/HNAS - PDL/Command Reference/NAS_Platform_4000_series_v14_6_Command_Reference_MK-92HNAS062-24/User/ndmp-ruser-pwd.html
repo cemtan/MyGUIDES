@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-ruser-pwd</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ndmp-ruser-pwd</h1>
+<p>Change NDMP/adc restricted user password</p>
+<h1>Syntax</h1>
+<pre>ndmp-ruser-pwd -o &lt;oldpwd&gt; -n &lt;newpwd&gt; &lt;ruser_name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-o &lt;oldpwd&gt;</strong></dt>
+<dd><p>The old password associated with this restricted user</p></dd>
+<dt><strong>-n &lt;newpwd&gt;</strong></dt>
+<dd><p>The new password to be set</p></dd>
+<dt><strong>&lt;ruser_name&gt;</strong></dt>
+<dd><p>The restricted user to change</p></dd>
+</dl>
+<p>This command is a user level command that is intended to allow restricted users to change their own passwords. The old password needs to be provided to ensure that other ordinary users cannot change the password.</p>
+<h1>Examples</h1>
+<pre>ndmp-ruser -o passwd -n XYZ987 johnx
+</pre>
+<p></p>
+<p>johnx changes the administrator set password "passwd" to one of his own choosing "XYZ987".</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-ruser.html">ndmp-ruser</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

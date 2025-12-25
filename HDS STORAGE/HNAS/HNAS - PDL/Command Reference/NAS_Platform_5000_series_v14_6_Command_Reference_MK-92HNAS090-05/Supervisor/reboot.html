@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>reboot</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>reboot</h1>
+<p>Reboot the server or cluster</p>
+<h1>Syntax</h1>
+<pre>reboot [-s|--seconds &lt;seconds&gt;] [-n|--now] [-f|--force] [-a|--all] [-c|--cluster]
+</pre>
+
+<h1>Description</h1>
+<p>The reboot command is used to restart one or all cluster nodes.</p>
+<p>When rebooting a cluster, nodes may be rebooted sequentially (--cluster) or simultaneously (--all).</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --seconds</strong></dt>
+<dd><p>Reboot after &lt;seconds&gt; seconds.</p></dd>
+<dt><strong>-n, --now</strong></dt>
+<dd><p>Request an immediate reboot without unmounting file systems, migrating EVSs and waiting for services to stop. This cannot be combined with --all or --cluster.</p></dd>
+<dt><strong>-f, --force</strong></dt>
+<dd><p>Force reboot, otherwise requires user confirmation.</p></dd>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Reboot all cluster nodes in parallel.</p></dd>
+<dt><strong>-c, --cluster</strong></dt>
+<dd><p>Reboot all cluster nodes one at a time.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ reboot
+Are you sure you want to reboot cluster-node-1? (Y/N)[N]:
+y
+Information: Server is shutting down
+</pre>
+<p></p>
+<pre>server:$ reboot -a
+Are you sure you want to reboot all cluster nodes? (Y/N)[N]:
+y
+Information: Server is shutting down
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/shutdown.html">shutdown</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

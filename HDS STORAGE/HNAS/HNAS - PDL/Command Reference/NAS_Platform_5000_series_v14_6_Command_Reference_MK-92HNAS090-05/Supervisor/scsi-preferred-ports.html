@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-preferred-ports</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-preferred-ports</h1>
+<p>Display preferred pathing information.</p>
+<h1>Syntax</h1>
+<pre>scsi-preferred-ports [-d device|-p port|-a all]
+</pre>
+
+<h1>Description</h1>
+<p>Display preferred path information for SCSI ports connected to the SCSI devices that the server has discovered. The information displayed includes the following: a list of online/offline ports; which port is active, ie. the port that is currently open and used by the server to access the device; ports that are on the preferred processor (if applicable); ports that are on the preferred controller; ports that are not preferred; the granularity of the available best path and a column (labelled "best") which shows if the best possible preferred path is being used. The "Best" column will not be output if no SD supports preferred path. If none of the SCSI devices that have been discovered support preferred path, the command will show a message to indicate this and not display any further information. The -a flag can be used to override this.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-d, --device &lt;id&gt;</strong></dt>
+<dd><p>Display preferred path information for the given device ID.</p></dd>
+<dt><strong>-p, --port &lt;id&gt;</strong></dt>
+<dd><p>Display preferred path information for the given SCSI port ID.  Displays the devices connected to it.</p></dd>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Display preferred path information for all devices including those that do not support preferred path.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>Dev ID   Ports                             Active  Processor  Controller/Cluster  Not-preferred  Best Possible         Best
+ ------   -------                           ------  ---------  ------------------  -------------  -------------         ----
+ 6        1,2,3,4,5,6,7 online 0 offline    1       1,7        6                   2,3,4,5        Preferred processor   yes
+ 7        1,2,3,4,5,6,7 online 0 offline    5       3,5        2,4                 1,6,7          Preferred processor   yes
+ 8        1,2,3,4,5,6,7 online 0 offline    6       6          1,7                 2,3,4,5        Preferred processor   yes
+ 9        1,2,3,4,5,6,7 online 0 offline    4       2,4        3,5                 1,6,7          Preferred processor   yes
+ 10       1,2,3,4,5,6,7 online 0 offline    3       3,5        2,4                 1,6,7          Preferred processor   yes
+ 11       1,2,3,4,5,6,7 online 0 offline    6       6          1,7                 2,3,4,5        Preferred processor   yes
+ 12       1,2,3,4,5,6,7 online 0 offline    4       2,4        3,5                 1,6,7          Preferred processor   yes
+</pre>
+<p></p>
+<pre>
+</pre>
+<p></p>
+<pre>Dev ID   Ports          Active    Processor     Controller/Cluster  Not-preferred  Best Possible          Using Best
+ ------   -----          ------    ---------     ------------------  -------------  -------------          ----------
+ 40       4,5 online     4         4             none                5              Preferred controller   yes
+ 41       4,5 online     5         5             none                4              Preferred controller   yes
+ 42       4,5 online     4         4             none                5              Preferred controller   yes
+ 43       4,5 online     5         5             none                4              Preferred controller   yes
+ 44       4,5 online     4         4             none                5              Preferred controller   yes
+ 0        0,1 online     0         none          none                none           Not supported          -
+ 1        0,1 online     1         none          none                none           Not supported          -
+ 2        0,1 online     0         none          none                none           Not supported          -
+ 3        0,1 online     1         none          none                none           Not supported          -
+</pre>
+<p></p>
+<pre>server1:$ scsi-preferred-ports -d 8
+Device ID:      8
+SCSI Port(s):   1,2,3,4,5,6,7 online 0 offline
+Active Port:    6
+Ports on preferred processor:   6
+Ports on preferred controller:  1,7
+Ports not on preferred path:    2,3,4,5
+UA enabled: true
+</pre>
+<p></p>
+<pre>server1:$ scsi-preferred-ports -p 6
+SCSI Port ID:       6
+Devices connected:  6,7,8,9,10,11,12,13,14,15,16,17,18,19
+Devices active:     8,11,13,16
+Devices on preferred processor:   8,11,13,16
+Devices on preferred controller:  6,15,18
+Devices not on preferred path:    7,9,10,12,14,17,19
+UA enabled: false
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-ports.html">scsi-ports</a> <a href="../Supervisor/scsi-racks.html">scsi-racks</a> <a href="../Supervisor/sdpath.html">sdpath</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

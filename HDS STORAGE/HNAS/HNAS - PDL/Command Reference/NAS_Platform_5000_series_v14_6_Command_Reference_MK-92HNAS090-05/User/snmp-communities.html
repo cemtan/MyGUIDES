@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>snmp-communities</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>snmp-communities</h1>
+<p>Manipulate authentic SNMP communities</p>
+<h1>Syntax</h1>
+<pre>snmp-communities operation
+where &#39;operation&#39; is one of:
+list
+add &lt;CommunityName&gt;
+del &lt;CommunityName&gt;
+delall [--confirm]
+modcom &lt;NewCommunityName&gt; &lt;CurrentCommunityName&gt;
+authtrap
+noauthtrap
+Alias:       snmpauth
+</pre>
+
+<h1>Description</h1>
+<p>The snmp-communities command manages the list of authentic SNMP communities. The server's built-in SNMP agent may only be configured for read-only access by community. snmp-communities also controls whether authentication traps are sent. When the protocol being used is SNMPv3, communities will not affect the configuration and snmpv3-user-* should be used instead. Any changes made to communities while SNMPv3 is enabled will not come into effect until the protocol is changed (man snmp-protocol), though they can still be listed.</p>
+<p>Valid operations for snmp-communities are:</p>
+<dl>
+<dt><strong>list</strong></dt>
+<dd><p>Display the list of configured communities.</p></dd>
+<dt><strong>add  &lt;CommunityName&gt;</strong></dt>
+<dd><p>Add configured communities, where 'Access' is always read-only.</p></dd>
+<dt><strong>del &lt;CommunityName&gt;</strong></dt>
+<dd><p>Delete the configured community.</p></dd>
+<dt><strong>delall [--confirm]</strong></dt>
+<dd><p>Delete all configured communities. The --confirm option prevents the command prompting for confirmation.</p></dd>
+<dt><strong>modcom &lt;NewCommunityName&gt; &lt;CurrentCommunityName&gt;</strong></dt>
+<dd><p>Modify the community name.</p></dd>
+<dt><strong>authtrap</strong></dt>
+<dd><p>Send authentication failure trap.</p></dd>
+<dt><strong>noauthtrap</strong></dt>
+<dd><p>Do not send authentication trap.</p></dd>
+</dl>
+<p>modcom is used to modify the community name. authtrap and noauthtrap turn authentication traps on or off. Authentication traps will be sent when an SNMP packet is not authenticated.</p>
+<h1>Examples</h1>
+<p>Show the list on an unconfigured agent:</p>
+<pre>snmp-communities list
+No authentic SNMP communities are currently configured
+Authentication failure trap will NOT be sent on failure to
+authenticate an SNMP packet
+</pre>
+<p></p>
+<p>Add the community 'public' with read-only access:</p>
+<pre>snmp-communities add public
+snmp-communities list
+</pre>
+<p></p>
+<pre>Community name: public
+        Access: read-only
+Authentication failure trap will NOT be sent on failure to
+authenticate an SNMP packet
+</pre>
+<p></p>
+<p>Modify the community name; note that the new name comes first:</p>
+<pre>snmp-communities modcom notsopublic public
+snmp-communities list
+</pre>
+<p></p>
+<pre>Community name: notsopublic
+        Access: read-only
+Authentication failure trap will NOT be sent on failure to
+authenticate an SNMP packet
+</pre>
+<p></p>
+<p>Turn on authentication traps:</p>
+<pre>snmp-communities authtrap
+snmp-communities list
+</pre>
+<p></p>
+<pre>Community name: notsopublic
+        Access: read-only
+Authentication failure trap will be sent on failure to
+authenticate an SNMP packet
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/snmp.html">snmp</a> <a href="../User/snmp-hosts.html">snmp-hosts</a> <a href="../Supervisor/snmp-port-set.html">snmp-port-set</a> <a href="../Supervisor/snmp-port-show.html">snmp-port-show</a> <a href="../Supervisor/snmp-protocol.html">snmp-protocol</a> <a href="../User/snmp-stats.html">snmp-stats</a> <a href="../Supervisor/snmp-trap-port-set.html">snmp-trap-port-set</a> <a href="../Supervisor/snmp-trap-port-show.html">snmp-trap-port-show</a> <a href="../Supervisor/snmp-trap-send.html">snmp-trap-send</a> <a href="../User/snmp-traps.html">snmp-traps</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

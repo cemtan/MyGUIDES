@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-set-cap-warn-thresh</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-set-cap-warn-thresh</h1>
+<p>Set the percentage fullness at which auto-expansion causes a warning event</p>
+<h1>Syntax</h1>
+<pre>span-set-cap-warn-thresh (&lt;span-instance-name&gt; | --all) [&lt;percentage&gt;]
+Alias:       sscwt
+</pre>
+
+<h1>Description</h1>
+<p>Displays or sets the capacity warning threshold for one span or all spans.  The threshold is expressed as a percentage, and controls warnings displayed and logged when a span or compressed HDP pool is nearly or actually full.</p>
+<p>When a span is almost full, warnings are produced in the following circumstances:</p>
+<ul>
+<li>'filesystem-create' displays a warning when, after the new filesystem has been created, the span is nearly full.</li>
+<li>An event about span-fullness is logged after filesystem-expansion if the host span is nearly full.  'filesystem-expand' also displays a warning at the console.</li>
+<li>'trouble' issues a warning for any span that is nearly full.</li>
+</ul>
+<p>A span is considered to be nearly full if the percentage of its chunks that are allocated to live filesystems exceeds the percentage threshold set by 'span-set-cap-warn-thresh'.  Chunks in recently-deleted filesystems do not count towards the threshold, because the server will automatically recycle these filesystems (thus freeing up their chunks) if it needs more space.  Vacated chunks do not count towards the threshold, either: they are free chunks, ready for reuse.</p>
+<p>On a tiered span, the threshold is applied to each tier separately.  'trouble' may issue one warning per tier.</p>
+<p>On HDP, the calculation of total space takes into account the total capacities of HDP pool volumes.  For example, a span with 100TiB of chunks that resides on 40TiB of pool volumes will be treated as if its capacity were 40TiB; if the total capacity of all the span's filesystems is 35TiB, the span will be considered to be 35 / 40 = 87% full, not 35% full.</p>
+<p>In addition, on compressed storage, the calculation considers free physical space and the percentage saving achieved so far.  For example, if the same span resides on an HDP pool with 1TiB of free physical space and a saving of 50%, it will be treated as having a total capacity of 37TiB, and will be reported as being 35 / 37 = 94% full.</p>
+<h2>COMPRESSED HDP POOLS</h2>
+<p>On compressed HDP pools (such as those that reside on FMDs that perform native compression), 'span-set-cap-warn-thresh' controls warnings in 'span-list -s' and 'trouble' as well as three protection mechanisms.  Like the other warnings described in this man page, these warnings and protection mechanisms will be disabled if you set the capacity warning threshold to zero.  Otherwise, they take effect when the capacity warning threshold plus the percentage of physical space that is free is smaller than 100.  For example, if you change a span's capacity warning threshold to 85%, the warnings are displayed and the protection mechanisms invoked when less than 15% of the physical space on the HDP pool is free.</p>
+<p>'span-list -s' adds a safety margin to the 'available' figure displayed above each stripeset: if the limiting factor is FMD free space then the 'available' figure is multiplied by the warning threshold, as a percentage.  For example, if FMD free space is 1TiB, the saving is 50% (and hence the compression ratio is 2:1) and the capacity warning threshold is 90%, the 'available' figure will be shown as 90% x 2000GiB = 1800GiB.  No scaling is performed if the capacity warning has been set to zero.</p>
+<p>You can use this facility to get advanced warning before a span fills up and filesystem auto-expansion becomes impossible without operator intervention.  It can also warn when the physical space on a compressed HDP pool is nearly full and writing too much incompressible data might cause the HDP pool to fail.</p>
+<p>The protection mechanisms are as follows:</p>
+<ul>
+<li>Filesystem auto-expansion is disabled.  The presence of some vacated chunks will not prevent auto-expansion from being disabled, because the server cannot determine whether the data that would be written to newly allocated chunks would be more or less compressible than the data (if any) residing on the vacated chunks.  On a tiered span, low physical space on either tier prevents auto-expansion on both tiers, so that data does not spill on to the wrong tier.  Auto-expansion is re-enabled when physical free space is no longer dangerously low.</li>
+<li>If any stripeset that is short of physical space has any vacated chunks, the server will launch an unmapper on the span, as if you had run 'span-unmap-vacated-chunks'.  If the stripeset has some leaked space (as reported by 'span-mapped-space'), the server will unmap unused chunks, as if you had run 'span-unmap-vacated-chunks --unused-chunks', in order to recover the leaked space.  If the stripeset in question holds part of a recently deleted filesystem but has no vacated chunks or leaked space, the server will first recycle one or more deleted filesystems to make vacated chunks, and then launch an unmapper to return the space to the HDP pool.  If this mechanism frees up enough physical space, the server will automatically re-enable filesystem auto-expansion on the span.</li>
+<p>See the 'hdp' man page to learn more about vacated chunks, 'span-list-recycle-bin' for more about recently deleted filesystems, and 'span-unmap-vacated-chunks' to find out about freeing up space by unmapping chunks.</p>
+</ul>
+<p>The server will log events if it recycles a filesystem or launches an unmapper.</p>
+<h2>ALL HDP POOLS</h2>
+<p>When you create or expand a span, you may reuse DP-Vols that were previously used elsewhere.  It is likely that such DP-Vols are still mapped to some real space.  The server will detect this condition and reclaim the leaked space by launching an unmapper, as if you had run 'span-unmap-vacated-chunks --unused-chunks'.  This measure will not be taken if the span's capacity warning threshold is zero.  Other than that, the amount of space unmapped is independent of the threshold you have configured.</p>
+<h2>MANAGEMENT</h2>
+<p>The default threshold is 90%, unless it has been changed by 'span-set-default-cap-warn-thresh'.  The optimal threshold depends on how fast you expect to write new data, how fast you can provision new storage, and how serious a problem it is if the span or HDP pool becomes completely full.  It is wise to configure a lower threshold for spans on compressed HDP pools (where writing too much incompressible data can cause temporary loss of service) than for other spans (where a completely full span prevents filesystem auto-expansion, but file systems can keep serving reads and writes, at least until free blocks are exhausted).</p>
+<p>Setting the threshold to zero disables capacity warnings for the span.  On HDP pools, it disables the safety mechanisms described here.</p>
+<p>To see a span's current threshold, use 'span-list' or run 'span-set-cap-warn-thresh' without specifying a threshold.</p>
+<h1>Examples</h1>
+<pre>span-set-cap-warn-thresh Admin
+</pre>
+<p></p>
+<p>Displays span Admin's current threshold as a percentage.</p>
+<pre>span-set-cap-warn-thresh --all
+</pre>
+<p></p>
+<p>Displays all spans' current thresholds.</p>
+<pre>span-set-cap-warn-thresh Admin 90
+</pre>
+<p></p>
+<p>Requests warnings when span Admin, or the compressed HDP pool that hosts it, is at least 90% full.</p>
+<pre>span-set-cap-warn-thresh Admin 0
+</pre>
+<p></p>
+<p>Disables capacity warnings for span Admin.</p>
+<pre>span-set-cap-warn-thresh --all 0
+</pre>
+<p></p>
+<p>Disables capacity warnings for all existing spans.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../User/filesystem-limits.html">filesystem-limits</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Supervisor/filesystem-release.html">filesystem-release</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-expedite-compression-space-check.html">span-expedite-compression-space-check</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Supervisor/span-mapped-space.html">span-mapped-space</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Topic/tier.html">tier</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

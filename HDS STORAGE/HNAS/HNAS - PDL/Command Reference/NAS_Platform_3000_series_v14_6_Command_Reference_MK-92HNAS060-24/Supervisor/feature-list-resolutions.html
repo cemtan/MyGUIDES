@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>feature-list-resolutions</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>feature-list-resolutions</h1>
+<p>Show how to boot a server that&#39;s prevented from booting by a feature lock</p>
+<h1>Syntax</h1>
+<pre>feature-list-resolutions [&lt;substring&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>During a rolling upgrade or downgrade, any features supported only by the newer release must not be used until all servers have been upgraded.  If this rule is disregarded, a down-rev server (one that is running an earlier software release) may go into a boot loop.  This sequence shows how it might happen:</p>
+<ol>
+<li>Node 1 is shut down.</li>
+<li>Nodes 2, 3 and 4 are upgraded.</li>
+<li>The administrator starts to use a feature that was introduced in the new release.</li>
+<li>Node 1 is booted.</li>
+</ol>
+<p>When node 1 tries to come up, one of the other nodes will deny it permission to boot.  The event log on the running server that denies this permission will record the name of the feature causing the problem.</p>
+<p>If run on the server that denied permission, 'feature-list-resolutions' can be used to determine how to stop using the feature in question, thus allowing the down-rev server to boot.</p>
+<h1>Examples</h1>
+<p>If you specify a substring (a few letters or digits) from the name of the feature, all features whose names include that substring will be displayed:</p>
+<pre>server:$ feature-list-resolutions span | head -32
+------------------------------------------------------------------------
+Broadcasting multiple fs-deletion notifications from inside Span Manager
+------------------------------------------------------------------------
+</pre>
+<p></p>
+<pre>Do not delete file systems while an upgrade is in progress.
+</pre>
+<p></p>
+<pre>----------------------
+Support for 1PiB spans
+----------------------
+</pre>
+<p></p>
+<pre>Run 'span-list -f'.  Identify all spans larger than 256TiB.  Note down the EVSs
+to which these spans' file systems are bound.  Unmount these file systems.  Run
+'span-deny-access' on the spans.  Complete the upgrade.  Use 'sd-allow-access'
+and 'span-allow-access' to reload the spans into memory, use 'evsfs add' to
+reinstate file systems' EVS bindings, and then remount file systems.  There is
+no need to go through any of these steps for spans that do not exceed 256TiB.
+</pre>
+<p></p>
+<pre>---------------------------------
+Support for 60000 chunks per span
+---------------------------------
+</pre>
+<p></p>
+<pre>Run 'span-list-chunks &lt;span-instance-name&gt; | tail' for each span in turn.
+Identify spans that have a chunk numbered 16,384 or higher.  For each such span,
+run 'span-list -f &lt;span-instance-name&gt;', note down the EVSs to which the span's
+file systems are bound, unmount those file systems, and run
+'span-deny-access &lt;span-instance-name&gt;'.  Now boot the other server(s) and
+upgrade the server code.  Finally, use 'sd-allow-access' and 'span-allow-access'
+to reload the spans into memory, use 'evsfs add' to reinstate file systems' EVS
+bindings, and then remount file systems.  There is no need to unmount file
+systems on spans with no more than 16,384 chunks or to run 'span-deny-access' on
+them.
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>If you do not specify a substring, all resolutions are listed:</p>
+<pre>server:$ feature-list-resolutions | head -14
+------------------------------------------------------------------------
+Broadcasting multiple fs-deletion notifications from inside Span Manager
+------------------------------------------------------------------------
+</pre>
+<p></p>
+<pre>Do not delete file systems while an upgrade is in progress.
+</pre>
+<p></p>
+<pre>-----------------------------
+directed filesystem expansion
+-----------------------------
+</pre>
+<p></p>
+<pre>Do not expand file systems while an upgrade is in progress.  If necessary,
+confine spans so that their file systems do not auto-expand.  Spans can be
+released (unconfined) after the upgrade is complete.
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

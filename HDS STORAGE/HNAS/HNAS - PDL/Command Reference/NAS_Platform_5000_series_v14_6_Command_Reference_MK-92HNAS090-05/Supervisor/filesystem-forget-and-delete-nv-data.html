@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-forget-and-delete-nv-data</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>filesystem-forget-and-delete-nv-data</h1>
+<p>Remove filesystems from the registry; delete their data in NVRAM</p>
+<h1>Syntax</h1>
+<pre>filesystem-forget-and-delete-nv-data &lt;filesystems-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The server maintains a list of filesystems in its registry.  It uses this list to ensure that each filesystem always has the same device ID and is always bound to the same EVS.</p>
+<p>If you physically move storage between servers or you accidentally use an external configurator, such as Storage Navigator or Hitachi Command suite, to delete system drives or remove their Lun mappings so that the server cannot contact them, the old server will keep the filesystems in its registry.  They will appear on SMU screens and in the output of commands such as 'trouble' and 'filesystem-list-stored'.  If too many redundant filesystems appear in the registry, they can prevent you from creating new filesystems, because the number of available device IDs is finite.</p>
+<p>'filesystem-forget-and-delete-nv-data' removes one or more filesystems from the registry.  Specify the instance names or device IDs of the filesystems you wish to forget.</p>
+<p>All the file systems' NVRAM data will be forgotten if you use this command.  It will become impossible to replay NVRAM data for the file systems.  The command has a deliberately long and explicit name to warn you that it is destructive.</p>
+<p>You can't forget a filesystem if it's still loaded.  Use 'span-deny-access' if you want to stop using a span and all its filesystems on this cluster, but first read the man page to find out that command's other side effects.  If you use 'span-deny-access', there is no need to use 'filesystem-forget-and-delete-nv-data' as well.</p>
+<h1>Examples</h1>
+<pre>filesystem-forget-and-delete-nv-data Accounts Marketing ProjectX
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-list-stored.html">filesystem-list-stored</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

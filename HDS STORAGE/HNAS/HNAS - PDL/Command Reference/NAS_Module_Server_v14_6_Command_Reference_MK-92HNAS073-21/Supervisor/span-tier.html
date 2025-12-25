@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-tier</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-tier</h1>
+<p>Assign a span to a tier</p>
+<h1>Syntax</h1>
+<pre>span-tier &lt;span-instance-name&gt; &lt;tier&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command upgrades an untiered span to a tiered span, so that a new tier of storage can be added and the file systems can be upgraded to multi-tier.</p>
+<p>As soon as 'span-tier' is run, all the span's WFS-2 file systems will become unmountable.  Each WFS-2 file system will stay unmountable until you add new storage to the span and then expand each filesystem on to the new tier.  Therefore, do not run 'span-tier' until you are ready to complete the upgrade process, and be sure to read the man pages of all the commands mentioned here before starting work.</p>
+<p>If any file systems on the span support deduplication then, after you have expanded them on to the second tier, you will need to run 'filesystem-remake-tiers' on each of them, without specifying the --remake-on-next-mount option.  If file systems are large, each one may take hours or days to process.</p>
+<h2>HOW TO USE 'span-tier'</h2>
+<p>For the sake of example, we shall assume that you wish to add a small amount of faster storage to an existing span.  The fast storage will reside on Tier 0; the span's existing storage will reside on Tier 1.  However, it is also possible to use the command the other way around, adding a large amount of relatively slow storage to an existing span.  To do that, swap the tier numbers shown in these steps.</p>
+<ol>
+<li>Connect the new, fast storage to the server.  Use a command such as 'sd-list --denied' to identify the device IDs of the new system drives (SDs).</li>
+<li>Use 'sd-allow-access' to license the new SDs.  If you wish to license all currently unlicensed SDs, run 'sd-allow-access all:denied'.</li>
+<li>If the 'sd-group' man page indicates that SD groups are necessary (which, from release 12.3 onwards, should be very rare), use 'sd-group-create' or 'sd-group-auto' to create them on the new SDs.</li>
+<li>Use 'sd-set --tier' to assign the new SDs to Tier 0.</li>
+<li>Use 'unmount' to unmount all the file systems on the span.  Other spans' file systems can stay mounted.</li>
+<li>Use 'span-tier &lt;span-instance-name&gt; 1' to assign the span to Tier 1.</li>
+<li>Use 'span-expand' to add the new SDs to the span.</li>
+<li>Use 'span-confine' to ensure that no filesystem takes more of the new storage than you specify.</li>
+<li>Use 'filesystem-expand --tier 0' to expand each WFS-2 filesystem on to Tier 0.  Be sure to leave enough Tier-0 space to allocate some to every WFS-2 file system on the span: any WFS-2 file system that does not have space from both tiers cannot be mounted.  After expanding each file system, mount it straight away, because it can take a few minutes to mount a file system immediately after it has been upgraded.  (Subsequent mounts run at full speed.)</li>
+<li>Optionally, run 'filesystem-confine --tier' to limit the amount of space each filesystem can use on each tier, and then run 'span-release' to allow auto-expansion on the span.  (But note that all auto-expansion is disabled on HDP-resident spans if you have run 'span-hdp-preallocation no'.)</li>
+</ol>
+<h2>UNDOING 'span-tier'</h2>
+<p>If 'span-tier' is run prematurely, run it again, specifying a tier of -1.  Place a double dash and a space before the -1 argument, so that it is not interpreted as a switch:</p>
+<pre>span-tier Accounts -- -1
+</pre>
+<p></p>
+<p>The span will go back to being untiered and its file systems will become mountable again.</p>
+<p>WARNING: 'span-tier' can't be undone after the span has been expanded on to the new storage.  There is, in general, no way to undo span-expansion.</p>
+<h2>FILESYSTEM CONFINEMENT</h2>
+<p>Consider a confined filesystem on an untiered span.  When you use 'span-tier' to assign the span to a tier, the filesystem's old confining capacity is applied to the user-data tier; the metadata tier is left unconfined.  Use 'filesystem-confine' if you wish to restrict the amount of metadata space that the filesystem can use.</p>
+<p>If you undo the 'span-tier' command by assigning the span to Tier -1, the confining capacity of the user-data tier will be applied to the filesystem as a whole; any confining capacity that you have applied to the metadata tier will be discarded.</p>
+<p>A filesystem that was unconfined when 'span-tier' is run will remain unconfined afterwards.</p>
+<p>One effect of these rules is that assigning a span to a tier and then making it untiered again leaves all filesystems confined (or unconfined) in the same way as before.</p>
+<h2>CHECKS</h2>
+<p>Because 'span-tier' must be run as one of a sequence of commands, and because 'span-tier' makes file systems unmountable until the sequence is completed, it performs several unusual checks before running.</p>
+<p>To avoid buying fast storage and then being unable to use it, it's worth performing these checks manually before committing to an upgrade.</p>
+<ul>
+<li>'span-tier' checks that the span contains at least one file system that has been formatted as WFS-2.</li>
+<li>'span-tier' checks that there is room to expand both the span Cod and the filesystem catalogue by one-sixteenth.  Cod is explained in the 'cod' man page.  'span-list -v' shows how full Cod is.</li>
+<li>'span-tier' checks that there is room to expand every filesystem on the span by at least one-sixteenth.  To see how far each filesystem can expand, run 'filesystem-limits', ignoring the line that shows the free space on the span.</li>
+<li>'span-tier' checks that there are healthy, primary, licensed, unspanned SDs in a tier other than the one you specify on the 'span-tier' command line.  The early commands shown above are designed to ensure that this is the case.  'sd-list' shows SDs' health, mirror role and tier.  'sd-group-list' shows SD groups.</li>
+<p>A primary SD is normally an unmirrored SD or a mirror P-Vol.  The 'storage-based-mirror' man explains the exceptions.</p>
+<li>'span-tier' checks that the span can be expanded by one-sixteenth without exceeding its absolute maximum capacity.  Your support provider will be able to tell you what that capacity is.</li>
+</ul>
+<h1>Examples</h1>
+<pre>span-tier Accounts 1
+</pre>
+<p></p>
+<p>Makes span Accounts a tiered span; assigns its SDs to Tier 1.</p>
+<pre>span-tier Accounts -- -1
+</pre>
+<p></p>
+<p>Makes span Accounts an untiered span; removes all its SDs' tier assignments.  (The double dash in the command syntax prevents '-1' from being interpreted as a switch name.)</p>
+<h2>PROPAGATION AND PERSISTENCE</h2>
+<p>Assigning a span to a tier really just involves assigning all its SDs to that tier.  SD tiers can be set (for unspanned SDs) by the 'sd-set' command, and are stored in the registry, not in Cod.  As a result, the SDs will remain assigned to tiers even if you delete the span.  If you wish to make them untiered before reusing the SDs in a new span, use 'sd-set --tier' between deleting the old span and creating the new one.</p>
+<p>SD tiers will not automatically move with the span if you migrate it to another cluster or if a mirrored copy of the span (provided by a product such as TrueCopy or HUS) is visible to another cluster.  If the SMU migrates a span between clusters, it will copy SD tiers between clusters; this will not happen automatically during a manual migration via such commands as 'span-assign-to-cluster'.  In the case of storage-based mirroring, it will be necessary to run 'sd-set --tier' on the second cluster before loading the span there.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../User/filesystem-limits.html">filesystem-limits</a> <a href="../Supervisor/filesystem-remake-tiers.html">filesystem-remake-tiers</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../User/sd-group-list.html">sd-group-list</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/tier.html">tier</a> <a href="../Supervisor/unmount.html">unmount</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

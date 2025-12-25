@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mount</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>mount</h1>
+<p>Mounts one or more file systems</p>
+<h1>Syntax</h1>
+<pre>mount [--async] [-rfpd] [-a | &lt;file-system&gt;...]
+</pre>
+
+<h1>Description</h1>
+<p>The mount command will make the specified file systems available for use by the configured file serving protocols.</p>
+<p>Mount performs the following steps:</p>
+<ol>
+<li>Validates that the fundamental file system structures are correct.</li>
+<li>Rolls back the file system to its last checkpoint.</li>
+<p>A file system checkpoint is written to disk at regular intervals (every few seconds). Every checkpoint is internally consistent and in the event of any system failure the file system can be "rolled back" to the last successful checkpoint ensuring that file system consistency is never lost.</p>
+<li>Replays the file system modifying operations stored in the NVRAM.</li>
+<p>Every modifying request is buffered in NVRAM until the checkpoint containing the modification has been successfully written to disk. This ensures that once modification requests have been acknowledged (to the client) they cannot be lost.</p>
+<li>Mounts the file system so that it is accessible from the configured file serving protocols.</li>
+</ol>
+<p>With the --async option, the first step is the only one that is performed synchronously.  The status returned by the mount command, with that option, therefore only indicates the outcome of the first step.  An event is raised in the event log to indicate the outcome once the processing of the mount request is complete.  The status of the last mount request is also displayed by the "query" command.</p>
+<p>The first three steps above are referred to as the pre-mount processing.</p>
+<p>Buffering the requests in NVRAM ensures that software failure and power failure do not result in data loss. Additionally, the file system supports the mirroring of the NVRAM contents to a partner server in a clustered configuration so that even a single server hardware failure does not result in data loss.</p>
+<p>If for any reason the server is unable to replay the contents of the NVRAM (e.g. because the contents have been lost due to power and battery failure) then the last few seconds of operations for which clients had received acknowledgements will be lost. Note in this scenario the file system will still be self-consistent because rolling back the file system to its last checkpoint does not require the contents of the NVRAM.</p>
+<p>The --force option must be specified in order for file system recovery to complete successfully if the NVRAM contents are lost.  The "mount-requires-nvram" command can be used to change the file system mount policy in this scenario.</p>
+<p>File systems are mounted automatically by default when the storage becomes available. The default behavior can be altered using the "automount" command.</p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>--all, -a</strong></dt>
+<dd><p>Mount all the unmounted file systems currently visible to the "df" command.  In an EVS context, that will be all file systems associated with that EVS.  In the default, Admin Service context, it will mount all file systems, cluster-wide.</p></dd>
+<dt><strong>--async</strong></dt>
+<dd><p>Mount the file system in the background (making it easier to mount several file systems in parallel)</p></dd>
+<dt><strong>--read-only, -r</strong></dt>
+<dd><p>Mount the file system read-only.</p></dd>
+<dt><strong>--force, -f</strong></dt>
+<dd><p>Mount will normally fail if an NVRAM record cannot be found for the file system. This option allows the mount to continue if the NVRAM record can not be found.</p></dd>
+<dt><strong>--pre-mount-only, -p</strong></dt>
+<dd><p>Performs the pre-mount processing but does not proceed to mount the file system.</p></dd>
+<dt><strong>--no-snapshot-deletion, -d</strong></dt>
+<dd><p>This option specifically tells the mount command to not enable snapshot deletion support for the specified file system.</p></dd>
+<dd><p>This option can be used to mount a file system that had failed while deleting a bad snapshot. Mounting without this option may cause the file system to fail again as it tries to continue the deletion of the bad snapshot. This option only disables snapshot deletion for the duration of the current mount, or until snapshot deletion is enabled using the snapshot-deletion --enable command. To persistently disable snapshot deletion, use the snapshot-deletion --disable command.</p></dd>
+</dl>
+<p>Note that if the file system is dedupe-enabled and the dedupe service is in the auto-enable state (automatically enabled on demand), the mount command will attempt to enable (start) the dedupe service if there are sufficient free resources. If the attempt fails, the mount command does not fail but will raise an event to advise users to check the resource-config commands (e.g. resource-config-show, etc) for the system state and how to ensure the dedupe service can be started.</p>
+<h2>Errors and resolutions:</h2>
+<p>The file system should mount successfully as long as the storage on which the file system resides is healthy and can be accessed by the server.  In the rare case that the mount request fails, below are the potential error messages and the steps that might be taken so that a subsequent mount succeeds.</p>
+<dl>
+<dt><strong>* Insufficient free NVRAM to mount the file system</strong></dt>
+<dd><p>A minimal amount of NVRAM must be free in order to mount a file system.  NVRAM is continually being freed by mounted file systems, so it may be that retrying the request after a few seconds will resolve the problem.  If the NVRAM is all being used by a file system that is currently unavailable, then that file system will need to be mounted first in order to make NVRAM available. Use the "nvpages" command to find out which file systems are consuming NVRAM.</p></dd>
+<dt><strong>* Failed to open the file system</strong></dt>
+<dd><p>A problem has been encountered trying to access the storage on which the file system resides. As a first step, use the "trouble storage" command to help diagnose storage-related problems.</p></dd>
+<dt><strong>* File system requires expansion to be completed</strong></dt>
+<dd><p>The file system has previously failed part way through an expansion.  Verify the cause of the previous failure has been resolved, and use the "expandfs" command to complete the expansion. The file system can then be mounted.</p></dd>
+<dt><strong>* The file system is not available for use</strong></dt>
+<dd><p>This may be a temporary condition if the file system is assigned to an EVS that is migrating or going offline.  Otherwise use the "filesystem-list" command to find out why the file system is unavailable.</p></dd>
+<dt><strong>* The file system has failed its pre-mount checks</strong></dt>
+<dd><p>Certain critical file system metadata is read from the storage and verified prior to mount. If this check fails then either the storage is not healthy, or the file system metadata has become corrupt and will need to be repaired.  The event log and the diagnostic log will contain further information as to the root cause of the problem.  The "trouble storage" command can be used to help diagnose a storage problem. If in doubt, contact your support organization for assistance in resolving this issue.</p></dd>
+<dt><strong>* The file system cannot be mounted because its NVRAM cannot be found</strong></dt>
+<dd><p>The file system has previously failed whilst mounted, but its NVRAM record can not be found.  If this is a clustered system, then the NVRAM may be on another node in the cluster.  Use the "nvlocate" command to locate the correct cluster node, and then migrate the EVS owning the file system to that cluster node.  If the NVRAM cannot be found, or this is not a clustered system, then the mount request can be re-issued using the '--force' option.  See earlier in this man page for the consequences of using this option.</p></dd>
+<dt><strong>* The file system is mounting</strong></dt>
+<dd><p>A mount request is already being processed for the file system.</p></dd>
+<dt><strong>* The file system is currently being accessed by another utility</strong></dt>
+<dd><p>Another utility is currently being run that is accessing the file system.  Wait until the utility is complete and then retry the mount request.</p></dd>
+<dt><strong>* The NVRAM record required by the file system is in use by another file system</strong></dt>
+<dd><p>This may only happen in a clustered environment as a result of a file system being deleted whilst one of the cluster nodes is offline . In this scenario it is possible for the deleted file system to leave a stale NVRAM on the offline cluster node .  An event will be raised by the failed mount request indicating the stale NVRAM record. As an example:</p></dd>
+<dd><p>Warning: File System: The NVRAM mount record required by file system f0 is currently in use by the file system with the unique identifier (0xc09ef64939d6023b).</p></dd>
+<dd><p>The nvpages command should be used to establish and remove the problematic NVRAM record.</p></dd>
+<dt><strong>* The file system cannot be rolled back to its last consistency point</strong></dt>
+<dt><strong>* The file system cannot replay the operations logged in NVRAM</strong></dt>
+<dt><strong>* The validation of the file system superblocks failed</strong></dt>
+<dt><strong>* Failed to read initial information from the file system</strong></dt>
+<dt><strong>* One of the system files on the file system can not be accessed</strong></dt>
+<dt><strong>* File system has failed</strong></dt>
+<dd><p>These failures indicate either the storage is not healthy, or the file system has become corrupt and will need to be repaired. The event log and the diagnostic log will contain further information as to the root cause of the problem.  The "trouble storage" command can be used to help diagnose a storage problem. Contact your support organization for assistance in resolving this issue.</p></dd>
+<dt><strong>* The file system is not formatted</strong></dt>
+<dd><p>If the file system is known to have been formatted, then this is indicative of corruption of the file system super blocks. The event log and the diagnostic log will contain further information as to the root cause of the problem. Contact your support organization for assistance in resolving this issue.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Mount the "fs0" file system read-only:</p>
+<pre>mount -r fs0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/automount.html">automount</a> <a href="../User/df.html">df</a> <a href="../Supervisor/expandfs.html">expandfs</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-syslock.html">filesystem-syslock</a> <a href="../Supervisor/mount-requires-nvram.html">mount-requires-nvram</a> <a href="../Supervisor/nvlocate.html">nvlocate</a> <a href="../User/nvpages.html">nvpages</a> <a href="../User/query.html">query</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

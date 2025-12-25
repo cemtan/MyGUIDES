@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-identify-encroachment</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-identify-encroachment</h1>
+<p>Try to determine which operating system encroached on one or more system drives</p>
+<h1>Syntax</h1>
+<pre>sd-identify-encroachment &lt;System-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>If a foreign server is connected to this server's storage and switches are not zoned correctly, it is possible that the foreign server will write to this server's storage.  If this happens, the first thing that the foreign server writes is usually a signature.  You can use 'sd-identify-encroachment' to scan one or more system drives (SDs) for foreign signatures and try to identify the operating system running on the foreign server.</p>
+<p>If the server detects no encroachment by a foreign server, the command will produce the following output:</p>
+<pre>x86 MBR - Partitions: (1) Ours
+</pre>
+<p></p>
+<p>Any other output strongly suggests that a foreign server has written to the system drive at some time in the past.  However, if the SD was connected to a different vendor's storage before being used with the server <strong>and</strong> the signature is not shown as 'x86 MBR', it's possible that no problem has occurred and the signature was written before the system drive was first used with the server.</p>
+<p>'sd-identify-encroachment' reads directly from the storage, ignoring the server's cached state.  It's therefore possible for this command to report encroachments that don't yet appear in the output of other commands.</p>
+<p>To see how to specify more than one SD, consult the 'sd-spec' man page.</p>
+<h1>Examples</h1>
+<pre>sd-identify-encroachment 7
+</pre>
+<p></p>
+<p>Scans for signatures on system drive 7</p>
+<pre>sd-identify-encroachment Accounts:has-bad-encroachment
+</pre>
+<p></p>
+<p>Scans for signatures on all SDs in span Accounts on which an encroachment has been detected.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/encroachment.html">encroachment</a> <a href="../Topic/sd-spec.html">sd-spec</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

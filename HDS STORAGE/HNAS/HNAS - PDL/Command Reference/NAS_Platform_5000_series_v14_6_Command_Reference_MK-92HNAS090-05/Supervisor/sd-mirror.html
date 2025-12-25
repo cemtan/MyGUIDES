@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-mirror</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-mirror</h1>
+<p>Tell the server that a Raid mirror has been created or will be destroyed</p>
+<h1>Syntax</h1>
+<pre>sd-mirror [--no-cod-write] &lt;span-instance-name&gt; (&lt;SD-device-ID&gt;=(&lt;SD-device-ID&gt;|none))...
+</pre>
+
+<h1>Description</h1>
+<p>Some products, such as TrueCopy and HUR, can mirror pairs of system drives (SDs), automatically copying to the secondary SD ('S-Vol') all the data that the server writes to the primary SD ('P-Vol').  This technique is called 'storage-based mirroring', and is described in the 'storage-based-mirror' man page.</p>
+<p>For most replication products, in order to fail over correctly, the server needs to know in advance about mirror relationships that have been set up on the storage.  In the rare and complex cases where 'sd-mirror-prepare' and 'sd-mirror-detect' fail, 'sd-mirror' can be used to type in mirror relationships by hand.</p>
+<p>(GAD is an exception: there is no need to configure GAD mirror relationships into the server or to unmount file systems before performing a graceful GAD failover.)</p>
+<p>Each 'sd-mirror' command specifies a span instance name followed by one or more pairs of SD device IDs.  Within each pair, the first device ID identifies the SD that is already in the span (usually, but not necessarily, the P-Vol) and the second identifies the SD that is to be added to the span (usually the S-Vol); the two IDs are separated by an equals sign.  If the second ID is replaced by the word 'none' (without quotation marks), a mirror relationship is removed from the server's configuration.</p>
+<p>Commands such as 'sd-list --raid-names' and 'sd-metadata' can help determine which SD is mirrored to which.</p>
+<p>For each new mirrored pair, if the SD already in the span has been assigned to a tier, its new mirrored partner will automatically be assigned to the same tier, and the command will fail if this assignment is impossible.  If two SDs are in the same SD group (as they will be if they are in the same DP pool), they cannot be assigned to tiers independently, and this consideration may compel you to specify them in the same 'sd-mirror' command if you have not already assigned them to tiers, should this be necessary.  Alternatively, if the 'sd-group' man page says that the SD groups are no longer necessary, you could choose to delete them.</p>
+<h1>Examples</h1>
+<p>Suppose span Accounts is on SDs 0, 1, 2 and 3, and you want to set up the following mirror relationships:</p>
+<pre>  Primary  Secondary
+  -------  ---------
+     0        4
+     1        5
+     2        6
+     3        7
+</pre>
+<p></p>
+<p>First, use the SMU or a third-party storage configurator (such as Storage Navigator or Hitachi Command Suite) to set up the mirror relationship.  Then use the following command:</p>
+<pre>sd-mirror Accounts 0=4 1=5 2=6 3=7
+</pre>
+<p></p>
+<p>From now on, if SD 0 fails and you promote the healthy SD 4 to primary, the server will automatically respond by bringing the span back up.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-remotely.html">sd-mirror-remotely</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-span-cod-reads.html">sd-span-cod-reads</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../Supervisor/span-break-mirrors.html">span-break-mirrors</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-cluster-uuids.html">span-list-cluster-uuids</a> <a href="../Supervisor/span-prepare-for-resync.html">span-prepare-for-resync</a> <a href="../Supervisor/span-reload-after-resync.html">span-reload-after-resync</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-undelete</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>filesystem-undelete</h1>
+<p>Undelete a filesystem by moving it out of a span&#39;s recycle bin</p>
+<h1>Syntax</h1>
+<pre>filesystem-undelete &lt;span-instance-name&gt; &lt;permanent-filesystem-ID&gt;
+</pre>
+
+<h1>Description</h1>
+<p>When you delete a filesystem, it spends some time in the span's recycle bin before being recycled (permanently destroyed).  As long as it is in the recycle bin, you can use 'filesystem-undelete' to undelete it.  After using 'evsfs' to bind the file system to an EVS, you will be able to mount it again.  It will then be necessary to set up any NFS exports and Cifs shares that may be required.</p>
+<p>The recycle bin is described more fully in the 'span-list-recycle-bin' man page.</p>
+<p>The 'filesystem-undelete' command was introduced in release 12.0.  Earlier releases do not maintain a recycle bin; therefore, if a filesystem was deleted under an earlier software release, you cannot upgrade to 12.0 and then use 'filesystem-undelete' to undelete it.</p>
+<h2>UNDELETING MULTIPLE FILESYSTEMS</h2>
+<p>A span's recycle bin can hold several filesystems.  If you wish to undelete more than one of them, care is required.  If you undelete filesystem X, bind it to an EVS and then mount it, it may auto-expand, causing deleted filesystem Y to be recycled and preventing you from ever undeleting filesystem Y.  To avoid this problem, use 'filesystem-undelete' to undelete as many filesystems as necessary before using 'evsfs' to bind any of them EVSs.  Alternatively, confine the host span before starting work.</p>
+<h2>FAILURE CONDITIONS</h2>
+<p>Every normal file system needs a device ID, but deleted file systems are exempt.  If all device IDs are in use, 'filesystem-undelete' will fail, reporting that no free device ID is available.  It will be necessary to free up a device ID, using commands such as 'filesystem-delete', 'span-deny-access' or 'filesystem-forget-and-delete-nv-data'.  Each of these command is destructive in its own way; see each command's man page before using it.</p>
+<p>Every span and file system needs a unique name; full details are given in the 'storage-based-snapshot-label' man page.  However, deleted filesystems are not subject to this restriction: you can delete a filesystem and then create a new filesystem with the same name, possibly several times.  If you do this, 'filesystem-undelete' will fail, because undeleting the filesystem would cause a naming conflict.  Identify the span or filesystem that has the same name as the filesystem you wish to delete; rename it; and then retry 'filesystem-undelete'.</p>
+<p>If 'filesystem-undelete' reports that a (different) filesystem with the same name is known to ID Manager, the only option is to run 'filesystem-forget-and-delete-nv-data' to remove the other filesystem from the server's registry.  This command is destructive; read its man page first.</p>
+<p>Incidentally, the possibility of having several filesystems with the same name in the same recycle bin is the reason why 'filesystem-undelete' and 'filesystem-recycle' identify filesystems by their permanent IDs instead of their names.</p>
+<h2>AVOIDING THE NEED TO UNDELETE FILESYSTEMS</h2>
+<p>Relying on 'filesystem-undelete' is unwise, because a deleted filesystem can be recycled at any time.  To safeguard filesystems, follow these guidelines:</p>
+<ol>
+<li>Give filesystems descriptive names.  'SATA_FS0' is a risky choice; 'Accounts' is safer.</li>
+<li>If you have multiple clusters, ensure that filesystem names are unique across your whole organization.  If two clusters each have a filesystem called 'ProjectX' then it is possible to delete the wrong filesystem by inadvertently issuing commands to the wrong server.</li>
+</ol>
+<p>You can rename existing filesystems without disconnecting clients or affecting the names of shares and exports.</p>
+<h2>UNDELETING A FILESYSTEM THAT HAS ALREADY BEEN RECYCLED</h2>
+<p>If the server recycled filesystem F in order to make space for another filesystem, filesystem F cannot be undeleted.  If, however, filesystem F was recycled merely because of the time it had spent in the recycle bin, or if you have recycled it manually and then changed your mind, there is a slim chance of undeleting it manually.</p>
+<ol>
+<li>Use 'span-confine' to prevent all auto-expansion on the span.  Do this now, before even reading to the end of this man page.  If any filesystem expands, undeletion will become more difficult.  If any filesystem expands on to a chunk that was previously used by filesystem F, recovery will become impossible.</li>
+<li>The SMU keeps Cod backups.  Locate the most recent backup taken before filesystem F was deleted.  Copy it to a safe place, because the SMU automatically deletes Cod backups older than a certain age.  To help identify the right Cod backup, connect to the server via ssc and use 'cod-backup-dump --terse'; the file you need is the newest one whose filesystem catalogue contains filesystem F.  Alternatively, and perhaps more simply, check the event log of the server that was running the Admin Service to find the moment when filesystem F was deleted, and find the newest Cod backup taken before that point.</li>
+<p>Some SMU releases compress Cod backups.  You will need to uncompress them before they can be dumped or restored.</p>
+<li>Verify that none of the chunks used by filesystem F has been reused by any of the surviving filesystems.</li>
+<dl>
+<dt><strong>a.</strong></dt>
+<dd><p>Identify the chunks used by filesystem F.</p></dd>
+<dd><p>In the Cod backup's filesystem catalogue, as displayed by 'cod-backup-dump', filesystem F will have an ordinal number.  Make a note of this number.  Scroll down to the chunk table and find the filesystem with this number.  For example, if the filesystem catalogue specifies an ordinal number of 3, locate the heading 'Filesystem 3:' in the chunk table.</p></dd>
+<dd><p>The chunks used by filesystem F will be listed in the following lines.  The syntax '100+9' refers to chunk 100 and the nine that follow: in other words, the ten chunks from 100 to 109.</p></dd>
+<dt><strong>b.</strong></dt>
+<dd><p>Run 'span-list-chunks --terse' on the span as it now is.  Compare the chunk numbers shown under 'Span#' with the list of chunks identified in the previous step.  If any of filesystem F's chunks has been reused in another filesystem, it will be impossible to recover filesystem F.  Do not proceed further.</p></dd>
+</dl>
+<li>Return to the output of 'cod-backup-dump'.  Check that all the surviving filesystems are present in the Cod backup.  If not, do not proceed further: restoring from this Cod backup would cause the loss of any filesystems not present in the backup.</li>
+<li>For each filesystem, compare the list of chunks shown in the Cod's chunk table with the list shown by 'filesystem-list-chunks --terse'.  If the current list is longer than the list in the Cod, it will be necessary to run 'filesystem-replay-expansions' in a later step.  If the difference in length is larger than the number of chunks that 'filesystem-replay-expansions' can add, it will be necessary to add the chunks manually with 'filesystem-add-chunk', which will be a daunting and error-prone task and will potentially put several filesystems at risk.  This knowledge may influence the decision about whether filesystem F's recovery should be attempted.</li>
+<li>Cleanly unmount all the file systems on the span.</li>
+<li>Use 'span-back-up-cod' to create an integrated Cod backup (ICB) so that, as a last resort, you can get back to the current state.</li>
+<li>Use 'span-restore-cod' to restore the SMU's ICB (not the ICB you took in the previous step).  Do not attempt to mount file systems yet.</li>
+<li>Use 'span-rewrite-cod' to update the Cod.</li>
+<li>Run 'span-list -f'.  Run 'filesystem-replay-expansions' on every filesystem that is reported as being undersized.  This command repeats filesystem expansions performed since the creation of the Cod backup that you have just restored.  If no such expansion has occurred, the command will fail harmlessly.  If 'filesystem-replay-expansions' reports that the list of expansions is not usable, it will be necessary to compare the new list of chunks in the filesystem with the chunks it contained before you restored the ICB, as produced in step 5, and add the missing chunks manually using 'filesystem-add-chunk'.</li>
+<li>Run 'span-list -f'.  Check that the command no longer displays warnings about undersized filesystems.  If it does, it is likely that the list of chunks added to the affected filesystems was wrong or too short.</li>
+<li>Use 'span-rewrite-cod' to update the Cod again.</li>
+<li>Use 'automount' to disable automount so that the server will not attempt to write to the newly undeleted filesystem.</li>
+<li>Use 'evsfs add' to bind the undeleted filesystem to an EVS.  You can reuse the same EVS as before or choose a different one.</li>
+<li>Run 'check-directory -r -d /' on each file system on the span.  Do not use 'checkfs', because it writes to disk without being able to check that the filesystem contains the right chunks.   Do not mount any file systems, for the same reason.</li>
+<li>When 'check-directory' has checked <strong>all</strong> the file systems on the span, it is safe to mount them all.  However, do not mount any file system on the span until 'check-directory' has checked them all: if Filesystem A erroneously contains some of Filesystem B's chunks, mounting Filesystem A might permanently destroy some or all of the data in Filesystem B.  'check-directory' may not be able to detect this condition just by checking Filesystem A.</li>
+<li>If automount was enabled before you started this procedure, use 'automount' to reenable it.</li>
+<p>If the span was not previously confined, use 'span-release' to release it.</p>
+</ol>
+<h1>Examples</h1>
+<p>In the following transcript, filesystem Red is deleted, shown in the span's recycle bin, undeleted, and mounted.</p>
+<pre>server:$ span-list -f hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   70%      600  7,5,6,4,8,9                      90%
+   fs Blue                 UnMnt, EVS    1, cap     60, unconfined
+   fs Green                UnMnt, EVS    1, cap     75, unconfined
+   fs Red                  UnMnt, EVS    1, cap     40, unconfined
+</pre>
+<p></p>
+<pre>server:$ span-list-recycle-bin hex
+This span's recycle bin is empty: no filesystems can be undeleted on it
+server:$ filesystem-delete red
+Success
+server:$ span-list -f hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   77%      600  7,5,6,4,8,9                      90%
+   fs Blue                 UnMnt, EVS    1, cap     60, unconfined
+   fs Green                UnMnt, EVS    1, cap     75, unconfined
+</pre>
+<p></p>
+<pre>server:$ span-list-recycle-bin hex
+Permanent ID      Deleted at                 Cap/GiB    Base name
+================  =========================  =========  =========
+E8C3897C21929AF6  2013-09-26 17:07:34+00:00        40  Red
+server:$ mount red
+mount: File system "red" is not available.
+server:$ filesystem-undelete hex E8C3897C21929AF6
+Success
+server:$ span-list -f hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   70%      600  7,5,6,4,8,9                      90%
+   fs Blue                 UnMnt, EVS    1, cap     60, unconfined
+   fs Green                UnMnt, EVS    1, cap     75, unconfined
+   fs Red                  NoEVS, EVS None, cap     40, unconfined
+</pre>
+<p></p>
+<pre>server:$ evsfs add red 1
+OK
+server:$ vn 1
+server:$ mount red
+Request to mount file system "Red" submitted successfully.
+File system "Red" successfully mounted.
+server:$ span-list -f hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   70%      600  7,5,6,4,8,9                      90%
+   fs Blue                 UnMnt, EVS    1, cap     60, unconfined
+   fs Green                UnMnt, EVS    1, cap     75, unconfined
+   fs Red                  Mount, EVS    1, cap     40, unconfined
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/automount.html">automount</a> <a href="../Supervisor/check-directory.html">check-directory</a> <a href="../User/cifs-share.html">cifs-share</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/cod-backup-dump.html">cod-backup-dump</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Dev/filesystem-add-chunk.html">filesystem-add-chunk</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-forget-and-delete-nv-data.html">filesystem-forget-and-delete-nv-data</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Supervisor/filesystem-rename.html">filesystem-rename</a> <a href="../Supervisor/filesystem-replay-expansions.html">filesystem-replay-expansions</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-list</h1>
+<p>List system drives</p>
+<h1>Syntax</h1>
+<pre>sd-list [&lt;formatting-options&gt;] [&lt;other-options&gt;] [&lt;selection-criteria&gt;] [&lt;system-drives&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>(This man page includes wide output.  It may be helpful to use 'man -n' or to widen your console window.)</p>
+<p>'sd-list' command prints a list of system drives (SDs).  You can specify which SDs you want to see and what information should be displayed about them.</p>
+<p>Because the server maintains a database of all SDs it has ever seen, the list may include SDs that haven't been present since the server booted.</p>
+<p>To concisely identify SDs matching a given set of criteria without reporting any information about them, use 'sd-enumerate' instead of this command.</p>
+<h2>Controlling the output</h2>
+<h3>Formatting options</h3>
+<p>By default, 'sd-list' prints one line per SD, showing each SD's device ID, its status (healthy, failed, etc), whether access is allowed, the SD's capacity in gibibytes (where 1GiB is 2**30 bytes), storage-based mirroring details, and the instance name and capacity (in gibibytes) of the span that uses the SD (if any).</p>
+<pre>server:$ sd-list 0-3
+Device  Status  Alw  GiByte  Mirror   In span                       Span Cap
+------  ------  ---  ------  -------  ----------------------------  --------
+   0    OK      Yes      10   Sec
+   1    OK      Yes      10   P 2     Accounts                            10
+   2    OK      Yes      10   S 1     Accounts                            10
+   3    OK      Yes      10   Pri
+server:$
+</pre>
+<p></p>
+<p>The following options modify this concise list:</p>
+<dl>
+<dt><strong>-p, --superflush</strong></dt>
+<dd><p>Replaces the span capacity with the SD's superflush data: the number of data disks in a Raid 5 or Raid 6 system drive, and the SD's stripesize.  The server uses these parameters to optimize write operations.</p></dd>
+</dl>
+<pre>        server:$ sd-list --superflush 0-3
+        Device  Status  Alw  GiByte  Mirror   In span                       S'flush
+        ------  ------  ---  ------  -------  ----------------------------  --------
+           0    OK      Yes     333   Pri     Span0                          ......
+           1    OK      Yes     333   Pri     Span0                           0x64K
+           2    OK      Yes     333   Pri     Span0                           5x0K
+           3    OK      Yes     333   Pri     Span0                           6x64K
+        server:$
+</pre>
+<p></p>
+
+<p>In the transcript above, SD 0 uses the default parameters explained in the 'sd-set' man page, because no custom parameters have been set.  For SDs 1 and 2, superflush is disabled, because one parameter is zero and the other non-zero.  For SD 3, the server optimizes writes assuming six data stripes of 64KiB each per stripeline.</p>
+<p>-T, --comment</p>
+<p>Replaces the span capacity with any comment that you have assigned to the system drive.  It also causes the SD listing to be sorted by comment; by default, the listing is sorted by device ID.</p>
+<p>-R, --raid-names</p>
+<p>Replaces the 'Mirror' and 'span capacity' fields with the name of the Raid rack, the name of the SD, and the SD's Lun.</p>
+<p>-P, --hdp</p>
+<p>Replaces the 'Mirror' and 'span capacity' fields with the name of the Raid rack, the name of the SD, and the number of the HDP pool that contains the SD (if any).</p>
+<p>--show-site, --show-tier</p>
+<p>Replaces the health and access columns with the SD's site ID and tier number.</p>
+<p>-%, --compression</p>
+<p>Replaces the health and access columns with statistics about storage-based compression:</p>
+<ul>
+<li>Amount of free physical space in the HDP pool, in gibibytes;</li>
+<li>Amount of free physical space in the HDP pool, as a percentage of the total physical space;</li>
+<li>Total amount of physical space in the HDP pool, in gibibytes;</li>
+<li>The saving due to compression -- the percentage by which the use of physical space has been reduced by compression.  For example, a value of 20 means that the data on the HDP pool occupies 20% less space than it would without compression, and implies a compression ratio of 1.25:1; a saving of 50% implies a compression ratio of 2:1.</li>
+</ul>
+<p>These numbers are replaced by '-' for uncompressed SDs, and by '?' or '!' for failure conditions.</p>
+<p>-=, --skip-status-table</p>
+<p>Suppresses two items:</p>
+<ul>
+<li>the explanatory list of statuses that normally follows the listing if any SD has failed, and</li>
+<li>the reminder that an asterisk (*) means that SD statuses are not the same on all cluster nodes.  (The asterisk itself is still printed.)</li>
+</ul>
+
+<p>The following formatting options are incompatible with the ones described above; they all produce a verbose listing:</p>
+<dl>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Goes into verbose mode.  If SD statuses differ between cluster nodes, a verbose listing prints one node's status per line.  However, SDs that are still being opened on a remote node are simply shown as healthy.  To see which SDs are being opened on a cluster node, run the 'sd-list' command on that node.</p></dd>
+<dt><strong>-c, --scsi</strong></dt>
+<dd><p>Adds Scsi information: make, model, revision number (not meaningful for Hitachi storage), Luid, block size, superflush parameters, Lun, serial number, site ID, Raid controller port ID, Hitachi internal device name, HDP pool number (if any), thick provisioning (if the SD is on an HDP pool), whether the SD is a UVM internal LU (if the SD is <strong>not</strong> on an HDP pool), compression statistics (if the SD is on a compressed HDP pool), SD tier number, GAD state and queue depth.  The Lun is a number that identifies an SD within a single storage array, but the server may know about several SDs with the same Lun.  The number shown as 'Lun' is the Hitachi host (external) Lun; the number shown as 'HDS dev name' is the Hitachi internal (absolute) Lun.  The submodel identifies the model of the storage subsystem more precisely than the 'model' field.  Site IDs are explained in the 'site' man page.  The GAD state indicates whether the SD is a GAD (Global Access Device) SD or not.  Queue depth controls the maximum number of parallel I/O commands that the cluster will queue at the storage for a single SD.</p></dd>
+<dt><strong>-C, --cod</strong></dt>
+<dd><p>Adds information about span Cod: whether a Cod signature is present, whether the SD has unloadable Cod, how much space is used in a currently loaded span, the SD group (if any) that includes this SD, and the instance name and configuration ID of any span specified in the SD's span Cod.</p></dd>
+<dt><strong>-W, --wwns</strong></dt>
+<dd><p>Prints the node WWNs of the controller(s) that host the device and the WWN of the port (if any) through which the cluster is currently accessing the device.</p></dd>
+<dt><strong>-w, --vverbose</strong></dt>
+<dd><p>Equivalent to: --verbose --scsi --cod --wwns</p></dd>
+<dd><p>(Mnemonic: very verbose)</p></dd>
+<dt><strong>-x, --vvverbose</strong></dt>
+<dd><p>In the current release, --vvverbose is exactly equivalent to --vverbose.  It is accepted for backwards-compatibility.</p></dd>
+<dd><p>(Mnemonic: very, very verbose)</p></dd>
+</dl>
+<p>All these fields are described in more detail below.</p>
+<p>Finally, --only-count skips the list of SDs and prints only the number of SDs that match any selection criteria you specify.  It cannot be used with any other formatted criteria or with a single device ID.</p>
+<h3>Selection criteria</h3>
+<p>If you follow the command name with an SD device ID, only that one SD will be listed.  Otherwise, you can use the following options to limit the number of SDs listed.  To appear in the list, an SD must meet <strong>all</strong> the criteria specified; the more options you use, the shorter the list will be.</p>
+<dl>
+<dt><strong>-h, --healthy; -H, --unhealthy</strong></dt>
+<dd><p>Selects SDs that are (un)healthy at Scsi level.  Healthy primary SDs that are still being opened and healthy mirrored secondaries are considered healthy, even though the server can't do I/O to them.  The --is-primary, --is-secondary, --open and --closed switches can be used to narrow down the list if required.</p></dd>
+<dt><strong>--status &lt;status-name&gt;</strong></dt>
+<dd><p>Selects SDs that have the specified status on the cluster node where the command is run.  Status names are the same as those printed by a concise listing.  They are explained in a separate table whenever 'sd-list' lists at least one failed SD.  You can abbreviate status names to any unambiguous form: for example, 'fa' can be used instead of 'failed'.  You can use any mixture of upper and lower case.  SDs that are still being opened are considered healthy and are selected by '--status ok'; to select SDs that are or are not yet open, use the --open and --closed switches.</p></dd>
+<dt><strong>-a, --allowed; -A, --denied</strong></dt>
+<dd><p>Selects SDs to which access has been allowed or denied.</p></dd>
+<dt><strong>-s, --ever-seen; -S, --never-seen</strong></dt>
+<dd><p><strong>-s</strong> selects SDs that have been seen by the Scsi driver on this physical server.  Includes mirrored primaries and secondaries, licensed and unlicensed SDs, healthy SDs, and even SDs that have gone offline because of multiple disk failures.  Also includes SDs that haven't been seen, but which are used in spans loaded from other SDs.  <strong>-S</strong> selects all SDs that <strong>-s</strong> doesn't.</p></dd>
+<dt><strong>-i, --in-a-span; -I, --not-in-a-span</strong></dt>
+<dd><p>Selects SDs that are (not) part of a currently-loaded span.</p></dd>
+<dt><strong>-L, --unloadable</strong></dt>
+<dd><p>Selects SDs that have unloadable span Cod on them.  Any SD with unloadable Cod may be a member of a damaged span.  Also selects SDs that are members of spans with unloadable filesystem Cod.</p></dd>
+<dt><strong>-o, --open; -O, --closed</strong></dt>
+<dd><p>Selects open or closed SDs.  The server opens all healthy, primary, licensed SDs at boot and keeps them open unless they fail or experience an I/O error.  Until an SD has been opened, the server can't load Cod from it or do I/O to it, and the span that uses that SD is not considered healthy.</p></dd>
+<dt><strong>-f, --has-superflush; -F, --has-no-superflush</strong></dt>
+<dd><p>Selects SDs for which at least one of the two superflush parameters has (not) been specified.  The --has-superflush option implies the --superflush formatting option if appropriate.  Note that the superflush optimization is performed by default, and that setting only one of the width and stripesize to a non-zero value will disable it.</p></dd>
+<dt><strong>-z, --is-degraded; -Z, --is-not-degraded</strong></dt>
+<dd><p>Selects SDs that have suffered at least one disk failure but are still able to service I/O.  For some Hitachi storage, the server cannot detect degradation; -z may cause 'sd-list' to display fewer SDs than expected and -Z may have no effect.</p></dd>
+<dt><strong>-t, --has-comment &lt;pattern&gt;</strong></dt>
+<dd><p>Selects SDs whose user-assigned comments match the pattern.  Pattern-matching is described below.  If you assign appropriate SD comments, the -t switch can list (for example) SDs in a single storage subsystem.  This switch implies -T: it causes the listing to be sorted by comment, rather than by device ID, and, in a terse listing, it causes SD comments to be printed in place of span capacities.</p></dd>
+<dt><strong>-n, --has-good-encroachment; -N, --has-bad-encroachment</strong></dt>
+<dd><p>Selects all SDs whose encroachment area is known to be good or bad.  The server never reads the encroachment areas of SDs that aren't used in spans, and so those SDs won't be listed if you use either of these two switches.  In mirrored spans, the same applies to the SDs in secondary position -- the SDs to which the server does not perform I/O, and to which the storage automatically copies data.</p></dd>
+<dt><strong>--grouped, --ungrouped</strong></dt>
+<dd><p>Selects SDs that are or are not in groups.  See the 'sd-group' man page.</p></dd>
+<dt><strong>--in-group-with &lt;SD-device-ID&gt;</strong></dt>
+<dd><p>Selects SDs that are in the same SD group as the SD you specify.  If that SD is not in a group, no other SDs are listed.</p></dd>
+<dt><strong>-@, --at-site &lt;site-ID&gt;</strong></dt>
+<dd><p>Selects SDs at the specified site.  See the 'site' man page for more details.</p></dd>
+<dt><strong>--in-tier</strong></dt>
+<dd><p>Selects SDs that you have assigned to the specified tier.  Use the special value -1 to display SDs that haven't been assigned to any tier.</p></dd>
+<dt><strong>-u, --is-in-span &lt;span-instance-name&gt;; -U, --is-not-in-span &lt;span-instance-name&gt;</strong></dt>
+<dd><p>Selects all SDs that are (not) used in a span you specify.</p></dd>
+<dt><strong>-r, --vendor &lt;pattern&gt;; -m, --model &lt;pattern&gt;</strong></dt>
+<dd><p>Selects all SDs whose vendor and/or model name match a pattern you specify.  Pattern-matching is described below.</p></dd>
+<dd><p>Scsi vendor and model names often differ from marketing names in non-obvious ways.  To see the names reported by your storage vendors, type:</p></dd>
+<dd><p><code>sd-list --scsi</code></p></dd>
+<dt><strong>-k, --raid-rack-name &lt;pattern&gt;; -d, --raid-sd-name &lt;pattern&gt;</strong></dt>
+<dd><p>Selects all SDs whose Raid rack names or SD names match a pattern.</p></dd>
+<dd><p>The rack name is a number printed on a label on the back of the Hitachi enclosure, and the SD name is the SD's internal Lun, left-padded with zeroes.</p></dd>
+<dd><p>To see the rack and SD names used by your storage, run 'sd-list -R'.</p></dd>
+<dt><strong>--is-scsi-primary, --is-scsi-secondary, --is-scsi-role-unknown</strong></dt>
+<dd><p>Selects SDs whose mirror role, as reported to the server's Scsi driver by the storage, is primary, secondary or unknown.  A P-Vol is primary, an S-Vol secondary.  An SD's role is typically unknown if the SD has failed.</p></dd>
+<dt><strong>--is-peg-primary, --is-peg-secondary, --is-peg-role-unknown</strong></dt>
+<dd><p>Selects SDs whose mirror role has been pegged to primary or secondary, or whose mirror role has not been pegged.  See 'sd-peg'.</p></dd>
+<dt><strong>-1, --is-primary; -2, --is-secondary; -0, --role-unknown</strong></dt>
+<dd><p>Selects SDs whose effective role is primary, secondary or known.  The effective role is the Scsi role, overridden by any pegged role.</p></dd>
+<dt><strong>--is-gad, --is-not-gad</strong></dt>
+<dd><p>Selects SDs that are, or are not, GAD (Global Access Device) SDs.</p></dd>
+<dt><strong>--in-hdp-pool &lt;pool-number&gt;</strong></dt>
+<dd><p>Selects SDs that are in an HDP pool with a given pool number.  To select SDs that do not reside on HDP pools, including SDs on non-Hitachi storage, use the special value -1.</p></dd>
+<dd><p>This switch excludes all SDs whose membership of an HDP pool cannot be determined because, for example, the server has been unable to contact the storage since the server booted.</p></dd>
+<dt><strong>-e, --is-compressed; -E, --is-uncompressed</strong></dt>
+<dd><p>Selects SDs that are, or are not, DP-Vols on a compressed HDP pool.</p></dd>
+<dd><p>This switch excludes any SDs whose compression state the server cannot determine.</p></dd>
+</dl>
+<p>You can specify a set of SDs, such as '0,1,16-23'.  Any of the above filters you specify will be applied to this set of SDs, and only matching SDs (if any) will be listed.  You can't specify filters if you specify just a single SD device ID.  Consult the 'sd-spec' man page to see how to specify a set of SDs.</p>
+<h3>Sorting the output</h3>
+<p>You can control the order in which SDs are listed by using the --sort switch.  Follow it with one or more letters from the following list:</p>
+<dl>
+<dt><strong>u</strong></dt>
+<dd><p>The instance name of the span in which the SD is used.  Unspanned SDs appear at the top of the list.</p></dd>
+<dt><strong>r</strong></dt>
+<dd><p>The storage vendor.</p></dd>
+<dt><strong>m</strong></dt>
+<dd><p>The model (typically, the model of the Raid controller).</p></dd>
+<dt><strong>k</strong></dt>
+<dd><p>The Raid rack name.</p></dd>
+<dt><strong>d</strong></dt>
+<dd><p>The SD name.</p></dd>
+<dt><strong>h</strong></dt>
+<dd><p>Health status on the cluster node where the command is run: failed, absent or otherwise unusable SDs first, followed by healthy ones.</p></dd>
+<dt><strong>s</strong></dt>
+<dd><p>Scsi mirror role: the mirror role reported to the server's Scsi driver by the storage.  Sort order is primary, then unknown, and then secondary.</p></dd>
+<dt><strong>p</strong></dt>
+<dd><p>Pegged mirror role: the role forced by the 'sd-peg' command.</p></dd>
+<dt><strong>o</strong></dt>
+<dd><p>Effective mirror role: the Scsi mirror role, overridden by any pegged status.  This is the role the server and SMU use for most purposes.</p></dd>
+<dt><strong>c</strong></dt>
+<dd><p>Capacity.</p></dd>
+<dt><strong>l</strong></dt>
+<dd><p>The SD's Lun.  (This character is a lower-case ell, not numeral 1.)  In the case of Hitachi, this switch sorts SDs by their external (host) Luns; to sort by internal Lun, use 'd'.</p></dd>
+<dt><strong>a</strong></dt>
+<dd><p>Access: unlicensed SDs with access denied, followed by licensed SDs with access allowed.</p></dd>
+<dt><strong>t</strong></dt>
+<dd><p>Comment: you can use the 'sd-set' command to assign a comment to an SD.</p></dd>
+<dt><strong>q</strong></dt>
+<dd><p>Luid.</p></dd>
+<dt><strong>v</strong></dt>
+<dd><p>The number of the HDP pool that hosts the SD.  HDP DP-Vols sort earlier than plain SDs.</p></dd>
+<dt><strong>g</strong></dt>
+<dd><p>Displays non-GAD SDs, followed by any SDs whose GAD status cannot be determined, followed by GAD SDs.</p></dd>
+<dt><strong>i</strong></dt>
+<dd><p>Device ID.  This is the default tie-breaker, used when other sort criteria don't determine the order in which SDs are listed.  Nevertheless, you can specify it explicitly if you wish.</p></dd>
+<dt><strong>e</strong></dt>
+<dd><p>Ratio of free physical space to total, on SDs that are DP-Vols in compressed HDP pools.  Uncompressed SDs are treated as having no free space, as are any SDs whose free space the server cannot determine.</p></dd>
+</dl>
+<p>You can specify as many of these sort criteria as you wish.  The server will try the first, and then use the second as a tie-breaker, and so on, using the device ID as the final tie-breaker.  For example,</p>
+<pre>sd-list --sort uo
+</pre>
+<p></p>
+<p>will sort SDs by span instance names; within each span, it will show mirrored primaries before secondaries; and, within each mirror role, it will sort SDs by their device IDs.</p>
+<p>To reverse the order of any criterion, use a capital letter.  For example,</p>
+<pre>sd-list --sort uO
+</pre>
+<p></p>
+<p>will still show spans in alphabetical order, but will show secondary SDs before primary ones.</p>
+<p>All SDs have unique device IDs, and so the 'i' sort criterion never needs a tie-breaker; as a result, any criteria you specify after 'i' will be ignored.</p>
+<h3>Other options</h3>
+<dl>
+<dt><strong>-l, --licensing</strong></dt>
+<dd><p>Shows how much space can be licensed on this server or cluster, how much space is already licensed, and how much more can be licensed.  Also shows the total number of SDs that can be licensed, the number that are currently licensed, and how many more can be licensed.  Licensing an SD is often called 'allowing access'.</p></dd>
+</dl>
+<h3>Pattern-matching</h3>
+<p>SD comments, Scsi vendor and Scsi model aren't matched exactly: instead, pattern-matching is performed.  The pattern can contain the following wildcards:</p>
+<dl>
+<dt><strong><strong></strong>*</strong></dt>
+<dd><p>match any number of characters</p></dd>
+<dt><strong>?</strong></dt>
+<dd><p>match any single character</p></dd>
+<dt><strong>[a-z]</strong></dt>
+<dd><p>match any single character in the range a-z</p></dd>
+<dt><strong>[^a-z]</strong></dt>
+<dd><p>match any single character not in the range a-z</p></dd>
+<dt><strong>\x</strong></dt>
+<dd><p>match x</p></dd>
+</dl>
+<p>Pattern-matching is always case-insensitive.</p>
+<p>For example, suppose an SD's vendor is 'ABC' and its model is 'XYZ 990p'. Any of the following selection criteria will match the SD:</p>
+<pre>    --vendor ABC
+    --vendor abc
+    --model xyz*
+    --model *990p
+    --model "*xy 9*"
+</pre>
+<p></p>
+<h2>Understanding the output</h2>
+<h3>In terse mode</h3>
+<pre>server:$ sd-list 0-3
+Device  Status  Alw  GiByte  Mirror   In span                       Span Cap
+------  ------  ---  ------  -------  ----------------------------  --------
+   0    OK      Yes      10   Sec
+   1    OK      Yes      10   P 2     Accounts                            10
+   2    OK      Yes      10   S 1     Accounts                            10
+   3    OK      Yes      10   Pri
+server:$
+</pre>
+<p></p>
+<dl>
+<dt><strong>Device</strong></dt>
+<dd><p>The SD's device ID.  The server records every SD in a database and ensures that its device ID is persistent across reboots.</p></dd>
+<dt><strong>Status</strong></dt>
+<dd><p>The status of the SD on the cluster node where the command is run.  'OK' means that the SD is healthy and usable; any other status will be explained in a message after the main listing.</p></dd>
+<dd><p>If the status is preceded by an asterisk (*), it means that the servers in this cluster don't all agree about the status of the SD.  The most common causes are:</p></dd>
+<ul>
+<li>The SD has just changed status (perhaps because the storage has just finished booting), and some servers have not yet reflected the change.</li>
+<li>One or more servers are still booting, and haven't yet brought the SD up.</li>
+<li>One or more servers are not correctly connected to the storage: perhaps a cable or a switch has failed, or the SD has been Lun-mapped so that some servers can't see it.  In this case, one or more servers will usually show the status as offline.</li>
+</ul>
+<dd><p>The first two of these conditions are transient.</p></dd>
+<dd><p>This behavior is not triggered when one cluster node is still opening an SD and another node has already opened it.  The SD is then considered to be healthy on both nodes.</p></dd>
+<dd><p>To see how SD statuses differ among cluster nodes, run this command:</p></dd>
+<dd><p>pn all sd-list &lt;SD-device-ID&gt;</p></dd>
+<dt><strong>Alw</strong></dt>
+<dd><p>'Yes' if you have allowed access to the SD; 'No' otherwise.</p></dd>
+<dt><strong>GiByte</strong></dt>
+<dd><p>The SD's capacity in gibibytes.</p></dd>
+<dt><strong>Mirror</strong></dt>
+<dd><p>Shows details of storage-based mirroring.</p></dd>
+<dd><p>If the SD is not in a loaded span, or if the SD is spanned but no mirror relationship has been configured into the server (by, for example, one of the 'sd-mirror-*' commands), one of these three-character symbols will appear:</p></dd>
+<ul>
+<li>'Pri' if the SD is unmirrored or a mirrored primary;</li>
+<li>'Sec' if the SD is a mirrored secondary; or</li>
+<li>'???' if the SD's mirror role cannot be determined.</li>
+</ul>
+<dd><p>If the SD is spanned and a mirror relationship has been configured into the server, 'sd-list' will display a single character, followed by the device ID of the partner SD:</p></dd>
+<ul>
+<li>'P' if the SD is a mirrored primary;</li>
+<li>'S' if the SD is a mirrored secondary; or</li>
+<li>'U' if the SD is spanned but its mirror role cannot be determined.</li>
+</ul>
+<dd><p>The device ID will reflect the mirror relationship configured into the server, even if that does not reflect the current mirror relationship on the storage.  If you change mirror relationships on the storage, it is essential to break and remake them on the server in order for the server to fail over correctly, should that become necessary.</p></dd>
+<dt><strong>In span</strong></dt>
+<dd><p>The instance name of the span of which this SD is a part.</p></dd>
+<dt><strong>Span cap</strong></dt>
+<dd><p>The capacity of the span of which this SD is a part.</p></dd>
+</dl>
+<h3>With --raid-names</h3>
+<p>The meaning of the output will depend on the storage vendor.  Here is some sample output:</p>
+<pre>server:$ sd-list -R 0-3
+Device  Status  Alw  GiByte  Rack label   SD label     Lun  In span
+------  ------  ---  ------  -----------  -----------  ---  ----------------
+   0    OK      Yes      10  75012014     0000           0
+   1    OK      Yes      10  75012002     0000           0  Accounts
+   2    OK      Yes      10  75012014     0001           1  Accounts
+   3    OK      Yes      10  75012002     0001           1
+server:$
+</pre>
+<p></p>
+<p>For Hitachi AMS storage, the rack name is a number printed on a label on the back of the enclosure.  The SD name is the SD's internal Lun.  The number in the 'Lun' field is the SD's external, or 'host', Lun.  The internal and external Luns may or may not be the same, depending on whether Hitachi host groups are used and how they've been configured.  If the cluster has never been in contact with the SD -- if, for example, it was added to the registry via 'sd-mirror-remotely' -- then the Lun will be displayed as the special value 65535 and the rack and SD label fields will be empty.</p>
+<h3>With --hdp</h3>
+<p>Output with --hdp is similar to output with --raid-names, except that the 'Lun' field is replaced with a field that shows the number of the HDP pool that contains this SD (or a dash if the SD does not reside on an HDP pool or if the storage is unhealthy, uncontactable or not made by Hitachi).</p>
+<pre>server:$ sd-list --hdp --skip-status-table 60-70,145-150
+Device  Status  Alw  GiByte  Rack label  SD label  HDP pool  In span
+------  ------  ---  ------  ----------  --------  --------  ---------------
+  60    OK      Yes     200  92250006    0030             1
+  61    OK      Yes     200  92250026    0030             1
+  62    OK      Yes     200  92250006    0031             1
+  63    OK      Yes     200  92250026    0031             1
+  64    OK      Yes     200  92250006    0032             2
+  65    OK      Yes     200  92250026    0032             2
+  66    OK      Yes     200  92250006    0033             2
+  67    OK      Yes     200  92250026    0033             2
+  68    OK      Yes     200  92250006    0034             2
+  69    OK      Yes     200  92250026    0034             2
+  70    OK      Yes     200  92250006    0035             2
+ 145    NotPrs  No      400  10030       0014             -
+ 146    NotPrs  No      400  10030       0014             -
+ 147    NotPrs  No      400  10030       0014             -
+ 148    NotPrs  No     1607  10030       0014             -
+ 149    NotPrs  No     1607  10030       0014             -
+ 150    NotPrs  No     1607  10030       0014             -
+server:$
+</pre>
+<p></p>
+<h3>In verbose mode</h3>
+<pre>server:$ sd-list -v 1
+Device ID:      1
+Comment:
+Capacity:       10GiB (10737418240 bytes)
+Status:         OK
+Role:           Primary; configured partner: 2
+Access:         Allowed
+Used in span:   'Accounts' (capacity 10GiB)
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<dl>
+<dt><strong>Device ID</strong></dt>
+<dd><p>The SD's device ID: a small number that the server uses to uniquely identify an SD, a filesystem or a tape drive or robot.  The server records every SD in a database and ensures that its device ID is persistent across reboots.</p></dd>
+<dt><strong>Comment</strong></dt>
+<dd><p>Any comment that you have assigned to the SD using the 'sd-set' command.</p></dd>
+<dt><strong>Capacity</strong></dt>
+<dd><p>The capacity of the SD in gibibytes and in bytes.</p></dd>
+<dt><strong>Status</strong></dt>
+<dd><p>The SD's status on the cluster node where the command is run, as reported by the Scsi driver.</p></dd>
+<dt><strong>Role</strong></dt>
+<dd><p>The SD's mirror role (primary or secondary) and, if appropriate, the SD to which this one is mirrored, according to the configuration of the span that includes the SDs.  If the SD has been pegged, the role will be shown like this:</p></dd>
+<dd><p>Secondary (Scsi: Primary; peg Secondary); configured partner: 3</p></dd>
+<dd><p>The three roles shown on this line should be read in the following order:</p></dd>
+<ul>
+<li>The effective role is Secondary</li>
+<li>The role reported by the storage to the server's Scsi driver is Primary (i.e. this is a stand-alone SD or a P-Vol)</li>
+<li>The SD's role has been pegged to Secondary</li>
+</ul>
+<dt><strong>Access</strong></dt>
+<dd><p>'Allowed' if you have allowed access to this SD; 'Denied' otherwise.</p></dd>
+<dt><strong>Used in span</strong></dt>
+<dd><p>The name and capacity of the span (if any) of which this SD is a part.</p></dd>
+</dl>
+<h3>With --scsi</h3>
+<pre>server:$ lsds --scsi 1
+Device ID:      1
+Comment:
+Capacity:       200GiB (214748364800 bytes)
+Status:         OK
+Role:           Primary; configured partner: 0
+Access:         Allowed
+Used in span:   'Span0' (capacity 200GiB)
+Type:           Make: HITACHI; Model: DF600F; Revision: 0000
+Submodel:       92
+Luid:           [03:01:00]60:06:0E:80:10:3D:4D:A0:05:7F:9F:AA:00:00:00:00
+Blocksize:      512
+Superflush:     6 x 64KiB
+Lun:            0
+Serial number:  92250026
+Site ID:        0
+Tier:           None
+HDS ctrlr port: 00
+HDS dev name:   0000
+HDP pool no:    1
+Thick provis:   No
+Compressed:     3428GiB (50%) of 6843GiB is free; saving is 90%
+GAD:            No
+Queue depth:    min 8, default 32, max 32, configured [default], effective 32
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The command shows everything it would show in verbose mode, plus the following fields:</p>
+<dl>
+<dt><strong>Type</strong></dt>
+<dd><p>The vendor, model and revision number that the storage reports to the server.  Sometimes useful for identifying a particular SD.</p></dd>
+<dt><strong>Submodel</strong></dt>
+<dd><p>This field, if present, identifies the type of storage hardware more specifically than the 'type' field above.</p></dd>
+<dt><strong>Luid</strong></dt>
+<dd><p>A long string of characters, generated from information provided by the storage, that uniquely identifies the SD.  Luids appear in span Cod, and can be seen in the output of 'sd-dump-cod'.</p></dd>
+<dt><strong>Blocksize</strong></dt>
+<dd><p>The number of bytes in a data block.</p></dd>
+<dt><strong>Superflush</strong></dt>
+<dd><p>The number of data disks in the SD, and the Raid 5 or Raid 6 stripesize.  The server uses these details to optimize write operations.  If both parameters are left at their default value of zero, the server will use the default values set out in the 'sd-set' man page, and 'sd-list' will display the word 'Default'.  If only one of the two paramters is zero, the superflush optimization will not be performed, and 'sd-list' will display the word 'Disabled' alongside the configured parameters.</p></dd>
+<dt><strong>Lun</strong></dt>
+<dd><p>A Lun (or 'logical unit number') is a small number that a Raid controller uses to identify a system drive.  (A system drive is sometimes called a 'logical unit' (LU); sometimes, incorrectly, an LU is referred to as a Lun.)</p></dd>
+<dd><p>Within a single Raid rack, every SD will have a unique Lun.  However, because a single server can communicate with multiple Raid racks, several SDs can have the same Lun.</p></dd>
+<dd><p>With Hitachi storage, the number shown here is the external (or 'host') Lun.  The internal Lun is shown below.</p></dd>
+<dt><strong>Serial number</strong></dt>
+<dd><p>Shows the SD's serial number, as taken from the Scsi standard inquiry.  For tape devices, this will be the device serial number.  For disk devices, this will be the array serial number.</p></dd>
+<dt><strong>Site ID</strong></dt>
+<dd><p>Shows the site ID that an administrator has previously assigned to the SD.  Sites are explained in the 'site' man page.</p></dd>
+<dt><strong>Tier</strong></dt>
+<dd><p>Shows the tier (if any) to which you have assigned this SD.</p></dd>
+<dt><strong>HDS ctrlr port</strong></dt>
+<dd><p>Shown only with Hitachi storage.  Shows the name of the controller port that the cluster is currently using to access the SD.  At any one time, all the servers in a cluster will use the same port to access a given SD.</p></dd>
+<dt><strong>HDS dev name</strong></dt>
+<dd><p>Shown only with Hitachi storage.  Shows the SD's internal Lun.</p></dd>
+<dt><strong>HDP pool no</strong></dt>
+<dd><p>Shown only for SDs that reside on HDP pools.  Shows the number of the HDP pool that hosts the SD.  Shown as '?' if the server cannot determine whether the SD is an HDP DP-Vol.</p></dd>
+<dt><strong>Thick provis</strong></dt>
+<dd><p>Shown only for SDs that reside on HDP pools.  Shows whether the SD is thickly provisioned.  If so, it will be treated as a UVM DDM LU; see the 'uvm' man page.  Otherwise, it will be assumed to be an HDP DP-Vol.</p></dd>
+<dt><strong>UVM internal</strong></dt>
+<dd><p>Shown only for SDs that do not reside on HDP pools.  Shows whether the SD is a UVM internal LU.  If not, it will be assumed to be a plain LU on a normal parity group.</p></dd>
+<dt><strong>Compressed</strong></dt>
+<dd><p>Shown only for SDs that reside on compressed HDP pools.  Shows the amount of free physical space (in gibibytes and as a percentage), the total amount of physical space, and the saving -- the amount of space saved by compression.  These numbers are replaced by '-' for uncompressed SDs, and by '?' or '!' for failure conditions.</p></dd>
+<dt><strong>GAD</strong></dt>
+<dd><p>Shows 'Yes' if the SD is a GAD (Global Access Device) SD, 'No' if it is not, and 'Unknown' if the server cannot tell whether or not the SD is a GAD device.</p></dd>
+<dt><strong>Queue depth</strong></dt>
+<dd><p>The queue depth is the maximum number of parallel I/O commands that the cluster as a whole will queue at the storage for this SD.  The "min", "default" and "max" values are fixed, and are determined by the storage array type: they are the minimum allowable, default and maximum allowable queue depth for this SD.  The "configured" value can be changed by 'sd-set'; the 'sd-list' command will show a number here if 'sd-set' or the token "[default]" otherwise.  Finally, "effective" shows the number that the server actually uses when sending I/O: it is the configured value, falling back to the default value if (as is usually the case) no configured value has been set up.</p></dd>
+</dl>
+<h3>With --wwns</h3>
+<pre>server:$ sd-list --wwn 1
+Device ID:      1
+Comment:
+Capacity:       10GiB (10737418240 bytes)
+Status:         OK
+Role:           Primary; configured partner: 2
+Access:         Allowed
+Used in span:   'Accounts' (capacity 10GiB)
+Ctl node names: 00:50:06:0E:80:10:22:EE:20, 00:50:06:0E:80:10:22:EE:22
+Ctl port name:  00:50:06:0E:80:10:22:EE:20
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>Shows everything that would appear in verbose mode, plus the following fields:</p>
+<dl>
+<dt><strong>Ctl node names</strong></dt>
+<dd><p>All the Fibre Channel node names of the controller that hosts the SD.</p></dd>
+<dt><strong>Ctl port name</strong></dt>
+<dd><p>The Fibre Channel WWN of the controller port through which the cluster is currently accessing the SD, or 'none' if the SD isn't open.</p></dd>
+</dl>
+<p>In this Hitachi example, the port name is identical to one of the controller's node names, but some other storage vendors don't follow this rule.</p>
+<h3>With --cod</h3>
+<pre>server:$ sd-list --cod 1
+Device ID:      1
+Comment:
+Capacity:       10GiB (10737418240 bytes)
+Status:         OK
+Role:           Primary; configured partner: 2
+Access:         Allowed
+Used in span:   'Accounts' (capacity 10GiB)
+Cod signature:  Present
+Unloadable Cod: No
+Encroachment:   Good
+SD group:       0 1 2
+Space used:     1MiB (0GiB) to 10238MiB (9GiB)
+Filesystem Cod: Good
+Span in Cod:    'Accounts', config ID 0x4677e6333583f575, digest 0xf7329023
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The command shows everything it would show in verbose mode, plus the following fields:</p>
+<dl>
+<dt><strong>Cod signature</strong></dt>
+<dd><p>'Present' if the SD has a span Cod signature; 'Absent' if it has not; 'Don't know' if the server has not yet determined whether the signature exists, or if you run the command on a server that isn't running the Admin Service.  The server writes the signature when it creates a span on the SD and erases it if you delete the span.  It doesn't load spans from SDs without signatures.</p></dd>
+<dt><strong>Unloadable Cod</strong></dt>
+<dd><p>'Yes' if the SD has unloadable span Cod; 'No' otherwise.</p></dd>
+<dt><strong>Encroachment</strong></dt>
+<dd><p>'Good' if the SD's encroachment area is intact; 'Bad' if it has become corrupt; 'Unknown' if the server has not read it (because the SD isn't part of a span) or has tried but failed (because of an I/O error).</p></dd>
+<dt><strong>SD group</strong></dt>
+<dd><p>Lists all the SDs that are in the same group as this one; says 'None' if this SD is not in a group.</p></dd>
+<dt><strong>Space used</strong></dt>
+<dd><p>Shows how much of the SD's space is used by a currently-loaded span.</p></dd>
+<dt><strong>Filesystem Cod</strong></dt>
+<dd><p>'Good' if the SD is used in a span whose filesystem Cod is all loadable; otherwise, prints the name of the Cod that won't load.</p></dd>
+<dt><strong>Span in Cod</strong></dt>
+<dd><p>Shows the base name, configuration ID and digest of any span that's specified in the SD's Cod.  The configuration ID is not the same as the span's permanent ID: it identifies a single version of the configuration, and changes every time the span Cod is rewritten.  The digest is a checksum of the span Cod.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>sd-list
+</pre>
+<p></p>
+<p>Lists all SDs in concise format.</p>
+<pre>sd-list --allowed
+sd-list -a
+</pre>
+<p></p>
+<p>Lists just those SDs that the server is allowed to access.</p>
+<pre>sd-list --healthy --allowed --not-in-a-span --is-primary
+sd-list -h -a -I -1
+sd-list -haI1
+</pre>
+<p></p>
+<p>Finds unused SDs which you can use for creating a new span or adding to an existing span.</p>
+<p>The remaining examples show only the long forms of switches, but the short forms have identical meanings.</p>
+<pre>sd-list --vendor FOO
+</pre>
+<p></p>
+<p>Lists all SDs from storage vendor Foo; ignores SDs from other storage vendors.</p>
+<pre>sd-list --cod 13
+</pre>
+<p></p>
+<p>Summarizes the Cod on SD 13</p>
+<pre>sd-list --raid-names Accounts
+</pre>
+<p></p>
+<p>Shows the rack and SDs names for each SD in span Accounts.  This command is useful for translating server IDs to the IDs used by Raid controllers.</p>
+<pre>sd-list --raid-names --sort kd Accounts
+</pre>
+<p></p>
+<p>Displays the same table but sorts it by Raid rack name and, within each Raid rack, sorts by SD name.  This command is useful for translating in the other direction: from SD IDs used by Raid controllers into those used by the server.</p>
+<pre>sd-list --unhealthy --is-in-span Accounts
+</pre>
+<p></p>
+<p>Troubleshooting command: finds any unhealthy SDs used in the span called 'Accounts'.</p>
+<pre>sd-list --scsi 0,4,5
+</pre>
+<p></p>
+<p>Displays Scsi details of SDs 0, 4 and 5.</p>
+<pre>sd-list --scsi --cod 0,4,5
+</pre>
+<p></p>
+<p>Displays both the Scsi details of SDs 0, 4 and 5 and the Cod resident on them.</p>
+<pre>sd-list --unhealthy 16-23
+</pre>
+<p></p>
+<p>Troubleshooting command: finds any unhealthy SDs whose device IDs are between 16 and 23.</p>
+<pre>sd-list --status failed 16-23
+</pre>
+<p></p>
+<p>Troubleshooting command: finds SDs that have failed because of multiple disk failures, and whose device IDs are between 16 and 23.</p>
+<pre>sd-list --status offlin
+</pre>
+<p></p>
+<p>Troubleshooting command: finds all SDs that can't be used because the server on which the command is run can't contact their Raid controllers.  'offlin' is the six-letter status name that 'sd-list' prints when an SD is offline.</p>
+<pre>sd-list --unloadable --cod
+</pre>
+<p></p>
+<p>Troubleshooting command: finds all SDs with unloadable Cod, and prints a summary of the span Cod on each one.</p>
+<pre>sd-list all:in-a-span all:allowed
+</pre>
+<p></p>
+<p>This command takes advantage of the syntax described in the 'sd-spec' man page to list all SDs that are spanned, licensed, or both.</p>
+<pre>sd-list --only-count --not-in-a-span
+</pre>
+<p></p>
+<p>Reports how many SDs are available to be built into spans, without actually listing them.</p>
+<pre>sd-list --is-compressed --compression --hdp --sort e
+</pre>
+<p></p>
+<p>Reports compression statistics on all compressed SDs, starting with those that are closest to running out of physical space.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/backup-devices-list.html">backup-devices-list</a> <a href="../Topic/cod.html">cod</a> <a href="../Topic/encroachment.html">encroachment</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../Supervisor/sd-enumerate.html">sd-enumerate</a> <a href="../Supervisor/sd-forget.html">sd-forget</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../Topic/sd-ids.html">sd-ids</a> <a href="../Supervisor/sd-luids-list.html">sd-luids-list</a> <a href="../Supervisor/sd-mirror-remotely.html">sd-mirror-remotely</a> <a href="../Supervisor/sd-peg.html">sd-peg</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Topic/site.html">site</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/tier.html">tier</a> <a href="../Topic/uvm.html">uvm</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

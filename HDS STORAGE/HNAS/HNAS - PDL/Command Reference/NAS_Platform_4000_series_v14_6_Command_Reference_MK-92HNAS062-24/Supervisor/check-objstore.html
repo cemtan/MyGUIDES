@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>check-objstore</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>check-objstore</h1>
+<p>Checks the object store metadata for a given object</p>
+<h1>Syntax</h1>
+<pre>check-objstore (--object-number|-o &lt;object-number&gt;) | (--sector|-s &lt;sector-address&gt;)
+		[--file-system|-f &lt;file system label&gt;]  [ (--snapshot-name|-N &lt;snapshot name&gt;) |
+		   (--snapshot-checkpoint-number|-C &lt;snapshot checkpoint number&gt;) |
+		      (--snapshot-index|-I &lt;snapshot index&gt;) ] [--verbose]
+</pre>
+
+<h1>Description</h1>
+<p>check-objstore checks the integrity of the object store metadata tree for any type of object.</p>
+<p>Note: check-objstore may be run with the file system mounted or unmounted.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--object-number, -o &lt;object-number&gt;</strong></dt>
+<dd><p>The object-number of the object. Normally, &lt;object-number&gt; is a decimal number or hexadecimal number starting with "0x".</p></dd>
+<dd><p>For flexibility, the command will automatically calculate the object number if one specifies a path name in place of the object number. It can perform this calculation by relying on the first character of the &lt;object-number&gt; string. If the first character is a digit, the string is always interpreted as an object number.  Otherwise, it will be interpreted as the path name as described below.</p></dd>
+<dd><p>The path name can be specified as an absolute path starting with "/" or a relative path optionally starting with "./".  For mounted or unmounted file systems one can specify either an absolute or a relative path name. But the relative path name can only be specified if the current working directory is defined, i.e., the file system must be both mounted and currently selected. If the relative path name starts with a digit, one must specify an absolute path name starting with "/" or a relative path name starting with "./" so that the command will not interpret it as an object number.</p></dd>
+<dd><p>If the specified file name is in a snapshot, its absolute path can be specified with or without the leading part "/.snapshot/&lt;snapshot-name&gt;". If the leading part is not specified, the snapshot must be specified by one of the three snapshot options -N, -C, or -I that are described shortly. Otherwise, the snapshot name is already specified in the path and, hence, it is an error to specify any snapshot option.</p></dd>
+<dt><strong>--sector, -s &lt;sector-address&gt;</strong></dt>
+<dd><p>The on-disk sector address of the object's root onode.</p></dd>
+<dt><strong>--file-system, -f &lt;file-system-label&gt;</strong></dt>
+<dd><p>The file system on which the object resides. If this option is not specified, the current selected file system will be used.</p></dd>
+<dt><strong>--snapshot-name, -N &lt;snapshot-name&gt;</strong></dt>
+<dd><p>Check the object as it was in the given snapshot, rather than as it is now in the live file system. Can only be used in combination with -o.</p></dd>
+<dt><strong>--snapshot-checkpoint-number, -C &lt;checkpoint-number&gt;</strong></dt>
+<dd><p>Check the object as it was in the given snapshot, rather than as it is now in the live file system. Can only be used in combination with -o.</p></dd>
+<dt><strong>--snapshot-index, -I &lt;snapshot-index&gt;</strong></dt>
+<dd><p>Check the object as it was in the given snapshot, rather than as it is now in the live file system. Can only be used in combination with -o.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display more information on the onode path when encountering an onode in error.</p></dd>
+</dl>
+<p>Note that the last three snapshot options are mutually exclusive. In addition, they cannot be specified if the value of --object-number is of the form "/.snapshot/&lt;snapshot-name&gt;/&lt;object-pathname&gt;".</p>
+<h1>Examples</h1>
+<p>1. To check the object store metadata of the Free Space bitmap on file system fs1:</p>
+<pre>      check-objstore -o 2 -f fs1
+   or
+      selectfs fs1
+      check-objstore -o 2
+</pre>
+<p></p>
+<p>2. To check the object store metadata of directory /mydir on file system fs1:</p>
+<pre>      check-objstore -o /mydir -f fs1
+</pre>
+<p></p>
+<p>3. To check the object store metadata of directory /mydir in snapshot named "mysnapshot" on file system fs1:</p>
+<pre>      check-objstore -o /.snapshot/mysnapshot/mydir -f fs1
+   or
+      check-objstore -o /mydir --snapshot-name mysnapshot -f fs1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/check-directory.html">check-directory</a> <a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

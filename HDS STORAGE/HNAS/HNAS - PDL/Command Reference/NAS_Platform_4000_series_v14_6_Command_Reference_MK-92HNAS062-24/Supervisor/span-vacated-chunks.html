@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-vacated-chunks</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-vacated-chunks</h1>
+<p>Show statistics about any chunks that were in use but have been freed</p>
+<h1>Syntax</h1>
+<pre>span-vacated-chunks [&lt;span-instance-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This man page applies to spans that reside on HDP pools.  See the 'hdp' man page.</p>
+<p>When you delete and recycle a filesystem the server records the chunks -- regions of disk space -- that the filesystem occupied, and it reuses the same chunks when other filesystems are created or expanded.  These chunks are known as <strong>vacated chunks</strong>.  By reusing vacated chunks, the server avoids wasting space on thinly provisioned HDP pools and running out of disk space prematurely.</p>
+<p>This command shows how many vacated chunks a span has and how much space they occupy.  In addition, if the server is in the process of unmapping chunks -- returning them from the span to the underlying pool -- then the command shows how much work the unmapping process has done so far, as well as the nature of the chunks being unmapped (vacated, unused, or both) and whether the 'span-unmap-vacated-chunks' command's --exhaustive or --unused-chunks options would have produced this effect.</p>
+<p>If you specify a span instance name at the command line, the command displays information for just the specified span.  Otherwise, it displays information for all loaded spans.</p>
+<h1>Examples</h1>
+<pre>server:$ span-vacated-chunks accounts
+This span has 351 vacated chunks, occupying 350GiB
+server:$ span-vacated-chunks
+</pre>
+<p></p>
+<pre>Span Accounts:
+This span has 351 vacated chunks, occupying 350GiB
+</pre>
+<p></p>
+<pre>Span Projects:
+This span has 580 vacated chunks, occupying 578GiB
+An unmapper process has unmapped 173 unused or vacated chunks and a total of 173GiB
+(Launched automatically, as if by 'span-unmap-vacated-chunks --exhaustive')
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/hdp.html">hdp</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-space-distribution.html">span-space-distribution</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

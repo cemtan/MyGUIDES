@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>network-cidr-show</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>network-cidr-show</h1>
+<p>Show CIDR routing status</p>
+<h1>Syntax</h1>
+<pre>network-cidr-show 
+</pre>
+
+<h1>Description</h1>
+<p>When routing needs to choose a route, it searches in order through the host route table and then the network route table and finally the gateway table, looking for a suitable route. Once a route is found in one of the tables, subsequent tables are not searched. If more than one route is found within a table, routing has to choose amongst them. If CIDR mode is enabled, which it is by default, then routing will choose based on the length of the prefix match and, if that still produces more than one route, based on the metric of the associated interface, where a numerically lower metric is preferred. For some network configurations, that can produce unworkable routes. To allow for such networks, it is possible to cause routing to ignore the length of the prefix when choosing a route and to choose based solely on the interface metric. However, due to the arbitrary order of routes in the routing table, this may result in the same route being chosen.</p>
+<p>CIDR is Classless-Inter Domain Routing, which is an IP address allocation scheme intended to slow the growth of the Internet's routing tables (see RFC 4632).</p>
+<p>The network-cidr-enable command causes routing to consider the length of the prefix when choosing a route. This is the default setting.</p>
+<p>The network-cidr-disable command causes routing to disregard the length of the prefix when choosing a route.</p>
+<p>The network-cidr-show command displays whether routing currently takes prefix length into account when choosing a route.</p>
+<h1>Examples</h1>
+<p>To configure routing to choose routes based solely on the interface metric, i.e. CIDR mode disable:</p>
+<pre>$ network-cidr-disable
+$
+</pre>
+<p></p>
+<p>To configure routing to choose routes based on the longest matching prefix first and the interface metric second, i.e. CIDR mode enabled:</p>
+<pre>$ network-cidr-enable
+$
+</pre>
+<p></p>
+<p>To display routing's current CIDR mode:</p>
+<pre>$ network-cidr-show
+network CIDR is enabled.
+$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/network-cidr-disable.html">network-cidr-disable</a> <a href="../Supervisor/network-cidr-enable.html">network-cidr-enable</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

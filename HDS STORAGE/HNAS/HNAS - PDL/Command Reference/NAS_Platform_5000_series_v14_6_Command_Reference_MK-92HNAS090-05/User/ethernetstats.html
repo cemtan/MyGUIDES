@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ethernetstats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>ethernetstats</h1>
+<p>Report/reset ethernet statistics</p>
+<h1>Syntax</h1>
+<pre>ethernetstats [-r|--reset] [-n] [-p &lt;name&gt; | -t ]
+</pre>
+
+<h1>Description</h1>
+<p>Displays the statistics for each ethernet port.</p>
+<p>Note the statistics described below are not necessarily available on all interfaces. In particular, the various "bytes last second" statistics are only available on file-serving interfaces.</p>
+<p>No statistics are provided for the management interfaces.</p>
+<p>The 'ethernetstats' command takes the following options:</p>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Reset statistics</p></dd>
+<dt><strong>-n, --nr</strong></dt>
+<dd><p>Display non-resettable statistics</p></dd>
+<dt><strong>-p, --port &lt;port&gt;</strong></dt>
+<dd><p>Port name eg. ag1</p></dd>
+<dt><strong>-t, --total</strong></dt>
+<dd><p>Total ethernet statistics across file-serving and management ports.</p></dd>
+</dl>
+<p>The following information is displayed:</p>
+<h2>General</h2>
+<dl>
+<dt><strong>Mac Address</strong></dt>
+<dd><p>This is the interface MAC address. It will not be displayed if it is invalid.</p></dd>
+</dl>
+<h2>RX Statistics</h2>
+<dl>
+<dt><strong>Last Reset</strong></dt>
+<dd><p>The time (if any) at which the interface statistics were last reset.</p></dd>
+<dt><strong>Bytes All</strong></dt>
+<dd><p>A count of all bytes received at the MAC interface.</p></dd>
+<dt><strong>Bytes OK</strong></dt>
+<dd><p>A count of all bytes received at the MAC interface that are accepted without error.</p></dd>
+<dt><strong>Packets OK</strong></dt>
+<dd><p>A count of all packets received at the MAC interface that are accepted without error.</p></dd>
+<dt><strong>Instantaneous bytes/sec</strong></dt>
+<dd><p>A count of bytes received in the last second. This figure is updated once per second.</p></dd>
+<dt><strong>Peak bytes/sec</strong></dt>
+<dd><p>The highest value of "Instantaneous bytes/sec" since the last reset.</p></dd>
+<dt><strong>Packets Unicast</strong></dt>
+<dd><p>A count of all unicast packets received at the MAC interface that are accepted without error.</p></dd>
+<dt><strong>Packets Broadcast</strong></dt>
+<dd><p>A count of all broadcast packets received at the MAC interface that are accepted without error.</p></dd>
+<dt><strong>Packets Multicast</strong></dt>
+<dd><p>A count of all multicast packets received at the MAC interface that are accepted without error.</p></dd>
+<dt><strong>Packets Oversized</strong></dt>
+<dd><p>A count of packets received that are greater than the maximum frame size permitted for the interface.</p></dd>
+<dt><strong>Packets Undersized</strong></dt>
+<dd><p>A count of packets received that are smaller than the minimum frame size permitted for the interface.</p></dd>
+<dt><strong>Packets Fragmented</strong></dt>
+<dd><p>A count of packets received that are smaller than the minimum frame size permitted for the interface and also have either a CRC error or an alignment error.</p></dd>
+<dt><strong>Jabbers</strong></dt>
+<dd><p>A count of frames received with alignment errors.</p></dd>
+<dt><strong>Collisions</strong></dt>
+<dd><p>A count of corrupted frames received caused by collisions. Should be zero on 1GbE and 10GbE interfaces.</p></dd>
+<dt><strong>CRC Errors</strong></dt>
+<dd><p>A count of frames received with an invalid FCS.</p></dd>
+<dt><strong>All Errors</strong></dt>
+<dd><p>A count of all frames received with errors.</p></dd>
+<dt><strong>Packets Dropped</strong></dt>
+<dd><p>A count of received packets discarded because of problems discovered in the MAC chip or CRC errors.</p></dd>
+<dt><strong>Packets No Proto</strong></dt>
+<dd><p>A count of packets received that are smaller than the minimum frame size permitted for the interface and are subsequently rejected by software rather than the MAC.</p></dd>
+</dl>
+<h2>TX Statistics</h2>
+<dl>
+<dt><strong>Last Reset</strong></dt>
+<dd><p>The time (if any) at which the interface statistics were last reset.</p></dd>
+<dt><strong>Bytes All</strong></dt>
+<dd><p>A count of all bytes transmitted by the MAC interface.</p></dd>
+<dt><strong>Bytes OK</strong></dt>
+<dd><p>A count of bytes successfully transmitted by the interface.</p></dd>
+<dt><strong>Packets OK</strong></dt>
+<dd><p>A count of packets successfully transmitted by the interface.</p></dd>
+<dt><strong>Instantaneous bytes/sec</strong></dt>
+<dd><p>A count of bytes transmitted in the last second. This figure is updated once per second.</p></dd>
+<dt><strong>Peak bytes/sec</strong></dt>
+<dd><p>The highest value of "Instantaneous bytes/sec" since the last reset.</p></dd>
+<dt><strong>Packets Unicast</strong></dt>
+<dd><p>A count of all unicast packets transmitted by the MAC interface.</p></dd>
+<dt><strong>Packets Broadcast</strong></dt>
+<dd><p>A count of all broadcast packets transmitted by the MAC interface.</p></dd>
+<dt><strong>Packets Multicast</strong></dt>
+<dd><p>A count of all multicast packets transmitted by the MAC interface.</p></dd>
+<dt><strong>Packets Dropped</strong></dt>
+<dd><p>A count of packets that were not transmitted by the MAC interface.</p></dd>
+<dt><strong>Collisions Single</strong></dt>
+<dd><p>A count of packets successfully sent after a single collision. Should be zero on 1GbE and 10GbE interfaces.</p></dd>
+<dt><strong>Collisions Multiple</strong></dt>
+<dd><p>A count of packets successfully sent after multiple collisions. Should be zero on 1GbE and 10GbE interfaces.</p></dd>
+<dt><strong>Collisions Excessive</strong></dt>
+<dd><p>A count of packets not sent after more than 15 collisions. Should be zero on 1GbE and 10GbE interfaces.</p></dd>
+<dt><strong>Collisions Late</strong></dt>
+<dd><p>A count of packets successfully sent after a collision more than 512 bit times into the transmission of the frame. Should be zero on 1GbE and 10GbE interfaces.</p></dd>
+</dl>
+<h2>Totals</h2>
+<dl>
+<dt><strong>Bytes Total All</strong></dt>
+<dd><p>Total of all received and transmitted bytes, including errors.</p></dd>
+<dt><strong>Bytes Total OK</strong></dt>
+<dd><p>Total of all bytes received and transmitted without error.</p></dd>
+<dt><strong>Packets Total OK</strong></dt>
+<dd><p>Total of all packets received and transmitted without error.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>ethernetstats
+</pre>
+<p></p>
+<p>Display ethernet statistics for all ports</p>
+<pre>ethernetstats -r
+</pre>
+<p></p>
+<p>Reset all ethernet statistics</p>
+<pre>ethernetstats -n
+</pre>
+<p></p>
+<p>Display ethernet non-resettable statistics for all ports</p>
+<pre>ethernetstats -p ge1
+</pre>
+<p></p>
+<p>Display ethernet statistics for gige-1 port</p>
+<pre>ethernetstats -t
+</pre>
+<p></p>
+<p>Display total ethernet statistics for all ports</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

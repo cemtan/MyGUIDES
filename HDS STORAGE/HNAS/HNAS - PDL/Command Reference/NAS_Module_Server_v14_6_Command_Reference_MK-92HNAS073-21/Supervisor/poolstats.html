@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>poolstats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>poolstats</h1>
+<p>Display pool statistics</p>
+<h1>Syntax</h1>
+<pre>poolstats [--reset|--overages] [&lt;substring&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Displays statistics about memory pools.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Resets high water marks and warning flags.</p></dd>
+<dt><strong>-o, --overages</strong></dt>
+<dd><p>Restricts the output to pools which have overflowed since the last reset.</p></dd>
+<dt><strong>&lt;substring&gt;</strong></dt>
+<dd><p>Only operate on pools where the pool name contains the substring (a case insensitive search is used).</p></dd>
+</dl>
+<p>Memory pools are used to reduce heap fragmentation by allocating frequently allocated and long term data structures from pools of memory. Some are used to increase performance, as the allocator is a little quicker than the general purpose heap allocator.</p>
+<p>A portion of the available heap space is reserved and partitioned into a number of distinct "pools". Each pool acts as a container for objects of a similar type. (Most pools contain only one type of object but some contain related types.) An object of a given type belongs to at most one pool. Most pools contain objects whose size is the same. Each pool has a maximum object size. Each pool is divided into fixed size slots of this maximum object size. A list of free slots is maintained for each pool.</p>
+<p>There are three kinds of pools:</p>
+<ul>
+<li>LongTermAllocations</li>
+<li>FixedSizePerformance</li>
+<li>ManuallyTunablePerformance</li>
+</ul>
+<p>These pools are created, for the most part, at boot time.</p>
+<p>By default, dynamic pool allocation is disabled.  In that case:</p>
+<ul>
+<li>Pools use contiguous regions of memory sometimes spanning hundreds of megabytes. When a pool is created, it is given a fixed capacity.</li>
+</ul>
+<p>In contrast, when dynamic pool allocation is enabled:</p>
+<ul>
+<li>At boot time, a reservoir is created, using a very large, contiguous region of memory.</li>
+<li>When a pool is created, it is not given any memory.</li>
+<li>When an object is added to the pool, if there is no memory available in the pool, memory is allocated for the pool from the reservoir.</li>
+<li>Pools thus contain non-contiguous regions of memory.</li>
+</ul>
+<p>The default capacity is based upon the number of objects that are expected to be created during normal operation. The fixed size slots allow the free slot list to be small, so the space taken up by a pool is roughly the capacity multiplied by the maximum size of each object.</p>
+<p>During normal operation, there may be times when a greater number of objects of a pool's type need to be allocated than the current pool size will allow.</p>
+<ul>
+<li>With dynamic pool allocation enabled:</li>
+<ul>
+<li>The pool size starts at zero, and grows by allocating from the reservoir (presuming that the reservoir is not exhausted).</li>
+<li>If a pool has reached its manually tuned size (if any), the server will not attempt to allocate any more memory from the reservoir.</li>
+<li>Otherwise:</li>
+<ul>
+<li>For pools of either of the performance types, the server will not attempt to allocate from the reservoir if the pool has reached its configured capacity.</li>
+<li>For LongTermAllocations pools, the server will always attempt to allocate memory from the reservoir when needed.</li>
+</ul>
+</ul>
+<li>When there is (still) no room in the pool, the server will usually create the object from the unpooled region of heap.</li>
+</ul>
+<p>For each pool, a note is kept of the maximum number of extant objects allocated via that pool. This is known as the "high water mark" or <code>hwm</code>. Periodically, any pools which have overflowed have their default capacity reassessed. On the next reboot, the pool may then be created with an initial size large enough to hold the increased number. This is referred to as "auto-tuning".</p>
+<p>Manual tuning is also possible. Each pool has two tuning variables, an <code>auto</code> and a <code>custom</code> variant. The <code>auto</code> variant is used by auto-tuning but may be manually overridden. The <code>custom</code> variant is never written to automatically and overrides any <code>auto</code> variable. <code>auto</code> values below the default capacity are ignored, on the assumption that they are from older firmware versions. <code>custom</code> values below the default are, however, heeded.</p>
+<ul>
+<li>It would be best not to tune pool sizes unless directed to by your support organization.</li>
+</ul>
+<p>The syntax for altering these variables is:</p>
+<ul>
+<li><code>set &lt;auto|custom&gt;-heap-pool-size-&lt;pool name&gt; &lt;capacity in number of objects&gt;</code></li>
+</ul>
+<p>For example:</p>
+<ul>
+<li><code>set custom-heap-pool-size-mappingEntry 150000</code></li>
+</ul>
+<p>Like all <code>set</code> variables, these are cluster-wide settings. The auto-tuning code will not overwrite an <code>auto</code> variable from another node, or from the user, with a lower value from a pool's high water mark.</p>
+<p>Tuning can be removed with the <code>unset</code> command.</p>
+<p>For example:</p>
+<ul>
+<li><code>unset custom-heap-pool-size-mappingEntry</code></li>
+</ul>
+<p>As with the addition of tuning, removed tuning is only heeded after a reboot.</p>
+<p>When dynamic pool allocation is enabled:</p>
+<ul>
+<li>A change to the manual tuning is noticed (generally within ten minutes).</li>
+<li>If the manual tuning was removed, then once it is noticed, it will no longer limit the growth of the pool.</li>
+<li>If manual tuning is added or modified to a size smaller than the current size of the pool, the smaller size will not take effect until after a reboot, but once the change is noticed, the pool will not grow any larger.</li>
+<li>But if manual tuning is added or modified to a size as large as or larger than the current size of the pool, it will take effect as soon as it is noticed.</li>
+</ul>
+<p>The easiest way to inspect pool tuning is with this, the poolstats command.</p>
+<p>There are various safety limits on auto-tuning and on pool size in general. It is intended that these safety mechanisms prevent mis-tuning from destabilizing the server in normal operation. For long-term stability in large deployments, though, it is important not to over-commit memory to any one pool in particular or, indeed, to all pools. Doing so may cause the server to decline to create other pools with their full sizes, leading to fragmentation and instability.</p>
+<p>Previous releases of firmware, specifically releases before 6.0, used the hidden <code>telcset</code> and <code>telcunset</code> commands to manage node-specific tuning. "telcs" are still used under the covers, to mirror the <code>set</code> variables into flash that is available before the cluster is fully booted. <code>telcset</code> should no longer be used to manage these settings, except under the supervision of your support organization.</p>
+<p>Before 6.0, the telcs had no <code>auto</code> or <code>custom</code> prefix. As any previous tuning was likely to be obsoleted by various improvements in 6.0, no upgrade or downgrade support for the old telcs was implemented. Any telcs, then, named <code>heap-pool-size-&lt;pool name&gt;</code> are silently no longer honored.</p>
+<h1>Examples</h1>
+<pre>server$ poolstats Pool-5
+LongTermSizeBasedPool-520 (520 B) (LongTermAllocations) :
+  capacity       : 698480, 351.7 MB (368797440 B) (automatically tuned to 100000 but this will be ignored as less than the default) (manually locked to 500000 for the next boot)
+  current        : 80143 (11%), 40.36 MB (42315504 B) (156 on the heap, 80.44 KB (82368 B))
+  hwm            : 249904 (35%), 125.8 MB (131949312 B) since reboot
+  hwm            : 80815 (11%), 40.69 MB (42670320 B) since last poolstats -r
+  mandate        : 0 (0%), 0 B
+  mallocs        : 0 (of 15854 allocations since last poolstats -r)
+  warn at        : 558784
+  overflows      : 0 overflows into the heap since reboot
+LongTermSizeBasedPool-524296 (512 KB (524296 B)) (LongTermAllocations) :
+  capacity       : 32, 16 MB (16777728 B)
+  current        : 0 (0%), 0 B
+  hwm            : 3 (9%), 1.5 MB (1572912 B) since reboot
+  hwm            : 0 (0%), 0 B since last poolstats -r
+  mandate        : 0 (0%), 0 B
+  mallocs        : 0 (of 0 allocations since last poolstats -r)
+  warn at        : 3032
+  overflows      : 0 overflows into the heap since reboot
+</pre>
+<p></p>
+<pre>Default total capacity of all pools this boot : 4.389 GB (4712540496 B) in 12351294 objects
+Default total capacity of all pools next boot : 4.389 GB (4712540496 B) in 12351294 objects
+Current total capacity of all pools this boot : 4.389 GB (4712540496 B) in 12351294 objects
+Expected total capacity of all pools next boot : 4.291 GB (4607743056 B) in 12152814 objects
+That is expected to fit with a big-size lwm during heap-pool creation of : 1.145 GB (1229079048 B)
+Total minimum reservoir needed over all pools since reboot: 972 MB (1019215872 B) (22%; 972 chunks)
+Total minimum reservoir needed over all pools since stats reset: 715 MB (749731840 B) (16%; 715 chunks)
+Maximum minimum reservoir needed over all pools over previous boots: 972 MB (1019215872 B) (22%; 972 chunks)
+Current total usage within all pools : 580.3 MB (608461104 B) in 380357 objects
+Current total overflow from all pools : 0 B in 0 objects
+Current total usage, within and overflowing, all pools : 580.4 MB (608617440 B) in 380816 objects
+Current total free space within all pools : 3.821 GB (4102599776 B) in 11961527 objects
+Mandatory capacity totaled over all pools : 626.1 MB (656517776 B) in 4777 objects
+Unused mandatory capacity totaled over all pools : 175.1 MB (183583744 B) in 1344 objects
+Used mandatory capacity totaled over all pools : 451 MB (472934032 B) in 3433 objects
+server$
+</pre>
+<p></p>
+<p>The first line of the output contains the pool's name, <code>LongTermSizeBasedPool-520</code>, the maximum size of objects created within the pool, 520 bytes, and the purpose of the pool, in this case to hold long-term allocations.</p>
+<p>The <code>capacity</code> line tells us that the number of slots in the pool, on this boot, was 698480, that the total size of the slots was 368797440 bytes or approximately 351.7 MB. In this example, this line also contains some non-default output, relating to tuning. Where the pool's current capacity is not the default, as here, then the default capacity is given. Where a pool has been auto-tuned, like this one, the auto-tuning level is given. Sometimes, as here, there is an additional caveat that the tuning appears to be obsolete and will be ignored. Where a pool has had its capacity set with the <code>custom-heap-pool-size</code> variable, as here, then the output indicates that the capacity has been <code>manually locked</code>.</p>
+<p>The <code>current</code> line tells us about the current utilization of the pool, in both number of objects, as a percentage of the current capacity and as a size, both in human-friendly units and as an exact number of bytes. In a case where objects have been allocated from the heap, the third line is also annotated to tell us how much of the current utilization is outside the bounds of the pool. Note that some objects may have been allocated from the heap because the pool was not yet ready.  These objects are normally allocated at boot time, and thus do not contribute to heap fragmentation, so they are not considered to be overflows from the pool. If objects were allocated from the heap (whether at boot time or because the pool was full and overflowed), and then some allocations have been freed, it is often the case that there are free slots within the pool, while other allocations remain <code>on the heap</code>. Objects are never moved back into the pool.</p>
+<p>The first <code>hwm</code> line tells us the "high water mark" of, or highest level reached by, the <code>current</code> value displayed on the previous line since the latest reboot. A separate high water mark is reset by <code>poolstats --reset</code>.  If, as here, that command was run, and the high water mark since the last reset differs from the high water mark since reboot, the <code>hwm</code> <code>since last poolstats -r</code> is also shown. It does not persist over reboots. This is the most important value when considering whether or not to tune a pool, as it indicates the minimum capacity that would hold all the objects that were extant at the instant of the pool's greatest utilization.</p>
+<p>The <code>mandate</code> line tells us how many allocations are expected to be made from the pool during boot. This effectively sets a minimum sensible capacity for the pool. It is only used for a few pools, from which we make significant boot time allocations.</p>
+<p>The <code>mallocs</code> line tells how many allocations were made from the heap versus from the pool, since the last <code>poolstats --reset</code>. Unlike the <code>current</code> line's <code>on the heap</code> figure, this includes allocations which have since been freed.</p>
+<p>The <code>warn at</code> line tell us at what <code>hwm</code> level a warning will next be issued for this pool. Warnings are periodically issued for pools whose <code>hwm</code> has reached a worryingly higher level than at the time of the previous warning. The warning level is reset to its starting level by <code>poolstats --reset</code>. A number of other once-per-boot warning flags are reset by the same command and may thus recur, once, after it has been run. The starting level may be customized with:</p>
+<pre>server$ set heap-pool-usage-warning-start-percentage 80
+server$
+</pre>
+<p></p>
+<p>80% is the default. By utilizing the optional <code>[&lt;substring&gt;]</code> argument to the <code>poolstats --reset</code> command, a temporary change to that cluster-wide, persistent variable could be applied to just one pool.</p>
+<p>The <code>overflows</code> line tells how many allocations have been made from the heap since the pool was ready.  As with the <code>mallocs</code> line, this includes allocations which have since been freed.  Unlike the <code>mallocs</code> line, this count is not zeroed when the poolstats are reset.</p>
+<p>The second stanza relates to a less frequently used pool, LongTermSizeBasedPool-524296, which shows more typical output, as the pool hasn't been tuned.</p>
+<p>The last stanza summarizes all the pools, not just those which matched the poolstats substring filter. Most of its output should be explicable given the above description of the output for each pool.</p>
+<p>The <code>Total minimum reservoir needed over all pools since reboot</code> line shows the size that would be necessary to hold all allocations made from all pools since the last reboot.  As with the high water mark for each pool, a separate value is calculated for the high water mark since the last time the poolstats were reset.  When that value is different, as here, it is also displayed.</p>
+<p>The <code>mandatory capacity</code> section totals the usage from the <code>mandate</code> lines.</p>
+<p>When dynamic pool allocation is enabled:</p>
+<ul>
+<li>there is a current extent line in the first stanza which shows the number of slots which have been allocated from the reservoir for this pool, along with the size of the objects which can fit in those slots.</li>
+<li>the <code>capacity</code> line in the first stanza is renamed <code>target extent</code>, as the value shows what the capacity would be if dynamic allocation were not enabled.  This will be used to limit the size of performance pools, and helps determine whether a warning will be issued if a LongTermAllocations pool grows beyond that size.</li>
+<li>the last stanza has one modified line and three additional lines. The third line below replaces <code>Current total capacity</code> with <code>Total target extent</code>, following the change to the first stanza. The fourth through sixth lines below are only written in this case.</li>
+</ul>
+<pre>server$ poolstats Pool-524296
+</pre>
+<p></p>
+<pre>LongTermSizeBasedPool-524296 (512 KB (524296 B)) (LongTermAllocations) :
+  current extent : 3, 1.5 MB (1572912 B)
+  target extent  : 32, 16 MB (16777728 B)
+  current        : 0 (0%), 0 B
+  hwm            : 3 (9%), 1.5 MB (1572912 B) since reboot
+  mandate        : 0 (0%), 0 B
+  mallocs        : 0 (of 7 allocations since last poolstats -r)
+  warn at        : 3032
+  overflows      : 0 overflows into the heap since reboot
+</pre>
+<p></p>
+<pre>Default total capacity of all pools this boot : 4.389 GB (4712540496 B) in 12351294 objects
+Default total capacity of all pools next boot : 4.389 GB (4712540496 B) in 12351294 objects
+Total target extent of all pools this boot : 4.291 GB (4607743056 B) in 12152814 objects
+Total current extent of all pools this boot : 836.6 MB (877273952 B) in 1266631 objects
+Heap pool reservoir size : 1.241 GB (1332740096 B) in 1271 chunks
+Heap pool reservoir available : 373 MB (391118848 B) in 373 chunks
+Expected total capacity of all pools next boot : 4.291 GB (4607743056 B) in 12152814 objects
+That is expected to fit with a big-size lwm during heap-pool creation of : 4.142 GB (4447196776 B)
+Total minimum reservoir needed over all pools since reboot: 903 MB (946864128 B) (20%; 903 chunks)
+Mean minimum reservoir needed over all pools over previous boots: 972 MB (1019215872 B) (22%; 972 chunks)
+Maximum minimum reservoir needed over all pools over previous boots: 972 MB (1019215872 B) (22%; 972 chunks)
+Current total usage within all pools : 580.1 MB (608310864 B) in 379008 objects
+Current total overflow from all pools : 0 B in 0 objects
+Current total usage, within and overflowing, all pools : 580.5 MB (608662272 B) in 380987 objects
+Current total free space within all pools : 256.5 MB (268963088 B) in 887623 objects
+Mandatory capacity totaled over all pools : 626.1 MB (656517776 B) in 4777 objects
+Unused mandatory capacity totaled over all pools : 175.1 MB (183583744 B) in 1344 objects
+Used mandatory capacity totaled over all pools : 451 MB (472934032 B) in 3433 objects
+</pre>
+<p></p>
+<p>If no pools were tuned, the <code>Total target extent</code> line would match (approximately) the <code>Default total capacity of all pools this boot</code>.</p>
+<p>The <code>Total current extent</code> tells us the size of memory currently allocated from the reservoir.</p>
+<p>The <code>Heap pool reservoir size</code> tells us the reservoir size in bytes and in chunks. A chunk is the unit of allocation from the reservoir.</p>
+<p>The <code>Heap pool reservoir available</code> tells us the amount of memory available for pools to grow.</p>
+<p>The amount of extra memory that could be committed to pools before the safety mechanisms kick in is given by:</p>
+<pre>server$ heap-info | tail -1
+The low water mark for big size during HeapPool creation was 1.047 GB (1124281608 B) (the lowest total size of all big free blocks).
+server$
+</pre>
+<p></p>
+<p>A log of pool allocations on this boot is given by:</p>
+<pre>server$ lt du pool | tail -10
+Allocated 212.2 KB (enough space for 1024 items) + a safety margin of 119.6 MB for the DLM Leases pool
+Status: 4.294 GB already allocated to pools with 863.4 MB committed for use, with a total heap size of 4.409 GB
+Allocated 64.85 MB (enough space for 250000 items) + a safety margin of 119.6 MB for the DLM Resources pool
+Status: 4.358 GB already allocated to pools with 863.7 MB committed for use, with a total heap size of 4.472 GB
+Allocated 30.52 MB (enough space for 500000 items) + a safety margin of 119.3 MB for the DLM LockId Map Nodes pool
+Mandatory allocation commit: 886.5 MB
+Mandatory allocation expectation: 903 MB
+Superfluous expectation: 16.51 MB
+</pre>
+<p></p>
+<pre>pool: 1 trace(s)
+server$
+</pre>
+<p></p>
+<p>(The <code>| tail -10</code> there was solely to avoid flooding the documentation with a repetitious example. In the previous example, by contrast, the <code>| tail -1</code> served to highlight the only part of the output of heap-info that is relevant here.)</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fsm.html">fsm</a> <a href="../Supervisor/heap-density.html">heap-density</a> <a href="../Supervisor/heap-info.html">heap-info</a> <a href="../Supervisor/heap-size.html">heap-size</a> <a href="../Supervisor/heap-vptr.html">heap-vptr</a> <a href="../Supervisor/logtrace.html">logtrace</a> <a href="../Supervisor/nim.html">nim</a> <a href="../Supervisor/pool-dynamic-allocation.html">pool-dynamic-allocation</a> <a href="../Supervisor/pool-vptr.html">pool-vptr</a> <a href="../Supervisor/set.html">set</a> <a href="../Supervisor/sim.html">sim</a> <a href="../Filter/User/tail.html">tail</a> <a href="../Supervisor/unset.html">unset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

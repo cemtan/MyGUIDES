@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>thread-stack-trace</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>thread-stack-trace</h1>
+<p>Dump stack back trace(s)</p>
+<h1>Syntax</h1>
+<pre>thread-stack-trace &lt;thread id&gt; | all [no-dedup] | active [no-dedup] | &lt;thread name&gt; [no-dedup]
+Alias:       bt
+</pre>
+
+<h1>Description</h1>
+<p>The thread-stack-trace command is used to display the current stack trace of a thread, or all the extant threads, or all "active" threads, or a list of threads whose names contain the given string.</p>
+<p>With hundreds of threads, it can take a couple of seconds to gather this information, during which time there is a performance impact. The output can be valuable to Engineering in determining where abnormal delays are occurring. Other diagnostics are usually more helpful in providing a higher level view. The thread-stack-trace command is only useful in certain cases when those other diagnostics point in a very particular direction and when more detail is needed.</p>
+<p>The output of "thread-stack-trace active" (and the less common "thread-stack-trace all") is voluminous. One might even say "huge". Set the scroll-back and logging options in your terminal appropriately. Depending on the string provided in the command, the output of "thread-stack-trace &lt;thread-name&gt;" can also be quite large ("thread-stack-trace r" or "thread-stack-trace e", for instance).</p>
+<p>By default, duplicate stack traces are eliminated to reduce the volume, with a list of the threads sharing a stack trace following each shared stack trace, and a count of such threads shown when there are more than one. A no-dedup argument is available to restore the old behavior if needed. This affects all but the command to dump a single stack trace.</p>
+<h1>Examples</h1>
+<p>When given a thread id, a stack trace is produced with enough ancillary information for Engineering's tools to find the appropriate files for decoding it:</p>
+<pre>server:$ thread-stack-trace 5
+"CPPInit"@0x1185D968 (id 5, state X)
+</pre>
+<p></p>
+<pre>[bt command] Version: parrot 1 adhoc (NIM1)
+[bt command] Date: Fri Dec 15 17:25:27 2006
+[bt command] Debug info in: /home/martind/work/parrot/kernel/main/ppc_BOS-eabi_debug/recovery.elf
+[bt command]
+[bt command] Stack: 0x12eafe10, PC: 0x105f5220 BOSRegisterSet::SwitchTo(BOSRegisterSet*)+0x78 (current)
+[bt command] db: From the link register - valid iff the current function calls no other
+[bt command] db: Link register unknown
+[bt command] db: From the stack frame - valid otherwise
+[bt command] Stack: 0x12eafe70, PC: 0x105f56d0 BOSRegisterSet::Goto(BOSRegisterSet*)+0x28
+...
+[bt command] Stack: 0x12eaffc0, PC: 0x00000000 * symbol not found *
+[bt command] End of backtrace
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>With the "all" option, the list is divided into two sections. First the "active" threads are dumped, then the "idle" ones. With the "active" option, the "idle" ones are skipped. Within each section, threads are listed in id order, but threads with duplicate call stacks are listed following the call stack of the initial thread with that call stack:</p>
+<pre>server:$ thread-stack-trace all
+Active threads:
+</pre>
+<p></p>
+<pre>Thread "WP: Fc::Session[5]::poll_for_response" (@0x00007FE8600FF270, id 2649, state W)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3815.00 adhoc (MMB1)
+[bt command] Date: 2014-11-03 15:31:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe7908b4c80, RIP: 0x0000000004f1433a Scheduler::SwitchToReady()+0x1ca
+...
+[bt command] Stack: 0x00007fe7908b4fc0, RIP: 0x0000000004f14792 Task::TaskMain()+0x32
+</pre>
+<p></p>
+<pre>...
+</pre>
+<p></p>
+<pre>Thread "SSC console (executing bt all)" (@0x00007FE7BB95C5F0, id 3280, state @)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3815.00 adhoc (MMB1)
+[bt command] Date: 2014-11-03 15:31:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe7a9134f20, RIP: 0x0000000004e98e61 PopulateMap(std::set&lt;StackTrace::BackTrace&gt;&amp;, std::deque&lt;StackAndThreads&gt;&amp;, std::map&lt;StackTrace::BackTrace const *, StackAndThreads *&gt;&amp;, Task const*)+0x51
+...
+[bt command] Stack: 0x00007fe7a9136fc0, RIP: 0x0000000004f14792 Task::TaskMain()+0x32
+</pre>
+<p></p>
+<pre>There were 4 threads in all, and 4 unique stack traces.
+</pre>
+<p></p>
+<pre>Idle threads:
+</pre>
+<p></p>
+<pre>Thread "idle_fiber_0" (@0x00007FE757BFFC70, id 1, state IC)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3815.00 adhoc (MMB1)
+[bt command] Date: 2014-11-03 15:31:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe77d918f90, RIP: 0x0000000004f1433a Scheduler::SwitchToReady()+0x1ca
+[bt command] Stack: 0x00007fe77d918fc0, RIP: 0x0000000004f15af8 Scheduler::Idle()+0x38
+</pre>
+<p></p>
+<pre>Thread "idle_fiber_1" (@0x00007FE757C05F30, id 2, state IX)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3815.00 adhoc (MMB1)
+[bt command] Date: 2014-11-03 15:31:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+</pre>
+<p></p>
+<pre>The following thread(s) shared the above stack trace [
+Thread "Oplock breaker" (@0x000000000CB50480, id 1227, state C)
+] end of 2 threads sharing the above stack trace
+</pre>
+<p></p>
+<pre>...
+</pre>
+<p></p>
+<pre>Thread "Delayed Writes Monitor" (@0x0000000009B24D20, id 3257, state IW)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3815.00 adhoc (MMB1)
+[bt command] Date: 2014-11-03 15:31:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe799b28ca0, RIP: 0x0000000004f1433a Scheduler::SwitchToReady()+0x1ca
+...
+[bt command] Stack: 0x00007fe799b28fc0, RIP: 0x0000000004f14792 Task::TaskMain()+0x32
+</pre>
+<p></p>
+<p>There were 3260 threads in all, and 224 unique stack traces.</p>
+<p>server:$</p>
+<p>A sample command to list the threads whose names contain the given string:</p>
+<pre>server:$ bt console
+</pre>
+<p></p>
+<pre>Matching threads:
+</pre>
+<p></p>
+<pre>Thread "SSC console (executing bt console)" (@0x00007FE7BB95C5F0, id 3280, state @)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3815.00 adhoc (MMB1)
+[bt command] Date: 2014-11-03 15:31:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe7a9134f20, RIP: 0x0000000004e98e61 PopulateMap(std::set&lt;StackTrace::BackTrace&gt;&amp;, std::deque&lt;StackAndThreads&gt;&amp;, std::map&lt;StackTrace::BackTrace const *, StackAndThreads *&gt;&amp;, Task const*)+0x51
+...
+[bt command] Stack: 0x00007fe7a9136fc0, RIP: 0x0000000004f14792 Task::TaskMain()+0x32
+</pre>
+<p></p>
+<p>There was only one thread, and only one unique stack trace.</p>
+<p>server:$</p>
+<p>For comparison, the no-dedup flag does not give a count of threads or of unique stack traces, and the output for each thread is similar to that for the command to display the stack trace of a single task:</p>
+<pre>server:$ bt active no-dedup
+Active threads:
+</pre>
+<p></p>
+<pre>"posixtcp rx" (@0x00007FE0659568D0, id 23, state R)
+</pre>
+<p></p>
+<pre>[bt command] Version: 12.3.3817.00 adhoc (MMB1)
+[bt command] Date: 2014-11-17 15:28:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe01b058ac0, RIP: 0x0000000004f6ad5a Scheduler::SwitchToReady()+0x1ca (current)
+...
+[bt command] Stack: 0x00007fe01b059fc0, RIP: 0x0000000004f6b332 Task::TaskMain()+0x32
+[bt command] End of backtrace
+</pre>
+<p></p>
+<p>"SSC console (executing bt active no-dedup)" (@0x00007FE065B41DC0, id 3224, state @)</p>
+<pre>[bt command] Version: 12.3.3817.00 adhoc (MMB1)
+[bt command] Date: 2014-11-17 15:28:49-08:00
+[bt command] Debug info in: /home/mkaminsky/work/bat/3/exe/mfb/x86_64_bali_release/mfb.elf
+[bt command]
+[bt command] Stack: 0x00007fe0465c0d50, RIP: 0x000000000570f790 get_pc(Task const*) (current)
+...
+[bt command] Stack: 0x00007fe0465c2fc0, RIP: 0x0000000004f6b332 Task::TaskMain()+0x32
+[bt command] End of backtrace
+</pre>
+<p></p>
+<p>server:$</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/thread-list.html">thread-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

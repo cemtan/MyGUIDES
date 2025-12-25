@@ -1,0 +1,250 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-racks</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-racks</h1>
+<p>Display the storage racks connected to the server</p>
+<h1>Syntax</h1>
+<pre>scsi-racks [[-d, --devid &lt;id&gt;] | [&lt;system-drives, see &#39;man sd-spec&#39;&gt;] | [-p, --port &lt;id&gt;]] | [-t, --tapes] | [-i, --span-id]
+Alias:       sracks
+</pre>
+
+<h1>Description</h1>
+<p>Displays a storage rack view of the storage discovered by the server since boot. The server does not have explicit knowledge of what constitutes a storage rack; all SCSI ports that report the same set or subset of devices (system drives (SDs) or tape devices) are deemed to represent the same storage rack. If the storage provides a serial number or other identifier, this will be used to identify the storage rack. If the SCSI port does not report any logical units, the FC node names are compared. All devices that are currently in use are shown grouped with an arrow "-&gt;" symbol indicating the SCSI port which is currently being used for I/O. Any devices that are not in use (e.g. failed or read only) are grouped together with a ".." symbol connecting the devices to the rack. If a system drive is a member of a span, the span name is displayed with the optional permanent span ID. If two storage racks present two unique sets of devices, then they are shown as two distinct storage racks. However, if they have the same manufacturer, product and product revision names and storage rack identifier, they will be shown as being part of the same physical storage rack. This is shown as two separate storage racks which are joined together. See the later example of this.</p>
+<p>Note the scsi-racks command does not show any information that cannot be determined from other commands but attempts to give a more intuitive view of the storage.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>&lt;device ID&gt;</strong></dt>
+<dd><p>Display the rack which hosts the given SD.</p></dd>
+<dt><strong>[&lt;system-drive list&gt;] | [-t &lt;tape devices list&gt;]</strong></dt>
+<dd><p>See the 'sd-spec' man page for an explanation of how to specify a list of devices using sd-spec syntax. If the -t option is present, device IDs will be interpreted as representing tape devices.</p></dd>
+<dt><strong>-t --tapes</strong></dt>
+<dd><p>When no other parameter is given, specifying this option will show only storage racks that host tape devices.</p></dd>
+<dt><strong>-d, --devid &lt;Device ID&gt;</strong></dt>
+<dd><p>Displays the rack which has the hosts the device with the given ID.</p></dd>
+<dt><strong>-p, --port &lt;SCSI port ID&gt;</strong></dt>
+<dd><p>Displays the rack which has the given SCSI port ID.</p></dd>
+<dt><strong>-i, --span-id &lt;span ID&gt;</strong></dt>
+<dd><p>Displays the permanent span ID as well as the span instance name.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display all SCSI racks discovered by the server:</p>
+<pre>  scsi-racks
+</pre>
+<p></p>
+<p>To display the storage racks that hosts SDs 2 to 10:</p>
+<pre>  scsi-racks 2-10
+</pre>
+<p></p>
+<p>To display the storage racks that hosts SD 2:</p>
+<pre>  scsi-racks -d 2
+</pre>
+<p></p>
+<p>To display the storage racks that hosts tape devices 10 to 12:</p>
+<pre>  scsi-racks -t 10-12
+</pre>
+<p></p>
+<p>To display all the SCSI racks that host the span "span-tastic":</p>
+<pre>  scsi-racks span-tastic
+</pre>
+<p></p>
+<p>Typically this will generate something like the following examples. To the left of the box are the server host ports, their Fibre Channel (FC) status (up or down), the speed they are currently set to and a Fibre Channel port type (either N for N-port or NL for NL-port).</p>
+<p>Within the box are details of the storage. At the top there is the make/model/revision of the storage and an optional model identifier if the server can determine this. For disk devices, each rack will be divided into the number of RAID controllers that the server has recognized and each RAID controller will show an optional vendor specific controller identifier (e.g. A or B, 1 or 2) followed by the WWN of the controller or a vendor specific identifier for the controller, e.g. its serial number. Below this its Fibre Channel node WWN and port WWN are shown. Each RAID controller will show one or more SCSI ports, starting with the SCSI port ID assigned by the server (SPort) and its fibre channel address. The SCSI port connects to the server host port shown outside of the box. There is also an indication of the SCSI port's current state; for example, whether it is currently "offline", "online" or "init" (initializing).</p>
+<p>For some equipment the server will be able to determine a port identifier, which is a value reported by the storage which identifies the port; this identifier will proceed the SPort (example 3). Some storage arrays provide a mechanism to report a port as being connected to a remote storage array. (GAD volumes support this). If the storage array indicates that the port is a remote port, this will be shown by a 'R' at the right hand side of the box for that port.</p>
+<p>To the right of the box are details of the devices reported by the storage, the LUNs and their status. If the sdpath command has been used to set a preferred target port, a '&gt;' character will be displayed before the device ID. If the storage provides a mechanism to provide preferred path information to the server (such as ALUA), if the in use path is a preferred path, a 'p' character will be displayed before the device ID. if the device is not using the preferred path then a '!' character will be displayed.</p>
+<p>The first number is the system drive identifier (device ID) assigned by the server, followed by the (external) LUN assigned by the storage. If the storage array has an internal LUN (LDEV) which can be obtained by the server, this value will be displayed in square brackets after the external LUN. This value may be displayed in hex or decimal and should match the value displayed in the storage management GUI.</p>
+<p>After the colon is the state of the LUN and any span it is a member of. The use of "-&gt;" indicates "in use" and shows the host port/target port being used for I/O for those devices. The use of ".." indicates "not in use". The states of the LUNs can include Primary, Secondary, OK, Failed, Management etc. Primary and Secondary are related to TrueCopy and other mirroring products: see the relevant documentation for a description of TrueCopy and the meaning of primary and secondary. The scsi-racks command cannot always determine primary LUs; it depends on the make/model of storage that is being used. In example 1 below the server has been unable to determine the primary LUs but has indicated the secondary LUs. If the SD is a member of an HDP pool, the label "HDP" will be shown with the pool number following the SD status. If the SD is in a pool that is using compression, the label "Cmpr" will also be shown after "HDP".</p>
+<p>The scsi-racks command with no parameters will also show any Fibre Channel initiator ports that the server has discovered. In a clustered environment, the initiator ports will normally be the other cluster nodes, as shown in the example. We would normally expect other initiator ports to be zoned so that they are not detected by the server.</p>
+<pre>            |---------------------------------------|
+            | VENDOR  MODEL  REVISION               |
+            | &lt;OPTIONAL SYSTEM ID or SERIAL NUMBER&gt; |
+            | &lt;OPTIONAL RACK LABEL&gt;                 |  | 2  LUN 0  : OK "Span0"
+            |                                       |  | 14 LUN 4  : OK "Span4
+            |====== Controller C0 CCF00BB8C0 =======|  | 17 LUN 5  : OK "Span5"
+            |                                       |  | 23 LUN 7  : OK "Span7"
+            |  NODE 20:06:00:A0:B8:0F:64:C5         |  | 26 LUN 8  : OK "Span9"
+            |  PORT 20:06:00:A0:B8:0F:64:C6         |  | 32 LUN 10 : OK "Span13"
+            |                                       |  | 38 LUN 12 : OK "Span17"
+HPort 1  --&gt;|  P0 SPort 0 addrs 10500 : online      |-&gt;| 40 LUN 13 : OK "Span19"
+Up 2Gb N    |                                       |  | 44 LUN 15 : OK "Span23"
+            |                                       |  | 48 LUN 17 : OK "Span27"
+            |                                       |
+            |                                       |  | 11   LUN 3  : Secondary
+            |                                       |  | 64   LUN 20 : Secondary
+            |====== Controller B CCF00BB8C1 ========|..| 1022 LUN 21 : Management
+            |                                       |  | 1023 LUN 21 : Management
+            |  NODE 20:06:00:A0:B8:0F:64:C5         |
+            |  PORT 20:07:00:A0:B8:0F:64:C6         |  | 3  LUN 19 : OK "TestSpan"
+            |                                       |  | 5  LUN 1  : OK "Span1"
+            |                                       |  | 8  LUN 2  : OK "Span2"
+            |                                       |  | 20 LUN 6  : OK "Span6"
+HPort 2  --&gt;|  P1 SPort 1 addrs 10000 : online      |-&gt;| 29 LUN 9  : OK "Span11"
+Up 2Gb N    |                                       |  | 35 LUN 11 : OK "Span15"
+            |                                       |  | 42 LUN 14 : OK "Span21"
+            |                                       |  | 46 LUN 16 : OK "Span25"
+            |                                       |  | 50 LUN 18 : OK "Span29"
+            |---------------------------------------|
+</pre>
+<p></p>
+<pre>            |---------------------------------------|
+            | VENDOR  MODEL  REVISION               |
+            | &lt;OPTIONAL SYSTEM ID or SERIAL NUMBER&gt; |
+            | &lt;OPTIONAL RACK LABEL&gt;                 |
+            |                                       |
+            |======= Controller A 1T31153120  ======|
+            |                                       |
+            |  NODE 20:06:00:A0:B8:0F:64:C5         |
+            |  PORT 20:07:00:A0:B8:0F:64:C6         |
+            |                                       |  | 25 LUN 8  [8]  : OK "Span8"
+HPort 1  --&gt;|  SPort 0 addrs 10000 : online         |-&gt;| 31 LUN 10 [10] : OK "Span12"
+Up 2GbN     |                                       |  | 34 LUN 11 [11] : OK "Span14"
+            |                                       |
+HPort 3  --&gt;|  SPort 4 addrs 10000 : online         |
+Up 2Gb N    |                                       |  | 4  LUN 1  [101] : Secondary "Span1"
+            |                                       |  | 7  LUN 2  [102] : Secondary
+            |                                       |  | 13 LUN 4  [104] : Secondary
+            |====== Controller B  1T45311934 =======|..| 16 LUN 5  [105] : Secondary
+            |                                       |  | 19 LUN 6  [106] : Secondary
+            |  NODE 20:06:00:A0:B8:0F:64:C5         |  | 22 LUN 7  [107] : Secondary
+            |  PORT 20:06:00:A0:B8:0F:64:C6         |  | 63 LUN 31 [31]  : OK
+            |                                       |
+            |                                       |
+HPort 1  --&gt;|  SPort 3 addrs 10500 : online         |
+Up 2Gb N    |                                       |  | 10 LUN 3  [3]  : OK "Span3"
+            |                                       |  | 37 LUN 12 [12] : OK "Span16"
+HPort 3  - &gt;|  SPort 7 addrs 10500 : online         |-&gt;| 28 LUN 9  [9]  : OK "Span10"
+Up 2Gb N    |                                       |  | 29 LUN 16 [16] : OK
+            |                                       |
+            |---------------------------------------|
+</pre>
+<p></p>
+<pre>
+</pre>
+<p></p>
+<pre>            |---------------------------------------|
+            | VENDOR  MODEL  REVISION               |
+            | &lt;OPTIONAL SYSTEM ID or SERIAL NUMBER&gt; |
+            | &lt;OPTIONAL RACK LABEL&gt;                 |
+            |                                       |
+            |======= Controller 0 75012014-1 =======|
+            |                                       |
+            |  NODE 50:06:0E:80:10:22:EE:E0         |
+            |  PORT 50:06:0E:80:10:22:EE:E0         |  | 2  LUN 1 : Primary "Span0"
+            |                                       |  | 4  LUN 2 : Primary "Span0"
+HPort 1  --&gt;|  A : SPort 1 addrs 0F : online        |-&gt;| 12 LUN 6 : Primary
+Up 2Gb N    |                                       |  | 14 LUN 7 : Primary
+            |                                       |
+            |======= Controller 1 75012014-2 =======|  | 0    LUN 0  : Failed "Span1"
+            |                                       |..| 1024 LUN 10 : Management
+            |  NODE 50:06:0E:80:10:22:EE:E2         |
+            |  PORT 50:06:0E:80:10:22:EE:E2         |
+            |                                       |  | 6  LUN 3 : Primary "Span2"
+HPort 2  --&gt;|  A : SPort 2 addrs 10 : online        |-&gt;| 8  LUN 4 : Primary "Span2"
+Up 2Gb N    |                                       |  | 10 LUN 5 : Primary
+            |                                       |
+            |---------------------------------------|
+</pre>
+<p></p>
+<p>Here is an example of two separate racks which are represented as being part of the same physical storage rack as the racks report the same identification information.</p>
+<pre>            |---------------------------------------|
+            | VENDOR  MODEL  REVISION               |
+            | &lt;SYSTEM ID or SERIAL NUMBER&gt;          |
+            | &lt;OPTIONAL RACK LABEL&gt;                 |
+            |                                       |
+            |======= Controller A 1T45311934 =======|  | 1  LUN 20 : OK "SpanC1"
+            |                                       |  | 3  LUN 3  : OK "SpanC1"
+            |  NODE 20:06:00:A0:B8:0F:64:C4         |  | 5  LUN 5  : OK "SpanC1"
+            |  PORT 20:06:00:A0:B8:0F:64:C6         |  | 7  LUN 7  : OK "SpanC2"
+            |                                       |  | 9  LUN 9  : OK "SpanC2"
+HPort 1  --&gt;|  SPort 2 addrs 10000 : online         |-&gt;| 11 LUN 11 : OK "SpanC2"
+Up 2Gb N    |                                       |  | 13 LUN 16 : OK "SpanC2"
+            |                                       |  | 15 LUN 12 : OK "SpanC3"
+HPort 3  --&gt;|  SPort 0 addrs 10000 : online         |  | 16 LUN 17 : OK "SpanC3"
+Up 2Gb N    |                                       |  | 18 LUN 1  : OK "SpanC3"
+            |                                       |
+            |                                       |
+            |======= Controller B 1T31153120 =======|
+            |                                       |
+            |  NODE 20:06:00:A0:B8:0F:64:C5         |  | 0  LUN 0  : OK "SpanC1"
+            |  PORT 20:07:00:A0:B8:0F:64:C6         |  | 2  LUN 2  : OK "SpanC1"
+            |                                       |  | 4  LUN 4  : OK "SpanC1"
+HPort 1  --&gt;|  SPort 3 addrs 10100 : online         |  | 6  LUN 6  : OK "SpanC2"
+Up 2Gb N    |                                       |  | 8  LUN 8  : OK "SpanC2"
+            |                                       |  | 10 LUN 10 : OK "SpanC2"
+HPort 3  --&gt;|  SPort 1 addrs 10100 : online         |-&gt;| 12 LUN 14 : OK "SpanC2"
+Up 2Gb N    |                                       |  | 14 LUN 15 : OK "SpanC2"
+            |                                       |  | 17 LUN 19 : OK "SpanC3"
+            |                                       |  | 19 LUN 13 : OK "SpanC3"
+            |                                       |  | 20 LUN 18 : OK "SpanC3"
+            |---------------------------------------|
+            | / / / / / / / / / / / / / / / / / / / |
+            |---------------------------------------|
+            | VENDOR  MODEL  REVISION               |
+            | &lt;SYSTEM ID or SERIAL NUMBER&gt;          |
+            | &lt;OPTIONAL RACK LABEL&gt;                 |
+            |                                       |
+            |======= Controller C 1T45311940 =======|  | 41  LUN 31 : OK "SpanC1"
+            |                                       |  | 43  LUN 23 : OK "SpanC1"
+            |  NODE 20:06:00:A0:B8:0F:66:C1         |  | 45  LUN 25 : OK "SpanC1"
+            |  PORT 20:06:00:A0:B8:0F:64:C8         |  | 47  LUN 27 : OK "SpanC2"
+            |                                       |  | 49  LUN 29 : OK "SpanC2"
+HPort 1  --&gt;|  SPort 4 addrs 10000 : online         |-&gt;| 51 LUN 31 : OK "SpanC2"
+Up 2Gb N    |                                       |  | 53 LUN 36 : OK "SpanC3"
+            |                                       |  | 55 LUN 32 : OK "SpanC3"
+HPort 3  --&gt;|  SPort 6 addrs 10000 : online         |  | 56 LUN 37 : OK "SpanC3"
+Up 2Gb N    |                                       |  | 58 LUN 21 : OK "SpanC3"
+            |                                       |
+            |                                       |
+            |======= Controller D 1T31153153 =======|
+            |                                       |
+            |  NODE 20:06:00:A0:B8:0F:64:C3         |  | 40  LUN 20 : OK "SpanC1"
+            |  PORT 20:07:00:A0:B8:0F:64:C9         |  | 42  LUN 22 : OK "SpanC1"
+            |                                       |  | 44  LUN 24 : OK "SpanC1"
+HPort 1  --&gt;|  SPort 5 addrs 10100 : online         |  | 46  LUN 26 : OK "SpanC2"
+Up 2Gb N    |                                       |  | 48  LUN 28 : OK "SpanC2"
+            |                                       |  | 50 LUN 30 : OK "SpanC2"
+HPort 3  --&gt;|  SPort 7 addrs 10100 : online         |-&gt;| 52 LUN 34 : OK "SpanC3"
+Up 2Gb N    |                                       |  | 54 LUN 35 : OK "SpanC3"
+            |                                       |  | 57 LUN 39 : OK "SpanC3"
+            |                                       |  | 59 LUN 33 : OK "SpanC3"
+            |                                       |  | 60 LUN 38 : OK "SpanC3"
+            |---------------------------------------|
+</pre>
+<p></p>
+<pre>HPort 1 -&gt;| INITIATOR port - addrs 10300 : Hitachi HNAS Platform (server-c-2) [1]
+             INITIATOR port - addrs 10900 : Hitachi HNAS Platform (server-c-2) [3]
+</pre>
+<p></p>
+<pre>HPort 3 -&gt;| INITIATOR port - addrs 10300 : Hitachi HNAS Platform (server-c-2) [1]
+             INITIATOR port - addrs 10900 : Hitachi HNAS Platform (server-c-2) [3]
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-link-status.html">fc-link-status</a> <a href="../Supervisor/fc-ports.html">fc-ports</a> <a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-ports.html">scsi-ports</a> <a href="../Supervisor/scsi-preferred-ports.html">scsi-preferred-ports</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/sdpath.html">sdpath</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

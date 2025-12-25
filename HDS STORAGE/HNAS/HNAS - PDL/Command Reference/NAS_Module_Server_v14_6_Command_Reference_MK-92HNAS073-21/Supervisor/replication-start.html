@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-start</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>replication-start</h1>
+<p>Perform object replication</p>
+<h1>Syntax</h1>
+<pre>replication-start [--test|--detailed-test] [--output-stats] {&lt;policy id&gt; | &lt;policy name&gt; &lt;source fs label&gt;}
+</pre>
+
+<h1>Description</h1>
+<p>Start an object replication.</p>
+<dl>
+<dt><strong>[-t | --test]</strong></dt>
+<dd><p>Perform a quick object replication test. This tests whether the target server and replication target file system are ready for the object replication to begin and that there's a suitable baseline snapshot from which to perform the object replication.</p></dd>
+<dt><strong>[-d | --detailed-test]</strong></dt>
+<dd><p>Perform an object replication detailed test. This performs the same checks as a quick test, but also calculates the amount of data that will be transferred, which is useful for determining how long the object replication is likely to take. A detailed test can itself take many minutes to run, so its progress can be tracked with the 'replication-show-active' and 'replication-history-list' commands.</p></dd>
+<dt><strong>[--output-stats]</strong></dt>
+<dd><p>Outputs statistics on replication performance after the replication finishes.</p></dd>
+<dt><strong>&lt;policy id&gt;</strong></dt>
+<dd><p>The ID of the policy to run.</p></dd>
+<dt><strong>&lt;policy name&gt;</strong></dt>
+<dd><p>The name of the policy to run.</p></dd>
+<dt><strong>&lt;source fs label&gt;</strong></dt>
+<dd><p>The source file system to which the policy applies. This is required to identify the policy unambiguously.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>replication-start policy0 span0fs
+</pre>
+<p></p>
+<p>Starts an object replication as per policy 'policy0' on file system 'span0fs'.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../Supervisor/replication-abort.html">replication-abort</a> <a href="../Supervisor/replication-history-list.html">replication-history-list</a> <a href="../Supervisor/replication-policy-list.html">replication-policy-list</a> <a href="../Supervisor/replication-show-active.html">replication-show-active</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

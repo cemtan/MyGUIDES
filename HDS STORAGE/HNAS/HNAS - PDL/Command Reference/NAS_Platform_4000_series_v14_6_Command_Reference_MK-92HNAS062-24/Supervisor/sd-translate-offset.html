@@ -1,0 +1,262 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-translate-offset</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>sd-translate-offset</h1>
+<p>Translate SD device ID and offset to the same offset in other formats</p>
+<h1>Syntax</h1>
+<pre>sd-translate-offset [--dump &lt;nr-bytes&gt; [--timeout &lt;nr-of-seconds&gt;]] &lt;sd-device-id&gt; ([--block] &lt;sd-offset&gt; | span|fscat|chunk|allcod|encr)
+</pre>
+
+<h1>Description</h1>
+<p>(This man page contains wide output.  You may wish to widen your console or use 'man -n'.)</p>
+<p>This command is intended for use by your support provider.  Given a system drive (SD) device ID and an offset into the SD, it displays several other representations of the same offset: as an offset into a span, as an offset into a filesystem, and so on.</p>
+<p>Specifying '<code>--dump</code>' and a byte-count will read the corresponding data directly from the storage (bypassing the server's caches and any cached state) and dump it in hex on the console.  The command always dumps a whole number of disk blocks, and so <code>'--dump 0'</code> will dump the whole of the disk block that contains the offset you specify.  If you add '<code>--verbose</code>', the command displays the system drive device ID and offset before each block and dumps the data in full; otherwise, repeated lines are suppressed.  '<code>--verbose</code>' implies '<code>--dump</code>'.  This command can't dump more than a mebibyte (that is, 2**20 bytes) or beyond the end of a system drive; to dump further, issue another '*-translate-offset' command.</p>
+<p>The '--timeout' switch limits the amount of time that the command spends dumping data.  If the specified time is exceeded, the command will abort.  Without '--dump', '--timeout' is ignored.  The default timeout is 120 seconds.</p>
+<p>By default, 'sd-translate-offset' assumes that the offset you specify is given in bytes.  However, if you give the <code>--block</code> switch, the offset will be multiplied by the SD's block size, which is normally 512 bytes.</p>
+<p>Instead of an offset, you can specify one of the following names for structures used by the spanning system:</p>
+<dl>
+<dt><strong>span</strong></dt>
+<dd><p>Span Cod</p></dd>
+<dt><strong>fscat</strong></dt>
+<dd><p>Filesystem catalog</p></dd>
+<dt><strong>chunk</strong></dt>
+<dd><p>Chunk table</p></dd>
+<dt><strong>allcod</strong></dt>
+<dd><p>All of the above</p></dd>
+<dt><strong>encr</strong></dt>
+<dd><p>The encroachment area</p></dd>
+</dl>
+<p>If you specify '<code>--dump 0</code>' along with one of these names, the command will display the whole of the structure and not just its first block.</p>
+<p>Space occupied by a filesystem in the recycle bin will be shown as unused.  If necessary, undelete a filesystem in order to see offsets into it.</p>
+<h1>Examples</h1>
+<pre>server:$ span-list -fs
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Admin                  Yes   99%    29160  11250 x    2783134333  90%
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 2430GiB = 9720GiB, of which 9630GiB is free, 9630GiB is available
+      SD 0 (rack '470714', SD '0200')
+      SD 1 (rack '470714', SD '0201')
+      SD 2 (rack '470714', SD '0202')
+      SD 3 (rack '470714', SD '0203')
+</pre>
+<p></p>
+<pre>   Set 1: 4 x 2430GiB = 9720GiB, of which 9715GiB is free, 9715GiB is available
+      SD 4 (rack '470714', SD '0204')
+      SD 5 (rack '470714', SD '0205')
+      SD 6 (rack '470714', SD '0206')
+      SD 7 (rack '470714', SD '0207')
+</pre>
+<p></p>
+<pre>   Set 2: 4 x 2430GiB = 9720GiB, of which 9609GiB is free, 9609GiB is available
+      SD 8 (rack '470714', SD '0208')
+      SD 9 (rack '470714', SD '0209')
+      SD 10 (rack '470714', SD '020A')
+      SD 11 (rack '470714', SD '020B')
+</pre>
+<p></p>
+<pre>   fs Alpha                UnMnt, EVS    1, cap      90,  unconfined
+   fs Bravo                UnMnt, EVS    1, cap       5,  unconfined
+   fs Charlie              UnMnt, EVS    1, cap     111,  unconfined
+</pre>
+<p></p>
+<pre>server:$ sd-translate-offset 0 0x100000
+System drive 0, offset 1048576   (0x100000)
+SD block     2048  (0x800), offset 0  (0x0)
+Span         Admin, offset 0   (0x0)
+   ... Chunk 0, offset 0   (0x0)
+Stripeset    0, offset 0   (0x0)
+   ... Chunk 0,  offset 0   (0x0)
+Filesystem   Alpha, offset 0   (0x0)
+   ... Chunk 0, offset 0   (0x0)
+server:$ sd-translate-offset 4 0x100000
+System drive 4, offset 1048576   (0x100000)
+SD block     2048  (0x800), offset 0  (0x0)
+Span         Admin, offset 10436753752064   (0x97dff000000)
+   ... Chunk 3750, offset 0   (0x0)
+Stripeset    1, offset 0   (0x0)
+   ... Chunk 0,  offset 0   (0x0)
+Filesystem   Bravo, offset 0   (0x0)
+   ... Chunk 0, offset 0   (0x0)
+server:$ sd-translate-offset 8 0x100000
+System drive 8, offset 1048576   (0x100000)
+SD block     2048  (0x800), offset 0  (0x0)
+Span         Admin, offset 20873507504128   (0x12fbfe000000)
+   ... Chunk 7500, offset 0   (0x0)
+Stripeset    2, offset 0   (0x0)
+   ... Chunk 0,  offset 0   (0x0)
+Filesystem   Charlie, offset 0   (0x0)
+   ... Chunk 0, offset 0   (0x0)
+server:$ sd-translate-offset 11 0x100000
+System drive 11, offset 1048576   (0x100000)
+SD block     2048  (0x800), offset 0  (0x0)
+Span         Admin, offset 20873520087040   (0x12fbfec00000)
+   ... Chunk 7500, offset 12582912   (0xc00000)
+Stripeset    2, offset 12582912   (0xc00000)
+   ... Chunk 0,  offset 12582912   (0xc00000)
+Filesystem   Charlie, offset 12582912   (0xc00000)
+   ... Chunk 0, offset 12582912   (0xc00000)
+server:$ sd-translate-offset 6 0x100000000
+System drive 6, offset 4294967296   (0x100000000)
+SD block     8388608  (0x800000), offset 0  (0x0)
+Span         Admin, offset 10453928378368   (0x981feb00000)
+   ... Chunk 3756, offset 565182464   (0x21b00000)
+Stripeset    1, offset 17174626304   (0x3ffb00000)
+   ... Chunk 6,  offset 565182464   (0x21b00000)
+</pre>
+<p></p>
+<pre>Not used in a filesystem
+server:$ sd-translate-offset --dump 0 3 span | head 50
+Offset 2048 is in the reserved area,
+which occupies the first 1048576 bytes of every SD
+0x00000000 : 14 28 57 14 00 09 00 13 03 01 00 60 06 0E 80 22 : .(W........`..."
+0x00000010 : 14 3A 00 50 41 14 3A 00 00 02 03 00 00 00 03 01 : .:.PA.:.........
+0x00000020 : 00 00 01 B0 57 C5 78 85 4C B8 B1 77 00 05 41 64 : ....W.x.L..w..Ad
+0x00000030 : 6D 69 6E 90 EC F6 FB 35 D9 D8 7C 00 03 9B 5B 23 : min....5..|...[#
+0x00000040 : 06 AB 6B 11 D1 90 00 04 07 00 07 01 04 00 09 68 : ..k............h
+0x00000050 : 6D 38 30 30 61 66 61 31 00 00 00 00 A5 E3 42 7D : m800afa1......B}
+0x00000060 : 00 5A 00 04 00 00 02 5F 7F D0 00 00 00 13 03 01 : .Z....._........
+0x00000070 : 00 60 06 0E 80 22 14 3A 00 50 41 14 3A 00 00 02 : .`...".:.PA.:...
+0x00000080 : 00 00 00 02 5F 80 00 00 00 00 13 03 01 00 60 06 : ...._.........`.
+0x00000090 : 0E 80 22 14 3A 00 50 41 14 3A 00 00 02 01 00 00 : ..".:.PA.:......
+0x000000A0 : 02 5F 80 00 00 00 00 13 03 01 00 60 06 0E 80 22 : ._.........`..."
+0x000000B0 : 14 3A 00 50 41 14 3A 00 00 02 02 00 00 02 5F 80 : .:.PA.:......._.
+0x000000C0 : 00 00 00 00 13 03 01 00 60 06 0E 80 22 14 3A 00 : ........`...".:.
+0x000000D0 : 50 41 14 3A 00 00 02 03 00 00 02 5F 80 00 00 00 : PA.:......._....
+0x000000E0 : 00 04 00 00 02 5F 7F D0 00 00 00 13 03 01 00 60 : ....._.........`
+0x000000F0 : 06 0E 80 22 14 3A 00 50 41 14 3A 00 00 02 04 00 : ...".:.PA.:.....
+0x00000100 : 00 02 5F 80 00 00 00 00 13 03 01 00 60 06 0E 80 : .._.........`...
+0x00000110 : 22 14 3A 00 50 41 14 3A 00 00 02 05 00 00 02 5F : ".:.PA.:......._
+0x00000120 : 80 00 00 00 00 13 03 01 00 60 06 0E 80 22 14 3A : .........`...".:
+0x00000130 : 00 50 41 14 3A 00 00 02 06 00 00 02 5F 80 00 00 : .PA.:......._...
+0x00000140 : 00 00 13 03 01 00 60 06 0E 80 22 14 3A 00 50 41 : ......`...".:.PA
+0x00000150 : 14 3A 00 00 02 07 00 00 02 5F 80 00 00 00 00 04 : .:......._......
+0x00000160 : 00 00 02 5F 7F D0 00 00 00 13 03 01 00 60 06 0E : ..._.........`..
+0x00000170 : 80 22 14 3A 00 50 41 14 3A 00 00 02 08 00 00 02 : .".:.PA.:.......
+0x00000180 : 5F 80 00 00 00 00 13 03 01 00 60 06 0E 80 22 14 : _.........`...".
+0x00000190 : 3A 00 50 41 14 3A 00 00 02 09 00 00 02 5F 80 00 : :.PA.:......._..
+0x000001A0 : 00 00 00 13 03 01 00 60 06 0E 80 22 14 3A 00 50 : .......`...".:.P
+0x000001B0 : 41 14 3A 00 00 02 0A 00 00 02 5F 80 00 00 00 00 : A.:......._.....
+0x000001C0 : 13 03 01 00 60 06 0E 80 22 14 3A 00 50 41 14 3A : ....`...".:.PA.:
+0x000001D0 : 00 00 02 0B 00 00 02 5F 80 00 00 00 00 00 00 00 : ......._........
+0x000001E0 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 1 more line, 16 more bytes) .....
+0x00000000 : 02 0D 00 00 02 5F 80 00 00 00 00 13 03 01 00 60 : ....._.........`
+0x00000010 : 06 0E 80 22 14 3A 00 50 41 14 3A 00 00 02 0E 00 : ...".:.PA.:.....
+0x00000020 : 00 02 5F 80 00 00 00 00 13 03 01 00 60 06 0E 80 : .._.........`...
+0x00000030 : 22 14 3A 00 50 41 14 3A 00 00 02 0F 00 00 02 5F : ".:.PA.:......._
+0x00000040 : 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+0x00000050 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 26 more lines, 416 more bytes) .....
+0x00000000 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 31 more lines, 496 more bytes) .....
+0x00000000 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 31 more lines, 496 more bytes) .....
+0x00000000 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 31 more lines, 496 more bytes) .....
+0x00000000 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 31 more lines, 496 more bytes) .....
+0x00000000 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+server:$ filesystem-translate-offset Bravo 0
+System drive 4, offset 1048576   (0x100000)
+SD block     2048  (0x800), offset 0  (0x0)
+Span         Admin, offset 10436753752064   (0x97dff000000)
+   ... Chunk 3750, offset 0   (0x0)
+Stripeset    1, offset 0   (0x0)
+   ... Chunk 0,  offset 0   (0x0)
+Filesystem   Bravo, offset 0   (0x0)
+   ... Chunk 0, offset 0   (0x0)
+server:$ filesystem-translate-offset --dump 0x200 Bravo dsb2-1
+System drive 4, offset 5275648   (0x508000)
+SD block     10304  (0x2840), offset 0  (0x0)
+Span         Admin, offset 10436770562048   (0x97e00008000)
+   ... Chunk 3750, offset 16809984   (0x1008000)
+Stripeset    1, offset 16809984   (0x1008000)
+   ... Chunk 0,  offset 16809984   (0x1008000)
+Filesystem   Bravo, offset 16809984   (0x1008000)
+   ... Chunk 0, offset 16809984   (0x1008000)
+0x00000000 : 44 53 42 53 57 46 53 31 00 00 00 00 00 00 00 83 : DSBSWFS1........
+0x00000010 : 90 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+0x00000020 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 3 more lines, 48 more bytes) .....
+0x00000060 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 67 AD : ..............g.
+0x00000070 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+0x00000080 : 57 C5 8A 67 14 D2 3A 10 00 00 00 00 00 00 00 00 : W..g..:.........
+0x00000090 : 00 00 00 00 00 03 00 00 00 00 00 00 00 03 23 70 : ..............#p
+0x000000A0 : 00 00 00 00 00 00 04 02 00 00 00 00 00 00 00 00 : ................
+0x000000B0 : 00 00 00 00 00 00 00 00 00 00 00 57 74 E5 FD 1A : ...........Wt...
+0x000000C0 : 68 00 00 00 01 DC 35 B4 00 00 00 00 00 03 23 90 : h.....5.......#.
+0x000000D0 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 2 more lines, 32 more bytes) .....
+0x00000100 : 3C 00 00 00 00 03 00 08 3C 00 00 00 00 03 23 78 : &lt;.......&lt;.....#x
+0x00000110 : 3C 00 00 00 00 03 23 98 00 00 00 00 00 00 00 00 : &lt;.....#.........
+0x00000120 : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 : ................
+..... Same (for 13 more lines, 208 more bytes) .....
+server:$
+</pre>
+<p></p>
+<p>Let's examine this command further:</p>
+<pre>0: server:$ sd-translate-offset 4 0x100000
+1: System drive 4, offset 1048576   (0x100000)
+2: SD block     2048  (0x800), offset 0  (0x0)
+3: Span         Admin, offset 10436753752064   (0x97dff000000)
+4:    ... Chunk 3750, offset 0   (0x0)
+5: Stripeset    1, offset 0   (0x0)
+6:    ... Chunk 0,  offset 0   (0x0)
+7: Filesystem   Bravo, offset 0   (0x0)
+8:    ... Chunk 0, offset 0   (0x0)
+</pre>
+<p></p>
+<p>Numbers preceded by '0x' are in hex; other numbers are in decimal. All the xxx-translate-offset commands accept offset in either base, as long as you follow this convention.</p>
+<p>Line 1 repeats the SD device ID and the byte offset.</p>
+<p>Line 2 translates the SD byte offset into an SD block number and a byte offset within the block.  SDs are divided into blocks; the block size is typically 512 bytes.  This kind of block is not related to filesystem blocks.</p>
+<p>Line 3 tells you which span uses the SD and shows the byte offset within the span.</p>
+<p>Spans are divided into stripesets; each stripeset contains several SDs.  (See the three stripesets shown by 'span-list' in the example above.)  The disk space in each stripeset is divided into chunks; each chunk uses space from all the SDs in the stripeset, so as to improve performance by routing I/O to as many SDs as possible. The capacity of each chunk is approximately equal to the guideline chunksize, which is fixed when the span is created and is shown by the 'span-dump' command.  If a span has two stripesets of 5,000 chunks each then chunks 0 to 4,999 of stripeset 0 will be chunks 0 to 4,999 of the span, and chunks 0 to 4,999 of stripeset 1 will be chunks 5,000 to 9,999 of the span.</p>
+<p>Line 4 of the output shows the SD byte offset translated into a span chunk number and a byte offset within the chunk.</p>
+<p>Line 5 shows which stripeset contains the SD and gives the byte offset into the stripeset.</p>
+<p>Line 6 shows the chunk number with the stripeset and the byte offset into that chunk.</p>
+<p>Line 7 shows which filesystem (fs) uses this byte and shows the byte offset into the fs.  An SD can be used in only one stripeset (and hence in only one span), but different regions of an SD, included in different chunks, may be used in different filesystems.</p>
+<p>Each of a stripeset's chunks is allocated in its entirety to a single filesystem.  However, there's no direct relationship between stripeset chunk numbers and filesystem chunk numbers: the first chunk in stripeset 2 may be the thousandth chunk in the filesystem.  The final line of output shows the chunk number within the filesystem and the offset within that chunk.</p>
+<p>The byte offset into the chunk shown on line 4 is always the same as the byte offsets shown on lines 6 and 8.  It's the same offset into the same chunk in all three cases; what differs on these three lines is the way the chunk's start offset is represented.</p>
+<p>Finally, the command</p>
+<pre>sd-translate-offset 5 0x100000
+</pre>
+<p></p>
+<p>could equivalently have been written in any of these ways:</p>
+<pre>sd-translate-offset 5 1048576
+sd-translate-offset 5 --block 2048
+sd-translate-offset 5 --block 0x800
+</pre>
+<p></p>
+<p>The commands with the <code>--block</code> switch are equivalent to the commands without it, because the block size of this SD is 512 bytes.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-chunk-translate-offset.html">filesystem-chunk-translate-offset</a> <a href="../Supervisor/filesystem-translate-offset.html">filesystem-translate-offset</a> <a href="../Supervisor/filesystem-undelete.html">filesystem-undelete</a> <a href="../Supervisor/span-chunk-translate-offset.html">span-chunk-translate-offset</a> <a href="../User/span-dump.html">span-dump</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-translate-offset.html">span-translate-offset</a> <a href="../Supervisor/stripeset-chunk-translate-offset.html">stripeset-chunk-translate-offset</a> <a href="../Supervisor/stripeset-translate-offset.html">stripeset-translate-offset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

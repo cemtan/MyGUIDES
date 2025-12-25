@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-notifications</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>filesystem-notifications</h1>
+<p>List the last notification sent by the spanning system for each filesystem</p>
+<h1>Syntax</h1>
+<pre>filesystem-notifications 
+</pre>
+
+<h1>Description</h1>
+<p>The server is composed of several subsystems.  One of these is Span Manager, which informs other subsystems when spans and filesystems have been loaded and become healthy or unhealthy, or have been deleted, forgotten, or moved to other clusters.</p>
+<p>The 'filesystem-notifications' command lists the most recent notification sent for each filesystem on the local cluster node -- even if the filesystem is no longer loaded.  In most cases, each filesystem's permanent ID is also shown.  The possible notifications are:</p>
+<dl>
+<dt><strong>No notification</strong></dt>
+<dd><p>Span Manager has not sent any notification for this filesystem.</p></dd>
+<dt><strong>Made available</strong></dt>
+<dd><p>The filesystem has become healthy, and Span Manager has made it available for use by the rest of the server.  The command will show the flags that accompanied the filesystem when it was last made available; these flags vary between releases, but their meaning is understood by your support provider.</p></dd>
+<dt><strong>Made unavailable</strong></dt>
+<dd><p>The filesystem or its host span has become unhealthy in some sense (SD failure, an encroachment, or some similar failure), or has been manually hidden by a command such as 'span-hide'.  Span Manager has told the rest of the server that the filesystem can no longer be used.</p></dd>
+<dt><strong>Deletion notification</strong></dt>
+<dd><p>Span Manager has deleted the filesystem, unlicensed the host span, or reassigned the span to another cluster.  It is likely that the filesystem instance name will be omitted.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ filesystem-notifications
+1024 (Alpha, perm ID 14A871223E896BBF): Made available (SANoFlags)
+1025 (Bravo, perm ID 14A8712A36FAAEB4): Made unavailable
+1026 (perm ID 14A87043FE586989): Deletion notification
+1027 (perm ID 14A870400FC5EEA5): Deletion notification
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/filesystem-list.html">filesystem-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

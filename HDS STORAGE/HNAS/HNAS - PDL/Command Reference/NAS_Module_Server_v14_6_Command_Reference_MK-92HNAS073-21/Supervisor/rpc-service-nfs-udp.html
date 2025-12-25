@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>rpc-service-nfs-udp</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>rpc-service-nfs-udp</h1>
+<p>Enable/disable the registration of NFS over UDP with portmapper to control use of the service</p>
+<h1>Syntax</h1>
+<pre>rpc-service-nfs-udp [--disable] [--enable [--confirm]]
+</pre>
+
+<h1>Description</h1>
+<p>Enables/disables the registration of NFS over UDP with the portmapper service. It can also be used to view the current setting, which applies to the EVS in context and is persistent.</p>
+<p>The default is for the portmapper registration of NFS over UDP to be disabled for all new EVSs.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>none</strong></dt>
+<dd><p>Use the command with no options specified to cause the current setting to be displayed.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>Use the disable switch to disable the registration of NFS over UDP with portmapper (recommended).</p></dd>
+<dt><strong>--enable</strong></dt>
+<dd><p>Use the enable switch to enable the registration of NFS over UDP with portmapper. This option is not recommended, due to the risks outlined below. Use of this option requires the use of the --confirm switch.</p></dd>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Use with the enable switch to enable the registration of NFS over UDP with portmapper.</p></dd>
+</dl>
+<h2>Warning against using UDP</h2>
+<p>Traditionally, NFS used UDP. NFS over TCP has been available for many years now, and it has been widely recommended not to use UDP for at least 10 years. There are several reasons for this recommendation:</p>
+<ul>
+<li>Improved security - TCP is harder to spoof because a connection must be established.</li>
+<li>When using high-speed links, IP fragment reassembly errors can occur which may not always be caught by the UDP checksum algorithm.</li>
+<li>Even at lower data rates and without IP fragmentation, some popular NFS clients are still capable of introducing data inconsistencies in certain conditions when using UDP.</li>
+<li>Although UDP was once perceived as bringing improved performance, with modern systems this is unlikely to be the case, and if performance is desired there are usually better ways to achieve it.</li>
+</ul>
+<p>Although steps can be taken to mitigate against most of the data integrity risks associated with using the UDP transport for NFS, the underlying causes come from interactions between the NFS, UDP and IP protocol definitions, and cannot be removed entirely.</p>
+<p>Most networks have switched to using TCP exclusively for data transfer and very few use cases require UDP; therefore NFS over UDP is disabled by default. However note that although the portmapper will no longer offer UDP as an option for NFS, the NFS service will still listen on the configured UDP port and clients can connect to it directly if they are configured to do so. If only a few clients need to use UDP to access NFS, this may be an acceptable alternative to enabling UDP via rpc-service-nfs-udp.</p>
+<p>Before using either method to enable the use of NFS over UDP it is essential to understand all of the risks of doing so and to take action to mitigate against them. See engineering bulletin EB 0228 for further information.</p>
+<h1>Examples</h1>
+<p>To display the current setting for the EVS in context:</p>
+<pre>rpc-service-nfs-udp
+</pre>
+<p></p>
+<p>To disable the registration of NFS over UDP with the portmapper for EVS 3:</p>
+<pre>vn 3 rpc-service-nfs-udp --disable
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/rpcport.html">rpcport</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-prepare-for-resync</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-prepare-for-resync</h1>
+<p>Prepare the span before an intermittent Raid mirror is remade</p>
+<h1>Syntax</h1>
+<pre>span-prepare-for-resync &lt;span&gt; &lt;max-time-to-suspend-event-logging-in-seconds&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The 'storage-based-mirror' man page discusses a configuration in which the storage mirrors data between two sites.  Periodically, the mirror is broken, and the system drives (SDs) at the secondary site become capable of I/O; the secondary site mounts the file systems on the secondary SDs in order to take tape backups or perform off-line database queries; later, the mirror is remade and allowed to resynchronize, in order to bring the secondary site up to date.</p>
+<p>When the mirror is remade, the SDs at the secondary site become incapable of I/O.  This looks to the secondary server (or cluster) like storage failure.</p>
+<p>'span-prepare-for-resync' is run before the mirror is remade.  It prepares the secondary server (or cluster) for loss of access to the secondary SDs, and helps it handle the transition more gracefully:</p>
+<ol>
+<li>It unmounts all the span's file systems gracefully.  However, it avoids clearing the automount flag, so that the file systems will automount when the storage becomes available again.</li>
+<li>It suppresses the severe events that would normally be logged and the diagnostics that would normally be sent in response to the apparent storage failure.  (Other spans are unaffected, and the server will respond to storage failures in those spans in the normal way.)</li>
+<p>This suppression is limited to the number of seconds you specify on the command line.  This limit ensures that logging will eventually resume, even if you run 'span-prepare-for-resync' and never run 'span-reload-after-resync'.  The time is specified in seconds; the maximum limit is one day.</p>
+<li>It erases all NVRAM data for the filesystems in question, because that data will be incompatible with the updates that the primary server has made, and which will soon be reflected to the secondary storage.</li>
+<li>It hides the span's file systems from the server's clustering subsystem, so that they can't be mounted until you give the command.</li>
+</ol>
+<p>If you reboot the cluster, actions 2 and 4 will be undone: status logging will resume and the file systems will automount.</p>
+<p>Normally, however, you will run 'span-prepare-for-resync', remake the mirrors, wait for them to synchronize, break them, and finally run 'span-reload-after-resync' to bring the filesystems back online.</p>
+<h1>Examples</h1>
+<pre>span-prepare-for-resync Admin 3600
+</pre>
+<p></p>
+<p>Tells the server that the SDs that host span Admin are about to be resynchronized, and that status logging should be suspended for one hour.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/span-reload-after-resync.html">span-reload-after-resync</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

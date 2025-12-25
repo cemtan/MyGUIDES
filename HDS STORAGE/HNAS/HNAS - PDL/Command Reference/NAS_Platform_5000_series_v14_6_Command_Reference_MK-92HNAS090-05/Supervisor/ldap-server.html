@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ldap-server</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>ldap-server</h1>
+<p>Manages the NIS LDAP Server cache.</p>
+<h1>Syntax</h1>
+<pre>ldap-server [command]
+Where command is one of:
+  list [--verbose|-v]
+  add &lt;server&gt;
+  del &lt;server&gt;
+  get
+  prod
+  disconnect
+</pre>
+
+<h1>Description</h1>
+<p>The ldap-server command is used to view and maintain the list of LDAP servers used by the file server to support RFC 2307 NIS.</p>
+<p>Only servers explicitly added via the ldap-server command will be used for NIS, automatic discovery of LDAP NIS servers is not supported.</p>
+<p>Optionally, a port number may be specified when adding a server to the list.  When a port is not given, the standard default for the current LDAP security mode (see the ldap-security command) will be used.</p>
+<p>The response time of each LDAP server is measured regularly from each local IP address, and a 'best' LDAP server/local IP address pair is chosen based on these response times. The 'best' LDAP server is re-evaluated regularly.</p>
+<p>If you wish to specify login credentials or select whether TLS is used to secure LDAP communications, you must use the ldap-security command.  Note that the ldap-security command settings apply to all LDAP NIS server connections.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>list [--verbose | -v]</strong></dt>
+<dd><p>Display all LDAP servers of which the file server is aware. If the --verbose option is specified, extended information, such as response time history, will also be displayed. The response time history will show response times from each LDAP server to requests sent from each local IP address.</p></dd>
+<dt><strong>add &lt;SERVER&gt;[:&lt;PORT&gt;[:&lt;TLS_PORT&gt;]]</strong></dt>
+<dd><p>Adds a new LDAP server to the file server's list. SERVER may be an IP address or DNS name. The optional PORT and TLS_PORT values must be integers. If present, there must be no spaces between the port number(s), colon(s) and address. If port numbers are not given, the LDAP standard values of 389 (LDAP) and 636 (LDAPS) are used. LDAP servers added using this command will be stored in flash, so will persist over reboots.</p></dd>
+<dd><p>Note: IPv6 addresses must be enclosed in square braces ([]) if ports are being specified.</p></dd>
+<dt><strong>del &lt;SERVER&gt;[:&lt;PORT&gt;[:&lt;TLS_PORT&gt;]]</strong></dt>
+<dd><p>Removes an LDAP server from the list. Use this command to remove an LDAP server that was added using the add command. SERVER may be an IP address or DNS name. The optional PORT and TLS_PORT values must match those given when the server was added.</p></dd>
+<dt><strong>get</strong></dt>
+<dd><p>Returns the 'best' LDAP server in the list. This is the LDAP server/local IP address combination that has the best recent response time results, and is the LDAP server that's currently being used to fulfill NIS queries issued by the file server.</p></dd>
+<dt><strong>prod</strong></dt>
+<dd><p>Prod the LDAP server connection manager. This will update the LDAP server list by measuring the response time of each LDAP server and will, if necessary, select a new 'best' LDAP server.</p></dd>
+<dt><strong>disconnect</strong></dt>
+<dd><p>Disconnect from the current LDAP server. A new connection will be set up to the 'best' LDAP server in the list.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>List presently-configured LDAP servers:</p>
+<pre>ldap-server list
+</pre>
+<p></p>
+<p>List presently-configured LDAP servers and their measured response times:</p>
+<pre>ldap-server list -v
+</pre>
+<p></p>
+<p>Add an LDAP server to the cache:</p>
+<pre>ldap-server add 10.4.1.1
+ldap-server add fdca:f995:220a:480:250:56ff:fea5:6634
+ldap-server add nis-ldap.inside.example.com
+ldap-server add nis-ldap1.dept.example.com:1045
+ldap-server add nis-ldap2.dept.example.com:1045:1046
+ldap-server add [fdca:f995:220a:480:250:56ff:fea5:6634]:1045:1046
+</pre>
+<p></p>
+<p>Remove an LDAP server from the cache:</p>
+<pre>ldap-server del 10.4.1.1
+ldap-server del fdca:f995:220a:480:250:56ff:fea5:6634
+ldap-server del nis-ldap.inside.example.com
+ldap-server del nis-ldap1.dept.example.com:1045
+ldap-server del nis-ldap2.dept.example.com:1045:1046
+ldap-server del [fdca:f995:220a:480:250:56ff:fea5:6634]:1045:1046
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/domainname.html">domainname</a> <a href="../Topic/ldap.html">ldap</a> <a href="../Supervisor/ldap-security.html">ldap-security</a> <a href="../Supervisor/nis-ldap-mode.html">nis-ldap-mode</a> <a href="../Supervisor/nis-state.html">nis-state</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

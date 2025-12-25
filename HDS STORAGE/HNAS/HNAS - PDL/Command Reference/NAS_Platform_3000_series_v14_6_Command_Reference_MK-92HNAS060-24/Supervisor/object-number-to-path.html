@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>object-number-to-path</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>object-number-to-path</h1>
+<p>Dumps the path(s) of a given object</p>
+<h1>Syntax</h1>
+<pre>object-number-to-path  [-f &lt;file system&gt;] [--snapshot-name &lt;snapshot name&gt; | --snapshot-checkpoint-number &lt;snapshot checkpoint number&gt; | --snapshot-index &lt;snapshot index&gt;] &lt;object-number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Given an object number, object-number-to-path attempts to resolve the full pathname for that object. If the command runs successfully the full path is displayed on the current console. object-number-to-path may be run with the file system mounted or unmounted, and may be safely invoked to resolve the path of objects suspected of being corrupt in some way. However, should the nature of the corruption interfere with the path resolution, then object-number-to-path will fail.</p>
+<p>If you wish to find the path name with the file system mounted and do not suspect corruption, consider using handle-to-path, which performs fewer checks and is much less resource hungry.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-f &lt;file-system&gt;</strong></dt>
+<dd><p>The file system on which the onode resides</p></dd>
+<dt><strong>--snapshot-name &lt;snapshot-name&gt;</strong></dt>
+<dd><p>Find the path as it was in the given snapshot, rather than as it is now in the live file system. Can only be used on WFS-2 file systems.</p></dd>
+<dt><strong>--snapshot-checkpoint-number &lt;checkpoint-number&gt;</strong></dt>
+<dd><p>Find the path as it was in the given snapshot, rather than as it is now in the live file system. Can only be used on WFS-2 file systems.</p></dd>
+<dt><strong>--snapshot-index &lt;snapshot-index&gt;</strong></dt>
+<dd><p>Find the path as it was in the given snapshot, rather than as it is now in the live file system. Can only be used on WFS-2 file systems.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To print the path of the object located at 0x3860 on file system testfs:</p>
+<pre>object-number-to-path -f testfs 0x3860
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/find-entry.html">find-entry</a> <a href="../Supervisor/handle-to-path.html">handle-to-path</a> <a href="../Supervisor/path-to-object-number.html">path-to-object-number</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

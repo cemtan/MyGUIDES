@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-stat</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>fs-stat</h1>
+<p>Report file system state/statistics</p>
+<h1>Syntax</h1>
+<pre>fs-stat [--file-system &lt;fs-label&gt;] [-r|--reset]
+</pre>
+
+<h1>Description</h1>
+<p>Displays information about the current/specified file system.</p>
+<p>Usage:</p>
+<pre>fs-stat [--file-system &lt;fs-label&gt;] [--reset]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-f, --file-system</strong></dt>
+<dd><p>Selects a file system</p></dd>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Resets statistics</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display information about the file system 'fs2':</p>
+<pre>    $ fs-stat --file-system fs2
+    FSIFileSystem(0x00007F4E84ADF3F0)
+    State:
+      Id                : 124797483f1a6ff70000000000000000
+      Name              : fs2
+      Mounted           : yes
+      WORM              : no
+      Read cache        : no
+      Failed            : no
+      Thin provisioned  : no
+      Quota mode        : file size based quotas
+      Create time       : 2022-03-25 17:49:11+01:00
+      Size              : 18 GB (19327352832 B)
+      Free space        : 15.59 GB (16739631104 B)
+      Snapshot space    : 0 B
+      Max file count    : 589824
+      Free file count   : 510853
+      In use file count : 78971
+      File counts:
+        Regular         : 1
+        Directory       : 3
+        All files excluding directories : 1
+        All files including directories : 4
+    Stats:
+      Operations processed by software:
+        User read ops   : 1 (0/sec)
+        User read bytes : 16 B (0 B/sec)
+        User write ops  : 54 (0/sec)
+        User write bytes : 864 B (0 B/sec)
+        User Ops        : 241 (0/sec)
+        Shared locks    : 19840 (0/sec)
+        Exclusive locks : 1 (0/sec)
+        Snapshot deleter blocks freed : 36 (0/min)
+      Operations processed by auto-inquiry:
+      Combined:
+        User read ops   : 1 (0/sec)
+        User read bytes : 16 B (0 B/sec)
+        User write ops  : 54 (0/sec)
+        User write bytes : 864 B (0 B/sec)
+        User Ops        : 241 (0/sec)
+        Shared locks    : 19840 (0/sec)
+        Exclusive locks : 1 (0/sec)
+        Snapshot deleter blocks freed : 36 (0/min)
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/selectfs.html">selectfs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

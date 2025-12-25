@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>global-symlink-add</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>global-symlink-add</h1>
+<p>Add a global symlink definition</p>
+<h1>Syntax</h1>
+<pre>global-symlink-add [-a] &lt;src-path&gt; &lt;dst-path&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Global symlinks are absolute symlinks (i.e. symlinks whose target path begins with a / character) that can be followed by both NFS and CIFS network clients.</p>
+<p>Imagine an NFS client that has server1:/export1 mounted locally at /mnt/server1 and server2:/export2 mounted locally at /mnt/server2. Imagine that a user creates an absolute symlink, /mnt/server1/link, that links to /mnt/server2/dir. If another NFS client with the same mount point configuration visits /mnt/server1/link, it will also be able to follow the symlink through its local file system to /mnt/server2/dir. However, what will happen if a CIFS client encounters the link?</p>
+<p>CIFS clients can't handle symlinks, so the Distributed File System (DFS) protocol is used to redirect them instead. A translation table is provided for this purpose, to allow absolute symlink paths to be translated to DFS paths. In the example above, the following entry may be added to the global symlink translation table:</p>
+<pre>  Symlink path      Destination path
+  ---------------   -------------------
+  /mnt/server2/dir  \\server2\share2\dir
+</pre>
+<p></p>
+<p>So, if a CIFS client encounters the link at \\server1\share1\link, the server will automatically read the contents of the symlink, look up the path in the global symlink translation table and, on finding the matching entry above, will redirect the client automatically to \\server2\share2\dir.</p>
+<p>Entries in the global symlink translation table can also contain wildcards, which is useful when there are many similarly configured CIFS shares and NFS exports. For example, imagine a set of Unix home directories, /home/bob, /home/fred, etc., and imagine that each of these home directories is shared over CIFS as \\server\bob_home, \\server\fred_home, etc. In this case, a single global symlink translation can be added to the table, as follows:</p>
+<pre>  Symlink path      Destination path
+  ---------------   -------------------
+  /home/*           \\server\*_home
+</pre>
+<p></p>
+<p>Now if a CIFS client encounters any absolute symlink whose path begins with /home/&lt;username&gt;, it will be redirected using DFS to the equivalent \\server\&lt;username&gt;_home share.</p>
+<p>Note that at most one '*' wildcard can appear in the source (i.e. symlink) path in the global symlink translation table, although more than one can appear in the destination path. The characters matched by the wildcard in the source path will be substituted into the destination path wherever a '*' appears. Also note that for a successful match to be found, the '*' wildcard must match at least one character.</p>
+<p>The global-symlink-add command is used to add path translations to the global symlink translation table.</p>
+<p>Usage:</p>
+<pre>global-symlink-add [OPTION]... &lt;src-path&gt; &lt;dst-path&gt;
+</pre>
+<p></p>
+<dl>
+<dt><strong>-a, --all-evss</strong></dt>
+<dd><p>Add the global symlink translation on all configured EVSs. If the -a option is omitted, the command will target the current EVS only. This option cannot be used if multi-tenancy is enabled.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To create the global symlink translation in the example above on all configured EVSs:</p>
+<pre>global-symlink-add -a /mnt/server2/dir \\server2\share\dir
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/global-symlink-del.html">global-symlink-del</a> <a href="../Supervisor/global-symlink-delall.html">global-symlink-delall</a> <a href="../Supervisor/global-symlink-list.html">global-symlink-list</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

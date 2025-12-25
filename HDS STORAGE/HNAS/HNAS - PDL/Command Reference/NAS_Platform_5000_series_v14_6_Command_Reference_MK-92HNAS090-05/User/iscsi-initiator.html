@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>iscsi-initiator</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>iscsi-initiator</h1>
+<p>Manage iSCSI initiators</p>
+<h1>Syntax</h1>
+<pre>iscsi-initiator operation
+Where operation is:
+list
+add &lt;name&gt; &lt;secret&gt;
+del &lt;name&gt;
+delall [-c]
+set &lt;name&gt; &lt;new-secret&gt;
+</pre>
+
+<h1>Description</h1>
+<p>If configured for mutual authentication, an iSCSI target must authenticate with each initiator that connects to it. This command provides the iSCSI service with authentication information for each iSCSI initiator.</p>
+<pre>iscsi-initiator list
+    Displays configured initiators.
+</pre>
+<p></p>
+<pre>iscsi-initiator add &lt;name&gt; &lt;secret&gt;
+    Adds a new initiator.
+    name
+        The name of the initiator to add.
+    secret
+        The initiator's secret.
+</pre>
+<p></p>
+<pre>iscsi-initiator del &lt;name&gt;
+    Deletes an initiator.
+    name
+        The name of the initiator to delete.
+</pre>
+<p></p>
+<pre>iscsi-initiator delall [OPTIONS]
+    Deletes all configured initiators.
+</pre>
+<p></p>
+<pre>    OPTIONS
+    --confirm, -c
+        Don't ask for confirmation.
+</pre>
+<p></p>
+<pre>iscsi-initiator set &lt;name&gt; &lt;new-secret&gt;
+    Update an initiator's secret.
+    name
+        The name of the initiator to update.
+    new-secret
+        The new secret.
+</pre>
+<p></p>
+<h1>Examples</h1>
+<pre>iscsi-initiator list
+iscsi-initiator add iqn.2004-03.com.example:initiator1 secretsecret1
+iscsi-initiator del iqn.2004-03.com.example:initiator1
+iscsi-initiator delall -c
+iscsi-initiator set iqn.2004-03.com.example:initiator1 secretsecret2
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/iscsi-domain.html">iscsi-domain</a> <a href="../User/iscsi-lu.html">iscsi-lu</a> <a href="../User/iscsi-params.html">iscsi-params</a> <a href="../User/iscsi-stats.html">iscsi-stats</a> <a href="../User/iscsi-target.html">iscsi-target</a> <a href="../User/isns.html">isns</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

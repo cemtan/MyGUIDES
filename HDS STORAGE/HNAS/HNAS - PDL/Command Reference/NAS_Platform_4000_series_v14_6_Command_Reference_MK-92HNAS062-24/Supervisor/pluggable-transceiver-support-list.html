@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>pluggable-transceiver-support-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>pluggable-transceiver-support-list</h1>
+<p>Show to the supported parts list(s)</p>
+<h1>Syntax</h1>
+<pre>pluggable-transceiver-support-list [--port-family &lt;port-family&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Lists the pluggable transceiver (XFP, SFP or SFP+) models officially supported by this firmware. Additionally, if any transceiver models have been accepted by the administrator (non-default support) then these are also listed.</p>
+<p>Transceiver ports are grouped into families ('net', 'cluster' and 'fc'). The list of supported transceiver models differs between families; the 'net' and 'cluster' families use the same list while the 'fc' family uses a different list.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--port-family &lt;net|cluster|fc&gt;</strong></dt>
+<dd><p>Only display model lists applicable to transceivers attached to ports belonging to the given family. The 'net' and 'cluster' options are aliases of each other.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>pluggable-transceiver-support-list
+Lists all supported pluggable transceiver models.
+</pre>
+<p></p>
+<pre>pluggable-transceiver-support-list --port-family fc
+Lists supported pluggable transceiver models for the 'fc' port family.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/pluggable-transceiver-dump.html">pluggable-transceiver-dump</a> <a href="../Dev/pluggable-transceiver-support-add.html">pluggable-transceiver-support-add</a> <a href="../Dev/pluggable-transceiver-support-remove.html">pluggable-transceiver-support-remove</a> <a href="../Dev/pluggable-transceiver-support-reset.html">pluggable-transceiver-support-reset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

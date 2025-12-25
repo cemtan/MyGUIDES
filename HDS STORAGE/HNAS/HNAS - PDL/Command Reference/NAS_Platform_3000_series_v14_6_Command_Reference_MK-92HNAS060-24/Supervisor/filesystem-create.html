@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>filesystem-create</h1>
+<p>Add a new filesystem to a span</p>
+<h1>Syntax</h1>
+<pre>filesystem-create [--read-cache | -r] [--quick | -q] [(--block-size | -b) &lt;fs-block-size-in-KiB&gt; [--non-strict-worm | --strict-worm] [--replication-target] [--multi-tier-leaf-onodes-on-tier-one] [--usage-based-quotas] [(--dsb-count | -d) &lt;count&gt;] [--dedupe-supported [--disable-dedupe]] [--no-mount | -M]] [--exceed-safe-count] &lt;span-instance-name&gt; &lt;new-filesystem-base-name&gt; [&lt;size-in-GiB&gt; [&lt;confine-to-GiB&gt; [&lt;confine-Tier0-to-GiB&gt;]]
+Dev-level options: [--force-enhanced-bitmap-resiliency | --force-standard-bitmap-resiliency]
+Alias:       mkfs
+</pre>
+
+<h1>Description</h1>
+<p>'filesystem-create' creates a new filesystem.  A filesystem is simply a region of disk space residing on a span.  A span can contain several filesystems, but each filesystem resides entirely on a single span.</p>
+<p>'filesystem-create' binds the new filesystem to the current EVS, which becomes the only EVS that is permitted to use it.  EVS bindings can be changed at any time, but disruptively, by the 'evsfs' command.</p>
+<p>'filesystem-create' optionally formats the filesystem, creating a file system on it.  (Note the differing orthography: filesystem versus file system.)  A file system is a container of files, directories and snapshots, residing on a single filesystem.  If it formats a file system, 'filesystem-create' will by default mount it, readying one cluster node to do I/O to it.</p>
+<p>If you specify an initial size (in gibibytes, where one GiB is 2**30 bytes), the server will pre-expand the new filesystem by allocating unused space from the span.  Otherwise, the filesystem will occupy the smallest number of chunks possible: typically, just a few gibibytes.</p>
+<p>In normal operation, a file system has the same size as its host filesystem.  It can expand automatically and non-disruptively as it becomes full, as long as there is enough free space on the host span and the filesystem has not reached its maximum size.  (But note that auto-expansion is disabled on HDP where 'span-hdp-preallocation no' is in force.)</p>
+<p>Having grown, a filesystem cannot be shrunk; the only way to reclaim the space is to delete the filesystem.  It is, however, possible to expand a span non-disruptively to make more space for one or more of its filesystems.</p>
+<p>You can limit the new filesystem's auto-expansion by specifying a maximum limit -- the confining capacity -- in gibibytes, on the command line.  It is faster to create and confine a new filesystem with a single 'filesystem-create' command than to create it and then confine it separately with 'filesystem-confine', although the difference will be noticeable only if you create a large number of filesystems in quick succession.  (After you have created them, the new file systems will serve data equally fast in either case.)  If you specify a confining capacity of 0, the new filesystem is prevented from auto-expanding at all.  A filesystem's confining capacity can be changed or removed at any time, without disruption, and a filesystem can be manually expanded beyond its confining capacity if that is desirable.</p>
+<p>By default, the current software release will not create more than 32 live filesystems on a single span.  Any existing span containing more than this number of filesystems is fully supported and all its file systems can be mounted and expanded, but no further filesystems can be created on the span until enough filesystems have been deleted to bring their number below 32.  You can override this constraint by supplying the --exceed-safe-count switch, but you will place the span at risk of the following problems:</p>
+<ol>
+<li>The filesysem catalogue, an area of the Cod that lists the filesystems on a span, has a finite capacity.  The number of filesystems you can store on a span is likely to be in the high double digits, but depends on the length of the filesystem names and on the schema (format) in which the Cod is written, which in turn depends on which features are used on this span's filesystems.  See the 'cod' man page.</li>
+<li>You may find that you are locked out of using some modern features if the filesystem catalogue is very full, because they require extra Cod space that is not available.  For example, you may see an error message paradoxically saying that there is too little room to delete a filesystem.  This situation occurs because deleting a filesystem normally moves it into the recycle bin, and Cod schemata that support a recycle bin are larger than those that do not.  (The work-around to this problem is to delete the filesystem without going via the recycle bin, but you lose the ability to undelete it.)</li>
+<li>Unless the span is hosted on a large number of system drives and storage, there may be too little queue depth or back-end performance for the filesystems to perform adequately.  See the 'sd-queue-depth' man page.</li>
+</ol>
+<p>Dead (recently deleted) filesystems do not count towards the limit of 32, but they have a limit of their own, discussed in the 'span-list-recycle-bin' man page.</p>
+<h2>SWITCHES</h2>
+<p>The --read-cache switch tells the server to create the filesystem as a read cache.  A filesystem created using this switch is exclusively for use by the read caching feature.</p>
+<p>The --quick or -q switch makes the command terminate more quickly.  Without it, the command waits until it is possible to format a file system on the filesystem; if instructed to format and perhaps mount a file system, the command waits until these operations are complete.</p>
+<p>With --quick, the command terminates earlier.  If instructed to mount a file system, the command completes as soon as the mount request has been submitted; if not instructed to format or mount, the command terminates as soon as the filesystem has been created, without waiting until it is ready to format and mount.</p>
+<h2>CHOOSING A GOOD FILESYSTEM LABEL</h2>
+<p>A filesystem label should reflect the contents of the file system.  A reasonably distinctive label that is short enough to type easily will help to guard against mistakes.</p>
+<p>A filesystem label must be unique.  The uniqueness rules are described in the 'storage-based-snapshot-label' page, as are the various name types and their interactions.</p>
+<p>We recommend that span and filesystem labels be unique across the entire site, and not just on the local cluster.  Should you ever need to move storage between servers or clusters, duplicate names would cause needless difficulty.  In addition, if you manage multiple clusters via the same SMU, keeping all span and filesystem names unique reduces the likelihood of unmounting or deleting the wrong filesystem by mistake.</p>
+<p>Generic labels such as 'SATA_FS0' are best avoided, because they are not mnemonic and they are more likely to be duplicated among the clusters at a site.</p>
+<h2>FORMATTING AND MOUNTING A FILE SYSTEM</h2>
+<p>If you use the --block-size (or -b) switch, 'filesystem-create' will additionally format and, by default, mount a file system on the filesystem.  This avoids the need to run 'format' and 'mount' as separate operations.  The --block-size switch has the same meaning as in the 'format' command: it specifies the smallest increment in which disk space is allocated to a file on the file system.  It can never be changed other than through reformatting, which would destroy all the data on the file system.</p>
+<p>Several further switches have the same meanings in 'filesystem-create' as in 'format'.  They are: --non-strict-worm, --strict-worm, --replication-target, --multi-tier-leaf-onodes-on-tier-one, --usage-based-quotas, --dsb-count (or -d), --dedupe-supported and --disable-dedupe.  See their descriptions in the 'format' man page.</p>
+<p>If you supply both --block-size (or -b) and --no-mount (or -M), the new file system will be formatted but not mounted.</p>
+<p>If 'filesystem-create' is instructed to format and mount a file system, the meaning of --quick changes: it tells the command to terminate as soon as the mount request has been submitted, without waiting for mounting to complete.  If the command is instructed to format but not mount, --quick is silently ignored.</p>
+<h2>TIERED FILE SYSTEMS</h2>
+<p>If the host span is tiered, all new file systems created on it will automatically be tiered as well.  In this case, no filesystem can be created unless the span has enough space on both tiers.</p>
+<p>If you specify an initial size for a new tiered filesystem, the server allocates the minimum possible amount of space from Tier 0 (the metadata tier) and the rest from Tier 1 (the user-data tier).  Otherwise, it allocates the smallest possible amount from both tiers.</p>
+<p>If you specify a single confining capacity for a new tiered filesystem, it applies to Tier 1.  If you also wish to confine Tier 0, specify a second confining capacity.  In other words, the first confining capacity (if present) applies to Tier 1, the user data tier, and the second (if present) applies to Tier 0, the metadata tier.  Since user data is normally bulkier than metadata, the two tiers should normally be confined to different capacities.</p>
+<h2>IF THE SPAN RESIDES ON AN HDP POOL</h2>
+<p>By default, the server performs pre-allocation writes on HDP, but these writes can be disabled (and later re-enabled) by the 'span-hdp-preallocation' command.  The behavior of the server depends on whether pre-allocation writes are enabled or not.</p>
+<h3>If pre-allocation writes are enabled</h3>
+<p>If you have recently created or expanded an HDP pool, do not create filesystems on it until formatting has finished.  If you inadvertently use more space than has currently been formatted, no data will be lost, but, until formatting completes, I/O may become so slow that the span fails.</p>
+<p>Even if the HDP pool is thinly provisioned, creating a filesystem will allocate real disk space at once.  It is not possible to return this space to the HDP pool without deleting the filesystem.  This pre-allocation improves reliability by ensuring that the pool cannot run out of physical disk space during a write operation.  However, it takes time to perform, and so the maximum size of a new filesystem is limited.  If necessary, you can use 'filesystem-expand' to expand the filesystem after creating it.</p>
+<p>It is better to create a minimum-sized filesystem, confine it (by passing a confining capacity to 'filesystem-create', or by using 'filesystem-confine') to the maximum permissible size, and allow it to auto-expand as data is written.  This approach avoids long filesystem-creation times, delays pre-allocation and the purchase of new disk space, and keeps your options open in case requirements change.  If it is necessary to report a large capacity to protocol clients straight away, use 'filesystem-thin' to enable filesystem-level thin provisioning.</p>
+<p>Storage-level thin provisioning (TP), as described in the 'hdp' man page, is different from the file system-level TP controlled by 'filesystem-thin'.  If you create a 20GiB file system, confine it to 20TiB using 'filesystem-confine' and enable filesystem-level TP using 'filesystem-thin', the server will draw only 20GiB from the HDP pool or the vacated-chunks list; further space will be allocated as the file system gradually expands towards 20TiB.  The (optional) use of filesystem-level TP will report a capacity of 20TiB to protocol clients from the outset.</p>
+<p>If another filesystem has been deleted and the chunks it has vacated are still occupying real disk space, the new filesystem will reuse those chunks in preference to chunks that have never been used or which were once used but have been unmapped.  As a result, the amount of space used on the HDP pool may not increase when you create a filesystem.  See the 'hdp' man page.</p>
+<h3>If pre-allocation writes are disabled</h3>
+<p>The server does not write data to every HDP page when a filesystem is created.  As a result, the free space on the DP pool will not change significantly at first, but will fall later, at an unpredictable rate, as data is written to the new space for the first time.  It is important for the administrator to understand this behavior and not to rely on reports of HDP free space alone when deciding whether an HDP pool can safely host a new filesystem or an expansion to an existing one.  The 'span-hdp-preallocation' man page sets out important guidelines for estimating free space in the absence of pre-allocation writes.</p>
+<p>Because the time-consuming pre-allocation step is avoided, the new filesystem can be as large as you wish, subject to the free space on the span and your calculation of the free space on the HDP pool.</p>
+<p>'filesystem-create' provides no control over the stripeset where the new filesystem will be placed.  If the span resides on multiple HDP pools, it is therefore necessary to ensure that <strong>every</strong> HDP pool used by the span has enough space for a new filesystem.  If you create a minimum-sized filesystem (by not specifying an initial size), the free-space requirement on each tier is 5GiB or one chunk, whichever is greater.  In this situation, it is wise to create a minimum-sized filesystem and then use 'filesystem-expand --on-stripeset' to expand it on to a stripeset (and thus a DP pool) of your choice.  There is no need to follow this guideline if the span resides on a single HDP pool (or one HDP pool per tier).</p>
+<p>Auto-expansion is disabled.  It is the administrator's responsibility to provision new physical space and manually expand filesystems early enough.</p>
+<p>Filesystem-level thin provisioning can be enabled via 'filesystem-thin'.  Confining a filesystem with 'filesystem-confine' does not enable auto-expansion but does control the capacity reported to protoocol clients.</p>
+<p>Where they exist, 'filesystem-create' prefers to reuse vacated chunks -- chunks that were previously used by filesystems that have been deleted and recycled.  It is likely that such chunks are partly or fully mapped to physical disk space, which can safely be reused, avoiding the need to demand further disk space and reducing the likelihood that the free space on the HDP pool will fall later on, as data is written to the file system.</p>
+<h1>Examples</h1>
+<p>To create a small, unconfined filesystem called 'Wages' on span 'Accounts':</p>
+<pre>filesystem-create Accounts Wages
+</pre>
+<p></p>
+<p>To create the same filesystem and pre-extend it to at least 500GiB:</p>
+<pre>filesystem-create Accounts Wages 500
+</pre>
+<p></p>
+<p>To create the same filesystem, pre-extend it to 20GiB, and allow it to grow no larger than 20TiB:</p>
+<pre>filesystem-create Accounts Wages 20 20480
+</pre>
+<p></p>
+<p>To create span Wages on a tiered span, pre-extend it to 20GiB, and allow Tier 1 to grow to 20480GiB and Tier 0 to 3000GiB:</p>
+<pre>filesystem-create Accounts Wages 20 20480 3000
+</pre>
+<p></p>
+<p>To create the same filesystem, format a file system with 4KiB file system blocks and mount it:</p>
+<pre>filesystem-create --block-size 4 Accounts Wages 20 20480 3000
+</pre>
+<p></p>
+<p>To report a capacity of 20TiB to protocol clients for this filesystem, even while its capacity is still 20GiB:</p>
+<pre>filesystem-thin Wages on
+</pre>
+<p></p>
+<p>To create the same filesystem, format a file system with 4KiB file system blocks, allocate 512 dynamic super blocks, prepare the file system for use as a replication target, and mount it:</p>
+<pre>filesystem-create --block-size 4 --dsb-count 512 --replication-target Accounts Wages 20 20480 3000
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../User/cifs-share.html">cifs-share</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-rename.html">filesystem-rename</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/format.html">format</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/mount.html">mount</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Topic/sd-queue-depth.html">sd-queue-depth</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

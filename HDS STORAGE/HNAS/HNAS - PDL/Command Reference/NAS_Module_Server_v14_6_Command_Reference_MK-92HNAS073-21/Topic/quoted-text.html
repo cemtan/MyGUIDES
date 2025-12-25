@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>quoted-text</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>quoted-text</h1>
+
+<h1>Description</h1>
+<p>A number of BALI commands such as mse need to remap certain characters in the command arguments that they receive before proceeding with any other processing. Therefore, it is desirable to standardize on a common mapping.</p>
+<h2>Background</h2>
+<p>Users usually execute a BALI command by typing it directly in (i) a BALI shell or (ii) a client shell such as Linux/Unix/Windows/Mac and send it over ssc. If the command line contains characters that are special to the shell in which it is typed, the final arguments the command sees will be different from the typed text.  It is thus necessary to quote the typed text to keep it from being interpreted by the shell. Quoting text in a BALI shell must follow the quoting rules in the BALI console (see 'console' man page). Quoting text in a client shell must follow the quoting rules in that shell. See the relevant man page in the client.</p>
+<p>Thus it is challenging to quote arguments of a command from a client in such a way they can survive two layers of interpretation: first from the client shell and then from the BALI shell. These shells usually define a certain ASCII symbol as an escape character.</p>
+<p>The scheme below provides a quoting mechanism that survives the BALI shell so that the text can reach the command, which, in turn, has to restore it to the original text.</p>
+<h2>Encoding Scheme</h2>
+<p>By design, the quoted-text scheme defines the backslash as a special escape character that tells how to interpret the next character(s) in the text. This section lists all escape sequences that are implemented by the quoted-text library. The library uses the backslash as the default escape character but does allow the callers (i.e. commands) to define their own escapce character. For instance, all mse or mse-xxx commands define '@' as the default escape character but do allow users to change it.</p>
+<p>The scheme supports the following escape sequences:</p>
+<pre>           Table 1. Two-character escape sequences
+   +------------------------------------------------------+
+   | Escape sequence     Replacement                      |
+   |------------------------------------------------------|
+   |       \_            SP (a single space)              |
+   |       \a            *  (asterisk)                    |
+   |       \b            BS (backspace)                   |
+   |       \c            @  (commercial at)               |
+   |       \e            =  (equal sign)                  |
+   |       \f            FF (form feed)                   |
+   |       \g            &gt;  (greater than)                |
+   |       \h            #  (number sign =&gt; hash symbol)  |
+   |       \i            .  (dot)                         |
+   |       \j            +  (plus sign)                   |
+   |       \k            ,  (comma)                       |
+   |       \l            &lt;  (less than)                   |
+   |       \n            LF (byte 0x10)                   |
+   |       \p            %  (percent sign)                |
+   |       \q            '  (single quote)                |
+   |       \r            CR                               |
+   |       \s            \  (backslash)                   |
+   |       \t            TAB                              |
+   |       \v            VT (vertical tab)                |
+   |       \y            (  (left parenthesis)            |
+   |       \z            )  (right parenthesis)           |
+   |                                                      |
+   |       \A            &amp;  (ampersand)                   |
+   |       \B            `  (backquote)                   |
+   |       \C            :  (colon)                       |
+   |       \D            -  (dash)                        |
+   |       \E            ;  (ending a command)            |
+   |       \F            /  (forward slash)               |
+   |       \G            _  (underscore)                  |
+   |       \H            ^  (circumflex accent =&gt; hat)    |
+   |       \I            ?  (interrogation mark)          |
+   |       \L            {  (left curly bracket)          |
+   |       \N            !  (exclamation =&gt; not operator) |
+   |       \P            |  (pipe)                        |
+   |       \Q            "  (double quote)                |
+   |       \R            }  (right curly bracket)         |
+   |       \S            $                                |
+   |       \T            ~  (tilde)                       |
+   |       \Y            [  (left square bracket)         |
+   |       \Z            ]  (right square bracket)        |
+   +------------------------------------------------------+
+</pre>
+<p></p>
+<pre>     Table 2. Escape sequences with digits
+   +------------------------------------------------------+
+   | Escape sequence  Replacement                         |
+   |------------------------------------------------------|
+   | \dnnn            A byte with decimal value nnn       |
+   |                   (three decimal digits required)    |
+   | \okkk            A byte with octal value kkk         |
+   |                   (three octal digits required)      |
+   | \xhh             A byte with hex value 0xhh          |
+   |                   (two hex digits required)          |
+   | \Xhh-gg          A circular sequence of bytes from   |
+   |                    0xhh to 0xgg, inclusive [*]       |
+   | \uhhhh           A Unicode character 0xhhhh          |
+   |                    (four hex digits required)        |
+   | \Uhhhh-gggg      A circular sequence of Unicode      |
+   |                    characters from 0xhhhh to 0xgggg, |
+   |                    inclusive [*]                     |
+   +------------------------------------------------------+
+</pre>
+<p></p>
+<pre>     [*]: circular sequence allows the last value to be
+          smaller than the first value. For instance,
+          \XFA-05 = {0xFA to 0xFF, 0x00 to 0x05}
+          \UFAFB-1205 = {0xFAFB to 0xFFFF, 0x0000 to 0x1205}
+</pre>
+<p></p>
+<pre>       Table 3. Four-character escape sequences \mXY
+   +------------------------------------------------------+
+   | Escape sequence  Replacement                         |
+   |------------------------------------------------------|
+   | \mbs             BS (backspace)                      |
+   | \mcr             CR (carriage return)                |
+   | \mlf             LF (linefeed)                       |
+   | \msp             SP (space)                          |
+   | \mtb             TAB                                 |
+   | \mTD             ~  (tilde)                          |
+   | \mBQ             `  (backquote)                      |
+   | \mEX             !  (exclamation mark)               |
+   | \mAT             @  (commercial at)                  |
+   | \mHS             #  (hash symbol)                    |
+   | \mDS             $  (dollar sign)                    |
+   | \mPC             %  (percent sign)                   |
+   | \mCC             ^  (circumflex )                    |
+   | \mAM             &amp;  (ampersand)                      |
+   | \mAS             *  (asterisk)                       |
+   | \mLP             (  (left parenthesis)               |
+   | \mRP             )  (right parenthesis)              |
+   | \mUS             _  (underscore)                     |
+   | \mMN             -  (minus sign)                     |
+   | \mPL             +  (plus sign)                      |
+   | \mEQ             =  (equal sign)                     |
+   | \mLB             [  (left bracket)                   |
+   | \mRB             ]  (right bracket)                  |
+   | \mLC             {  (left curly bracket)             |
+   | \mRC             }  (right curly bracket)            |
+   | \mPP             |  (pipe)                           |
+   | \mBS             \  (backslash)                      |
+   | \mCL             :  (colon)                          |
+   | \mSC             ;  (semi-colon)                     |
+   | \mDQ             "  (double quote)                   |
+   | \mSQ             '  (single quote)                   |
+   | \mLT             &lt;  (less than)                      |
+   | \mGT             &gt;  (greater than)                   |
+   | \mCM             ,  (comma)                          |
+   | \mDT             .  (dot)                            |
+   | \mQM             ?  (question mark)                  |
+   | \mSL             /  (slash)                          |
+   +------------------------------------------------------+
+</pre>
+<p></p>
+<pre>       Table 4. Verbatim escape sequences
+   +------------------------------------------------------+
+   | Escape sequence  Replacement    Description          |
+   |------------------------------------------------------|
+   | \V(...\V)        ...            Verbatim             |
+   | \W(...\W)        "..."          Double-quoted word   |
+   | \w(...\w)        '...'          Single-quoted word   |
+   |                                                      |
+   | \V[...\V]        ...            Verbatim             |
+   | \W[...\W]        "..."          Double-quoted word   |
+   | \w[...\w]        '...'          Single-quoted word   |
+   |                                                      |
+   | \V{...\V}        ...            Verbatim             |
+   | \W{...\W}        "..."          Double-quoted word   |
+   | \w{...\w}        '...'          Single-quoted word   |
+   |                                                      |
+   | \V&lt;...\V&gt;        ...            Verbatim             |
+   | \W&lt;...\W&gt;        "..."          Double-quoted word   |
+   | \w&lt;...\w&gt;        '...'          Single-quoted word   |
+   |                                                      |
+   | \Vx...\Vx        ...            Verbatim             |
+   | \Wx...\Wx        "..."          Double-quoted word   |
+   | \wx...\wx        '...'          Single-quoted word   |
+   +------------------------------------------------------+
+</pre>
+<p></p>
+<p>Table 4 shows three-character escape sequences that always appear in pairs: one opening escape sequence followed by some text, which is then followed by a closing escape sequence. The third character in each escape sequence is called the verbatim id. The opening and closing verbatim id's must be identical unless they belong to the set "([{&lt;" as shown in the first nine rows of the table.  In the last three rows, the letter 'x' can be any character as long as it is the same in both the opening and the closing sequences. Note that the dots in columns 1 and 2 of Table 4 represent the same text, i.e., the replacement text is verbatim. The verbatim escape sequences are currently supported by the mse interpreter.  For more information, see Example 6 in the EXAMPLES section of the mse man page.</p>
+<p>Finally, if the escape character is followed by a character that is not listed in the four tables above, that character is literal; i.e., \c means literally c for all other characters c. For instance, "\z" means literally 'z', "\\" means literally a single backslash character 0x5C.  Note that "\s" is equivalent to "\\" but is supported here for readability purposes.</p>
+<p>If a command allows users to define their own escape character, it is very easy to choose an escape character that is portable across platforms. For example, when the echo command is run by DEV-level users, it supports option -e to enable backslash escape and -E &lt;char&gt; to enable escape sequences with the specified character. Type 'help echo' for more information.</p>
+<h1>Examples</h1>
+<p>1. Use escapes to avoid double quotes</p>
+<p>Suppose we want to display the "{abc,def}" string using the 'echo' command:</p>
+<pre>     $ echo "{abc,def}"
+     {abc,def}
+</pre>
+<p></p>
+<p>If we had not used double quotes, the command would have failed because the curly brackets are special to the BALI shell:</p>
+<pre>     $ echo {abc,def}
+     Parse error: expected ';'
+     Here:
+     echo {abc,def}
+          ^
+</pre>
+<p></p>
+<p>To avoid the double quotes, we can use the escape sequences that represent the curly brackets:</p>
+<pre>     $ echo -e \Labc,def\R
+     {abc,def}
+</pre>
+<p></p>
+<p>2.  We can also use a different escape character:</p>
+<pre>     $ echo -E @  @Labc,def@R
+     {abc,def}
+</pre>
+<p></p>
+<p>3. Avoiding the backslash makes it simpler to write commands that run from a Linux client. For instance,</p>
+<pre>     LinuxClientBASH$ ssc -u dev -p &lt;devpasswd&gt; &lt;HNAS-server&gt; echo -e \\Labc,def\\R
+     {abc,def}
+</pre>
+<p></p>
+<pre>     LinuxClientBASH$ ssc -u dev -p &lt;devpasswd&gt; &lt;HNAS-server&gt; echo -E @  @Labc,def@R
+     {abc,def}
+</pre>
+<p></p>
+<p>4. The strline filter can be used to encode or decode its standard input.    See examples 6 and 7 of the 'strline' man page.</p>
+<h1>See Also</h1>
+<p><a href="../User/echo.html">echo</a> <a href="../Filter/Dev/strline.html">strline</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

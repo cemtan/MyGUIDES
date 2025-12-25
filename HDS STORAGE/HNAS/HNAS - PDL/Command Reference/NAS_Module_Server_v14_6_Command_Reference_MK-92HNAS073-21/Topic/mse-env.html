@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mse-env</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>mse-env</h1>
+
+<h1>Description</h1>
+<p>This command lists all variables in the global minishell environment.</p>
+<p>A minishell environment (MSE) provides the framework, or environment, to preprocess and execute BALI commands in a manner similar to the BASH shell. The framework maintains a list of variables called minishell variables, which is different from the BALI console variables. There is a single global minishell environment per physical node that persists from system startup to shutdown. Commands, such as mse and calculate, that support the global minishell environment can create and access variables in it. The mse command can also inherit the MSE from a parent mse command or create its local MSE that is encapsulated from all other mse instances. Local MSE will be destroyed when the owner runs to completion.</p>
+<p>The mse-env command lists all variables in the global minishell environment. It has the same syntax and functionalities as the 'env' command. The latter lists all variables in the BALI console environment only.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--name, -n &lt;variable&gt;</strong></dt>
+<dd><p>Display information for the specified variable only. The information is a name value pair. If this option is not specified, display information for all global minishell environment variables.</p></dd>
+<dt><strong>--terse, -t</strong></dt>
+<dd><p>The output depends on --name option. If --name is specified, display only the value of the specified environment variable. Otherwise, display only the names of all environment variables.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. Define some global minishell enviroment variables using mse-set:</p>
+<pre>   $ mse-set COUNT 4
+   $ mse-set STATUS "Command succeeded"
+</pre>
+<p></p>
+<p>2. List all global minishell environment variables:</p>
+<pre>   $ mse-env
+   COUNT=4
+   STATUS=Command succeeded
+</pre>
+<p></p>
+<p>3. Display the COUNT variable only:</p>
+<pre>   $ mse-env --name COUNT
+   COUNT=4
+</pre>
+<p></p>
+<p>4. Display the value only. This is handy when we need to assign the value to another variable.</p>
+<pre>   $ mse-env --terse --name COUNT
+   4
+</pre>
+<p></p>
+<pre>   $ mse-env --terse --name COUNT | env-set -v SAVED_COUNT
+   SAVED_COUNT=4
+</pre>
+<p></p>
+<p>5. How to use environment variables listed by mse-env?</p>
+<p>Use the mse or mse-run command and precede the variable with the macro symbol, which is the percent sign by default.</p>
+<pre>   $ mse 'echo COUNT is %COUNT'
+   COUNT is 4
+</pre>
+<p></p>
+<p>6. Using mse interpreter</p>
+<p>Note that the echo command can be used to print any variables when it is run in the context of the mse command as shown in Example 5.</p>
+<p>But in this example we will explain the different behavior of the mse-env command when run in the context of an mse command.</p>
+<p>By default, the mse command operates in the global minishell environment:</p>
+<pre>   $ mse 'x=5; mse-env --name x'
+   x=5
+</pre>
+<p></p>
+<p>Variables in the global minishell environment persist until shutdown. Hence,</p>
+<pre>   $ mse-env --name x
+   x=5
+</pre>
+<p></p>
+<p>The mse command can operate in a local minishell environment. Therefore, the mse-env command cannot display variables in the local minishell environment.</p>
+<pre>   $ mse --local-env 'y=5; mse-env --name y'
+   mse-env: Undefined variable name: y
+</pre>
+<p></p>
+<p>The mse-env command could not find the y variable because y was defined and stored in the local minishell environment of the running instance of mse.</p>
+<pre>   $ mse-env --name y
+   mse-env: Undefined variable name: y
+</pre>
+<p></p>
+<p>7. How to display variables in the minishell environment of a running instance of mse?</p>
+<p>As mentioned in (6), the echo command can be used to print any variables when it is run in the context of the mse command as shown in Example 5.</p>
+<p>What if we want to display all environment variables in the minishell environment of a running instance of mse?</p>
+<p>We need a command similar to mse-env. But mse-env does not display variables in the local minishell environment. Thus, the mse interpreter has to support a built-in command called 'myenv', which has the same syntax and functionality as mse-env. The 'myenv' built-in command lists variables in the minishell environment currently in effect in the running instance of mse. For more information, see section D8.6 of the mse man page.</p>
+<pre>   $ mse --local-env 'y=5; myenv --name y'
+   y=5
+</pre>
+<p></p>
+<p>Note that the local minishell environment is destroyed when the mse command exits. Thus, if we rerun the mse command with a local minishell environment, we will get a different local minishell environment:</p>
+<pre>   $ mse --local-env 'myenv --name y'   # y not defined in the new local minishell environment
+   myenv: Undefined variable name: y
+</pre>
+<p></p>
+<p>Thus, if mse uses the global minishell environment, myenv is functionally equivalent to mse-env.</p>
+<pre>   $ mse 'x=5; myenv --name x'
+   x=5
+   $ mse 'x=5; mse-env --name x'
+   x=5
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Filter/Dev/calculate.html">calculate</a> <a href="../Dev/env.html">env</a> <a href="../Filter/Dev/env-set.html">env-set</a> <a href="../Filter/Dev/env-unset.html">env-unset</a> <a href="../Filter/Dev/mse.html">mse</a> <a href="../Dev/mse-env.html">mse-env</a> <a href="../Filter/Dev/mse-set.html">mse-set</a> <a href="../Filter/Dev/mse-unset.html">mse-unset</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

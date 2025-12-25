@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-hdp-preallocation</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-hdp-preallocation</h1>
+<p>Control whether the server should pre-allocate HDP pages when allocating chunks</p>
+<h1>Syntax</h1>
+<pre>span-hdp-preallocation [no|yes]
+</pre>
+
+<h1>Description</h1>
+<p>In normal operation, on HDP, the server prevents you from running out of real disk space.  If creating or expanding a filesystem would use more space than is available on the parity groups or pool volumes in the DP pool, the operation fails safely.  Without this check, if the DP pool were to run out of space, write operations would fail and file systems would be forcibly unmounted.</p>
+<p>An important part of this strategy is to pre-allocate real disk space for all the HDP pages in a chunk when that chunk is allocated to a file system.  The server achieves this pre-allocation by writing one non-zero block to each HDP page.  Without this pre-allocation, the free space on the DP pool would fall some time later, when data was first written to the HDP pages in the chunk; meanwhile, the server would overestimate the amount of free space on the DP pool, and would be in danger of running out.</p>
+<p>Although pre-allocation protects your system from running out of disk space on a DP pool, it has a number of disadvantages:</p>
+<ul>
+<li>It takes time, and slows down filesystem-creation and -expansion.</li>
+<li>Because of the time it takes, the system limits the size of a new filesystem or a single manual expansion.</li>
+<li>Pre-allocation writes place a good deal of stress on the storage, and they flush data out of the cache.</li>
+<li>Pre-allocation is not a sufficient safeguard if your storage system uses FMDs that perform data-compression.  On such systems, merely deleting compressible data from a file system and writing incompressible data in its place can cause the system to run out of space.  The sysadmin is therefore responsible for monitoring free space, expanding filesystems and adding physical media as required.</li>
+</ul>
+<h2>DISABLING PRE-ALLOCATION</h2>
+<p>If you wish to disable pre-allocation I/O and manage free space yourself, run:</p>
+<pre>span-hdp-preallocation no
+</pre>
+<p></p>
+<p>In this state, it is essential to ensure that no DP pool ever runs out of space.  Otherwise, file systems will be forcibly unmounted and will be unable to remount.  Follow these guidelines:</p>
+<ol>
+<li>HDP thin provisioning is still permitted.  The total capacity of the spans on a DP pool can exceed the capacity of the disk storage in that DP pool.  (The capacity of the filesystems on those spans, of course, cannot.)  However, if you disable pre-allocation I/O, it becomes your responsibility to monitor the DP pool and ensure that the system never runs out of space.</li>
+<p>NAS thin provisioning (configured by 'filesystem-thin') is also permitted.</p>
+<li>The capacity of the live and dead (recently deleted) filesystems on a DP pool, plus vacated chunks, must be smaller than the total capacity of the disk storage in the DP pool.  The difference must be at least 1GiB per DP-Vol in the span plus 2% of the total capacity of the DP-Vols in the span.</li>
+<li>The server will, in general, overestimate the amount of free space on each DP pool.  Therefore, for safety reasons, the server will never auto-expand filesystems.  Use 'filesystem-expand' (or a GUI) to expand them manually when required.</li>
+<li>If space is tight, use 'filesystem-expand --round down' to ensure that the server does not allocate more space than you intended.  The chunks on a stripeset do not all have the same capacity, and the capacity of most chunks does not exactly match the guideline chunk size of the span, especially when the guideline chunk size is small.</li>
+<li>If a span has stripesets residing on two or more DP pools, always use 'filesystem-expand --on-stripeset' to specify the stripeset from which the space should be drawn.  (You can use 'filesystem-expand --tier' if the span is tiered and the tier in question resides entirely on a single DP pool.)  The server will enforce this guideline.  Otherwise, the server might overestimate the amount of free space on some other DP pool and allocate more chunks from it than is safe.</li>
+<p>If you create a new filesystem on such a span, you have no control over the stripeset on which the filesystem is created.  Therefore, the server always creates a filesystem of the smallest possible size, and you must ensure that it is safe to allocate 5GiB (or more, if the chunk size is larger) from each stripeset in the span.  The chunk size is displayed by 'span-list -v'.</p>
+<p>When calculating how much space is occupied by chunks on a given DP pool, remember to include live filesystems, dead (recently-deleted) filesystems and vacated space.  This information is available from 'span-list -s'.</p>
+<p>To optimize filesystem scalability at the cost of imperfect load-balancing, try to allocate many chunks from one stripeset before moving on to another.  This approach mimics the server's behavior, as described in the 'span-tune-allocator' man page.  By default, the server tries to allocate 64 chunks from one stripeset before moving on to another.</p>
+<p>(Background information: every new span has exactly one stripeset.  A further stripeset is added every time you run 'span-expand' or a GUI equivalent.)</p>
+<li>If a span is divided among several DP pools and each of those DP pools is divided among multiple spans, it is very difficult to reason about the amount of free space available on each span and each DP pool.  Therefore, keep configurations simple: spread a tiered span across two DP pools, or (if absolutely necessary) place multiple spans on a single DP pool, but not both.  'span-list -s' shows how much space is available on each DP pool and which other spans share the same space.  The simplest policy, and therefore the safest, is for each DP pool to contain one span residing on one thinly provisioned stripeset.</li>
+</ol>
+<p>As you can see, disabling pre-allocation I/Os requires extra thought and planning, and works best on straightforward, regular configurations.</p>
+<p>Suppressing pre-allocation writes can make the server overestimate the amount of free space on the DP pool, but never underestimate it.  Therefore, the server will still safely fail an allocation that requires more space than is currently reported by the storage.</p>
+<h2>RE-ENABLING PRE-ALLOCATION</h2>
+<p>You can re-enable pre-allocation I/Os at any time.  However, because some chunks may recently have been allocated without these I/Os taking place, some HDP pages in filesystems may not yet be mapped to real storage, and the server may overestimate the amount of free space available on one or more DP pools.  It is therefore necessary to prevent filesystem auto-expansion until all HDP pages in allocated chunks have been written to and the server has an accurate assessment of the amount of free space on DP pools.  Follow this procedure:</p>
+<ol>
+<li>Use 'span-confine' to confine every span that resides on HDP storage.</li>
+<li>Run 'span-hdp-preallocation yes' to make the server perform pre-allocation I/Os for all future chunk-allocations.  This command also gives the server permission to auto-expand filesystems that are neither confined nor hosted on confined spans; this is why it is important to confine spans first.</li>
+<li>Run 'span-mapped-space' on each span in turn.  If the measured amount of mapped space is, for example, 500GiB smaller than the expected value, it means that the server has allocated 500GiB of new chunks to filesystems but has not yet written to them.  When it eventually writes to them, the storage subsystem will need to allocate 500GiB of new space from the HDP pool.  If this allocation cannot be made, the HDP pool and every span that uses it will fail.  Use 'span-list -s' to ensure that each HDP pool has enough space for this future allocation.</li>
+<li>Re-run 'span-mapped-space' against each spnan at interval of a day or two.  Once the measured value for a given span is at least as large as the expected value (to within a few gibibytes), it is safe to run 'span-release' on that span in order to re-enable filesystem auto-expansion.</li>
+</ol>
+<p>It is wise to monitor free space more closely than usual for the few days that follow.</p>
+<h2>HOW TO MAKE SPACE ON A SPAN</h2>
+<p>If your storage configurator shows that the free space on a DP pool is low, and if you have disabled pre-allocation writes, it is your responsibility to make new space available before the system runs out.  You have three options:</p>
+<ol>
+<li>You can add more parity groups or pool volumes to the DP pool, as described in the 'span-expand' man page.</li>
+<li>If you need to expand a filesystem, and if 'span-list -s' shows no vacated space on the span, you can manually recycle any dead filesystem shown by 'span-list-recycle-bin' by running 'filesystem-recycle'.  This operation will create vacated chunks, which will then be used when you expand other filesystems.  Vacated chunks are explained in the 'hdp' man page.</li>
+<li>If a DP pool is shared between two or more spans, S and T, and if 'span-list -s' shows that Span S has vacated chunks, 'span-unmap-vacated-chunks S' will slowly return space to the DP pool, where it can be used by filesystems on Span T.  Read the man page before using this command, and consider unmapping overnight and applying a throttle.</li>
+</ol>
+<h1>Examples</h1>
+<pre>span-hdp-preallocation yes
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Supervisor/span-mapped-space.html">span-mapped-space</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Supervisor/span-space-distribution.html">span-space-distribution</a> <a href="../Supervisor/span-tune-allocator.html">span-tune-allocator</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

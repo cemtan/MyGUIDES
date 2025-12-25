@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dedupe-queue-add</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>dedupe-queue-add</h1>
+<p>Queue a file system to be deduped</p>
+<h1>Syntax</h1>
+<pre>dedupe-queue-add &lt;--full | --incremental&gt; -f &lt;fs&gt; [--synchronous]
+</pre>
+
+<h1>Description</h1>
+<p>Adds a file system to the queue of file systems to be deduped.</p>
+<p>You must specify if you want an incremental dedupe (changes written since the last incremental are deduped) or a full dedupe (the entire file system is deduped).</p>
+<p>The requested dedupe is added to the queue and will be processed once it reaches the head of the queue as follows:</p>
+<p>- If the dedupe service state is enabled, the requested dedupe will be started.</p>
+<p>- If the dedupe service state is disabled, the requested dedupe will not be started.</p>
+<p>- If the dedupe service state is auto-enable (i.e., is automatically enabled on demand), the server will attempt to change the dedupe service state to enabled if there are sufficient free resources. If the attempt fails, it will raise an event to advise users to check the resource-config commands for details of the system state and how to ensure the dedupe service can be started.</p>
+<p>The 'dedupe-queue-status' command can be used to see the current state of the dedupe queue.</p>
+<p>This command is only supported on file systems that have been formatted/converted to support dedupe.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--full</strong></dt>
+<dd><p>Requests a full dedupe.</p></dd>
+<dt><strong>--incremental</strong></dt>
+<dd><p>Requests an incremental dedupe.</p></dd>
+<dt><strong>--file-system, -f</strong></dt>
+<dd><p>Specifies the file system to be deduped.</p></dd>
+<dt><strong>--synchronous</strong></dt>
+<dd><p>By default, this command will exit once the file system has been placed on the queue. The --synchronous option changes the behaviour to wait until the requested dedupe has completed before exiting. This could cause the command to take a very long time to complete, depending on where the requested dedupe is placed in the queue, and how long the dedupe job takes to run.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To queue a full dedupe on file system 'fs0':</p>
+<pre>dedupe-queue-add --full -f fs0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Dev/dedupe-job-stop.html">dedupe-job-stop</a> <a href="../Supervisor/dedupe-queue-status.html">dedupe-queue-status</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

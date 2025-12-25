@@ -1,0 +1,286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cacls-fields</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cacls-fields</h1>
+
+<h1>Description</h1>
+<p>A group of cacls commands are used to set or modify Security Descriptor fields and to add or remove ACL elements within the Security Descriptor.  The commands have several forms, each of which has its own manual page. These commands are listed below.</p>
+<ul>
+<li>cacls-add</li>
+<li>cacls-set</li>
+<li>cacls-mask-in</li>
+<li>cacls-mask-out</li>
+<li>cacls-del</li>
+</ul>
+<h2>FIELDS</h2>
+<p>The following fields can be changed</p>
+<dl>
+<dt><strong></strong></dt>
+<dd><p>Security Descriptor owner SID</p></dd>
+<dt><strong></strong></dt>
+<dd><p>Security Descriptor group SID</p></dd>
+<dt><strong></strong></dt>
+<dd><p>DACL ACE mask</p></dd>
+<dt><strong></strong></dt>
+<dd><p>DACL ACE flags</p></dd>
+<dt><strong></strong></dt>
+<dd><p>DACL ACE Type</p></dd>
+<dt><strong></strong></dt>
+<dd><p>DACL ACE SID</p></dd>
+<dt><strong></strong></dt>
+<dd><p>SACL ACE mask</p></dd>
+<dt><strong></strong></dt>
+<dd><p>SACL ACE flags</p></dd>
+<dt><strong></strong></dt>
+<dd><p>SACL ACE Type</p></dd>
+<dt><strong></strong></dt>
+<dd><p>SACL ACE SID</p></dd>
+</dl>
+<p>The following fields cannot currently be changed although syntax to do so is described in the individual manual pages.  In future versions these fields may be supported.</p>
+<dl>
+<dt><strong></strong></dt>
+<dd><p>Security Descriptor control mask</p></dd>
+<dt><strong></strong></dt>
+<dd><p>Security Descriptor revision</p></dd>
+<dt><strong></strong></dt>
+<dd><p>DACL revision</p></dd>
+<dt><strong></strong></dt>
+<dd><p>SACL revision</p></dd>
+</dl>
+<p>The values and associated meanings that can be applied to the various fields are described below.  For fields where it is applicable, a list of abbreviations or alternative keywords is also shown.</p>
+<h3>ACE mask</h3>
+<p>An Access Control Entry (ACE) contains an access mask describing the permissions that are allowed or denied depending on the type of the ACE. Most bits in the access mask have the same meaning irrespective of the type of object to which they apply. However, a few bits have different meanings for files and directories.</p>
+<p>If an ACE pertains to a file, these bits are:</p>
+<dl>
+<dt><strong>0x00000001</strong></dt>
+<dd><p>- Read Data</p></dd>
+<dt><strong>0x00000002</strong></dt>
+<dd><p>- Write Data</p></dd>
+<dt><strong>0x00000004</strong></dt>
+<dd><p>- Append Data</p></dd>
+<dt><strong>0x00000020</strong></dt>
+<dd><p>- Execute</p></dd>
+<dt><strong>0x00000040</strong></dt>
+<dd><p>- Not used</p></dd>
+</dl>
+<p>If an ACE pertains to a directory, these bits are:</p>
+<dl>
+<dt><strong>0x00000001</strong></dt>
+<dd><p>- List Contents</p></dd>
+<dt><strong>0x00000002</strong></dt>
+<dd><p>- Create Child</p></dd>
+<dt><strong>0x00000004</strong></dt>
+<dd><p>- Create Sub-Directory</p></dd>
+<dt><strong>0x00000020</strong></dt>
+<dd><p>- Traverse</p></dd>
+<dt><strong>0x00000040</strong></dt>
+<dd><p>- Delete Child</p></dd>
+</dl>
+<p>To rename an object in a directory a user must have delete child and create child rights. To unlink an object from a directory a user must have either delete right on the child object or delete child right on its parent directory.</p>
+<p>The following bits apply to all file system objects:</p>
+<dl>
+<dt><strong>0x00000008</strong></dt>
+<dd><p>- Read Extended Attributes</p></dd>
+<dt><strong>0x00000010</strong></dt>
+<dd><p>- Write Extended Attributes</p></dd>
+<dt><strong>0x00000080</strong></dt>
+<dd><p>- Read Attributes</p></dd>
+<dt><strong>0x00000100</strong></dt>
+<dd><p>- Write Attributes</p></dd>
+<dt><strong>0x00010000</strong></dt>
+<dd><p>- Delete</p></dd>
+<dt><strong>0x00020000</strong></dt>
+<dd><p>- Read Control</p></dd>
+<dt><strong>0x00040000</strong></dt>
+<dd><p>- Write DACL</p></dd>
+<dt><strong>0x00080000</strong></dt>
+<dd><p>- Write Owner</p></dd>
+<dt><strong>0x00100000</strong></dt>
+<dd><p>- Synchronize</p></dd>
+<dt><strong>0x01000000</strong></dt>
+<dd><p>- Access SACL</p></dd>
+<dt><strong>0x02000000</strong></dt>
+<dd><p>- Maximum Allowed Right</p></dd>
+</dl>
+<h3>mask abbreviations</h3>
+<p>The following abbreviations can be used when setting individual access mask values and can be combined to set more than one value at a time.</p>
+<dl>
+<dt><strong>r</strong></dt>
+<dd><p>- Read Data / List Contents</p></dd>
+<dt><strong>w</strong></dt>
+<dd><p>- Write Data / Create Child</p></dd>
+<dt><strong>a</strong></dt>
+<dd><p>- Append Data / Create Sub-Directory</p></dd>
+<dt><strong>x</strong></dt>
+<dd><p>- Execute</p></dd>
+<dt><strong>d</strong></dt>
+<dd><p>- Delete</p></dd>
+<dt><strong>D</strong></dt>
+<dd><p>- Delete Child</p></dd>
+<dt><strong>t</strong></dt>
+<dd><p>- Read Attributes</p></dd>
+<dt><strong>T</strong></dt>
+<dd><p>- Write Attributes</p></dd>
+<dt><strong>n</strong></dt>
+<dd><p>- Read Extended Attributes</p></dd>
+<dt><strong>N</strong></dt>
+<dd><p>- Write Extended Attributes</p></dd>
+<dt><strong>c</strong></dt>
+<dd><p>- Read Control</p></dd>
+<dt><strong>C</strong></dt>
+<dd><p>- Write DACL</p></dd>
+<dt><strong>o</strong></dt>
+<dd><p>- Write Owner</p></dd>
+<dt><strong>y</strong></dt>
+<dd><p>- Synchronize</p></dd>
+</dl>
+<h3>mask shortcuts</h3>
+<p>A number of shortcuts are provided for conveniently specifying a set of mask values.  These are shown below with the list of values that they combine.  The syntax is slightly different to that for the mask abbreviations above.  See individual command manual pages for syntax details.</p>
+<dl>
+<dt><strong>Read | read</strong></dt>
+<dd><p>- Read Control, Read Data / List Contents, Read Attributes, Read Extended Attributes and Synchronize.</p></dd>
+<dt><strong>Write | write</strong></dt>
+<dd><p>- Same as Read shortcut plus Write Data / Create Child, Append Data / Create Sub-Directory, Write Attributes and Write Extended Attributes.</p></dd>
+<dt><strong>ReadExecute | readexecute</strong></dt>
+<dd><p>- Same as Read shortcut plus Execute / Traverse.</p></dd>
+<dt><strong>Modify | modify</strong></dt>
+<dd><p>- Same as shortcut Write plus shortcut ReadExecute plus Delete and   Delete Child.</p></dd>
+<dt><strong>FullControl | fullcontrol</strong></dt>
+<dd><p>- Same as shortcut Modify plus Write Owner and Write DACL.</p></dd>
+</dl>
+<h3>ACE type</h3>
+<p>An ACE can be used to allow access, to deny access or to store system information. The type field describes what the ACE is being used for. Possible values are shown below but it should be noted that only values 0 and 1 can currently be set in the DACL and only 2 can be set in the SACL</p>
+<dl>
+<dt><strong>0</strong></dt>
+<dd><p>- Access Allowed ACE</p></dd>
+<dt><strong>1</strong></dt>
+<dd><p>- Access Denied ACE</p></dd>
+<dt><strong>2</strong></dt>
+<dd><p>- System Audit ACE</p></dd>
+<dt><strong>3</strong></dt>
+<dd><p>- System Alarm ACE</p></dd>
+<dt><strong>4</strong></dt>
+<dd><p>- Access Allowed Compound ACE</p></dd>
+<dt><strong>5</strong></dt>
+<dd><p>- Access Allowed Object ACE</p></dd>
+<dt><strong>6</strong></dt>
+<dd><p>- Access Denied Object ACE</p></dd>
+<dt><strong>7</strong></dt>
+<dd><p>- System Audit Object ACE</p></dd>
+<dt><strong>8</strong></dt>
+<dd><p>- System Alarm Object ACE</p></dd>
+</dl>
+<h3>type abbreviations</h3>
+<p>The following keywords may be used when setting an ACE type.  Only one may be used at a time.</p>
+<dl>
+<dt><strong>allow</strong></dt>
+<dd><p>- Access Allowed ACE</p></dd>
+<dt><strong>deny</strong></dt>
+<dd><p>- Access Denied ACE</p></dd>
+<dt><strong>audit</strong></dt>
+<dd><p>- System Audit ACE</p></dd>
+</dl>
+<h3>ACE flags</h3>
+<p>The flags field describes how the ACE is inherited, or what events are to be logged. Possible values are:</p>
+<dl>
+<dt><strong>0x01</strong></dt>
+<dd><p>- Object Inherit ACE</p></dd>
+<dt><strong>0x02</strong></dt>
+<dd><p>- Container Inherit ACE</p></dd>
+<dt><strong>0x04</strong></dt>
+<dd><p>- No Propagate Inherit ACE</p></dd>
+<dt><strong>0x08</strong></dt>
+<dd><p>- Inherit Only ACE</p></dd>
+<dt><strong>0x10</strong></dt>
+<dd><p>- Inherited ACE</p></dd>
+<dt><strong>0x40</strong></dt>
+<dd><p>- Audit Successes</p></dd>
+<dt><strong>0x80</strong></dt>
+<dd><p>- Audit Failures</p></dd>
+</dl>
+<h3>flags abbreviations</h3>
+<p>The following abbreviations can be used when setting individual flags values and can be combined to set more than one value at a time.</p>
+<dl>
+<dt><strong>f</strong></dt>
+<dd><p>- Object Inherit ACE</p></dd>
+<dt><strong>d</strong></dt>
+<dd><p>- Container Inherit ACE</p></dd>
+<dt><strong>p</strong></dt>
+<dd><p>- No Propagate Inherit ACE</p></dd>
+<dt><strong>i</strong></dt>
+<dd><p>- Inherit Only ACE</p></dd>
+<dt><strong>I</strong></dt>
+<dd><p>- Inherited ACE</p></dd>
+<dt><strong>S</strong></dt>
+<dd><p>- Audit Successes</p></dd>
+<dt><strong>F</strong></dt>
+<dd><p>- Audit Failures</p></dd>
+</dl>
+<h3>Owner, Group, and ACE SID</h3>
+<p>The format for numeric SIDS is S-v-i-a1-...-aN-r</p>
+<p>The characters 'S-' identify a numeric SID, 'v' is the version, 'i' is the identifier authority, 'a1'...'aN' are the sub authorities and 'r' is the RID.  'v' is an 8 bit unsigned integer as is 'i'; 'a1...aN' are 32 bit unsigned integers as is 'r'.  A numeric SID must have at least two digits, e.g S-1-0.  SIDS may also be specified using account names, enclosed in quotes if they contain space characters, e.g. "NT AUTHORITY\Anonymous Logon".</p>
+<h3>control mask</h3>
+<p>The control field cannot currently be modified due to restrictions in its value on the NAS server platform although syntax exists to support its changing by the set, mask-in, and mask-out forms of the command. For completeness we list the control field values here.</p>
+<dl>
+<dt><strong>0x0001</strong></dt>
+<dd><p>- OwnerDefaulted</p></dd>
+<dt><strong>0x0002</strong></dt>
+<dd><p>- GroupDefaulted</p></dd>
+<dt><strong>0x0004</strong></dt>
+<dd><p>- DACLPresent</p></dd>
+<dt><strong>0x0008</strong></dt>
+<dd><p>- DACLDefaulted</p></dd>
+<dt><strong>0x0010</strong></dt>
+<dd><p>- SACLPresent</p></dd>
+<dt><strong>0x0020</strong></dt>
+<dd><p>- SACLDefaulted</p></dd>
+<dt><strong>0x0100</strong></dt>
+<dd><p>- DACLAutoInheritRequired</p></dd>
+<dt><strong>0x0200</strong></dt>
+<dd><p>- SACLAutoInheritRequired</p></dd>
+<dt><strong>0x0400</strong></dt>
+<dd><p>- DACLAutoInherited</p></dd>
+<dt><strong>0x0800</strong></dt>
+<dd><p>- SACLAutoInherited</p></dd>
+<dt><strong>0x1000</strong></dt>
+<dd><p>- DACLProtected</p></dd>
+<dt><strong>0x2000</strong></dt>
+<dd><p>- SACLProtected</p></dd>
+<dt><strong>0x8000</strong></dt>
+<dd><p>- SelfRelative</p></dd>
+</dl>
+<p>Note that the SelfRelative flag (0x8000) is always set as this is a requirement for the NAS server platform.</p>
+<h3>ACL explanatory notes</h3>
+<p>An Access Control List (ACL) is a list that contains Access Control Entries (ACEs).  A Security Descriptor has two ACLs, the SACL and the DACL.  The SACL or system ACL controls the generation of audit messages for attempts to access a file system object. The DACL or discretionary ACL describes the access permissions that apply to users and groups accessing the file system object.</p>
+<h3>ACE ordering</h3>
+<p>The order that ACEs appear in the ACL is important. When checking a user's access rights, the ACEs are examined in turn from the beginning of the ACL. Once a particular right has been granted by an Access Allowed ACE, it cannot be subsequently denied by an Access Denied ACE. Similarly, once a particular right has been denied by an Access Denied ACE, it cannot be subsequently allowed by an Access Allowed ACE. If, on reaching the end of an ACL, a given right has been neither granted nor denied explicitly, it's denied implicitly except where it's conferred by the security model.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cacls-add.html">cacls-add</a> <a href="../Supervisor/cacls-del.html">cacls-del</a> <a href="../Supervisor/cacls-mask-in.html">cacls-mask-in</a> <a href="../Supervisor/cacls-mask-out.html">cacls-mask-out</a> <a href="../Supervisor/cacls-set.html">cacls-set</a> <a href="../Supervisor/chgrp.html">chgrp</a> <a href="../Supervisor/chmod.html">chmod</a> <a href="../Supervisor/chown.html">chown</a> <a href="../Supervisor/fs-dacl-mode.html">fs-dacl-mode</a> <a href="../Supervisor/security-decode-file.html">security-decode-file</a> <a href="../Supervisor/umask-directory-set.html">umask-directory-set</a> <a href="../User/umask-directory-show.html">umask-directory-show</a> <a href="../Supervisor/umask-file-set.html">umask-file-set</a> <a href="../User/umask-file-show.html">umask-file-show</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

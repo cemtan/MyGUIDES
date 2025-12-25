@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-show</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cluster-show</h1>
+<p>Show cluster parameters and node status</p>
+<h1>Syntax</h1>
+<pre>cluster-show [-a | --all] [-c | --admin] [-l | --local] [-y | --node] [-q | --quorum] [-v | --EVS]
+</pre>
+
+<h1>Description</h1>
+<p>The cluster-show command displays cluster settings and node status.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Displays all cluster information.</p></dd>
+<dt><strong>-c, --admin</strong></dt>
+<dd><p>Displays cluster Admin Service information.</p></dd>
+<dt><strong>-l, --local</strong></dt>
+<dd><p>Displays local EVSs information.</p></dd>
+<dt><strong>-y, --node</strong></dt>
+<dd><p>Displays cluster node information.</p></dd>
+<dt><strong>-q, --quorum</strong></dt>
+<dd><p>Displays Quorum Device information.</p></dd>
+<dt><strong>-v, --EVS</strong></dt>
+<dd><p>Displays EVS information.</p></dd>
+</dl>
+<p>The "Cluster Health" status will have one of the following states:</p>
+<dl>
+<dt><strong>Robust</strong></dt>
+<dd><p>Cluster heartbeating over the Cluster Interconnect and Management Network is fully functional on all cluster nodes.</p></dd>
+<dt><strong>Degraded</strong></dt>
+<dd><p>Cluster heartbeating has failed on one or more cluster links. See "cluster-show -y" for details.</p></dd>
+<dt><strong>Critical</strong></dt>
+<dd><p>The cluster is operating with the minimum required quorum. A further cluster link or cluster node failure will cause the whole cluster to reboot.</p></dd>
+</dl>
+<p>The "FS Access" status will have one of the following states:</p>
+<dl>
+<dt><strong>OK</strong></dt>
+<dd><p>All file systems that have been made available to this node are accessible.</p></dd>
+<dt><strong>Failure(s)</strong></dt>
+<dd><p>One or more file systems that have been made available to this node are no longer accessible.</p></dd>
+</dl>
+<p>The "Ethernet Aggs" status will have one of the following states:</p>
+<dl>
+<dt><strong>OK</strong></dt>
+<dd><p>All Ethernet aggregations are accessible to this node.</p></dd>
+<dt><strong>Degraded</strong></dt>
+<dd><p>One or more member interfaces of an Ethernet aggregation are DOWN on this node.</p></dd>
+<dt><strong>Failure(s)</strong></dt>
+<dd><p>One or more Ethernet aggregations are not accessible to this node.</p></dd>
+</dl>
+<p>The "Mgmnt Netwrk" status will have one of the following states:</p>
+<dl>
+<dt><strong>OK</strong></dt>
+<dd><p>The Ethernet management network is accessible to this node.</p></dd>
+<dt><strong>Failed</strong></dt>
+<dd><p>The Ethernet management network is not accessible to this node.</p></dd>
+</dl>
+<p>The "FC" status will have one of the following states:</p>
+<dl>
+<dt><strong>OK</strong></dt>
+<dd><p>All Fibre Channel interfaces are UP on this node.</p></dd>
+<dt><strong>Degraded</strong></dt>
+<dd><p>One or more Fibre Channel interfaces are DOWN on this node.</p></dd>
+<dt><strong>Failed</strong></dt>
+<dd><p>All Fibre Channel interfaces are DOWN on this node.</p></dd>
+<dt><strong>NA</strong></dt>
+<dd><p>FC status is not applicable on this model</p></dd>
+</dl>
+<p>The Quorum "Status" will have one of the following states:</p>
+<dl>
+<dt><strong>Unconfigured</strong></dt>
+<dd><p>No quorum device has been configured.</p></dd>
+<dt><strong>Configured</strong></dt>
+<dd><p>A quorum device has been configured and currently being used(applies to an even-sized cluster).</p></dd>
+<dt><strong>Granted</strong></dt>
+<dd><p>A quorum vote is granted to the specified cluster node in an even-sized cluster.</p></dd>
+<dt><strong>Not Up</strong></dt>
+<dd><p>A quorum device is configured but is not currently contactable by the cluster nodes.</p></dd>
+<dt><strong>Misconfigured</strong></dt>
+<dd><p>The quorum device's internal configuration does not match the UUID of this cluster. The quorum device should be removed and re-added using the "quorumd" command.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Where these examples show IP configuration of cluster nodes, they include:</p>
+<ul>
+<li>unified management IP addresses (assigned to CTL1 or CTL2)</li>
+<li>internal network IP addresses (assigned to eth1)</li>
+<li>maintenance IP addresses (assigned to eth0).</li>
+</ul>
+<p>For more information about these addresses, see "man unified-management-ip-address".</p>
+<pre>server:$ cluster-show
+Overall Status = Cluster Online
+Cluster Health = Robust
+Cluster Mode = Clustered
+Cluster Name = MY-CLUSTER
+Cluster UUID = ffa32d50-de3a-11c4-11a5-3fc56e1e04b1
+Cluster Size = 2
+   Node Name = NODE-1
+     Node ID = 1
+Cluster GenId = 10
+Cluster Master = Yes
+server:$
+</pre>
+<p></p>
+<p>Show all cluster information.</p>
+<pre>server:$ cluster-show -a
+Overall Status = Online
+Cluster Health = Robust
+Cluster Mode = Clustered
+Cluster Name = MY-CLUSTER
+Cluster UUID = ffa32d50-de3a-11c4-11a5-3fc56e1e04b1
+Cluster Size = 2
+   Node Name = NODE-1
+     Node ID = 1
+Cluster GenId = 10
+Cluster Master = Yes
+</pre>
+<p></p>
+<pre>Server Quorum Version: 15
+QD IP Address     Status        Quorum Device(QD) Name   Versions
+---------------   -----------   ----------------------   --------
+192.0.2.1         Configured    MY-QD                    15, 14
+</pre>
+<p></p>
+<pre>                                 Ethernet Mgmnt
+ID  Node Name  Status  FS Access Aggs     Netwrk  FC  EVS IDs
+--  ---------  ------  --------- -------- ------  --  -------
+1   NODE-1     ONLINE  OK        OK       OK      OK  [0,4,5]
+2   NODE-2     ONLINE  OK        OK       OK      OK  [1,2,3]
+</pre>
+<p></p>
+<pre>Cluster Communications Status:
+</pre>
+<p></p>
+<pre>Cluster Interconnect
+From  To=&gt; Node 1  Node 2
+Node 1       --      OK
+Node 2       OK      --
+</pre>
+<p></p>
+<pre>Management Network
+From  To=&gt; Node 1  Node 2
+Node 1       --      OK
+Node 2       OK      --
+</pre>
+<p></p>
+<pre>Node EVS ID    Type     Label Enabled Status    IP Address          Port
+---- ------ ------- --------- ------- ------ ---------------------- ----
+   1        Cluster    NODE-1     Yes Online        172.27.12.3     CTL1
+                                             2001:db8::1:1:4a:2     CTL1
+                                                   172.27.12.10     eth0
+                                                    172.24.48.1     eth1
+                                                2002::ac18:3001     eth1
+   1      0   Admin CLUSTER-A     Yes Online        172.24.48.2     eth1
+                                                 192.168.38.180      ag1
+                                                2002::ac18:3002     eth1
+   2        Cluster    NODE-2     Yes Online        172.27.12.4     CTL2
+                                             2001:db8::1:1:4a:3     CTL2
+                                                   172.27.12.11     eth0
+                                                    172.24.52.1     eth1
+                                                2002::ac18:3401     eth1
+server:$
+</pre>
+<p></p>
+<p>Show cluster Admin Service information.</p>
+<pre>server:$ cluster-show -c
+</pre>
+<p></p>
+<pre>Node EVS ID    Type     Label Enabled Status    IP Address          Port
+---- ------ ------- --------- ------- ------ ---------------------- ----
+   1        Cluster    NODE-1     Yes Online        172.27.12.3     CTL1
+                                             2001:db8::1:1:4a:2     CTL1
+                                                   172.27.12.10     eth0
+                                                    172.24.48.1     eth1
+                                                2002::ac18:3001     eth1
+   1      0   Admin CLUSTER-A     Yes Online        172.24.48.2     eth1
+                                                 192.168.38.180      ag1
+                                                2002::ac18:3002     eth1
+   2        Cluster    NODE-2     Yes Online        172.27.12.4     CTL2
+                                             2001:db8::1:1:4a:3     CTL2
+                                                   172.27.12.11     eth0
+                                                    172.24.52.1     eth1
+                                                2002::ac18:3401     eth1
+server:$
+</pre>
+<p></p>
+<p>Show local EVS information.</p>
+<pre>server:$ cluster-show -l
+</pre>
+<p></p>
+<pre>Node EVS ID    Type     Label Enabled Status    IP Address          Port
+---- ------ ------- --------- ------- ------ ---------------------- ----
+   1        Cluster    NODE-1     Yes Online        172.27.12.3     CTL1
+                                             2001:db8::1:1:4a:2     CTL1
+                                                   172.27.12.10     eth0
+                                                    172.24.48.1     eth1
+                                                2002::ac18:3001     eth1
+   1      0   Admin CLUSTER-A     Yes Online        172.24.48.2     eth1
+                                                 192.168.38.180      ag1
+                                                2002::ac18:3002     eth1
+server:$
+</pre>
+<p></p>
+<p>Show cluster node information.</p>
+<pre>server:$ cluster-show -y
+                                 Ethernet Mgmnt
+ID Node Name  Status  FS Access  Aggs     Netwrk FC  EVS IDs
+-- ---------  ------  ---------  -------- ------ --  -------
+1  NODE-1     ONLINE  Failure(s) OK       OK     OK  [0,4,5]
+2  NODE-2     ONLINE  OK         OK       Failed OK  [1,2,3]
+</pre>
+<p></p>
+<pre>Cluster Communications Status:
+</pre>
+<p></p>
+<pre>Cluster Interconnect
+From  To=&gt; Node 1  Node 2
+Node 1       --      OK
+Node 2       OK      --
+</pre>
+<p></p>
+<pre>Management Network
+From  To=&gt; Node 1  Node 2
+Node 1       --     FAIL
+Node 2      FAIL     --
+server:$
+</pre>
+<p></p>
+<p>Display quorum device information.</p>
+<pre>server:$ cluster-show -q
+Server Quorum Version: 15
+QD IP Address     Status        Quorum Device(QD) Name   Versions
+---------------   -----------   ----------------------   --------
+192.0.2.1         Configured    MY-QD                    15, 14
+server:$
+</pre>
+<p></p>
+<p>Display EVS information.</p>
+<pre>server:$ cluster-show -v
+</pre>
+<p></p>
+<pre>Node EVS ID    Type     Label Enabled Status    IP Address          Port
+---- ------ ------- --------- ------- ------ ---------------------- ----
+   1        Cluster    NODE-1     Yes Online        172.27.12.3     CTL1
+                                             2001:db8::1:1:4a:2     CTL1
+                                                   172.27.12.10     eth0
+                                                    172.24.48.1     eth1
+                                                2002::ac18:3001     eth1
+   1      0   Admin CLUSTER-A     Yes Online        172.24.48.2     eth1
+                                                 192.168.38.180      ag1
+                                                2002::ac18:3002     eth1
+   2        Cluster    NODE-2     Yes Online        172.27.12.4     CTL2
+                                             2001:db8::1:1:4a:3     CTL2
+                                                   172.27.12.11     eth0
+                                                    172.24.52.1     eth1
+                                                2002::ac18:3401     eth1
+   2      1 Service     EVS01     Yes Online     192.168.38.181      ag1
+server:$
+</pre>
+<p></p>
+<p>Cluster information for Single Node Non-clustered.</p>
+<pre>server:$ cluster-show
+Overall Status = Online
+Cluster Health = Robust
+Cluster Mode = Not clustered
+Cluster Name = CLUSTER-A
+Cluster UUID = 35930232-257b-11d9-9000-803bd453ad06
+Cluster Size = 1
+   Node Name = NODE-1
+     Node ID = 1
+Cluster GenId = 1
+Cluster Master = No
+server:$
+</pre>
+<p></p>
+<p>Quorum device information for Single Node Non-clustered.</p>
+<pre>server:$ cluster-show -q
+Server Quorum Version: 15
+QD IP Address     Status        Quorum Device(QD) Name   Versions
+---------------   -----------   ----------------------   --------
+Unset             Unconfigured
+server:$
+</pre>
+<p></p>
+<p>Cluster information for Single Node Cluster capable.</p>
+<pre>server:$ cluster-show
+Overall Status = Online
+Cluster Health = Robust
+Cluster Mode = Cluster capable
+Cluster Name = CLUSTER-A
+Cluster UUID = 35930232-257b-11d9-9000-803bd453ad06
+Cluster Size = 1
+   Node Name = NODE-1
+     Node ID = 1
+Cluster GenId = 2
+Cluster Master = No
+server:$
+</pre>
+<p></p>
+<p>Quorum device information for Single Node Cluster capable.</p>
+<pre>server:$ cluster-show -q
+Server Quorum Version: 15
+QD IP Address     Status        Quorum Device(QD) Name   Versions
+---------------   -----------   ----------------------   --------
+192.0.2.1         Configured    MY-QD                    15, 14
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-getmac.html">cluster-getmac</a> <a href="../Supervisor/cluster-icc-show.html">cluster-icc-show</a> <a href="../Supervisor/cluster-node-rename.html">cluster-node-rename</a> <a href="../Supervisor/cluster-rename.html">cluster-rename</a> <a href="../User/evs.html">evs</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/evsipaddr.html">evsipaddr</a> <a href="../Supervisor/ipaddr.html">ipaddr</a> <a href="../Supervisor/quorumd.html">quorumd</a> <a href="../Topic/unified-management-ip-address.html">unified-management-ip-address</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>rest-server</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>rest-server</h1>
+
+<h1>Description</h1>
+<p>This man page describes the RestAPI server.</p>
+<h2>Introduction</h2>
+<p>The RestAPI server enables the administration of Hitachi storage subsystems via standard HTTP protocol operations and provides a consistent interface for client applications. The server runs on every physical node, and listens for incoming requests on TCP port 8444.</p>
+<p>There were two modes that the API could operate in, and the mode could be changed using the <code>'rest-server-mode'</code> command:</p>
+<dl>
+<dt><strong>legacy mode</strong></dt>
+<dd><p>Supported API versions 4 and 7. This mode is no longer supported, and has been removed.</p></dd>
+<dt><strong>native mode</strong></dt>
+<dd><p>Supports API version 7 and higher. The server can be accessed via IPv4 and IPv6, and from all network interfaces, if configured. The API can also be accessed in read-only mode via an appropriately configured API key or User level management user.</p></dd>
+</dl>
+<p>The API is designed for managing clusters of nodes. The RestAPI server supports only JSON input/output format.</p>
+<p>Further information including a detailed API reference can be found in the Hitachi NAS File Storage API Reference document.</p>
+<h2>HTTP Requests</h2>
+<p>Resources can be accessed using the following formatted URI:</p>
+<pre>  https://&lt;host&gt;:8444/&lt;version&gt;/storage/&lt;resources&gt;/&lt;resource-id&gt;/&lt;properties&gt;/&lt;property-id&gt;
+</pre>
+<p></p>
+<p>where:</p>
+<pre>  host         is one of the IP addresses/hostnames of the server
+  version      is the version tag of the REST API
+  resources    are the resources managed by the server. They are always in plural format; for example: file-systems, virtual-servers.
+  resource-id  if specified, identifies the resource as managed by the server. The server generally supports applicable create, read, update and delete (CRUD) methods for each resource (resource-id)
+  properties   properties that belong to the resource.
+  property-id  if specified, identifies a unique property which belongs to the resource.
+</pre>
+<p></p>
+<p>Client programs must provide some of the common parameters in the HTTP custom headers in every request. Some of them could be optional depending on the type of request.</p>
+<pre>  X-Subsystem-User      username for access to the storage subsystem
+  X-Subsystem-Password  password for access to the storage subsystem
+  X-Api-Key             can be used instead of username and password for authentication
+</pre>
+<p></p>
+<h2>HTTP Responses</h2>
+<p>The RestAPI server responds with the following status codes defined in RFC 2616:</p>
+<pre>  200  OK                     Resource retrieved successfully
+  201  Created                Resource created successfully
+  204  Edited/Deleted         Resource edited or deleted successfully
+  303  See Other              The resource has been updated successfully and the ID associated with it has been changed
+  400  Bad request            Missing or invalid request contents
+  403  Forbidden              This user is not allowed to perform this request
+  404  Not Found              Requested resource not found
+  405  Method Not Allowed     Requested HTTP verb not allowed on this resource
+  500  Internal Server Error  Internal error originated from storage subsystem
+  501  Not implemented        The server has not implemented the request operation on the resource
+</pre>
+<p></p>
+<h2>Logging</h2>
+<p>The RestAPI server can be monitored by using the <code>'logtrace dump rest'</code> command, and using the <code>'msstats rest'</code> command.</p>
+<p>The <code>'rest-server-status'</code> command shows a brief summary of the current status of the RestAPI server. The RestAPI log is included in a server diagnostic file.</p>
+<h2>EXAMPLES</h2>
+<p>To get the set of IP addresses assigned to EVS 1 using the well known <em>curl</em> command:</p>
+<pre>  $ curl --cacert cert.pam -H "X-Api-Key: BgB2qWZVkE.e53OLShtF3If9UIVdTNmvW9dS7ObPqYNPM83OQoeAj9" https://10.0.1.43:8444/v7/storage/virtual-servers/1/ip-addresses
+  {
+     "ipAddresses" : [ "172.27.1.101", "172.27.2.201" ]
+  }
+</pre>
+<p></p>
+<p>where:</p>
+<dl>
+<dt><strong>cert.pam</strong></dt>
+<dd><p>A file containing the server certificate, or -k can be used to disable certificate checks.  The public certificate can be exported from the server with <code>'tls-certificate-show --pem'</code>.</p></dd>
+<dt><strong>BgB2qWZVkE.e53OLShtF3If9UIVdTNmvW9dS7ObPqYNPM83OQoeAj9</strong></dt>
+<dd><p>An API Key generated via the <code>'apikey-create'</code> command.</p></dd>
+<dt><strong>10.0.1.43</strong></dt>
+<dd><p>An IP address assigned to one of the management network interfaces, or a Linux interface attached to the Admin Service.</p></dd>
+</dl>
+<h2>SEE ALSO</h2>
+<p>aggregate-linux-interfaces apikey-create apikey-list apikey-update evsipaddr getdiagnostic ipaddr rest-server-mode rest-server-show rest-server-start rest-server-status rest-server-stop tls-certificate-show</p>
+<p></p>
+
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

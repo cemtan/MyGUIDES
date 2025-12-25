@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-thresholds</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>filesystem-thresholds</h1>
+
+<h1>Description</h1>
+<p>When data is written to a file system, the server will automatically expand the file system if necessary.  There are two kinds of auto-expansion:</p>
+<ul>
+<li>A synchronous expansion takes place at once if new space is needed to satisfy a write request from a client;</li>
+<li>An asynchronous expansion takes place when free space is too low to enable the server to find free space easily and write performance is likely to be affected.</li>
+</ul>
+<p>It is possible to control the threshold at which asynchronous auto-expansion is triggered and the amount of space that will be added.  Any changes take effect at once, cluster-wide, and are retained across reboots.</p>
+<h2>TUNABLE PARAMETERS</h2>
+<p>Three parameters can be set.  Each is controlled by a system variable, manipulated by the 'set' and 'unset' commands.  Each variable applies to all file systems, rather than to just one.</p>
+<dl>
+<dt><strong>auto-expand-threshold</strong></dt>
+<dd><p>Controls the threshold at which an auto-expansion is triggered.  The default value is 85, which means that the server will try to expand the file system once it is 85% full.  Increasing this threshold will make more efficient use of disk space but may reduce write performance by forcing the server to perform more disk-reads, on average, when looking for free blocks.</p></dd>
+<dt><strong>auto-expand-to-percentage</strong></dt>
+<dd><p>Controls how much space will be added to the file system.  If auto-expand-to-percentage is set to 80 (which is the default value) then asynchronous auto-expansion will add enough space for the file system to be 80% used, 20% free.</p></dd>
+<dt><strong>auto-expand-max-expansion-in-GiB</strong></dt>
+<dd><p>This variable places an additional constraint on the amount of space added to a file system during a single asynchronous auto-expansion.  The default value is 256, meaning that a single asynchronous auto-expansion will never add more than about 256GiB to a file system.  Reducing this value will make slightly more efficient use of disk space (on average, over time), but will make auto-expansion more frequent.  Each filesystem-expansion causes a momentary drop in performance.</p></dd>
+</dl>
+<p>On a tiered file system, these three settings apply separately to each of the two tiers.</p>
+<h2>OTHER FACTORS AFFECTING AUTO-EXPANSION</h2>
+<p>If you have confined a span, no auto-expansion takes place on it, even if a file system is completely full.</p>
+<p>If you have confined a file system, expansion will be limited to approximately the figure you specify, even if the file system becomes nearly or completely full.</p>
+<p>If the span resides on one or more HDP or HDT pools, each auto-expansion is limited to about 64GiB.</p>
+<p>If you have used 'span-hdp-preallocation no' to disable pre-allocation writes, no auto-expansion is possible on spans that reside on HDP pools.  Instead, you are responsible for manually expanding file systems when necessary after first calculating the minimum level to which the free space on each HDP pool might fall and ensuring that enough physical space exists.</p>
+<p>Because space is allocated in whole chunks, and because chunk sizes are normally between 1GiB and 18GiB, all limits are approximate.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

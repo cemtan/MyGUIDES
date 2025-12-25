@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>pool-dynamic-allocation</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>pool-dynamic-allocation</h1>
+<p>Turn dynamic pool allocation on or off</p>
+<h1>Syntax</h1>
+<pre>pool-dynamic-allocation [--on | --off] 
+</pre>
+
+<h1>Description</h1>
+<p>Enables, disables, or displays the status of dynamic pool allocation.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--on</strong></dt>
+<dd><p>Enable dynamic pool allocation.</p></dd>
+<dt><strong>--off</strong></dt>
+<dd><p>Disable dynamic pool allocation.</p></dd>
+</dl>
+<p>Either enabling or disabling dynamic pool allocation requires a reboot to take effect.</p>
+<p>Without an argument, 'pool-dynamic-allocation' displays the current status.</p>
+<h2>BACKGROUND</h2>
+<p>We have found that customer systems with heap issues often are using less than a quarter of their total pool allocations, though some pool has overflowed into the heap. The dynamic pool allocation feature uses a reservoir allocated at boot time to provide memory to pools as needed. The reservoir should be smaller than the total size of pools if dynamic pool allocation is not used, allowing more memory for the heap.</p>
+<p>The pools were initially sized so that the system meets its performance commitments, though, so if we use some of that memory for other purposes, it will not be available if required to meet some other need.</p>
+<p>Before enabling dynamic pool allocation, be sure that you have run the system for long enough to be confident that the system has seen typical usage. Then examine the 'poolstats' output, to be sure that the "Total high water mark over all pools since reboot" is less than the "Expected total capacity of all pools next boot" by at least twenty percent (where that number is my initial guess, though data I've seen suggests that it will actually be closer to eighty percent on a real system).</p>
+<h2>OPERATION</h2>
+<p>When a system is using dynamic pool allocation, pools are created with no allocated memory. Pools allocate memory from the reservoir as needed.</p>
+<p>If a pool has reached its manually tuned size (if any), the server will not attempt to allocate any more memory from the reservoir. For a pool of either of the performance types which has reached its configured capacity, the server will also not attempt to allocate any more memory from the reservoir. For a LongTermAllocation pool which is not manually tuned, the server will always attempt to allocate memory from the reservoir when needed.</p>
+<h1>Examples</h1>
+<pre>server:$ pool-dynamic-allocation
+Dynamic pool allocation is currently disabled.
+server:$ pool-dynamic-allocation --on
+Dynamic pool allocation will be enabled for the next boot.
+Dynamic pool allocation is currently disabled.
+server:$
+</pre>
+<p></p>
+<p>or</p>
+<pre>server:$ pool-dynamic-allocation
+Dynamic pool allocation is currently enabled.
+server:$ pool-dynamic-allocation --off
+Dynamic pool allocation will be disabled for the next boot.
+Dynamic pool allocation is currently enabled.
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/poolstats.html">poolstats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

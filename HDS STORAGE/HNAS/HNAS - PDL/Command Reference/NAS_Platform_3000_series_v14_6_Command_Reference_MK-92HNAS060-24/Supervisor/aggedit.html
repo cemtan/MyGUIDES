@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>aggedit</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>aggedit</h1>
+<p>Configure an aggregation interface</p>
+<h1>Syntax</h1>
+<pre>aggedit lacp agN | static agN | load-normal agN | load-round-robin agN |&lt;add|remove&gt; agN &lt;port&gt; [,&lt;port&gt;]...
+</pre>
+
+<h1>Description</h1>
+<p>The aggedit command is used to manipulate an aggregated interface. An aggregation is a collection of one or more physical interfaces that are bundled together to behave as a single logical interface. All physical interfaces participating in the same aggregation must be of the same speed.</p>
+<p>The active members of an aggregation can be configured statically (in which case all interfaces that are physically up will be active members and both ends of the bundle must be identically configured) or the aggregation's members can be determined by use of the 802.3ad link management protocol (LACP).</p>
+<p>The default load-balancing algorithm tries to spread conversations equally between all available physical links in order to minimise out-of-order packet arrival at the upstream switch. In round-robin mode, consecutive packets will use the next available physical link in order to maximize the available bandwidth.</p>
+<h1>Examples</h1>
+<p>To add 1GbE interfaces to an aggregation:</p>
+<pre>    aggedit add ag1 ge1,ge2
+</pre>
+<p></p>
+<p>To add 10GbE interfaces to an aggregation:</p>
+<pre>    aggedit add ag1 tg1,tg2
+</pre>
+<p></p>
+<p>To remove 1GbE interfaces from an aggregation:</p>
+<pre>    aggedit remove ag1 ge1,ge2
+</pre>
+<p></p>
+<p>To set an aggregation to use LACP:</p>
+<pre>    aggedit lacp ag1
+</pre>
+<p></p>
+<p>To set an aggregation to use static aggregation:</p>
+<pre>    aggedit static ag1
+</pre>
+<p></p>
+<p>To use the normal load spreading algorithm:</p>
+<pre>    aggedit load-normal ag1
+</pre>
+<p></p>
+<p>To use the aggressively balanced load spreading algorithm:</p>
+<pre>    aggedit load-round-robin ag1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/agg.html">agg</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

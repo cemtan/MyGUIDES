@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strtransform</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>strtransform</h1>
+<p>Transform data</p>
+<h1>Syntax</h1>
+<pre>... | strtransform [ --undo-hexdump | --hex-digits-to-characters | --binary-digits-to-characters
+	| --convert-binary-digit-stream | (--decimate-to-one-bit &lt;2|4|8&gt;) ]
+</pre>
+
+<h1>Description</h1>
+<p>This filter transforms data from the standard input and writes the result to the stardard output.</p>
+<p>Options:</p>
+<p>All the following options are mutually exclusive.</p>
+<dl>
+<dt><strong>--undo-hexdump, -u</strong></dt>
+<dd><p>Undo the hexdump command, i.e., convert the output of hexdump back to the original data.</p></dd>
+<dd><p>This option can undo the hexdump output produced by the hexdump filter.</p></dd>
+<dd><p>The option is also smart enough to recognize the hexdump embedded in the output of checkfs, fixfs, onode, etc. However, users are recommended to verify the conversion result when the input data contains text other than the hexdump. If necessary, use other filters to remove extraneous text (such as grep, strtoken, strline, strquery, etc).</p></dd>
+<dt><strong>--hex-digits-to-characters, -h</strong></dt>
+<dd><p>Read the standard input, retain only hex digits, ignoring all other characters, including white spaces. The result is that all standard input lines are transformed into a sequence of N consecutive hex digits without newlines. If N is odd, append a zero digit to make the sequence an even number of hex digits. Then convert every two hex digits to a single character (i.e., byte) and write to the file.</p></dd>
+<dd><p>Note that this option causes the command to assign decreasing significance to each hex digit when scanning from left to right. Therefore, the conversion proceeds as shown below.</p></dd>
+</dl>
+<pre>                                     Most significant (MS) &lt;-------- Least significant (LS)
+        Sequence of hex digits:      x0 x1 x2 x3 x4 x5 x6 ...
+        Partition in 2-digit units:  [x0 x1]      [x2 x3]      [x4 x5]      [x6
+        Assign to characters:        [character0] [character1] [character2] [...
+        where
+                                     MS    LS
+                character0 :         [x0   x1]
+                character1 :         [x2   x3]
+                etc
+</pre>
+<p></p>
+<dl>
+<dt><strong>--binary-digits-to-characters, -b</strong></dt>
+<dd><p>Read the standard input, retain only binary digits 0 and 1, ignoring all other characters, including white spaces. The result is that all standard input lines are transformed into a sequence of N consecutive binary digits without newlines. If N is not a multiple of 8, append zero digits to make the sequence a multiple of 8 digits. Then convert every 8 binary digits to a single character (i.e., byte) and write to the file.</p></dd>
+<dd><p>Note that this option causes the command to assign decreasing significance to each bit when scanning from left to right. Therefore, the conversion proceeds as shown below.</p></dd>
+</dl>
+<pre>                                     Most significant &lt;------------------------------------- Least significant
+        Sequence of binary digits:   d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 d10 d11 d12 d13 d14 d15 d16 d17 d18 ...
+        Partition in 8-digit units:  [d0 d1 d2 d3 d4 d5 d6 d7] [d8 d9 d10 d11 d12 d13 d14 d15] [d16 d17 d18 ...
+        Assign to characters:        [        character0     ] [          character1         ] [...
+        where
+                                      MS                            LS
+                character0 :         [d0  d1  d2  d3  d4  d5  d6   d7]
+                character1 :         [d8  d9  d10 d11 d12 d13 d14 d15]
+                etc
+</pre>
+<p></p>
+<dl>
+<dt><strong>--convert-binary-digit-stream, -c</strong></dt>
+<dd><p>For the purpose of this man page, a stream of digits is a sequence of digits where the significance of each digit is the same as its position, or index, in the sequence. The index starts from 0 and increases from left to right.</p></dd>
+<dd><p>Thus, this option is the same as --binary-digits-to-characters, except that the direction of significance is reverse, i.e., bit significance increases from left to right as shown below.</p></dd>
+</dl>
+<pre>                                   Least significant -------------------------------------&gt; Most significant
+        Bit stream:                b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15 b16 b17 b18 ...
+        Partition in 8 bit units:  [b0 b1 b2 b3 b4 b5 b6 b7] [b8 b9 b10 b11 b12 b13 b14 b15] [b16 b17 b18 ...
+        Assign to characters:      [        character0     ] [          character1         ] [...
+        where
+                                    MS                         LS
+                character0 :       [b7  b6  b5  b4  b3  b2  b1 b0]
+                character1 :       [b15 b14 b13 b12 b11 b10 b9 b8]
+                etc
+</pre>
+<p></p>
+<dl>
+<dt><strong>--decimate-to-one-bit, -d &lt;2|4|8&gt;</strong></dt>
+<dd><p>Decimate every group of n bits of a byte to a single bit, where n = 2, 4, or 8.</p></dd>
+<dd><p>To this end, every byte in the data is split into groups. The groups are numbered sequentially starting from 0. The group number increases with the byte number, and within each byte, it increases from right to left.</p></dd>
+<dd><p>Each group is treated as a data unit. If the unit value is 0, it is mapped to a zero bit. Otherwise, it is mapped to a one bit. The resulting bit has the bit number equal to the number of the group being converted. The bit significance increases with the bit number.</p></dd>
+<dd><p>Suppose all the bytes are split into N groups. After mapping, they become a sequence of N bits. If N is not a multiple of 8, the sequence will be padded with zero bits. Every 8 consecutive bits are then assigned to a byte. Within each byte, the bits are shuffled so that the least significant bit appears at the rightmost position.</p></dd>
+<dd><p>The following example shows the process of decimating two bits to one bit.</p></dd>
+</dl>
+<pre>                                   Least significant -------------------------------------&gt; Most significant
+        Byte stream:               [           B0          ] [              B1             ] [    B2 ...
+        Bit view:                  [b7 b6 b5 b4 b3 b2 b1 b0] [b15 b14 b13 b12 b11 b10 b9 b8] [b23 b22 b21 ...
+        Two-bit group view:        [b7 b6] [b5 b4] [b3 b2] [b1 b0] [b15 b14] [b13 b12] [b11 b10] [b9 b8] [b23 b22] [b21 ...
+        Group number view:         [ G3  ] [ G2  ] [  G1 ] [ G0  ] [  G7   ] [  G6   ] [  G5   ] [ G4  ] [ G11   ] [ G10 ...
+        Decimate to 1-bit units:   [ u3  ] [ u2  ] [  u1 ] [ u0  ] [  u7   ] [  u6   ] [  u5   ] [ u4  ] [ u11   ] [ u10 ...
+        Assign to characters:      [                        character0                                 ] [ character1 ...
+        where the bits are shuffled as follows:
+                                    MS                         LS
+                character0 :       [u7  u6  u5  u4  u3  u2  u1 u0]
+                character1 :       [u15 u14 u13 u12 u11 u10 u9 u8]
+                etc
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>1. Convert only hex digits to characters, ignoring all other characters:</p>
+<pre>   $ echo "1234 ab1-6, 004 xyz7a" | strtransform -h | hexdump
+   0x0000000000000000 : 12 34 AB 16 00 47 A0                            : .4...G.
+</pre>
+<p></p>
+<p>2. Convert only binary digits to characters, assuming bit significance decreases from left to right:</p>
+<pre>   $ echo "1101 1ab1 cd 11 xyz 0101" | strtransform -b | hexdump
+   0x0000000000000000 : DF 50                                           : .P
+</pre>
+<p></p>
+<p>3. Same input data as (2), but now assuming bit significance increases from left to right:</p>
+<pre>   $ echo "1101 1ab1 cd 11 xyz 0101" | strtransform -c | hexdump
+   0x0000000000000000 : FB 0A                                           : ..
+</pre>
+<p></p>
+<p>4. Undo hex dump to restore the original data</p>
+<pre>   $ cat file1  # original data
+   abcd 12345 def 12345 xyz 123 abcd 6789
+   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+</pre>
+<p></p>
+<pre>   $ cat file1 | hexdump
+   0x0000000000000000 : 61 62 63 64 20 31 32 33 34 35 20 64 65 66 20 31 : abcd 12345 def 1
+   0x0000000000000010 : 32 33 34 35 20 78 79 7A 20 31 32 33 20 61 62 63 : 2345 xyz 123 abc
+   0x0000000000000020 : 64 20 36 37 38 39 0A 61 61 61 61 61 61 61 61 61 : d 6789.aaaaaaaaa
+   0x0000000000000030 : 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 : aaaaaaaaaaaaaaaa
+   ..... same (for 3 more lines, 48 more bytes) .....
+   0x0000000000000070 : 61 61 61 61 61 61 61 61 0A                      : aaaaaaaa.
+</pre>
+<p></p>
+<pre>   $ cat file1.dump | hexdump | strtransform -u
+   abcd 12345 def 12345 xyz 123 abcd 6789
+   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+</pre>
+<p></p>
+<p>5. Undo hex dump embedded in text</p>
+<p>To save the first data block of the free space object (object 2) in a file:</p>
+<pre>   $ mount -o fs1
+   $ cv fs1
+   $ onode -o 2 -d p0 -h -n 4096 | strtransform -u | wrdata --force object2-block0.data
+   $ ls -l object2-block0.data
+   -rwxrwxrwx    -  1        0        0     4096 2016-02-12 18:22:27-08:00 object2-block0.data
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Supervisor/cat.html">cat</a> <a href="../../Filter/User/hexdump.html">hexdump</a> <a href="../../Supervisor/obj-read.html">obj-read</a> <a href="../../Filter/Dev/sswrdata.html">sswrdata</a> <a href="../../Filter/Dev/wrdata.html">wrdata</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

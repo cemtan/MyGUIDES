@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>show-exchange-history</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>show-exchange-history</h1>
+<p>Display RIS activity log</p>
+<h1>Syntax</h1>
+<pre>show-exchange-history &lt;key&gt; | -a | [-a] -d &lt;sd&gt; [-o &lt;offset&gt;] [-n &lt;N&gt; | --key-only]
+Alias:       showrislog
+</pre>
+
+<h1>Description</h1>
+<p>Show history of errors and retries on individual fast-path SCSI requests that have experienced errors.</p>
+<dl>
+<dt><strong><code>-a</code> <code>--active</code></strong></dt>
+<dd><p>With <code>-d</code>, list only active records; otherwise, list all active records. A record is active if the request's RIS in SI control memory has not yet been reused.</p></dd>
+<dt><strong><code>-d</code> <code>--sd</code></strong></dt>
+<dd><p>In combination with <code>-a</code> or <code>--key-only</code>, list records for the specified system drive. Otherwise, display the most recent entries for the device in reverse chronological order, limited to at most 20.</p></dd>
+<dt><strong><code>-n</code> <code>--num-records</code></strong></dt>
+<dd><p>Limit the number of records to be displayed by <code>-d</code>.</p></dd>
+<dt><strong><code>-o</code> <code>--offset</code></strong></dt>
+<dd><p>List only records relating to requests at the specified system drive offset.</p></dd>
+<dt><strong><code>--key-only</code></strong></dt>
+<dd><p>With <code>-d</code>, only list records instead of displaying them.</p></dd>
+<dt><strong>&lt;key&gt;</strong></dt>
+<dd><p>Display full details of a specfic record identified by its key, as listed by other forms of this command or logged in certain events.</p></dd>
+</dl>
+<p>The information displayed when a key is specified comes in two parts. First is information relating to the request itself and the total time it has spent. Next is a list of log entries relating to each attempt at performing the request, each describing the type of error received and when, and the action taken (resubmit or complete). At most 20 entries are stored for each request, but a request will usually be failed before reaching that many retries, so it should normally be enough to cover the full history of an errored request.</p>
+<p><code>-d</code> (without <code>-a</code> or <code>--key-only</code>) displays not whole request records but individual entries. In order to identify the request associated with each entry it uses a two-line format, where each log entry displayed is preceded by a condensed version of the request record header.</p>
+<p>The oldest records are automatically removed if the log grows too large.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/sd-translate-offset.html">sd-translate-offset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

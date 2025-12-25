@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>smb2-session-connection-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>smb2-session-connection-list</h1>
+<p>Display the connections used by SMB2+ sessions</p>
+<h1>Syntax</h1>
+<pre>smb2-session-connection-list (--ipaddr &lt;ipaddr&gt; | --session &lt;session id&gt; | --all) [--verbose]
+</pre>
+
+<h1>Description</h1>
+<p>Lists the connections that are bound to an SMB2, or higher, dialect session.</p>
+<p>Usage:</p>
+<p>smb2-session-connection-list (--ipaddr &lt;ipaddr&gt; | --session &lt;session id&gt; | --all) [--verbose]</p>
+<p>Options are:</p>
+<dl>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>In addition to summarising the connections, displays the credentials information for each session.</p></dd>
+<dt><strong>-s, --session &lt;session id&gt;</strong></dt>
+<dd><p>A specific session ID to list the connections of.</p></dd>
+<dt><strong>-i, --ipaddr &lt;ip address&gt;</strong></dt>
+<dd><p>Restricts output to only display sessions from the specified peer IP address.</p></dd>
+<dd><p>IPv4 or IPv6 addresses can be used.</p></dd>
+<dt><strong>--all</strong></dt>
+<dd><p>Lists the connections of all sessions.</p></dd>
+<dd><p>Using this option may take a considerable time to complete, depending on the number of active sessions.</p></dd>
+</dl>
+<h1>Examples</h1>
+<h2>To display brief information on all sessions</h2>
+<pre>$ smb2-session-connection-list --all
+Session 2:SMB3 Connection: 113 evs=1 {peer=10.72.42.95:56752, local=172.27.5.12:445} 4 requests
+Session 2:SMB3 Connection: 114 evs=1 {peer=10.72.42.95:56753, local=172.27.5.12:445} 2 requests
+Session 4:SMB3 Connection: 115 evs=1 {peer=10.72.42.95:56754, local=172.27.5.12:445} 4 requests
+Session 4:SMB3 Connection: 116 evs=1 {peer=10.72.42.95:56755, local=172.27.5.12:445} 2 requests
+Session 5:SMB3 Connection: 117 evs=1 {peer=10.72.42.95:56756, local=172.27.5.12:445} 4 requests
+Session 5:SMB3 Connection: 118 evs=1 {peer=10.72.42.95:56757, local=172.27.5.12:445} 2 requests
+Session 6:SMB3 Connection: 119 evs=1 {peer=10.72.42.95:56758, local=172.27.5.12:445} 4 requests
+Session 6:SMB3 Connection: 120 evs=1 {peer=10.72.42.95:56759, local=172.27.5.12:445} 2 requests
+</pre>
+<p></p>
+<h2>To display detailed information on just one session</h2>
+<pre>$ smb2-session-connection-list --session 2 --verbose
+Session 2:SMB3 Connection: 113 evs=1 {peer=10.72.42.95:56752, local=172.27.5.12:445} 4 requests
+Session 2:SMB3 Connection: 114 evs=1 {peer=10.72.42.95:56753, local=172.27.5.12:445} 2 requests
+Session id: 2 0 open files [Signing Required]
+Valid
+      user (and defaultOwner)             : NT: PROTOCOLS\Administrator (S-1-5-21-2890616873-2892883911-788580134-500), NFSv4: Administrator@localdomain
+      primaryGroup (and defaultGroup)     : NT: PROTOCOLS\Domain Users (S-1-5-21-2890616873-2892883911-788580134-513), NFSv4: Domain Users@localdomain
+      enabled features                    : authenticated, administrator
+      disabled features                   : backup operator, audit service operator, root user, root bypass, access bypass, syslock bypass, virus scanner, owner read/write bypass, owner granted unix owner rights bypass, protected named streams bypass, WORM delete bypass
+      rightsGrantedThroughSecurityModel   : 0x1000000 = AccessSACL
+      rightsGrantedThroughGroupMembership : 0x80000 = WriteOwner
+      externallyConferredSIDs             :
+        SID : PROTOCOLS\Domain Admins (S-1-5-21-2890616873-2892883911-788580134-512), Attributes : 7
+        SID : PROTOCOLS\Domain Users (S-1-5-21-2890616873-2892883911-788580134-513), Attributes : 7
+        SID : PROTOCOLS\Schema Admins (S-1-5-21-2890616873-2892883911-788580134-518), Attributes : 7
+        SID : PROTOCOLS\Enterprise Admins (S-1-5-21-2890616873-2892883911-788580134-519), Attributes : 7
+        SID : PROTOCOLS\Group Policy Creator Owners (S-1-5-21-2890616873-2892883911-788580134-520), Attributes : 7
+        SID : PROTOCOLS\Denied RODC Password Replication Group (S-1-5-21-2890616873-2892883911-788580134-572), Attributes : 7
+      otherConferredSIDs                  :
+        SID : Everyone (S-1-1-0), Attributes : 4
+        SID : NT AUTHORITY\NETWORK (S-1-5-2), Attributes : 4
+        SID : NT AUTHORITY\Authenticated Users (S-1-5-11), Attributes : 4
+        SID : BUILTIN\Administrators (S-1-5-32-544), Attributes : 4
+        SID : BUILTIN\Users (S-1-5-32-545), Attributes : 4
+        SID : NFSv4 group\Domain Admins@localdomain (S-1-79-25-1634561860-1092644457-1852403044-1869365363-1684824419-1767992687-110), Attributes : 7
+        SID : NFSv4 group\Schema Admins@localdomain (S-1-79-25-1701339987-1092641133-1852403044-1869365363-1684824419-1767992687-110), Attributes : 7
+        SID : NFSv4 group\Enterprise Admins@localdomain (S-1-79-29-1702129221-1769107570-1092642163-1852403044-1869365363-1684824419-1767992687-110), Attributes : 7
+        SID : NFSv4 group\Group Policy Creator Owners@localdomain (S-1-79-39-1970238023-1867522160-2036558188-1701987104-1919906913-1853312800-1081307749-1633906540-1836016748-7235937), Attributes : 7
+        SID : NFSv4 group\Denied RODC Password Replication Group@localdomain (S-1-79-50-1768842564-1377854565-541279311-1936941392-1685221239-1885688352-1633905004-1852795252-1869760288-1816162421-1818321775-1634561892-28265), Attributes : 7
+Tree id: 1
+      Tdp: programmed (Tree connect key: {socketNumber={connectionId=113, connectionVersion=0}, sessionId=2, treeId=1})
+      Share name: root
+      Rights: 0x31f01ff = FullControl | AccessSACL | MaximumAllowedRight
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/connection.html">connection</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

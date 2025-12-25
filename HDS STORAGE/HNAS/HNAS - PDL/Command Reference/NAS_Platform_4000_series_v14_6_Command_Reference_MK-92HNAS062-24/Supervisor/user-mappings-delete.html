@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>user-mappings-delete</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>user-mappings-delete</h1>
+<p>Deletes an existing user mapping</p>
+<h1>Syntax</h1>
+<pre>user-mappings-delete --unix-name &lt;name&gt; | --unix-id &lt;id&gt; | --nt-name &lt;name&gt; | --nt-id &lt;id&gt; |
+ --nfsv4-name &lt;name&gt; | --kerberos-name &lt;name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Deletes an entry from the user mappings table.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--unix-name</strong></dt>
+<dd><p>Look up the entry to delete by Unix name</p></dd>
+<dt><strong>--unix-id</strong></dt>
+<dd><p>Look up the entry to delete by Unix user id</p></dd>
+<dt><strong>--nt-name</strong></dt>
+<dd><p>Look up the entry to delete by NT name</p></dd>
+<dt><strong>--nt-id</strong></dt>
+<dd><p>Look up the entry to delete by NT SID</p></dd>
+<dt><strong>--nfsv4-name</strong></dt>
+<dd><p>Look up the entry to delete by NFSv4 name</p></dd>
+<dt><strong>--kerberos-name</strong></dt>
+<dd><p>Look up the entry to delete by Kerberos principal</p></dd>
+</dl>
+<p>Only specify one field to lookup the entry. If the entry exists, it will be deleted. An error will be printed if the entry cannot be found.</p>
+<h1>Examples</h1>
+<pre>$: # delete Unix user joe
+$: user-mappings-delete --unix-name joe
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/user-mappings-add.html">user-mappings-add</a> <a href="../Supervisor/user-mappings-list.html">user-mappings-list</a> <a href="../Supervisor/user-mappings-modify.html">user-mappings-modify</a> <a href="../Supervisor/user-mappings-refresh.html">user-mappings-refresh</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

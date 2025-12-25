@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-replay-expansions</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>filesystem-replay-expansions</h1>
+<p>Replay recent fs-expansions after restoring from a stale Cod backup</p>
+<h1>Syntax</h1>
+<pre>filesystem-replay-expansions &lt;filesystems-see-&#39;man fs-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Whenever a filesystem expands -- either automatically because it fills up, or because you expand it manually -- the server makes a note in its registry of the chunks being added.  It remembers the hundred chunks added most recently to each filesystem.</p>
+<p>Should you ever have to restore from a stale Cod backup that was made before the last few chunks were added to a filesystem, the server will notice that the filesystem has too few chunks and will refuse to make the file system available for mounting.  The 'filesystem-replay-expansions' command consults the server's saved list of chunks and adds them to the filesystem.  This restores it to full size and allows the file system to be checked and mounted.</p>
+<p>You can one or more filesystems using the flexible synatx described in the 'fs-spec' man page.  In particular, since restoring a Cod backup affects all the filesystems on a span, it is convenient to pass a span instance name to 'filesystem-replay-expansions'.  It is safe to run this command against a filesystem that is not undersized and is not missing any chunks.</p>
+<p>'filesystem-replay-expansions' returns control without waiting for the Filesystem to process the messages indicating that the file systems can now be mounted (or auto-mounted).  A script that uses this command should follow it with 'span-wait-for-loading --mount' in order to make certain that these asynchronous commands have been processed before the next command runs.  If you wish to determine whether the notifications have been processed without waiting for them to complete, run 'filesystem-list-queues' and check the 'Availability' queue.  Typically, when you are working interactively, these messages are processed fast enough to render a manual check unnecessary.</p>
+<p>If a filesystem has grown by more than 99 chunks since the Cod backup was made, or if some chunks that were previously part of the undersized filesystem are now in use by other filesystems, this command will refuse to run.</p>
+<p>'filesystem-replay-expansions' does not update Cod.  If it makes your file systems mountable, make the change permanent by running 'span-rewrite-cod'; otherwise, unwind it by running 'sd-rescan-cod &lt;span-instance-name&gt;'.</p>
+<p>The 'filesystem-list-expansions' command shows the chunks that would be added to filesystems if you ran 'filesystem-replay-expansions'.</p>
+<h1>Examples</h1>
+<p>To replay recent expansions on filesystem Accounts:</p>
+<pre>filesystem-replay-expansions Accounts
+</pre>
+<p></p>
+<p>To replay recent expansions on all filesystems on span SomeSpan:</p>
+<pre>filesystem-replay-expansions SomeSpan
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Topic/cod.html">cod</a> <a href="../Dev/filesystem-add-chunk.html">filesystem-add-chunk</a> <a href="../Supervisor/filesystem-list-expansions.html">filesystem-list-expansions</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/fs-spec.html">fs-spec</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-confine</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>filesystem-confine</h1>
+<p>Restrict or prevent auto-expansion of a filesystem</p>
+<h1>Syntax</h1>
+<pre>filesystem-confine [--tier &lt;tier&gt;] &lt;filesystems-see-&#39;man fs-spec&#39;&gt; &lt;limit-in-GiB&gt;
+Alias:       confs
+</pre>
+
+<h1>Description</h1>
+<p>In normal operation, the server automatically expands an unconfined filesystem when it becomes full.  'filesystem-confine' prevents the server from auto-expanding one or more filesystems beyond a certain capacity, or at all.  It does not prevent you from carrying out manual filesystem expansion.</p>
+<p>The confining capacity is specified in gibibytes, where one GiB is 2**30 bytes.  You can use the flexible syntax described in the 'fs-spec' man page to specify as many filesystems as you wish, but the same confining capacity will be applied to all of them.  If you wish to confine several filesystems to different capacities, run one command for each.</p>
+<p>To allow the filesystems to be auto-expanded further, re-run 'filesystem-confine', specifying a higher limit.  To remove the limit altogether, use 'filesystem-release'.</p>
+<p>You need not unmount the file systems before running these commands.  Other file systems on the same span are unaffected.</p>
+<p>If a filesystem is thinly provisioned, as described in the 'filesystem-thin' man page, then confining it will also limit the capacity reported to protocol clients.  (Note that this filesystem-level thin provisioning (TP) is different from storage-level TP, which is described in the 'hdp' man page.)</p>
+<p>On a tiered file system, each tier has a separate confining capacity, and each tier can be confined and released independently.  When confining or releasing tiered file systems, use the --tier (or -t) switch to specify which tier you wish to confine or release.</p>
+<p>If you wish to prevent all filesystems on a span from auto-expanding, use 'span-confine'.  'span-confine' and 'filesystem-confine' are independent: if you confine a filesystem and then confine the span on which it resides, you will need to release both the filesystem and the span (in either order) before the filesystem can auto-expand.</p>
+<p>'filesystem-limits' shows whether a filesystem and its span are confined and how far the filesystem can expand.</p>
+<p>If 'span-hdp-preallocation no' is in force, no filesystem auto-expansion takes place on spans that reside on HDP storage.  In addition, no filesystems ever auto-expand on spans that reside on UVM storage.</p>
+<h1>Examples</h1>
+<pre>filesystem-confine Accounts 800
+</pre>
+<p></p>
+<p>Allows the Accounts filesystem to auto-expand to 800GiB, but no further.  Prevents any further auto-expansion if the filesystem's capacity is already 800GiB or more.</p>
+<pre>filesystem-confine Accounts 0
+</pre>
+<p></p>
+<p>Prevents all auto-expansion of filesystem Accounts.</p>
+<pre>filesystem-confine --tier 0 Engineering/Finance/Services 50
+</pre>
+<p></p>
+<p>Prevents Tier 0 of the specified tiered filesystems from auto-expanding beyond 50GiB.  Doesn't affect any other tier.  Because the capacity follows the filesystem names on the command line, the filesystem names must be separated with slashes rather than spaces.</p>
+<pre>filesystem-confine Project*:untiered 800
+filesystem-confine --tier 0 Project*:tiered 150
+filesystem-confine --tier 1 Project*:tiered 900
+</pre>
+<p></p>
+<p>Among filesystems whose names start with the word 'Project', the first command confines the untiered filesystems to 800GiB, the second command confines Tier 0 of the tiered filesystems to 150GiB, and the last command confines Tier 1 of the same tiered filesystems to 900GiB.  This sequence satisfies the requirement that the --tier switch is mandatory for tiered filesystems and forbidden for others.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-release.html">filesystem-release</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/fs-spec.html">fs-spec</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nim-mib</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nim-mib</h1>
+<p>Display NIM MIB stats</p>
+<h1>Syntax</h1>
+<pre>nim-mib [-n stat-name] [-p port-number] [-r] [-t]
+</pre>
+
+<h1>Description</h1>
+<p>The nim-mib command displays MIB information gathered by the hardware.</p>
+<dl>
+<dt><strong>-n, --name &lt;stat-name&gt;</strong></dt>
+<dd><p>Displays value of the MIB stat named &lt;stat-name&gt;.</p></dd>
+<dt><strong>-p, --port &lt;number&gt;</strong></dt>
+<dd><p>Displays MIB stats for the specified interface. Note that the interfaces are numbered internally from 0 onwards.</p></dd>
+<dt><strong>-r, --rx</strong></dt>
+<dd><p>Displays RX MIB stats.</p></dd>
+<dt><strong>-t, --tx</strong></dt>
+<dd><p>Displays TX MIB stats.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display all the information for all interfaces:</p>
+<pre>nim-mib
+</pre>
+<p></p>
+<p>To display all information for the second interface:</p>
+<pre>nim-mib -p 1
+</pre>
+<p></p>
+<p>To display all information for RX stats:</p>
+<pre>nim-mib -r
+</pre>
+<p></p>
+<p>To display all information for TX stats:</p>
+<pre>nim-mib -t
+</pre>
+<p></p>
+<p>To display a specific statistic:</p>
+<pre>nim-mib -n RX_MIB_0_UDP_BYTES
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

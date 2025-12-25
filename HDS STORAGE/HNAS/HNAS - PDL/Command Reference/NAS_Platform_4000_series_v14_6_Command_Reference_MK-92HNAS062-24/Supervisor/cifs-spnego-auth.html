@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-spnego-auth</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cifs-spnego-auth</h1>
+<p>List / change ADS SPNEGO authentication type support.</p>
+<h1>Syntax</h1>
+<pre>cifs-spnego-auth [  -l  all | log | ntlmssp | ntlmv1  ]
+</pre>
+
+<h1>Description</h1>
+<p>This command controls which authentication mechanisms the server reports support for when negotiating new CIFS connections with ADS-aware clients.</p>
+<p>By default, both Kerberos and NTLMSSP mechanisms are supported. This command permits you to restrict the server to only reporting support for NTLMSSP authentication or even only for the NTLMv1 mode of NTLMSSP authentication.  This command was added largely to support testing of non-default CIFS authentication modes. This command should not be used in the field, except under guidance from technical support personnel.</p>
+<p>This command also permits you to enable logging of each authentication mechanism choice made by an SPNEGO exchange.  When enabled, the reports are written to the FSM console.  This logging is strongly discouraged, as in a busy CIFS environment it would consume the majority of available FSM console log space.</p>
+<p>The cifs-spnego-auth setting is cluster-wide, there are not individual settings for each EVS or EVS security context.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--level, -l  all | log | ntlmssp | ntlmv1</strong></dt>
+<dd><p>Sets SPNEGO negotiation behavior.</p></dd>
+<dl>
+<dt><strong>all</strong></dt>
+<dd><p>Enables both Kerberos and NTLMSSP authentication negotiation (the default).</p></dd>
+<dt><strong>log</strong></dt>
+<dd><p>Enables both Kerberos and NTLMSSP authentication negotiation, and logs the chosen mechanism for each CIFS client authentication (use strongly discouraged).</p></dd>
+<dt><strong>ntlmssp</strong></dt>
+<dd><p>Restricts SPNEGO negotiation to the NTLMSSP mechanism (NTLMv2 or NTLMv1) only.</p></dd>
+<dt><strong>ntlmv1</strong></dt>
+<dd><p>Restricts SPNEGO negotiation to the NTLMv1 NTLMSSP mechanism only.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>To display the current cluster's cifs-spnego-auth setting:</p>
+<pre>cifs-spnego-auth
+</pre>
+<p></p>
+<p>Set the default mode of all authentication types negotiable:</p>
+<pre>cifs-spnego-auth -l all
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

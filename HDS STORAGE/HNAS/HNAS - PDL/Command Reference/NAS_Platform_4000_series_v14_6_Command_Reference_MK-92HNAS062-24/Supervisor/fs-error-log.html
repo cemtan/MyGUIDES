@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fs-error-log</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>fs-error-log</h1>
+<p>Displays the file system error log</p>
+<h1>Syntax</h1>
+<pre>fs-error-log --filesystem &lt;file system label&gt; [--reset]
+</pre>
+
+<h1>Description</h1>
+<p>Utility for dumping or resetting the error log for a given file system.</p>
+<p>The error log accumulates errors and stores them on a per file system basis.  These errors are due to inconsistencies found on disk, and will be tolerated according to the file system's resiliency level (see fs-resiliency-level).  The error log also attempts to record additional information which may be useful in tracking down the root cause (system drive, object number, etc).</p>
+<p>If a file system is taken offline from too many errors (see fs-resiliency-level), that file system's error log is dumped to the dblog and automatically cleared.  If the server itself is rebooted, all errors logs will be reset. Mounting and unmounting, however, will not affect a file system's error log.</p>
+<p>Only unique errors are counted against a file system.  For example, if a file has an inconsistent section, multiple attempts to access that inconsistent section will result in one logged error.  The count for how many times that particular error has occurred, however, will increase.  The number of times an error has occurred is denoted by the "Count" output field (see EXAMPLES).</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>-f, --filesystem</strong></dt>
+<dd><p>The label of the file system to operate on.</p></dd>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Clear the error log for a given file system.  This will also reset the recorded errors for a file system to 0 (see fs-resiliency-level).</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Displaying the log:</p>
+<pre>fs-error-log -f fs1
+</pre>
+<p></p>
+<p>Example output:</p>
+<pre>Error                                   Object# Object Type            ObjOffset   FsOffset Sd#    SdOffset Count First seen                Last seen
+ --------------------------------------- ------- ---------------------- --------- ---------- --- ----------- ----- ------------------------- -------------------------
+ ERR_OBJ_INDIRECT_ONODE_ASCII_IONA_ERROR  0x400c OBJ_TYPE_FSOBJECT_FILE           0x706aa000  15 0x177baa000    34 2010-09-29 12:14:42-07:00 2010-09-29 12:14:42-07:00
+</pre>
+<p></p>
+<p>Resetting the error count for a particular file system:</p>
+<pre>fs-error-log --reset -f fs1
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/default-resiliency-level.html">default-resiliency-level</a> <a href="../Supervisor/fs-resiliency-level.html">fs-resiliency-level</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

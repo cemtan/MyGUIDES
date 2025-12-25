@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nim-hw-tx-destination-ip-address-table</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>nim-hw-tx-destination-ip-address-table</h1>
+<p>display the TX DEST IP ADDRESS table</p>
+<h1>Syntax</h1>
+<pre>nim-hw-tx-destination-ip-address-table [&lt;number to dump&gt;] [-c]
+</pre>
+
+<h1>Description</h1>
+<p>The nim-hw-tx-destination-ip-address-table command displays the contents of the hardware TX DEST IP table.</p>
+<dl>
+<dt><strong>number to dump</strong></dt>
+<dd><p>Limit the number of displayed entries to this many.</p></dd>
+</dl>
+<p>The columns record the following information:</p>
+<dl>
+<dt><strong>Index</strong></dt>
+<dd><p>The entry number in the TX DEST IP table.</p></dd>
+<dt><strong>TCP MTU</strong></dt>
+<dd><p>The MTU to be used for TCP traffic.</p></dd>
+<dt><strong>Other</strong></dt>
+<dd><p>The MTU to be used for non-TCP traffic.</p></dd>
+<dt><strong>Drop</strong></dt>
+<dd><p>If this field is 1, then at least one packet has been dropped by this entry.</p></dd>
+<dt><strong>Bufs</strong></dt>
+<dd><p>The number of TX buffers in use by this entry.</p></dd>
+<dt><strong>Next hop MAC</strong></dt>
+<dd><p>The MAC address to which all traffic for this entry will be sent. If the remote machine is within the same subnet, this will be a MAC address of that machine; otherwise it will be a MAC address of a local gateway. If the address is not yet resolved it will be 00-00-00-00-00-00.</p></dd>
+<dt><strong>Local IP</strong></dt>
+<dd><p>The server IP address to which this entry relates.</p></dd>
+<dt><strong>Peer IP</strong></dt>
+<dd><p>The  IP address of a remote machine to which this entry relates.</p></dd>
+<dt><strong>VLAN</strong></dt>
+<dd><p>The VLAN, if any, which is recorded for this entry.</p></dd>
+<dt><strong>Agg</strong></dt>
+<dd><p>The internal aggregation number as recorded by the hardware. This is one less than the aggregation interface number, so ag2 will be recorded as 1.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>$ nim-hw-tx-destination-ip-address-table
+</pre>
+<p></p>
+<pre>Valid primary table entries:
+</pre>
+<p></p>
+<pre>   Index TCP MTU   Other Drop  Bufs  Next Hop MAC Addr Ver         Local IP          Peer IP VLAN Agg
+    6369    1500    1500    0     0  00-12-f2-e1-00-00   4     172.18.0.112        10.1.1.14 None   0
+    9213    1500    1500    0     0  00-12-f2-e1-00-00   4     172.18.0.112      243.0.1.255 None   0
+   15360    1500    1500    0     0  00-e0-81-02-7a-99   4     172.18.0.112       172.18.0.1 None   0
+   31699    1500    1500    0     0  00-0c-29-48-22-f7   4     172.18.0.112       172.18.1.1 None   0
+   37320    1500    1500    0     0  00-12-f2-e1-00-00   4     172.18.0.112        10.1.16.4 None   0
+   46431    1500    1500    0     0  ff-ff-ff-ff-ff-ff   4     172.18.0.112   172.18.255.255 None   0
+</pre>
+<p></p>
+<p>Valid secondary table entries:</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

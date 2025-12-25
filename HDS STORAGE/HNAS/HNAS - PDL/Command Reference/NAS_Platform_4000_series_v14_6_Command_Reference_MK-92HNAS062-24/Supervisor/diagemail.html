@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>diagemail</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>diagemail</h1>
+<p>Send a diagnostic email</p>
+<h1>Syntax</h1>
+<pre>diagemail [--dump] [--caseno &lt;number&gt;] [recipient|all]
+</pre>
+
+<h1>Description</h1>
+<p>The diagemail command packages up various logs, debugging, performance and configuration options and emails it to the specified recipient.</p>
+<p>If the recipient "all" is specified, diagnostic emails will be sent to all recipients configured in the email profiles, otherwise a single email address must be specified.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-c, --caseno</strong></dt>
+<dd><p>specify the case number, if available</p></dd>
+<dt><strong>-d, --dump</strong></dt>
+<dd><p>do a diagnostic dump first.  Only use under instruction from your support provider</p></dd>
+</dl>
+<p>Note that the command returns to the prompt immediately and generates the diagnostic in the background.  On a busy cluster it may be a couple of minutes before the email is actually sent.</p>
+<h1>Examples</h1>
+<p>Send a diagnostic email to support@example.com noting that this relates to case 1234</p>
+<pre>diagemail --caseno 1234 support@example.com
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/alert-mail.html">alert-mail</a> <a href="../Supervisor/getdiagnostic.html">getdiagnostic</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

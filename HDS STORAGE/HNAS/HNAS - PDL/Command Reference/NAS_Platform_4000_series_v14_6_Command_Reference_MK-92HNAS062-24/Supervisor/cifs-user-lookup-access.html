@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-user-lookup-access</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cifs-user-lookup-access</h1>
+<p>List / change anonymous client LSA access via the server.</p>
+<h1>Syntax</h1>
+<pre>cifs-user-lookup-access [-e anonymous|authenticated]
+</pre>
+
+<h1>Description</h1>
+<p>By default, the server refuses user lookup queries via the LSA service from anonymous client sessions (or "NULL session connections"). This command may be used to override that behavior.  Doing so is not recommended, however, as it poses a potential security risk.</p>
+<p>The cifs-user-lookup-access command provides control equivalent to that made available by the RestrictAnonymous LSA registry entry in Microsoft Windows Server products.  See Microsoft Knowledge Base articles 246261 and 823659 for further background information.</p>
+<p>The cifs-user-lookup-access setting is cluster-wide: there are not separate settings for each EVS.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--enable, -e anonymous|authenticated</strong></dt>
+<dd><p>Set LSA access setting.</p></dd>
+<dl>
+<dt><strong>anonymous</strong></dt>
+<dd><p>Permits unknown clients to look up CIFS domain users and SIDs via the server's LSA RPC interface.  This is a security risk and is disabled by default.</p></dd>
+<dt><strong>authenticated</strong></dt>
+<dd><p>Only allows authenticated clients to use the server's LSA RPC interface.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>To display the current setting:</p>
+<pre>cifs-user-lookup-access
+</pre>
+<p></p>
+<p>To allow only authenticated clients to lookup CIFS data via the server (the default):</p>
+<pre>cifs-user-lookup-access -e authenticated
+</pre>
+<p></p>
+<p>To permit anonymous clients to lookup CIFS data via the server:</p>
+<pre>cifs-user-lookup-access -e anonymous
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

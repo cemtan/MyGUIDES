@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-set-default-cap-warn-thresh</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-set-default-cap-warn-thresh</h1>
+<p>Set the default span capacity warning threshold</p>
+<h1>Syntax</h1>
+<pre>span-set-default-cap-warn-thresh &lt;percentage&gt; | --default
+</pre>
+
+<h1>Description</h1>
+<p>If filesystem auto-expansion leaves a span full, or nearly so, then the server logs an event to notify the administrator that filesystems cannot auto-expand much further.  Warnings are also issued by 'trouble' when a span is nearly or actually full.  The percentage fullness at which these warnings start is formally known as the capacity warning threshold.</p>
+<p>This threshold can be set for each span individually by 'span-set-cap-warn-thresh'.  However, a newly created span defaults to the percentage set by 'span-set-default-cap-warn-thresh', the command described in the present man page.  If that command also has not been used, a newly created span uses the default default threshold set by the software release that creates it, which is currently 90%.</p>
+<p>Setting a good default can avoid the need to change the threshold for newly created spans.  For example, setting it to zero will disable warnings for all new spans; this can be desirable if spans are deliberately kept almost full.</p>
+<p>When a span is created, a capacity warning threshold is written to span Cod.  The span's threshold does not change unless 'span-set-cap-warn-thresh' is used, even if a new release changes the default or 'span-set-default-cap-warn-thresh' is used to set a new default.</p>
+<h1>Examples</h1>
+<pre>span-set-default-cap-warn-thresh 95
+</pre>
+<p></p>
+<p>Increases the default threshold to 95% for spans created from now on.</p>
+<pre>span-set-default-cap-warn-thresh 0
+</pre>
+<p></p>
+<p>Disables capacity warnings by default for spans created from now on.</p>
+<pre>span-set-default-cap-warn-thresh --default
+</pre>
+<p></p>
+<p>Returns to the default set by the software release, which is currently 90%.  Newly created spans will use whichever default percentage applies in the software release under which the spans are created.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/span-set-cap-warn-thresh.html">span-set-cap-warn-thresh</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

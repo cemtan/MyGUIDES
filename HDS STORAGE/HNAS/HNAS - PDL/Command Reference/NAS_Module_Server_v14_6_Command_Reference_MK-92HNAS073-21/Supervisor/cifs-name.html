@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-name</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cifs-name</h1>
+<p>Manage list of CIFS serving names</p>
+<h1>Syntax</h1>
+<pre>cifs-name [ add | list | remove ] ...
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-name command is used to view and maintain the list of CIFS serving names which the server advertises to clients.</p>
+<p>CIFS serving names are associated with individual EVSs.  In connecting to a server via a particular EVS' CIFS serving name, a client may only access the CIFS shares associated with that EVS.</p>
+<p>CIFS serving names are assumed to be part of a CIFS domain. All CIFS names associated with a single EVS must be in the same CIFS domain.  Further, all EVSs which share the "global" per-EVS security setting must have the same CIFS domain.  Other EVSs may be in the same or different CIFS domains.</p>
+<p>CIFS serving names may be of two types:  ADS or NT4.  The type of a serving name defines how it will appear to CIFS clients.  An ADS name will appear to be a Windows 2000 server, while an NT4 name will appear to be a Windows NT 4 server.</p>
+<p>ADS and NT4 mode names are added differently.  When adding an NT4 name the CIFS domain name must be specified.  In this case the cifs-name command performs only local updates on the server.  This means that the administrator must manually create computer accounts in the domain for each NT4-mode CIFS serving name added to the server.  If adding them to an ADS domain, each NT4-mode name's computer account must have the "allow pre-Windows 2000 computers to use this account" checkbox checked.</p>
+<p>By contrast, when adding an ADS name the cifs-name command will check to see if the specified CIFS name already has a computer account in the domain.  If so, it will configure it for the server's use.  Otherwise, it will automatically create a computer account for the specified CIFS serving name.  In either ADS case the cifs-name command requires the address of a domain controller for the target domain, and the name and password of a user in the domain with sufficient privileges. If the server will create the account then domain administrative privilege is required.  If the server will be using a pre-created account, then the credentials supplied to cifs-name must be those of a user authorized to join a computer to the domain using that computer account.</p>
+<p>When adding CIFS names, only the first name add for a given EVS needs to specify the CIFS domain / domain controller; the same domain may be used implicitly in further adds.  Note however that each request to add ADS mode names will still require a suitable authorizing user name and password; these values are not saved by the server.</p>
+<p>If a domain controller address is specified during ADS CIFS name add, that address is used only to perform the add.  For normal operation the server discovers domain controllers using CLDAP, DNS, WINS and/or NetBIOS.  If the server is having trouble finding a suitable domain controller, the cifs-dc command may be used to specify the address of one or more usable domain controllers.</p>
+<p>For ADS CIFS names, an explicit "primary DNS suffix" may be specified. This is done only in rare cases, as the default of using the AD domain's DNS name is normally fine.  Using the -p add option to override the default will produce what Microsoft refers to as a "disjoint namespace."</p>
+<p>By default, the cifs-name command's actions are relative to the current EVS. The cifs-name list form may be instructed to list CIFS serving names for all EVSs by including the -a option.</p>
+<p>The sizes of individual cifs-name strings are limited.  NT4 names may be up to 15 characters in length.  ADS names may be up to 63 characters in length, not counting their DNS suffix.</p>
+<p>There are several restrictions imposed on the characters used in a cifs-name. NT4 names support any alphanumeric ASCII characters, and the following symbols: (!@#$%^&amp;')(.-_}{~. ). By default ADS names may only use alphanumeric ASCII characters and the following symbols: (-_), however the "set" variable enable-strict-cifs-name-checking can be enabled to disallow the use of underscores ("_") for the EVS currently in context. If the EVS in context uses common security settings (see evs-security) this setting will apply to any other EVSs also using common security settings.</p>
+<p>When multi-tenancy is enabled, duplicate cifs-names are permitted on separate EVSs. When it is disabled, duplicate cifs-names are not permitted within the same cluster.  A cifs-name of either type is duplicate if its first 15 characters match those of another cifs-name.  Thus, when multi-tenancy is enabled, the ADS names "a-very-long-machine-name" and "a-very-long-machine-name2" may be added to separate EVSs. Otherwise they may not both exist within the same cluster.</p>
+<p>When multi-tenancy is enabled, NetBIOS is unavailable as a service, therefore NT4 names will not work. New NT4 names cannot be added with multi-tenancy enabled, however existing ones may be removed.</p>
+<p>Changes made by this command take effect immediately.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>cifs-name list [ -o ] [ -a ] [ -p ]</strong></dt>
+<dd><p>where</p></dd>
+<dl>
+<dt><strong>-o</strong></dt>
+<dd><p>means show online EVS' cached serving names, instead of listing configured names</p></dd>
+<dt><strong>-a</strong></dt>
+<dd><p>means show names assigned to all EVSs, not just the current EVS</p></dd>
+<dt><strong>-p</strong></dt>
+<dd><p>means show CIFS names with their DNS suffix (as FQDNs)</p></dd>
+</dl>
+<dd><p>If the -o option is not given only configured names are shown (both online and offline), and not names remaining only in the online cache.</p></dd>
+<dt><strong>cifs-name add -m nt4 [ -C ] [ -d &lt;name&gt; ] &lt;name 1&gt; [ &lt;name 2&gt; ... ]</strong></dt>
+<dt><strong>cifs-name add -m ads [ -a &lt;dc ipaddr&gt; ] [ -f &lt;folder&gt; ] [ -p &lt;dns suffix&gt; ] &lt;name 1&gt; ...</strong></dt>
+<dd><p>where</p></dd>
+<dl>
+<dt><strong>-m, --mode</strong></dt>
+<dd><p>Specifies the mode of the new name(s) - ADS or NT4.</p></dd>
+<dt><strong>-d, --domain &lt;name&gt;</strong></dt>
+<dd><p>Name of NT4 domain which CIFS names are in.</p></dd>
+<dt><strong>-a, --ipaddr &lt;dc ipaddr&gt;</strong></dt>
+<dd><p>IP address of ADS DC for domain to join.  IPv4 or IPv6 addresses can be used.</p></dd>
+<dt><strong>-f, --folder &lt;folder&gt;</strong></dt>
+<dd><p>ADS directory folder to place new machine account in. Value may be either DNS-style ("suborg.midorg.toporg") or an RDN sequence ("ou=suborg,ou=midorg,ou=toporg"). Default is "cn=Computers".  The domain's base DN is automatically appended and may not be explicitly given.</p></dd>
+<dt><strong>-p, --primary-dns &lt;dns suffix&gt;</strong></dt>
+<dd><p>Specify DNS suffix to use for ADS CIFS names. Default is to use the AD domain's DNS name.</p></dd>
+<dt><strong>-C, --confirm</strong></dt>
+<dd><p>Don't prompt for confirmation before starting add.</p></dd>
+<dt><strong>&lt;name N&gt;</strong></dt>
+<dd><p>New CIFS serving names to add to EVS.  Up to eight may be given in one command; for more, use multiple add commands.</p></dd>
+</dl>
+<dt><strong>cifs-name remove [ -f ] [ -a ] [ -C ] [ name1 [ name2 [ name3 ... ] ] ]</strong></dt>
+<dd><p>where</p></dd>
+<dl>
+<dt><strong>-f, --force</strong></dt>
+<dd><p>Forcibly remove the CIFS name(s) even if it makes shares unavailable.</p></dd>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>Remove all CIFS names from the currently selected EVS.</p></dd>
+<dt><strong>-C, --confirm</strong></dt>
+<dd><p>Don't prompt for confirmation before starting remove.</p></dd>
+</dl>
+<dd><p>At least one and at most eight names may be specified, unless you use the -a option, in which case no names may be given.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>List all configured CIFS serving names for all EVSs:</p>
+<pre>cifs-name list -a
+</pre>
+<p></p>
+<p>List all online CIFS serving names for EVS 3:</p>
+<pre>vn 3 cifs-name list -o
+</pre>
+<p></p>
+<p>Add an NT4-mode CIFS serving name to the current EVS:</p>
+<pre>cifs-name add -m nt4 -d my-domain my-nt4-name
+</pre>
+<p></p>
+<p>Add an ADS-mode CIFS serving name to the current EVS (prompts are issued for the authorized username and password values):</p>
+<pre>cifs-name add -m ads -a 10.2.1.123 my-ads-name
+cifs-name add -m ads -a 10.2.1.123 -f "ou=midorg, ou=toporg" ads-name2
+cifs-name add -m ads -a 10.2.1.123 -f midorg.toporg my-ads-name3
+</pre>
+<p></p>
+<p>Using IPv6:</p>
+<pre>cifs-name add -m ads -a fdca:f995:220a:480:e89b:de48:795f:8a01 my-ads-name
+</pre>
+<p></p>
+<p>Remove a CIFS serving name from the current EVS:</p>
+<pre>cifs-name remove my-cifs-name
+</pre>
+<p></p>
+<p>Remove all CIFS serving names from the current EVS:</p>
+<pre>cifs-name remove -a
+</pre>
+<p></p>
+<p>Note that in the above examples, up to eight space-delimited names may be substituted wherever my-...-name is given in the add and remove operations.</p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-auth.html">cifs-auth</a> <a href="../Supervisor/cifs-dc.html">cifs-dc</a> <a href="../Supervisor/cifs-ddns.html">cifs-ddns</a> <a href="../User/evs.html">evs</a> <a href="../User/evs-security.html">evs-security</a> <a href="../User/evs-select.html">evs-select</a> <a href="../Supervisor/netbios.html">netbios</a> <a href="../Supervisor/reboot.html">reboot</a> <a href="../Supervisor/security-mode.html">security-mode</a> <a href="../Supervisor/set.html">set</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

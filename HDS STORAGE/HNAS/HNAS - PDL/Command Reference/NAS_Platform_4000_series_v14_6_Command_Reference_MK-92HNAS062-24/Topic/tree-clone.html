@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tree-clone</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>tree-clone</h1>
+
+<h1>Description</h1>
+<p>Tree cloning provides a mechanism for quickly creating a space-efficient copy of a directory tree. The source directory's structure is recreated in the destination directory and all the contained files are cloned. Security information from the source files and directories is applied to the destination. The source directory may be modified while tree cloning is in progress, hence the cloned destination is not a point-in-time replica. Tree cloning uses the same mechanism as file cloning to clone individual files within the tree, so the same limitations apply.</p>
+<p>Tree clone jobs are submitted using the tree-clone-job-submit command. Multiple tree cloning jobs may be run on the same or different file systems. Up to 100 jobs may be submitted at a time.</p>
+<p>tree-clone-job-list shows a list of running and recently completed jobs. Recently completed jobs are retained for a minimum of 2 minutes after completion. Job status may be queried using the tree-clone-job-status command.</p>
+<p>Jobs may be aborted using the tree-clone-job-abort command. All jobs on a file system are aborted when the file system is unmounted.</p>
+<h1>See Also</h1>
+<p><a href="../Topic/file-clone.html">file-clone</a> <a href="../Supervisor/tree-clone-job-abort.html">tree-clone-job-abort</a> <a href="../Supervisor/tree-clone-job-list.html">tree-clone-job-list</a> <a href="../Supervisor/tree-clone-job-status.html">tree-clone-job-status</a> <a href="../Supervisor/tree-clone-job-submit.html">tree-clone-job-submit</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

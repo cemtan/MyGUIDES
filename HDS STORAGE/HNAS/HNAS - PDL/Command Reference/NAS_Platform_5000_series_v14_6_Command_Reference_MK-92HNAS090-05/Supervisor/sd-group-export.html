@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-group-export</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-group-export</h1>
+<p>Export one or more system drive groups to a text file</p>
+<h1>Syntax</h1>
+<pre>sd-group-export [--minimal | -m] &lt;file-name&gt; [&lt;SD-device-IDs-see-&#39;man sd-spec&#39;&gt;...]
+Alias:       expsdg
+</pre>
+
+<h1>Description</h1>
+<p>Reads some or all system drive (SD) groups from the server's registry, and exports them to a text file.  This file can be imported into another cluster or stand-alone server, avoiding the need to reenter group information when storage is moved between clusters.  See the 'sd-group' man page for background about SD groups.</p>
+<p>If you are using pssc or ssc, the new file is created on the client computer; otherwise, it is created in the server's ssfs file system.</p>
+<h2>CONTROLLING HOW MUCH IS EXPORTED</h2>
+<p>If you don't specify any SDs on the command line, all SD groups are exported.</p>
+<p>If you specify one or more SDs, the command exports the whole of any group that includes any of those SDs.  For example, if your groups look like this:</p>
+<pre>0 1 2
+</pre>
+<p></p>
+<pre>3 4 5
+</pre>
+<p></p>
+<pre>6 7 8
+</pre>
+<p></p>
+<p>then</p>
+<pre>sd-group-export groups.txt 1-4
+</pre>
+<p></p>
+<p>will export groups that look like this:</p>
+<pre>0 1 2
+</pre>
+<p></p>
+<pre>3 4 5
+</pre>
+<p></p>
+<p>Although you specified only four SDs, the command will export six.</p>
+<p>If you specify one or more SDs and the --minimal (or -m) switch, the command exports only the SDs you specify and no others, even if this means exporting truncated groups.  For example, in the configuration shown above,</p>
+<pre>sd-group-export --minimal groups.txt 1-4
+</pre>
+<p></p>
+<p>will export groups like these:</p>
+<pre>1 2
+</pre>
+<p></p>
+<pre>3 4
+</pre>
+<p></p>
+<p>Exporting truncated groups in this way does not affect the configuration of the local server, but does mean that any server reading the export file will have an incomplete idea of the SD groups you have set up.</p>
+<p>Even though other SD-group commands can assign SDs to tiers, 'sd-group-export' does not export SD tiers.  For that, use 'sd-tier-export' or 'span-encode-tiers'.</p>
+<h2>FILE FORMAT</h2>
+<p>If necessary, the exported file can be edited by hand before being imported to the new cluster.  This section describes the file format.</p>
+<p>Here is a sample file:</p>
+<pre>Schema 1
+SD 10 [01:01:00]FOO   00:00:A6:44:20:00:00:80:E5:11:A6:44
+SD 11 [01:01:00]FOO   00:01:A6:44:20:00:00:80:E5:11:A6:44
+SD 12 [01:01:00]FOO   00:02:A6:44:20:00:00:80:E5:11:A6:44
+SD 13 [01:01:00]FOO   00:03:A6:44:20:00:00:80:E5:11:A6:44
+SD 14 [01:01:00]FOO   00:04:A6:44:20:00:00:80:E5:11:A6:44
+SD 15 [01:01:00]FOO   00:05:A6:44:20:00:00:80:E5:11:A6:44
+Group 13 14 15
+Group Parallel 10 11 12
+</pre>
+<p></p>
+<p>The Schema line tells the server how to interpret the rest of the file.  The first non-blank, non-comment line must be a Schema line.  In this release, the server always uses Schema 0, but older releases used Schema 1 if the output file included any parallel SD groups.  This release does not support parallel SD groups, but the sample above shows a Schema-1 file in order to show how parallel SD groups are represented.</p>
+<p>Each SD line describes one SD.  It contains two pieces of information: the SD's device ID and the SD's Luid.  In the first SD line shown here, the device ID is 10, and everything from '[' to the end of the line is the Luid.</p>
+<p>Each Group line specifies one SD group, using the device IDs shown in SD lines above.  If the SD group is parallel, the word 'Parallel' appears between the word 'Group' and the device IDs.  The only difference between Schema 0 and Schema 1 is that Schema 0 does not support the 'Parallel' keyword.</p>
+<p>When editing a file, you can insert blank lines to make it easier to read.  You can also make the server ignore a line by placing a hash (#) at the start of it.</p>
+<p>Two clusters or stand-alone servers do not generally assign the same device ID to a given SD.  An SD's Luid, however, will be the same on every cluster.  When a server imports the file, it will use the Luids to translate the device IDs specified on the Group lines into the IDs it uses locally.</p>
+<h1>Examples</h1>
+<pre>sd-group-export partial.txt 0-19 33-40
+</pre>
+<p></p>
+<pre>sd-group-export complete.txt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../Supervisor/sd-group-add.html">sd-group-add</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../Supervisor/sd-group-delete.html">sd-group-delete</a> <a href="../Supervisor/sd-group-import.html">sd-group-import</a> <a href="../User/sd-group-list.html">sd-group-list</a> <a href="../Supervisor/sd-group-remove.html">sd-group-remove</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/sd-tier-export.html">sd-tier-export</a> <a href="../Supervisor/span-encode-tiers.html">span-encode-tiers</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

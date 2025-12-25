@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud-schedule-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>migration-cloud-schedule-create</h1>
+<p>Create an external cloud migration schedule</p>
+<h1>Syntax</h1>
+<pre>migration-cloud-schedule-create &lt;policy name&gt; &lt;run-type&gt; [ ( --next-run | -n ) &lt;run-time&gt; ] [ ( --max-duration | -d ) &lt;max-duration&gt;]
+where
+  &lt;run-type&gt; = simulateOnly | onceOnly | daily | weekly
+  &lt;run-time&gt; = YYYY-MM-DD{T| }HH:MM[:SS][{+|-}hh:mm]
+  &lt;max-duration&gt; = [nD]hh:mm
+</pre>
+
+<h1>Description</h1>
+<p>Create a schedule for cloud migration.</p>
+<dl>
+<dt><strong>&lt;policy name&gt;</strong></dt>
+<dd><p>Name of the cloud migration policy which this schedule applies.</p></dd>
+<dt><strong>&lt;run type&gt;</strong></dt>
+<dd><p>Schedule run type, allowed values are:</p></dd>
+<dl>
+<dt><strong>onceOnly</strong></dt>
+<dd><p>Run a cloud migration once at the next run time.</p></dd>
+<dt><strong>daily</strong></dt>
+<dd><p>Run a cloud migration at the next run time, and at the same time every day after that.</p></dd>
+<dt><strong>weekly</strong></dt>
+<dd><p>Run a cloud migration at the next run time, and then at the same time once every week after that.</p></dd>
+<dt><strong>simulateOnly</strong></dt>
+<dd><p>Run a cloud migration detailed test once at the next run time.  This exercises the selected policy, but no files are actually migrated.</p></dd>
+</dl>
+<dt><strong>--next-run &lt;run-time&gt;</strong></dt>
+<dd><p>The next run time in the format YYYY-MM-DD{T| }HH:MM[:SS][{+|-}hh:mm]. Defaults to the current time.</p></dd>
+<dt><strong>--max-duration &lt;limit&gt;</strong></dt>
+<dd><p>The maximum amount of time a given migration run started by this schedule will be allowed to run.  If this limit is hit then the migration will be halted until the next scheduled run-time, if any.</p></dd>
+<dd><p>The limit is in the format [nD]HH:MM.  For example, 1D12:30 is 1 day, 12 and one half hours (or 36.5 hours).</p></dd>
+<dd><p>If the --max-duration option is not given, the default is no limit.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-cloud-schedule-create DefaultPolicy daily --next-run 2011-02-03T03:30:00-08:00
+</pre>
+<p></p>
+<p>Creates a cloud migration schedule that runs the policy 'DefaultPolicy' on its associated file system every day, beginning 3 February 2011 at 3:30am PST.</p>
+<pre>migration-cloud-schedule-create DefaultPolicy weekly -d 1d18:00
+</pre>
+<p></p>
+<p>Creates a cloud migration schedule that runs the policy 'DefaultPolicy' on its associated file system once each week, starting now, with each weekly run lasting at most 1 day and 18 hours.</p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/evs.html">evs</a> <a href="../Supervisor/migration-cloud-policy-delete.html">migration-cloud-policy-delete</a> <a href="../Supervisor/migration-cloud-policy-list.html">migration-cloud-policy-list</a> <a href="../Supervisor/migration-cloud-schedule-delete.html">migration-cloud-schedule-delete</a> <a href="../Supervisor/migration-cloud-schedule-list.html">migration-cloud-schedule-list</a> <a href="../Supervisor/migration-cloud-schedule-modify.html">migration-cloud-schedule-modify</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

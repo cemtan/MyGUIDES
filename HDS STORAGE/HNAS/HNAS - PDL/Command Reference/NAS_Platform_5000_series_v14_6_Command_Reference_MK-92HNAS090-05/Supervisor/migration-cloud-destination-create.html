@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud-destination-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>migration-cloud-destination-create</h1>
+<p>Creates an external cloud migration destination</p>
+<h1>Syntax</h1>
+<pre>migration-cloud-destination-create --account-name &lt;account-name&gt; --path-at-destination &lt;path-at-destination&gt; [--description &lt;description&gt;] [--destination-uuid &lt;destination-uuid&gt;] [--encrypt-in-transit (no|yes)] &lt;destination-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Creates cloud external migration destination.</p>
+<dl>
+<dt><strong>&lt;destination-name&gt;</strong></dt>
+<dd><p>Name of the destination for use by the CLI only. It does not have to correspond to any identification names on the cloud storage itself, but will be needed when specifying other cloud objects. May be up to 255 ASCII characters long. The characters ;:/\'"&lt;&gt;*?| and a space character are not allowed.</p></dd>
+<dt><strong>--account-name, -a &lt;account-name&gt;</strong></dt>
+<dd><p>Name of the cloud account, which should be created with migration-cloud-account-create.</p></dd>
+<dt><strong>--path-at-destination, -p &lt;path-at-destination&gt;</strong></dt>
+<dd><p>Path on the cloud where data will be archived. For Amazon S3 this field is 'bucket/subfolder' where 'bucket' should pre-exist on the target and 'subfolder' is optional. For HCP, HCPS3 and Test providers it is a 'subfolder' that should pre-exist on the target. For Azure provider it is a 'container' that should pre-exist on the target.</p></dd>
+<dt><strong>--description, -d &lt;description&gt;</strong></dt>
+<dd><p>Destination description. Any arbitrary string to help clients to manage destinations.</p></dd>
+<dt><strong>--encrypt-in-transit, -t &lt;no|yes&gt;</strong></dt>
+<dd><p>The data will be encrypted on the way to the cloud using HTTPS protocol. If not specified the default value for HCP and HCPS3 providers is 'no', for all others it is 'yes'.</p></dd>
+<dt><strong>--destination-uuid, -u &lt;destination-uuid&gt;</strong></dt>
+<dd><p>The UUID of the destination. If not specified, will be created by the system.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-cloud-destination-create S3CloudDest --account-name AmazonS3Account --path-at-destination S3bucket/marketingArchive
+</pre>
+<p></p>
+<p>Creates a cloud migration destination named 'S3CloudDest' that will use cloud credentials specified in 'AmazonS3Account'. The data will be stored in 'S3bucket' under the folder 'marketingArchive'. The data will be encrypted in flight.</p>
+<pre>migration-cloud-destination-create HCPDest --account-name HCPAccount --path-at-destination marketingArchive
+</pre>
+<p></p>
+<p>Creates a cloud migration destination named 'HCPDest' that will use cloud credentials specified in 'HCPAccount'. The data will be stored under 'marketingArchive' folder. The data will not be encrypted in flight and will not be encrypted on the destination.</p>
+<pre>migration-cloud-destination-create TestDest --account-name TestAccount --path-at-destination /test
+</pre>
+<p></p>
+<p>Creates a test cloud migration destination named 'TestDest' that will use cloud credentials specified in 'TestAccount'.</p>
+<h1>Applies To</h1>
+<p>Global security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a> <a href="../Supervisor/migration-cloud-account-create.html">migration-cloud-account-create</a> <a href="../Supervisor/migration-cloud-destination-delete.html">migration-cloud-destination-delete</a> <a href="../Supervisor/migration-cloud-destination-list.html">migration-cloud-destination-list</a> <a href="../Supervisor/migration-cloud-destination-modify.html">migration-cloud-destination-modify</a> <a href="../Supervisor/migration-cloud-policy-create.html">migration-cloud-policy-create</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

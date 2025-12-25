@@ -1,0 +1,362 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>i2c-dump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>i2c-dump</h1>
+<p>Dump I2C devices</p>
+<h1>Syntax</h1>
+<pre>i2c-dump [--verbose] [--dimms] [--known] [&lt;min&gt; [&lt;max&gt;]]
+</pre>
+
+<h1>Description</h1>
+<p>Dumps information, onto the console, on devices which are accessible via the I2C. These include DIMMs (CPU and VLSI), serial EEPROMs, temperature sensors, PSUs, batteries, SFPs, etc.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--verbose, v</strong></dt>
+<dd><p>verbose dump</p></dd>
+<dt><strong>--dimms, d</strong></dt>
+<dd><p>dump dimms only</p></dd>
+<dt><strong>--known, k</strong></dt>
+<dd><p>dump all known devices</p></dd>
+</dl>
+<p>Optional positional parameters:</p>
+<dl>
+<dt><strong>min</strong></dt>
+<dd><p>device number to start at, in hexadecimal</p></dd>
+<dt><strong>max</strong></dt>
+<dd><p>device number to end at, in hexadecimal</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>This dumps a summary of any device from number 64 to 127:
+server2-a(NIM):$ i2c-dump
+0:49: Temperature Sensor
+0:51: NIM_CPU_MEM  512 MB SDRAM DDR (72 bit, ECC)
+0:57: Card Serial EEPROM
+0:65: Serial ADC MAX1039
+1:57: Fan Card Serial EEPROM
+2:50: 10G Ethernet Port 1 XFP Transceiver
+4:51: NIM3_TCP_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:52: NIM3_RX_BMEM  1024 MB SDRAM DDR2 (72 bit, ECC)
+4:53: NIM3_RX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:54: NIM3_TX_BMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:55: NIM3_TX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:6A: 66M Clock Generator
+8:40: Unipower I2C Temperature Measurement MAX6633
+8:48: Unipower I2C Quad A/D Converter PCF8591 (1)
+8:50: Unipower I2C EEPROM AT/ST 24V02
+8:57: PSU1 Serial EEPROM
+10:40: Unipower I2C Temperature Measurement MAX6633
+10:48: Unipower I2C Quad A/D Converter PCF8591 (1)
+10:50: Unipower I2C EEPROM AT/ST 24V02
+10:57: PSU2 Serial EEPROM
+</pre>
+<p></p>
+<pre>This dumps all dimm devices:
+server2-a(NIM):$ i2c-dump d
+0:51: NIM_CPU_MEM  512 MB SDRAM DDR (72 bit, ECC)
+4:51: NIM3_TCP_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:52: NIM3_RX_BMEM  1024 MB SDRAM DDR2 (72 bit, ECC)
+4:53: NIM3_RX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:54: NIM3_TX_BMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:55: NIM3_TX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+</pre>
+<p></p>
+<pre>This dumps all known devices:
+server2-a(NIM):$ i2c-dump k
+0:49: Temperature Sensor
+0:57: Card Serial EEPROM
+0:65: Serial ADC MAX1039
+0:56: Debug Dongle Serial EEPROM  * Not detected *
+4:6A: 66M Clock Generator
+1:57: Fan Card Serial EEPROM
+8:20: Unipower I2C Digital I/O Chip PCF8574
+8:48: Unipower I2C Quad A/D Converter PCF8591 (1)
+8:4C: Unipower I2C Quad A/D Converter PCF8591 (2)  * Not detected *
+8:50: Unipower I2C EEPROM AT/ST 24V02
+8:57: PSU1 Serial EEPROM
+8:40: Unipower I2C Temperature Measurement MAX6633
+8:3C: DS650 Microcontroller  * Not detected *
+8:54: DS650 Internal EEPROM  * Not detected *
+9:09: Battery1 Charger  * Not detected *
+9:0B: Battery1  * Not detected *
+10:20: Unipower I2C Digital I/O Chip PCF8574
+10:48: Unipower I2C Quad A/D Converter PCF8591 (1)
+10:4C: Unipower I2C Quad A/D Converter PCF8591 (2)  * Not detected *
+10:50: Unipower I2C EEPROM AT/ST 24V02
+10:57: PSU2 Serial EEPROM
+10:40: Unipower I2C Temperature Measurement MAX6633
+10:3C: DS650 Microcontroller  * Not detected *
+10:54: DS650 Internal EEPROM  * Not detected *
+11:09: Battery2 Charger
+11:0B: Battery2
+2:50: 10G Ethernet Port 1 XFP Transceiver
+3:50: 10G Ethernet Port 2 XFP Transceiver  * Not detected *
+</pre>
+<p></p>
+<pre>This dumps verbose data of any device from number 64 to 127:
+server2-a(NIM):$ i2c-dump v
+0:49: Temperature Sensor
+  Temperature 35C
+0:51: NIM_CPU_MEM  512 MB SDRAM DDR (72 bit, ECC)
+    Rows:            13
+    Columns:         10
+    Module rows:     2
+    Banks:           4
+    Primary width:   8
+    Error width:     8
+    Manufacturer ID: 0x7f40000000000000
+    Part number:     VR4CR647228DTHB1
+    Serial number:   172548424
+0:57: Card Serial EEPROM
+  Contents:
+    53 4A 4A 48 00 00 00 01 00 00 00 00 00 00 00 00  SJJH............
+    00 57 20 BF 00 00 00 00 00 30 17 01 A8 60 00 00  .W ......0...`..
+    00 00 00 00 00 00 00 00 46 03 23 55 46 04 5F 4A  ........F.#UF._J
+    00 00 00 06 46 05 4B 94 00 00 00 01 00 00 00 00  ....F.K.........
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    4E 49 4D 31 32 30 30 2D 30 00 00 00 00 00 00 00  NIM1200-0.......
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 03 E7 00 00 00 00 53 58 33 30 30 30 39 39  ........SX300099
+    2D 30 33 00 00 00 00 00 00 00 00 00 00 00 00 00  -03.............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 02 34 2E 33 2E 39 38 39 63 00 00 00 00  ....4.3.989c....
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 63 29 22 7C  ............c)"|
+0:65: Serial ADC MAX1039
+  Readings: 00 EC F6 E9 9B DB 4E 51 50 01 01 FF
+1:57: Fan Card Serial EEPROM
+  Contents:
+    53 4A 4A 48 00 00 00 01 00 00 00 00 00 00 00 00  SJJH............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 40 2A C0 2D 44 C7 61 25  ........@*.-D.a%
+    00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1F  ................
+    54 49 54 41 4E 31 4B 53 30 30 30 31 31 39 00 00  TITAN1KS000119..
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 03 E7 00 00 00 00 53 58 33 32 30 30 32 32  ........SX320022
+    2D 30 34 00 00 00 00 00 00 00 00 00 00 00 00 00  -04.............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 72 61 7A 6F 72 20 61 64 68 6F 63 00  ....razor adhoc.
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 26 35 E8 61  ............&amp;5.a
+2:50: 10G Ethernet Port 1 XFP Transceiver
+4:51: NIM3_TCP_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+    Rows:            14
+    Columns:         10
+    Module rows:     1
+    Banks:           4
+    Primary width:   8
+    Error width:     8
+    Manufacturer ID: 0x7f40000000000000
+    Part number:     VR5ER647218EBPB1
+    Serial number:   0
+4:52: NIM3_RX_BMEM  1024 MB SDRAM DDR2 (72 bit, ECC)
+    Rows:            14
+    Columns:         10
+    Module rows:     2
+    Banks:           4
+    Primary width:   8
+    Error width:     8
+    Manufacturer ID: 0x7f40000000000000
+    Part number:     VR5ER287218EBPB1
+    Serial number:   0
+4:53: NIM3_RX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+    Rows:            14
+    Columns:         10
+    Module rows:     1
+    Banks:           4
+    Primary width:   8
+    Error width:     8
+    Manufacturer ID: 0x7f40000000000000
+    Part number:     VR5ER647218EBPB1
+    Serial number:   0
+4:54: NIM3_TX_BMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+    Rows:            14
+    Columns:         10
+    Module rows:     1
+    Banks:           4
+    Primary width:   8
+    Error width:     8
+    Manufacturer ID: 0x7f40000000000000
+    Part number:     VR5ER647218EBPB1
+    Serial number:   0
+4:55: NIM3_TX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+    Rows:            14
+    Columns:         10
+    Module rows:     1
+    Banks:           4
+    Primary width:   8
+    Error width:     8
+    Manufacturer ID: 0x7f40000000000000
+    Part number:     VR5ER647218EBPB1
+    Serial number:   0
+4:6A: 66M Clock Generator
+  Contents:
+    86 EF 7F C7 3F 00 FF 01 07  ....?....
+8:40: Unipower I2C Temperature Measurement MAX6633
+  Temperature: 0x1198
+8:48: Unipower I2C Quad A/D Converter PCF8591 (1)
+  Voltage: 0xc7
+  Current: 0x27
+8:50: Unipower I2C EEPROM AT/ST 24V02
+  Contents:
+    50 43 4D 33 30 30 30 2D 5A 20 20 20 20 20 20 20  PCM3000-Z
+    30 30 31 2D 34 30 36 33 2D 30 30 38 37 20 20 20  001-4063-0087
+    34 36 30 36 2D 41 4A 30 31 31 20 20 20 20 20 20  4606-AJ011
+    52 51 20 20 20 20 20 20 20 20 20 20 20 20 20 20  RQ
+    55 4E 49 50 4F 57 45 52 20 20 20 20 20 20 20 20  UNIPOWER
+    43 48 49 4E 41 20 20 20 20 20 20 20 20 20 20 20  CHINA
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+8:57: PSU1 Serial EEPROM
+  Contents:
+    53 4A 4A 48 00 00 00 01 00 00 00 00 00 00 00 00  SJJH............
+    00 0A B8 C1 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 45 C8 D2 BE 00 00 00 00  ........E.......
+    00 00 00 00 45 C8 D2 BE 00 00 00 01 00 00 00 00  ....E...........
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    50 53 55 20 36 30 30 00 00 00 00 00 00 00 00 00  PSU 600.........
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 03 E7 00 00 00 00 53 58 33 32 30 30 33 34  ........SX320034
+    2D 30 35 00 00 00 00 00 00 00 00 00 00 00 00 00  -05.............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 34 2E 33 2E 39 37 39 00 00 00 00 00  ....4.3.979.....
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 7C 77 C6 DE  ............|w..
+10:40: Unipower I2C Temperature Measurement MAX6633
+  Temperature: 0x0f88
+10:48: Unipower I2C Quad A/D Converter PCF8591 (1)
+  Voltage: 0xc5
+  Current: 0x2b
+10:50: Unipower I2C EEPROM AT/ST 24V02
+  Contents:
+    54 50 43 4D 33 30 30 30 2D 52 5A 20 20 20 20 20  TPCM3000-RZ
+    30 30 31 2D 34 30 36 33 2D 30 30 37 30 20 20 20  001-4063-0070
+    30 38 30 33 37 4E 31 31 32 32 20 20 20 20 20 20  08037N1122
+    33 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20  3
+    55 4E 49 50 4F 57 45 52 20 20 20 20 20 20 20 20  UNIPOWER
+    55 53 41 20 20 20 20 20 20 20 20 20 20 20 20 20  USA
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+    FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF  ................
+10:57: PSU2 Serial EEPROM
+  Contents:
+    53 4A 4A 48 00 00 00 01 00 00 00 00 00 00 00 00  SJJH............
+    00 00 01 C9 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 44 C7 60 F9 00 00 00 00  ........D.`.....
+    00 00 00 00 44 C7 60 F9 00 00 00 01 00 00 00 00  ....D.`.........
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    50 53 55 20 36 30 30 00 00 00 00 00 00 00 00 00  PSU 600.........
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 03 E7 00 00 00 00 53 58 33 32 30 30 32 32  ........SX320022
+    2D 30 34 00 00 00 00 00 00 00 00 00 00 00 00 00  -04.............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 72 61 7A 6F 72 20 61 64 68 6F 63 00  ....razor adhoc.
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 9E F9 90 BD  ................
+</pre>
+<p></p>
+<pre>This dumps any devices from number 0x50 to 0x100.
+server2-a(NIM):$ i2c-dump 50 100
+0:51: NIM_CPU_MEM  512 MB SDRAM DDR (72 bit, ECC)
+0:57: Card Serial EEPROM
+0:65: Serial ADC MAX1039
+0:B1: Unknown Device
+0:C9: Unknown Device
+0:D1: Unknown Device
+0:D7: Unknown Device
+0:E5: Unknown Device
+1:57: Fan Card Serial EEPROM
+1:D7: Unknown Device
+2:50: 10G Ethernet Port 1 XFP Transceiver
+2:D0: Unknown Device
+4:51: NIM3_TCP_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:52: NIM3_RX_BMEM  1024 MB SDRAM DDR2 (72 bit, ECC)
+4:53: NIM3_RX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:54: NIM3_TX_BMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:55: NIM3_TX_CMEM  512 MB SDRAM DDR2 (72 bit, ECC)
+4:6A: 66M Clock Generator
+4:B1: Unknown Device
+4:B2: Unknown Device
+4:B3: Unknown Device
+4:B4: Unknown Device
+4:B5: Unknown Device
+4:D1: Unknown Device
+4:D2: Unknown Device
+4:D3: Unknown Device
+4:D4: Unknown Device
+4:D5: Unknown Device
+4:EA: Unknown Device
+8:50: Unipower I2C EEPROM AT/ST 24V02
+8:57: PSU1 Serial EEPROM
+8:A0: Unknown Device
+8:C0: Unknown Device
+8:C8: Unknown Device
+8:D0: Unknown Device
+8:D7: Unknown Device
+10:50: Unipower I2C EEPROM AT/ST 24V02
+10:57: PSU2 Serial EEPROM
+10:A0: Unknown Device
+10:C0: Unknown Device
+10:C8: Unknown Device
+10:D0: Unknown Device
+10:D7: Unknown Device
+11:89: Unknown Device
+11:8B: Unknown Device
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

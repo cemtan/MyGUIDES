@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-break-mirrors</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-break-mirrors</h1>
+<p>Tell the server that all a span&#39;s Raid mirrors are about to be broken</p>
+<h1>Syntax</h1>
+<pre>span-break-mirrors [--no-cod-write] &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Some storage can define a mirror relationship between two system drives (SDs), so that the storage keeps the contents of the two SDs identical.  This technique is called 'storage-based mirroring', and is described in the 'storage-based-mirror' man page.</p>
+<p>'span-break-mirrors' informs the server that all the mirror relationships on a span are about to be broken.  The server identifies all the system drives (SDs) that are presently configured as secondaries and removes them from the span.  This ensures that, when the secondaries become stand-alone, the span will not be forced off-line.</p>
+<p>In most cases, primary SDs are mirrored P-Vols and secondary SDs are mirrored S-Vols.  The 'storage-based-mirror' man page describes the exceptions.</p>
+<p>There is no need to unmount file systems before running 'span-break-mirrors'.  The span stays in service.</p>
+<p>When mirrored SDs change roles, the server automatically fails over to the new primary.  Therefore, the SDs that are left in the span after 'span-break-mirrors' has run may be any mixture of the SDs you put into the span when you first created it and the SDs you later added to it when you set up the mirror relationships.  To see which of the span's SDs are currently primaries, run one of these commands:</p>
+<pre>    span-list -s &lt;span-instance-name&gt;
+</pre>
+<p></p>
+<pre>    sd-list -1 &lt;span-instance-name&gt;
+</pre>
+<p></p>
+<p>To see which SDs are currently secondaries:</p>
+<pre>    span-list -s &lt;span-instance-name&gt;
+</pre>
+<p></p>
+<pre>    sd-list -2 &lt;span-instance-name&gt;
+</pre>
+<p></p>
+<p>When it boots, the server loads spans by reading specifications called 'span Cod' from its system drives.  When you break mirror relationships, using a storage configurator such as Storage Navigator or Hitachi Command Suite, the SDs that were secondaries will become eligible to have their span Cod read from them.  The former secondaries will contain the former primaries' Cod; this will cause the server to log severe events.  The example below shows how to use 'sd-span-cod-reads' to suppress these events.</p>
+<p>If the span is unhealthy -- perhaps because the span has one or more primary--primary mirror relationship, which you want to remove -- use the '--no-cod-write' switch.  Once the span has become healthy, use 'span-rewrite-cod' to update the Cod (configuration on disk), so that the change will be made permanent.</p>
+<p>To break only some mirrors, or to recreate mirrors after breaking them, use 'sd-mirror'.</p>
+<h1>Examples</h1>
+<p>Suppose span Accounts is on eight SDs, mirrored like this:</p>
+<pre>  Primary  Secondary
+  -------  ---------
+     0        4
+     1        5
+     2        6
+     3        7
+</pre>
+<p></p>
+<p>Type the following commands:</p>
+<pre># Prevent the server from reading Cod from SDs 4 to 7
+# until we have had time to wipe their Cod signatures:
+</pre>
+<p></p>
+<pre>sd-span-cod-reads 15
+</pre>
+<p></p>
+<pre># Tell the server that the mirror relationships are
+# about to be broken:
+</pre>
+<p></p>
+<pre>span-break-mirrors Accounts
+</pre>
+<p></p>
+<pre># Next, use the SMU or storage configurator to break the
+# mirror relationships.
+</pre>
+<p></p>
+<pre># Now wipe the Cod signatures on the former secondaries,
+# so that their Cod doesn't cause error messages:
+</pre>
+<p></p>
+<pre>sd-wipe-cod-signature 4-7
+</pre>
+<p></p>
+<pre># Finally, tell the server to resume reading Cod and to
+# detect that SDs 4 to 7 have no Cod on them:
+</pre>
+<p></p>
+<pre>sd-rescan-cod
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/sd-span-cod-reads.html">sd-span-cod-reads</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

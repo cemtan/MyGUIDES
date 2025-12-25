@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-rescan-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>sd-rescan-cod</h1>
+<p>Optionally unload a specified span and its filesystems; rescan Cod from unspanned SDs</p>
+<h1>Syntax</h1>
+<pre>sd-rescan-cod [&lt;span-instance-name&gt;]
+Alias:       rcod
+</pre>
+
+<h1>Description</h1>
+<p>Reloads Cod from disk into memory.  The 'cod' man page describes Cod, and gives examples of when it might be useful to reload Cod from disk into memory.  This command is typically used when you have run one or more low-level commands that directly manipulate Cod and you wish the server to use the updated Cod.</p>
+<p>If you run 'sd-rescan-cod' without any command-line parameters, it reads Cod from all licensed, primary, healthy SDs that aren't used in loaded spans, and it loads as many spans, filesystems and chunks as it can.  A primary SD is normally an unmirrored SD or a mirrored P-Vol; the 'storage-based-mirror' man page explains the exceptions.</p>
+<p>If you follow the command with a span instance name, and if no file system on the span is mounted or otherwise in use, the specified span will be unloaded from memory before the scan begins.  This process involves temporarily failing all the filesystems on the span.  If the Cod is consistent, the server will reload it into memory (as well as any other newly consistent spans that it can find).  You can use this form of the command after repairing filesystem Cod -- that is, the filesystem catalogue and the chunk table.  (One alternative is 'span-load-filesystem-cod'.)  'sd-rescan-cod' can also be used to reload encroachment data, although 'span-reload-protection' may be less disruptive for that.</p>
+<p>If you have previously used 'sd-span-cod-reads' to prevent span Cod from being read, 'sd-rescan-cod' will automatically resume Cod-reads. Unlike 'sd-span-cod-reads --resume', 'sd-rescan-cod' will read Cod from all system drives that aren't currently in loaded spans.</p>
+<p>If you have unmounted file systems on a source storage-based snapshot and then used your storage configurator to copy its contents to another snapshot, run 'sd-rescan-cod &lt;span-instance-name&gt;' on the target snapshot to make the server see the changes.</p>
+<p>If the new Cod contains file systems that were not present in the old Cod, you will need to use 'evsfs add' to bind them to EVSs.  If, conversely, the old Cod contained file systems that the new Cod does not, use 'filesystem-forget-and-delete-nv-data' to remove them from the server's registry; this small piece of cleaning up will prevent obsolete file systems from using up device IDs and causing error messages in 'trouble' reports.</p>
+<p>'sd-rescan-cod' returns at once; it does not wait for Cod to load.  A script that requires Cod to have loaded before the next command is run should use 'span-wait-for-loading' with the appropriate command-line arguments.  If you are working interactively and you wish to watch the progress of the system as it reloads Cod without waiting for it, run 'sd-list-queues' and 'filesystem-list-queues'.</p>
+<p>You don't need to run 'sd-rescan-cod' after reviving a failed system drive.  If the server managed to read Cod before the SD failed, it will remember the Cod and not need to re-read it.  Otherwise, it will read the Cod automatically as soon as the SD becomes healthy.  Similarly, if you license an SD, the server will automatically load Cod from it.</p>
+<p>The 'span-rewrite-cod' command does the opposite of 'sd-rescan-cod': it takes a copy of a span config that's loaded into memory and writes it to disk.  It's useful if you suspect that a span's Cod has become inconsistent (perhaps because of an I/O error that caused a failed Cod-write) since the span was loaded into memory.</p>
+<h1>Examples</h1>
+<pre>sd-rescan-cod
+</pre>
+<p></p>
+<pre>sd-rescan-cod Accounts
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-forget-and-delete-nv-data.html">filesystem-forget-and-delete-nv-data</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/sd-list-queues.html">sd-list-queues</a> <a href="../Supervisor/span-reload-protection.html">span-reload-protection</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

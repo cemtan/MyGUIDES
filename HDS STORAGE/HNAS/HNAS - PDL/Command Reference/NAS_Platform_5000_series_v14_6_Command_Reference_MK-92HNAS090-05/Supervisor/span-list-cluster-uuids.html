@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-list-cluster-uuids</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-list-cluster-uuids</h1>
+<p>List the clusters that can mount a span&#39;s filesystems and administer the span</p>
+<h1>Syntax</h1>
+<pre>span-list-cluster-uuids &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>When you create a span, the server automatically assigns it to the HNAS cluster that created it.  Only this cluster can manage the span or mount its file systems.  Other clusters will refuse to do so, even if they load the span from Cod.</p>
+<p>If you wish to move the span to a different cluster for operational or load-balancing reasons, the 'span-assign-to-cluster' man page sets out a safe procedure for doing so.</p>
+<p>In exceptional configurations that use a storage-based replication product such as TrueCopy or HUR and further replication via Thin Image or CoW, it can be useful for the file systems on two copies of a span to be mounted by different clusters.  Since all copies of the span have the same Cod and are therefore have the same cluster assignments, it is necessary to assign both copies of the span to both clusters.  It is therefore possible to assign a span to up to four clusters.</p>
+<p>In such a configuration, it is vital that no copy of the span be accessed by more than one cluster.  If two clusters manage the same span or mount its file systems, data will be at risk.  The 'span-add-cluster-uuid' man page explains how to assign a replicated span to multiple clusters safely.  Lun security and/or switch-zoning must be used to ensure that each copy of the span is accessibly by one cluster at most.</p>
+<p>Every cluster is identified by a unique numeric ID called a UUID.  The commands described here also use cluster names, but those are for administrative convenience only.</p>
+<p>In this man page, everything said about clusters applies also to stand-alone servers.</p>
+<h2>MANAGING MULTIPLE CLUSTER ASSIGNMENTS</h2>
+<p>A span that is not in snapshot mode can be assigned to up to four clusters at once.  The commands for managing cluster assignments are as follows:</p>
+<dl>
+<dt><strong>span-assign-to-cluster</strong></dt>
+<dd><p>Removes all existing cluster assignments.  Assigns the span to the cluster you specify.</p></dd>
+<dt><strong>span-add-cluster-uuid</strong></dt>
+<dd><p>Adds a new cluster assignment without removing existing assignments.</p></dd>
+<dt><strong>span-remove-cluster-uuid</strong></dt>
+<dd><p>Removes one cluster assignment from a span, leaving any others in place.</p></dd>
+<dt><strong>span-list-cluster-uuids</strong></dt>
+<dd><p>Shows all clusters to which a span is assigned.</p></dd>
+</dl>
+<p>The first two of these commands expect you to specify a cluster name.  The server does not check this name when it loads a span: the name is supported only for ease of use, and the server checks only the UUID when deciding whether to manage a span and mount file systems.</p>
+<p>Cluster names are matched case-insensitively.</p>
+<p>You cannot add two cluster assignments with the same name.</p>
+<h2>IF YOU RENAME A CLUSTER</h2>
+<p>If a span is already assigned to a cluster then running 'span-add-cluster-uuid' with the existing UUID and the new name will update the name stored in the Cod, so that 'span-list-cluster-uuids' displays the new name.  However, there is no urgency: it is not necessary to update the name in Cod in order for the span to work with the recently renamed cluster.</p>
+<h1>Examples</h1>
+<p>This section consists of a series of transcripts, with a short exposition after each one.</p>
+<p>The text is wide.  Consider widening your terminal window or using 'man -n'.</p>
+<pre>fs23-2:$ span-create Admin 5-8
+The span has been created
+</pre>
+<p></p>
+<pre>Permanent ID:          0x3d60b743d25705d0
+Capacity:              40GiB (0TiB)
+Span expandable to:    81920GiB (80TiB)
+Each fs expandable to: 5120GiB (5TiB)
+Chunksize:             5GiB
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-83e47acd6471  fs23                 [This cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>When a span is created, the server automatically assigns it to the local cluster.</p>
+<pre>fs23-2:$ span-assign-to-cluster Admin 828dd180-729e-11c7-3692-AAAAAAAAAAAA Alpha
+Success
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-aaaaaaaaaaaa  Alpha                [Not this cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>'span-assign-to-cluster' replaces any existing cluster assignment with the new cluster details you specify.</p>
+<pre>fs23-2:$ span-add-cluster-uuid Admin 828dd180-729e-11c7-3692-BBBBBBBBBBBB Baker
+Success
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-aaaaaaaaaaaa  Alpha                [Not this cluster]
+828dd180-729e-11c7-3692-bbbbbbbbbbbb  Baker                [Not this cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>By contrast, 'span-add-cluster-uuid' adds a new cluster assignment without removing any existing assignments.</p>
+<pre>fs23-2:$ span-add-cluster-uuid Admin 828dd180-729e-11c7-3692-BBBBBBBBBBBB Bravo
+Success
+span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-aaaaaaaaaaaa  Alpha                [Not this cluster]
+828dd180-729e-11c7-3692-bbbbbbbbbbbb  Bravo                [Not this cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>Specifying an existing cluster UUID and a new name changes the name for the existing cluster assignment; it does not add a new assignment.  Remember that the name you specify here needn't match the actual name of the cluster (although it normally will): it is just provided for your convenience.</p>
+<pre>fs23-2:$ span-add-cluster-uuid Admin 828dd180-729e-11c7-3692-CCCCCCCCCCCC Charlie
+Success
+fs23-2:$ span-add-cluster-uuid Admin 828dd180-729e-11c7-3692-DDDDDDDDDDDD Delta
+Success
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-aaaaaaaaaaaa  Alpha                [Not this cluster]
+828dd180-729e-11c7-3692-bbbbbbbbbbbb  Bravo                [Not this cluster]
+828dd180-729e-11c7-3692-cccccccccccc  Charlie              [Not this cluster]
+828dd180-729e-11c7-3692-dddddddddddd  Delta                [Not this cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>A span can be assigned to up to four clusters at once.</p>
+<pre>fs23-2:$ span-remove-cluster-uuid Admin Delta
+Success
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-aaaaaaaaaaaa  Alpha                [Not this cluster]
+828dd180-729e-11c7-3692-bbbbbbbbbbbb  Bravo                [Not this cluster]
+828dd180-729e-11c7-3692-cccccccccccc  Charlie              [Not this cluster]
+fs23-2:$ span-remove-cluster-uuid Admin 828dd180-729e-11c7-3692-cccccccccccc
+Success
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-aaaaaaaaaaaa  Alpha                [Not this cluster]
+828dd180-729e-11c7-3692-bbbbbbbbbbbb  Bravo                [Not this cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>When removing a cluster assignment, you can specify either its UUID or its name.  Matching is case-insensitive.</p>
+<pre>fs23-2:$ span-delete Admin
+The span isn't assigned to this cluster
+fs23-2:$
+</pre>
+<p></p>
+<p>The cluster-assignment commands are the only span-management commands that work on a span that is not assigned to the local cluster.  All other commands, such as 'span-delete', demand that the span be assigned to the local cluster.</p>
+<pre>fs23-2:$ span-assign-to-cluster Admin
+Assigning the span to this cluster
+Success
+fs23-2:$ span-list-cluster-uuids Admin
+828dd180-729e-11c7-3692-83e47acd6471  fs23                 [This cluster]
+fs23-2:$
+</pre>
+<p></p>
+<p>If you don't specify a cluster UUID and name, 'span-assign-to-cluster' assigns the span to the local cluster.  This form of the command is safe only if all clusters to which the span is already bound no longer exist.</p>
+<pre>fs23-2:$ span-delete Admin
+Success
+fs23-2:$
+</pre>
+<p></p>
+<p>Now that the local cluster owns the span, 'span-delete' succeeds.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/cluster-show.html">cluster-show</a> <a href="../Topic/cod.html">cod</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Supervisor/span-add-cluster-uuid.html">span-add-cluster-uuid</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-remove-cluster-uuid.html">span-remove-cluster-uuid</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

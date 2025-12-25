@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>autoserver</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>autoserver</h1>
+<p>Automatically set up server functions for box</p>
+<h1>Syntax</h1>
+<pre>autoserver &lt;--create|--destroy&gt; [--include-spans [--keep-spans]] [--cns] [--factory-only] [--span-size &lt;SDs per span&gt;] [--max-spans &lt;num&gt;] [--wfs &lt;wfs-version&gt;] [--dsb-count &lt;Nr of DSBs&gt;] --confirm
+</pre>
+
+<h1>Description</h1>
+<p>** WARNING: autoserver is destructive and must never be used on a live system **</p>
+<p>The autoserver command automatically sets up or tears down certain aspects of server configuration.  It will delete all CIFS shares, NFS exports, FTP users, object replication policies, file systems, and, if specified, spans.  Depending on the options, it will then put back a sensible default configuration.</p>
+<p>Either the create or destroy option must be used, but not both.</p>
+<p>This command is generally meant to be used in the factory or development environment.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--create</strong></dt>
+<dd><p>Destroys then creates the server setup as described.</p></dd>
+<dt><strong>--destroy</strong></dt>
+<dd><p>Destroys the server setup as described.</p></dd>
+<dt><strong>--include-spans</strong></dt>
+<dd><p>Creates or destroys spans.  The default is to leave the spanning configuration untouched.</p></dd>
+<dt><strong>--keep-spans</strong></dt>
+<dd><p>This switch is used with --create.  It creates new spans and filesystems but does not delete any existing ones.   Use it to add new configuration rather than replacing the existing configuration.</p></dd>
+<dt><strong>--cns</strong></dt>
+<dd><p>Sets up CNS exports.</p></dd>
+<dt><strong>--factory-only</strong></dt>
+<dd><p>Option used in the factory environment only.</p></dd>
+<dt><strong>--span-size &lt;num&gt;</strong></dt>
+<dd><p>Sets the number of system drives per span to attempt to use.</p></dd>
+<dt><strong>--max-spans &lt;num&gt;</strong></dt>
+<dd><p>Sets the maximum number of spans to create.  Useful for systems with many system drives.</p></dd>
+<dt><strong>--wfs &lt;version&gt;</strong></dt>
+<dd><p>Overrides the default wfs (file system) version for a system.</p></dd>
+<dt><strong>--dsb-count &lt;num&gt;</strong></dt>
+<dd><p>See the "format" man page</p></dd>
+<dt><strong>--confirm</strong></dt>
+<dd><p>A sanity check to make sure you know what you're doing.  Without this option the command will be failed.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To set up server config, including up to four spans, each of which will be created from 8 system drives:</p>
+<pre>autoserver --create --include-spans --span-size 8 --confirm
+</pre>
+<p></p>
+<p>To create up to ten spans of five system drives each:</p>
+<pre>autoserver --create --include-spans --span-size 5 --max-spans 10 --confirm
+</pre>
+<p></p>
+<p>To delete the server config, but without touching the spans:</p>
+<pre>autoserver --destroy --confirm
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/format.html">format</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

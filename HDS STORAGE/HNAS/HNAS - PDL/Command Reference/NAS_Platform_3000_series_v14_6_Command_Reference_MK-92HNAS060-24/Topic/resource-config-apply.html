@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>resource-config-apply</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>resource-config-apply</h1>
+
+<h1>Description</h1>
+<p>This man page describes a family of commands used to view and manage system resources.</p>
+<p>The resources within a system are finite and thus some combinations of features may require more resource than is physically available. Overcommitting resources in this way poses a risk to system stability. The resource-config family provides a range of commands to examine the resource usage of the system, to provide warnings for current or hypothetical configurations and to alter the running configuration.</p>
+<dl>
+<dt><strong>resource-memory-total-show</strong></dt>
+<dd><p>Displays the total physical memory available to the operating system.</p></dd>
+<dt><strong>resource-memory-uncommitted-show</strong></dt>
+<dd><p>Displays the memory that will be free when all configuration changes have been applied (which may require a restart) and if all enabled features were using their maximum expected memory footprints. If this value is negative, the system is considered to be overcommitted and a warning will be displayed.</p></dd>
+<dd><p>Warnings will be displayed in the following circumstances:</p></dd>
+<dd><p>* Cluster node(s) could not be contacted.</p></dd>
+<dd><p>* A resource consumer is only known to a subset of cluster nodes during a rolling upgrade.</p></dd>
+<dd><p>* One or more nodes is currently in an overcommitted state.</p></dd>
+<dd><p>* One or more nodes will be in an overcommitted state when restarted.</p></dd>
+<dd><p>In addition, information messages are displayed in the following cases:</p></dd>
+<dd><p>* One or more nodes will no longer be overcommitted when restarted.</p></dd>
+<dd><p>* One or more nodes require a restart to fully apply configuration.</p></dd>
+<dt><strong>resource-consumer-list [-v]</strong></dt>
+<dd><p>Lists all resource consumers that can be configured via resource-config-apply.</p></dd>
+<dd><p>The -v option invokes a verbose output that displays sizes in bytes instead of rounded, human-readable figures.</p></dd>
+<dt><strong>resource-config-show [-v]</strong></dt>
+<dd><p>Displays the configuration of the system's resources in a table that includes a breakdown of the system components considered when calculating the uncommitted memory. The state of the system after a restart is also displayed if it is expected to differ from that currently running.</p></dd>
+<dd><p>Features that are disabled are marked with a '-' to show that they are not considered as part of the memory calculations. Features may also be in an auto-enable state; these features are considered to be disabled for memory calculations. However they may be enabled automatically if an attempt to configure or use the system is made and the system resources would not become overcommitted as a result. Features in this state are marked as '[auto]'.</p></dd>
+<dd><p>Any warning or information messages that would be displayed by resource-memory-uncommitted-show are also displayed by resource-config-show.</p></dd>
+<dd><p>The -v option invokes a verbose output that displays sizes in bytes instead of rounded, human-readable figures.</p></dd>
+<dt><strong>resource-config-test [-f &lt;consumer&gt; {enable | disable | &lt;size&gt;}]... [-v]</strong></dt>
+<dd><p>Evaluates configuration changes to resource usage without applying them to the system.</p></dd>
+<dd><p>Information is displayed in the same format as resource-config-show, including warning messages. Error messages are displayed if the modified configuration would produce an overcommitted state or make an existing overcommitted state worse.</p></dd>
+<dd><p>Modifications to the configuration are specified via the -f parameter, which must be followed by a parameter specifying a resource consumer and either 'enable', 'disable' or a new size, as specified by resource-consumer-list. For example, to test setting the Bali heap to 14 GiB and enabling Data Migrator to Cloud, the following command would be used: resource-config-test -f bali-heap 14G -f dm2cd enable</p></dd>
+<dd><p>The -v option invokes a verbose output that displays sizes in bytes instead of rounded, human-readable figures.</p></dd>
+<dt><strong>resource-config-maximum-safe-heap-show [-f &lt;consumer&gt; {enable | disable}]...</strong></dt>
+<dd><p>Displays the maximum safe size of the Bali heap given the current system configuration.</p></dd>
+<dd><p>The same parameters that can be passed to resource-config-test may also be passed to resource-config-maximum-safe-heap-show, allowing maximum heap sizes to be calculated for hypothetical configurations. However, the bali-heap resource consumer may not be specified via the -f option. The command calculates a maximum size for the Bali heap, so specifying a value for it as a parameter is invalid.</p></dd>
+<dd><p>Use of the safe maximum value for the Bali heap size is not recommended. A value lower than the maximum should be adopted to ensure a tolerance to rounding errors.</p></dd>
+<dt><strong>resource-config-apply {-f &lt;consumer&gt; {enable | disable | &lt;size&gt;}}... [--force-memory-overcommit] [-v]</strong></dt>
+<dd><p>Applies resource usage configuration changes to the system. Modifications are specified via the same -f parameters that are passed to resource-config-test. In addition the --force-memory-overcommit flag may be specified to force the configuration to be applied even if resource-config-test reports that the modifications will cause the system memory to become overcommitted.</p></dd>
+<dd><p>The -v option invokes a verbose output that displays sizes in bytes instead of rounded, human-readable figures.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>This example output is from a larger system. Limits for other models can be seen with the <code>system-limits-show all</code> command.</p>
+<pre>server:$ resource-memory-total-show
+29957000000 B (27.9 GB)
+</pre>
+<p></p>
+<pre>server:$ resource-memory-uncommitted-show
+-1181512896 B (-1.1 GB)
+</pre>
+<p></p>
+<pre>server:$ resource-consumer-list
+</pre>
+<p></p>
+<pre>               Feature    Parameter                                   Options
+----------------------    ---------    --------------------------------------
+             Bali heap    bali-heap                            8 GB - 23.9 GB
+         Deduplication       dedupe        enable / disable (5 GB fixed size)
+Data Migrator to Cloud        dm2cd    enable / disable (1.348 GB fixed size)
+          Embedded SMU          smu                  enable (2 GB fixed size)
+</pre>
+<p></p>
+<pre>server:$ resource-config-show
+</pre>
+<p></p>
+<pre>                Memory     Current
+----------------------     -------
+       System overhead        2 GB
+             Bali heap       20 GB
+         Deduplication        5 GB
+Data Migrator to Cloud      [auto]
+          Embedded SMU        2 GB
+</pre>
+<p></p>
+<pre>       Total available     27.9 GB
+       Total committed       29 GB
+</pre>
+<p></p>
+<pre>    Uncommitted memory     -1.1 GB
+</pre>
+<p></p>
+<p>WARNING: Memory on system is overcommitted by 1.1 GB.</p>
+<pre>server:$ resource-config-show -v
+</pre>
+<p></p>
+<pre>                Memory           Current
+----------------------     -------------
+       System overhead      2147483648 B
+             Bali heap     21474836480 B
+         Deduplication      5368709120 B
+Data Migrator to Cloud            [auto]
+          Embedded SMU      2147483648 B
+</pre>
+<p></p>
+<pre>       Total available     29957000000 B
+       Total committed     31138512896 B
+</pre>
+<p></p>
+<pre>    Uncommitted memory     -1181512896 B
+</pre>
+<p></p>
+<p>WARNING: Memory on system is overcommitted by 1.1 GB.</p>
+<pre>server:$ resource-config-test -f bali-heap 16G
+</pre>
+<p></p>
+<pre>                Memory     Current     Modified     Restarted
+----------------------     -------     --------     ---------
+       System overhead        2 GB         2 GB          2 GB
+             Bali heap       20 GB        20 GB         16 GB
+         Deduplication        5 GB         5 GB          5 GB
+Data Migrator to Cloud      [auto]       [auto]        [auto]
+          Embedded SMU        2 GB         2 GB          2 GB
+</pre>
+<p></p>
+<pre>       Total available     27.9 GB      27.9 GB       27.9 GB
+       Total committed       29 GB        29 GB         25 GB
+</pre>
+<p></p>
+<pre>    Uncommitted memory     -1.1 GB      -1.1 GB        2.9 GB
+</pre>
+<p></p>
+<pre>WARNING: Memory on system would be overcommitted by 1.1 GB.
+Memory on system would no longer be overcommitted after restart.
+Restart would be required on system to fully apply memory settings.
+</pre>
+<p></p>
+<pre>NOTE: The information above is only an illustration.
+Use resource-config-apply to apply configuration changes to the system.
+</pre>
+<p></p>
+<pre>server:$ resource-config-maximum-safe-heap-show
+Maximum safe Bali heap: 20282837824 B (18.89 GB)
+</pre>
+<p></p>
+<p>Parameter group for use with resource-config commands: "-f bali-heap 20282837824"</p>
+<pre>server:$ resource-config-apply -f bali-heap 20282837824
+</pre>
+<p></p>
+<pre>                Memory     Previous     Current     Restarted
+----------------------     --------     -------     ---------
+       System overhead         2 GB        2 GB          2 GB
+             Bali heap        20 GB       20 GB      18.89 GB
+         Deduplication         5 GB        5 GB          5 GB
+Data Migrator to Cloud       [auto]      [auto]        [auto]
+          Embedded SMU         2 GB        2 GB          2 GB
+</pre>
+<p></p>
+<pre>       Total available      27.9 GB     27.9 GB       27.9 GB
+       Total committed        29 GB       29 GB      27.89 GB
+</pre>
+<p></p>
+<pre>    Uncommitted memory      -1.1 GB     -1.1 GB         10 MB
+</pre>
+<p></p>
+<pre>WARNING: Memory on system is overcommitted by 1.1 GB.
+Memory on system will no longer be overcommitted after restart.
+Restart is required on system to fully apply memory settings.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/mmb-memory.html">mmb-memory</a> <a href="../Topic/resource-config.html">resource-config</a> <a href="../Supervisor/resource-config-apply.html">resource-config-apply</a> <a href="../Dev/system-limits-show.html">system-limits-show</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

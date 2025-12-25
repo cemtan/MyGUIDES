@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-uvm-thin-provisioning</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-uvm-thin-provisioning</h1>
+<p>Make the server treat a span as being on UVM if local SDs aren&#39;t on a DP-Pool (regardless of whether remote SDs use HDP or not)</p>
+<h1>Syntax</h1>
+<pre>span-uvm-thin-provisioning &lt;span-instance-name&gt; [no|yes]
+</pre>
+
+<h1>Description</h1>
+<p>The server's support for Hitachi Universal Volume Manager is described in the 'uvm' man page.</p>
+<p>'span-uvm-thinly-provisioned' sets a flag that informs the server that a UVM-based span (or a single tier of a tiered UVM-based span) resides on two or more external HDP pools, and that some of the span's stripesets reside on one external HDP pool while one or more other stripesets reside on one or more other external HDP pools.  (Every new span contains one stripeset; a further stripeset is added every time the span is expanded by 'span-expand' or an equivalent GUI screen.)</p>
+<p>If the flag is set then, during a filesystem-expansion where two or more stripesets are available, the administrator will be obliged to choose a stripeset, and thus a remote HDP pool, via 'filesystem-expand --on-stripeset'.  If only one stripeset is available for a given expansion, or if the span does not reside on UVM internal LUs, the flag set by this command has no effect.</p>
+<h2>DOWNGRADES</h2>
+<p>The flag set by 'span-uvm-thinly-provisioned' is stored in span Cod.  Setting this flag requires a new span Cod schema (format).  If you downgrade to release 12.7, the server will successfully load the Cod but ignore the flag.  If you downgrade to release 12.6 or earlier, the server will be unable to load the Cod, and you will be unable to mount file systems.  Therefore, use this command only when necessary, and turn off the flag before attempting to downgrade the code on the server.</p>
+<p>If you have to downgrade to release 12.6 without first disabling the flag, your service provider will be able to use 'sd-back-up-cod' to take a single-SD Cod backup, use the Cod Converter from release 12.7 to convert it to an integrated Cod backup (and discard the new flag in the process), use 'span-restore-cod' to restore the integrated Cod backup, and finally use 'span-rewrite-cod' to update the Cod so that it loads next time you reboot the cluster.</p>
+<h1>Examples</h1>
+<pre>server:$ span-uvm-thin-provisioning Accounts yes
+Success
+server:$ span-uvm-thin-provisioning Accounts
+Enabled
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/span-back-up-cod.html">span-back-up-cod</a> <a href="../Supervisor/span-restore-cod.html">span-restore-cod</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Topic/uvm.html">uvm</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

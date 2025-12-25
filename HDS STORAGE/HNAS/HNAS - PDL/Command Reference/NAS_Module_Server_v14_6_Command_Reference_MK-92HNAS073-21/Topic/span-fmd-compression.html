@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-fmd-compression</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-fmd-compression</h1>
+
+<h1>Description</h1>
+<p>Some storage contains flash module drives (FMDs) that transparently compress the data stored on them.  Compression is a powerful way to reduce storage costs, but it does require extra care and monitoring by the administrator.</p>
+<h2>THE CAUSE AND CONSEQUENCES OF RUNNING OUT OF SPACE</h2>
+<p>Not all data is equally compressible.  For example, plain English text is readily compressible, whereas media files or archives that have already been compressed cannot be compressed again.  Therefore, the amount of data that an FMD can store depends on the nature of that data.  Even in the absence of file system snapshots, if a client deletes a large directory of plain text files and replaces it with a directory of media files of the same total size, more physical space will be needed, and the HDP pool may run out of space.</p>
+<p>If the HDP pool runs out of space, it will be blockaded, and all spans that use DP-Vols on that HDP pool will fail.  This possibility makes it essential for the administrator to monitor physical space on the HDP pool and prevent it from becoming exhausted.</p>
+<h2>HOW TO AVOID OVER-COMMITTING SPACE</h2>
+<p>When setting up an HDP pool on FMDs, you follow these steps in your storage configurator (such as Storage Navigator):</p>
+<ol>
+<li>Create one or more parity groups (PGs) on FMDs.</li>
+<li>Enable compression on the PGs.  The storage configurator now treats each PG as if it were eight times its actual size.</li>
+<li>Create LDEVs on these PGs.</li>
+<li>Create an HDP pool on the LDEVs.  The LDEVs are now known as pool volumes (PVs).</li>
+<li>Create DP-Vols on the HDP pool.</li>
+<li>Assign the DP-Vols to host paths, and give them host Luns.  Use HDP thin provisioning: make the total capacity of the DP-Vols roughly three times that of all the underlying PVs.</li>
+<li>On the server, license the DP-Vols (perhaps using 'sd-allow-access') and create a span (perhaps using 'span-create').</li>
+</ol>
+<p>In step 3, resist the temptation to fill up the available space with LDEVs.  For example, if the physical capacity of a PG is 10TiB, switching on compression will enable you create 80TiB of LDEVs on the PG.  Never do this, because the FMDs cannot achieve an 8:1 compression ratio.</p>
+<p>Ideally, the ratio of LDEV space to PG space will be very slightly smaller than the compression ratio achieved by the FMDs.  For example, if the FMDs achieve a 1.5:1 compression ratio, keeping the ratio of LDEV capacities to PG capacities below 1.5:1 will prevent the HDP pool from ever running out of space.  You might, in this case, pick a 1.4:1 ratio, and create 14TiB of LDEVs on your 10TiB PG.</p>
+<p>In practice, it is impossible to make an accurate prediction of the compression ratio that FMDs will achieve before the data has been written.  Indeed, the ratio will change as old data is deleted and new data is written.  When setting up a new system, therefore, it is wise to assume that the FMDs will achieve no compression at all.  On each 10TiB PG, set up only 10TiB of LDEVs.  Once you have a mature span, containing a good deal of data of the kind you wish to store, determine the compression ratio, create more LDEVs, and add them to the HDP pool.  For example, if you find that the FMDs have achieved 1.5:1 compression ratio, create a further 4TiB of LDEVs for each 10TiB PG, or an extra 8TiB for each 20TiB PG, or whatever it may be.  Assuming that the FMDs will achieve 1.4:1 when they have proved themselves capable of achieving 1.5:1 gives you a margin of error and ensures safety, provided that the nature of the data stored on the HDP pool does not change.</p>
+<p>(If it does change, you can take steps to keep the HDP pool running; see below.)</p>
+<h2>WHAT COMPRESSION RATIO TO EXPECT</h2>
+<p>FMDs do not achieve the same compression ratio as command-line compressors such as gzip, bzip2 or xz.  They do a different job: they have to store file system metadata (which may be less compressible than user data), and FMD compression has to be fast enough to be transparent.</p>
+<h2>HOW TO MONITOR FREE PHYSICAL SPACE AND COMPRESSION RATIOS</h2>
+<p>The the compressed HDP pool underlying each stripeset, 'span-list -s' reports free physical space (in gibibytes and as a percentage), total physical space, and the saving as a percentage.  The saving is the percentage by which the use of physical space has been reduced by compression.  To calculate a compression ratio, use this formula:</p>
+<pre>Compression ratio = 1 / (1 - saving/100)
+</pre>
+<p></p>
+<p>Here are some examples of savings converted to approximate compression ratios:</p>
+<pre>Saving    Compression ratio
+------    -----------------
+  20%       1.25:1
+  33%       1.50:1
+  40%       1.67:1
+  50%       2.00:1
+  60%       2.50:1
+  67%       3.00:1
+</pre>
+<p></p>
+<h2>FILESYSTEM AUTO-EXPANSION</h2>
+<p>Filesystem auto-expansion will be disabled in two circumstances that apply only to compressed spans:</p>
+<ul>
+<li>When the span (or one tier of the span) resides on two or more compressed HDP pools, because the server cannot determine which HDP pool can most safely satisfy the expansion request;</li>
+<li>When free physical space, added to the threshold set by 'span-set-cap-warn-thresh', is below 100.  For example, if you have set a capacity warning threshold of 80% and free physical space falls below 20% of the total, auto-expansion will be disabled.  This safety mechanism helps to prevent physical space from becoming exhausted, causing the HDP pool to fail.  When free space increases, auto-expansion will automatically be re-enabled.</li>
+</ul>
+<p>On a tiered span, if one of these conditions applies to either tier, auto-expansion will be disabled on both tiers.  This safeguard prevents data from spilling on to the wrong tier.</p>
+<p>Auto-expansion will be disabled even if the span has vacated chunks (left over by filesystems that have been deleted and recycled), because the server cannot predict whether the data that would be written to newly allocated chunks would be more or less compressible than the data (if any) already written to the vacated chunks.  However, if the vacated chunks contain compressible data, you can free up space on physical storage by running 'span-unmap-vacated-chunks'.</p>
+<p>Because it is inconvenient for auto-expansion to be disabled, 'span-expand' will prompt you for an override before you add a second compressed HDP pool to a span (or to one tier of a span).  It is therefore impossible to get a span into this state accidentally.</p>
+<h2>MANUAL FILESYSTEM EXPANSION</h2>
+<p>If a span resides on two or more compressed HDP pools, the server cannot determine which HDP pool can most safely satisfy any request for new space.  You will therefore need to specify a stripeset (for example, by running 'filesystem-expand --on-stripeset' whenever you expand a filesystem.</p>
+<p>On a tiered span, the check is performed separately for each tier.  For example, if Tier 0 resides on one compressed HDP pool and Tier 1 resides on two compressed pools, specifying a stripeset will be mandatory when you expand a filesystem on Tier 1 but not on Tier 0.</p>
+<h2>RESERVING FREE SPACE FOR USE IN AN EMERGENCY</h2>
+<p>Despite the diligence of the administrator in monitoring free space and responding when it becomes depleted, it is always possible that the average compressibility of the data stored on an HDP will change and the HDP pool will run out of space and become blockaded.  You may wish to reserve a small amount of space that, in an emergency, you can release in order to remove the blockade.</p>
+<ul>
+<li>After creating your HDP pool, create four small DP-Vols of perhaps 25GiB each.</li>
+<li>Assign the DP-Vols to paths and assign them host Luns in the usual way.</li>
+<li>On the server, license the DP-Vols (perhaps using 'sd-allow-access') and create a span on them (perhaps using 'span-create').</li>
+<li>Create, format and mount a file system on the span, perhaps using 'filesystem-create -b4'.</li>
+<li>Create either an NFS export (perhaps using 'nfs-export') or an SMB share (perhaps using 'cifs-share').</li>
+<li>On a client machine, write incompressible data to the file system.  Use /dev/urandom if you have it, or else copy on media files or compressed archives of non-confidential data.</li>
+<li>Unmount the NFS share or SMB export on the client machine.</li>
+<li>Unmount and delete the file system.</li>
+<li>Delete the span.</li>
+<li>In your storage configurator, remove the four small DP-Vols from their host groups, but do not delete the DP-Vols themselves.</li>
+<li>On the server, use 'sd-forget' to remove the DP-Vols from the registry.</li>
+</ul>
+<p>The result of this procedure is four small DP-Vols containing incompressible data, and therefore occupying a known amount of physical space.  For example, if each DP-Vol has a capacity of 25GiB, each one will occupy about 25GiB of physical space.</p>
+<p>If the HDP pool should ever run out of physical space and become blockaded, you can delete one or more of these four DP-Vols in order to remove the blockade and bring the HDP pool, its spans and its filesystems back into service at once.</p>
+<p>You can reserve emergency space at any time, even on a mature system.</p>
+<h2>FILESYSTEM CREATION AND EXPANSION</h2>
+<p>It is wise to use 'span-confine' or 'filesystem-confine' to prevent uncontrolled auto-expansion of file systems, which might cause the HDP pool to run out of space.  In the current release, the server is not aware of FMD compression and physical space and, in the absence of confinement, will auto-expand a file system even if the physical space on the HDP pool is almost exhausted.</p>
+<p>When contemplating a manual filesystem expansion, you can use information provided by your storage configurator to determine whether the expansion is likely to be safe.  For example, suppose that Storage Navigator reports that the HDP pool has 500GiB of free physical space and that the saving is 33% -- in other words, the compression ratio is about 1.5:1.  These figures indicate that the HDP pool can store about 750GiB more data (assuming that the new data is as compressible as the old) before running out of space.  In practice, you will want to expand the file system by less than 750GiB, leaving a margin to account for the varying compressibility of data.</p>
+<p>Perform the same calculation before creating a new filesystem.  Initially, it is safest to assume that a new file system will achieve a low compression ratio unless it is intended to hold data of the same types as the other file systems on the same HDP pool.</p>
+<p>Another reason to leave a margin is that chunks that have recently been added to file systems may not yet have data on them.  These chunks may hold almost nothing but zeroes, and long stretches of zeroes are highly compressible.  The compression ratio reported by the storage may be optimistic after a recent filesystem-expansion; it may fall after the server has written to recently allocated chunks.</p>
+<h2>WHAT TO DO WHEN FREE PHYSICAL SPACE IS LOW</h2>
+<p>If physical space falls close to zero, it is best to create new parity groups, place LDEVs on them, and add those LDEVs to the HDP pool.</p>
+<p>If that is impossible, or will take too long, there are other measures that you can try.</p>
+<h3>Freeing up deleted data</h3>
+<p>Run 'span-list-recycle-bin' for each span that uses space on the HDP pool.  Use 'filesystem-recycle' to recycle any deleted filesystems that you are sure you will not want again.</p>
+<p>Next, run 'span-list -s' against each span that uses space on the HDP pool.  For each span that shows some vacated chunks, return those chunks to the storage by running 'span-unmap-vacated-chunks'.  Understand that the performance of the block storage will be reduced, and consider using 'span-throttle-unmapping' to take the performance penalty outside peak hours.  (That command's man page explains how to use it.)</p>
+<h3>Preventing demand from getting worse</h3>
+<p>If you have not done so already, use 'span-confine' to prevent filesystems from auto-expanding.  If file systems become very full, they will slow down, but each block written will overwrite a previously used block, rather than taking new space and increasing the demand for physical space.</p>
+<h3>Zeroing out blocks inside file systems</h3>
+<p>Nothing is more compressible than a long run of zeroes.  If you have a mature file system on which every block has been used at least once, you can zero out the contents of previously-used blocks that contain non-zero data but are not currently in use.</p>
+<p>Start by deleting any unwanted data.  Next, if you can, delete the oldest snapshot on the file system.  Finally, and repeatedly, create 16MiB files full of zeroes on the file system and immediately delete them again.  On Linux, you can efficiently create such a file (called /mnt/fs/foo) as follows:</p>
+<pre>dd if=/dev/zero bs=1M count=16 of=/mnt/fs/foo
+</pre>
+<p></p>
+<p>This should be considered a very short-term measure: as the File System writes new data, it will overwrite the zeroes with data that is less compressible, and the amount of free physical space on the HDP pool will start to fall immediately.</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Topic/hdp.html">hdp</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-forget.html">sd-forget</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-delete.html">span-delete</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-list-recycle-bin.html">span-list-recycle-bin</a> <a href="../Supervisor/span-throttle-unmapping.html">span-throttle-unmapping</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

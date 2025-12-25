@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>uvm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>uvm</h1>
+
+<h1>Description</h1>
+<p>Release 13.0 introduces support for Hitachi Universal Volume Manager (UVM).  UVM permits storage on other storage arrays to be presented to the server as if it were local.  The server also adds support for migration via Hitachi Tiered Storage Manager (HTSM).</p>
+<p>This man page does not duplicate information presented in UVM and HTSM user guides, but focuses on how the server interoperates with these products.</p>
+<h2>DETECTING UVM</h2>
+<p>UVM works with external and internal LUs.  <strong>External LUs</strong> are LUs presented by other storage systems; the local storage array virtualizes these external LUs and presents them to the server as <strong>internal LUs</strong>, which looks to the server as if they resided on the storage system's own disks.</p>
+<p>If the LUs to be virtualized are relatively large, the administrator must create a <strong>DDM pool</strong> on the local storage.  The administrator uses the external LUs as the underlying storage for this DDM pool, and each DP-Vol in the DDM pool, which is presented to the server as an internal LU, corresponds exactly to one of these external LUs.</p>
+<p>If the external LUs are relatively small, the administrator can still create a DDM pool, but may instead opt to virtualize the LUs directly.</p>
+<p>In either case, the server can detect UVM internal LUs, and will automatically treat the span as residing on UVM storage.</p>
+<h2>TAKING OVER A UVM-BASED SPAN</h2>
+<p>Assume that Span Foo resides on Storage S and is used by Cluster C, and you wish to use it on Cluster D instead.  Follow this procedure:</p>
+<ul>
+<li>On Cluster C, cleanly unmount all file systems.</li>
+<li>On Cluster C, run 'span-assign-to-cluster Foo &lt;UUID&gt; &lt;cluster-name&gt;', specifying the name and UUID of Cluster D.</li>
+<li>On Cluster C, run 'span-deny-access Foo'.</li>
+<li>Use Lun-mapping, switch-zoning or both to ensure that Cluster C can no longer access the LUs in Span Foo.</li>
+<li>Following the instructions in the UVM User Guide, set up UVM internal LUs on Storage T and make them visible to Cluster D by assigning host Luns to them.</li>
+</ul>
+<p>The remaining instructions all take place on Cluster D.</p>
+<ul>
+<li>Depending on the configuration of your storage, it may be necessary to run 'scsi-refresh' on the server to enable it to see the new internal LUs.</li>
+<li>Run 'sd-list --hdp all:denied' to identify the new UVM internal LUs.</li>
+<li>Use 'sd-allow-access' to license the UVM internal LUs.  If there are no other unlicensed SDs, you can license the internal LUs easily by running 'sd-allow-access all:denied'.</li>
+<li>Run 'span-wait-for-loading' to give the span and filesystems time to load from Cod.</li>
+<li>If 'span-list' does not show the span, use 'sd-recover-from-changed-luids' and 'span-rewrite-cod' to recover the span.</li>
+<li>Use 'evsfs' to bind each file system to an EVS.</li>
+<li>Finally, mount each file system and create the necessary exports and shares.</li>
+</ul>
+<p>This procedure ensures that the two clusters never access the same span at the same time.  This prohibition is necessary for data integrity.</p>
+<h2>TREATING A SPAN AS UVM</h2>
+<p>With normal HDP pools, the server can detect how much disk space is available, and it never allocates new chunks to a filesystem if no HDP pool in the span has enough space.  The server also performs pre-allocation writes: when a chunk is allocated, the server writes a non-zero block to every HDP page in the chunk, so that the free space on the HDP pool falls immediately and the server has an accurate view of how much space is left.  If an HDP pool were to run out of space, write operations would fail and file systems would unmount.  It would be impossible to remount them until new space had been added to the HDP pool.</p>
+<p>With UVM, the server has no way to determine whether the external LUs are thinly provisioned and, if so, how much free disk space is left and what the HDP page size is.  The server is therefore unable to guard against running out of disk space as effectively as it can with a local HDP pool.  It is therefore the administrator's job to ensure that no external HDP pool ever runs out of space.</p>
+<p>For a span residing on UVM LUs, the behavior of the server changes as follows:</p>
+<ul>
+<li>In 'span-list', the 'Con' column displays the letters 'UVM'.  'span-list -s' does not show how much free space is available at storage level, because that information is not available to the server.</li>
+<li>Because the server can never prove that any filesystem expansion is safe, auto-expansion is disabled.  Manual expansion is still allowed, but it is the administrator's responsibility to ensure that any external HDP pools never run out of space.</li>
+<li>In order to help the administrator form an accurate picture of the available free space, the server performs pre-allocation writes when a new chunk is allocated, just as it would on HDP.  Because it cannot determine the external LUs' page size, it performs pre-allocation writes twice: once assuming 32MiB pages (as used by HUS and AMS) and once assuming 42MiB pages (as used by Enterprise storage platforms).  However, if the external storage comes from a different vendor and uses a smaller page size, pre-allocation writes will reduce the free space by less than the expected amount, and the rest of the reduction will occur at an indeterminate time later, when the Filesystem writes to the newly allocated chunks for the first time.  The administrator must take extra care when virtualizing non-Hitachi external storage over UVM.</li>
+<p>Performing two sets of pre-allocation writes does not take twice as long as performing one set, because HDP pages are mapped to real disk space only once.</p>
+<p>In rare cases where pre-allocation writes cause problems, they can be disabled for the system as a whole via 'span-hdp-preallocation'.  This decision will make filesystem-expansion faster, but will cause the server to over-estimate available space on HDP and the administrator to over-estimate available space on UVM.  Do not disable pre-allocation writes if there is any alternative solution.</p>
+<li>When any span is expanded, the server enforces minimum SD-counts in order to help maintain performance.  The minima are more lenient for plain storage than for HDP, because provisioning a given number of thinly provisioned DP-Vols is cheaper, in general, than provisioning the same number of plain SDs.  For cost reasons, with UVM, the server enforces the same minima as for plain storage.  However, whenever possible, it is wise to adhere to the stricter HDP rules whenever possible; they can be found in the 'span-create' man page.  Expanding on to more SDs will help to ensure that adequate queue depth is available.</li>
+<li>If a span resides on UVM storage, you can use HTSM to migrate its LUs to a new, local HDP pool.  While migration is in progress, the span will be treated as still residing on UVM, even after some of its LUs have migrated to the new, local HDP pool.  The server will overlook the fact that a stripeset is split between two pools (which would normally be a forbidden configuration), but filesystems will not auto-expand.  As soon as all LUs have migrated, the server will treat the span as residing on HDP: auto-expansion will resume, and the server will perform its normal checks for free space before allocating chunks.</li>
+<li>The server maintains a vacated-chunks list, just as on HDP, so that deleting and recycling one filesystem and creating or expanding another will reuse the same chunks, rather than picking new ones.  If the external LUs are thinly provisioned, they will benefit from the reuse of HDP pages that are already mapped to real disk space.</li>
+<li>The server cannot unmap HDP pages on the external LUs, and so 'span-unmap-vacated-chunks' will not run on a UVM-resident span.</li>
+<li>If a span resides on UVM internal LUs, you can expand it on to DP-Vols from a local HDP pool.  You can also expand on to DDM LUs from any DDM pool.</li>
+<li>You cannot expand a span on to UVM internal LUs if it resides entirely on HDP DP-Vols.</li>
+</ul>
+<p>The server detects UVM separately for each span.  On a single system, some spans can reside on plain storage, some on HDP and some on UVM internal LUs.</p>
+<h2>IF THE EXTERNAL LUS RESIDE ON MULTIPLE HDP POOLS</h2>
+<p>When you create or expand a filesystem, the server must find free chunks of disk space for it.  If the span resides on two or more stripesets -- that is, if the span has been expanded -- then the server must choose a stripeset to provide the space for each new chunk.  If both stripesets' SDs are virtualizations of LUs on the same remote HDP pool, the server can choose either stripeset with equal safety.  However, if there are two or more remote HDP pools and they have different amounts of free space, the server has no way to tell which stripeset is the safest.  That decision should therefore be made by the administrator.</p>
+<p>If a UVM-based span resides on two or more thinly provisioned remote HDP pools, the person provisioning the system must run 'span-uvm-thin-provisioning' to warn the server.  Each time a filesystem is expanded, the server will require the administrator to choose a stripeset via 'filesystem-expand --on-stripeset'.</p>
+<p>The engineer provisioning the system must run 'span-uvm-thin-provisioning' once for each span that is in this configuration.</p>
+<p>There is no 'filesystem-create --on-stripeset' switch.  Therefore, when a new filesystem is needed, the administrator should check that all HDP pools contributing space to the span have enough space; then create the smallest possible fileystem; and then use 'filesystem-expand --on-stripeset' to expand it on to a stripeset that has enough disk space.</p>
+<h2>MIGRATING DATA TO THE LOCAL CLUSTER</h2>
+<p>As remarked above, the administrator can take a span that is virtualised by UVM and migrate it to the local storage, using HTSM.  The two principal advantages are that a span residing locally will be faster than one accessed over UVM (especially if the local storage is newer), and that the server will regain the ability to check for free space and protect the HDP pool from running out of space.</p>
+<p>If the existing span violates the HDP rules introduced in release 12.1, perhaps by spreading a single NAS stripeset across DP-Vols from multiple HDP pools, a migration can be used to bring it into compliance.  Best practice is one span per thinly provisioned HDP pool.</p>
+<h3>Making efficient use of disk space</h3>
+<p>If you migrate data to a local HDP pool, that local HDP pool must be thickly provisioned, even if the external LUs are not.  For example, imagine a remote HDP pool with six 10TiB pool volumes and twenty 8TiB DP-Vols.  If you migrate the data to local storage, the local HDP pool needs to provide 160TiB of pool volumes or parity groups, rather than the 60TiB that were present on the remote storage.</p>
+<p>If the remote HDP pool contains multiple spans, you can mitigate this inefficiency as follows:</p>
+<ul>
+<li>Identify the span with the largest amount of free space -- that is, the largest different (in TiB) between the total capacity of the filesystems and the capacity of the span.</li>
+<li>If you have recently deleted filesystems from that span and you are confident that you will not need to undelete them, run filesystem-recycle --all-filesystems against the span.</li>
+<li>Migrate this span, as described above.  Wait for migration to complete.</li>
+<li>After migration has completed, the free space on the local HDP pool will have fallen by the capacity of the span (rather than just the capacity of the filesystems on it).</li>
+<li>Run 'span-unmap-vacated-chunks --exaustive' against the span.  This command will launch a background process that gives unused space back to the local HDP pool.  Within a few minutes, the free space on the local HDP pool will start to rise slowly as the storage zero-initializes the HDP pages that the server has returned to the HDP pool, and it will keep rising as the storage continues to zero-initialize HDP pages, even after the unmapping process logs an event on the Admin Service to say that it has finished.  To reduce the performance impact on the system, reduce the format priority or use 'span-throttle-unmapping'.  You can check the free space on the HDP pool using 'span-list --sds', but the server has no way to monitor or manage the zero-initialization process.</li>
+<li>As soon as the local HDP pool has space, migrate the second span, chosen in the same way as before.</li>
+</ul>
+<p>Continue with this process until all spans have been migrated.</p>
+<h2>WHEN UVM SHOULD BE AVOIDED</h2>
+<p>UVM cannot be used with spans or filesystems that are not supported on the new cluster.  These include:</p>
+<ul>
+<li>Spans with only one admin area per system drive.  (These spans, which used to be known as singly engraved spans, have caused a deprecation event to be logged at boot time since Release 12.0.)</li>
+<li>File systems formatted to a version older than WFS-2 if the new cluster is Unified.</li>
+<li>File systems with object-based snapshots.</li>
+</ul>
+<p>For such data, use Universal Migrator instead of UVM.</p>
+<h2>WHEN BLOCK-LEVEL MIGRATION SHOULD BE AVOIDED</h2>
+<p>For optimal performance, a span should have a single stripeset (i.e. it should never have been expanded), that stripeset should contain a large number of system drives, and it should reside on a thinly provisioned HDP pool.  The more a span differs from this ideal configuration, the worse it will perform, even after migration to new storage.  The worst case is a span for which 'span-list -s' shows a large number of stripesets of one or two SDs each and 'span-space-distribution' shows that filesystems are not evenly spread across those stripesets.</p>
+<p>A second configuration that cannot be helped by migration is a filesystem that is much smaller than the current maximum size, but which, according to 'filesystem-scalability', cannot expand because it has used up most or all of the available chunk runs.</p>
+<p>For such configurations, prefer Object Replication or Universal Migrator.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-recycle.html">filesystem-recycle</a> <a href="../Supervisor/filesystem-scalability.html">filesystem-scalability</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Supervisor/scsi-refresh.html">scsi-refresh</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Topic/sd-queue-depth.html">sd-queue-depth</a> <a href="../Supervisor/sd-recover-from-changed-luids.html">sd-recover-from-changed-luids</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Supervisor/span-space-distribution.html">span-space-distribution</a> <a href="../Supervisor/span-throttle-unmapping.html">span-throttle-unmapping</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Supervisor/span-uvm-thin-provisioning.html">span-uvm-thin-provisioning</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

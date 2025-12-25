@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>remote-cvl-http-perf</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>remote-cvl-http-perf</h1>
+<p>Display remote CVL HTTP performance statistics</p>
+<h1>Syntax</h1>
+<pre>remote-cvl-http-perf [--reset] [--graph] [&lt;server name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The remote-cvl-http-perf command displays performance statistics about remote cross volume link HTTP activity. Performance statistics can be displayed as ASCII graphs, showing the round trip response times for each CVL HTTP operation.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>Reset performance statistics for all remote HTTP servers, or just for the specified one.</p></dd>
+<dt><strong>-g, --graph</strong></dt>
+<dd><p>Display statistics graphically.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display the remote CVL HTTP performance statistics graphically for remote server weasel:</p>
+<pre>remote-cvl-http-perf --graph weasel
+</pre>
+<p></p>
+<p>Reset the remote CVL HTTP performance statistics for remote server dobson:</p>
+<pre>remote-cvl-http-perf -r dobson
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/enhanced-perf-stats.html">enhanced-perf-stats</a> <a href="../Supervisor/remote-cvl-http-errors.html">remote-cvl-http-errors</a> <a href="../Supervisor/remote-cvl-http-stats.html">remote-cvl-http-stats</a> <a href="../Supervisor/remote-http-errors.html">remote-http-errors</a> <a href="../Dev/remote-http-stats.html">remote-http-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

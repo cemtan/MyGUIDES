@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ldap</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ldap</h1>
+
+<h1>Description</h1>
+<p>LDAP (Lightweight Directory Access Protocol) is a generic interface protocol for accessing hierarchical databases. It is used in multiple server subsystems. Within this server its most obvious usage is in providing a replacement for the classic NIS (Network Information Service) directory interface.</p>
+<p>This man page discusses the basics of configuring this server to utilize an LDAP-based NIS infrastructure. For this to work, your environment must include one or more suitable LDAP servers.</p>
+<p>Unless clearly specified otherwise, where the term "LDAP" occurs in server management interfaces (console commands and GUI) it should be taken to refer to this NIS usage.</p>
+<p>A given NAS server EVS configuration may be set up to access either a classic NIS environment or a NIS-over-LDAP environment, but not both. If you have per-EVS security licensed, then separate EVS security contexts may have different NIS types (classic / LDAP) configured.</p>
+<p>Note that LDAP and NIS in general are primarily used in Unix environments. If you are running a pure Windows environment, then you probably will not need or want to configure LDAP.</p>
+<h2>Configuring the server to use LDAP for NIS</h2>
+<p>Before any further LDAP configuration can be made, it is necessary to first enable the server to use LDAP for NIS. This is done using the following commands:</p>
+
+<p><strong>nis-state on</strong></p>
+<p><strong>nis-ldap-mode -m ldap</strong></p>
+
+<p>As for classic NIS, it is necessary to configure the "domain" of the NIS-over-LDAP directory. In this case the domain is actually an LDAP DN (distinguished name) representing the base of the searchable directory tree. In the simple case where this DN consists only of "DC=..." elements, the <strong>domainname</strong> command may be used. Otherwise it is necessary to use the <strong>ldap-search-config</strong> command instead. Note that while the base DN is specified as-is when using ldap-search-config, it is simplified to what looks like a DNS domain name when used with the domainname command. See these commands' respective man pages for further details.</p>
+<h2>LDAP Varieties</h2>
+<p>Since LDAP provides a database interface, it is necessary to define the structure of the database being accessed. This structure definition is referred to as a "schema". As used here, the term schema includes LDAP attribute and group name definitions. It does not define the actual tree structure of the database. This generally does not matter as entries are located by keyword searches, but for LDAP server performance (and occasionally security) reasons it is possible to limit the scope of LDAP searches issued by the server. This is discussed further below in the LDAP Server Performance section of this man page.</p>
+<p>When LDAP was originally adapted to NIS use a schema was defined by RFC-2307. This schema is in common use today, particularly in pure Unix environments.</p>
+<p>To simplify management of a common directory in mixed Unix / Windows environments, Microsoft extended their Active Directory database to include an RFC-2307-like schema, but they changed some of the RFC-2307 attribute names. Not content to do this once, Microsoft have defined two different such schemas: SFU (Services For Unix) is often hosted by Windows 2003 AD domains, while IMU (Identity Management for Unix) is hosted by Windows 2008 AD domains. Either of these two schemas permits central AD-based management of a single user directory for both Unix and Windows systems.</p>
+<p>By default, the LDAP client is configured for conventional RFC-2307 queries but you can configure HNAS to work with the native AD (Active Directory) schema, IMU (Identity Management for Unix) schema or SFU (Services for Unix) schema with the <strong>ldap-schema</strong> command.</p>
+<p>The primary reason to use AD schema is if one wants to have a unified directory structure, use the same domain controllers to map SIDs used by Windows clients supported by AD natively and Unix attributes supported by LDAP, without having to use third party software or install Microsoft-provided add-ons such as IMU or SFU, which are either deprecated or no longer available from Windows 2012 onwards. The difference between the AD and IMU schema is that the AD schema gets the Unix user and group names from the same attribute as Windows uses natively. The uidNumber and gidNumber fields can be set with Windows PowerShell 'cmdlet' called 'Set-NfsMappedIdentity' from a Windows operating system.</p>
+<p>In a single configuration, this NAS server can access only one of the above schemas. If you have per-EVS security licensed, then each EVS security context may have a separate schema configured.</p>
+<p>There are two versions of the LDAP protocol in use, version 2 and version 3. In general, version 3 is much more widely deployed at this time, and that is the default version used by the NAS server. If your environment uses LDAP version 2 servers, use the <strong>nis-ldap-version</strong> command to configure the NAS server for LDAP version 2.</p>
+<h2>Connecting to LDAP Servers</h2>
+<p>LDAP servers must be manually added to the NAS server's configuration. This is done using the <strong>ldap-server</strong> command, which may also be used to display currently configured LDAP servers and their responsiveness. As with other LDAP configuration items, the list of servers is maintained on a per-EVS security context basis (though responsiveness is tracked for each serving EVS IP address).</p>
+<p>For each EVS security context the NAS server uses only a single LDAP server at any one time. If you configure a single context to use more than one LDAP server, ensure that each LDAP server contains a full copy of the directory. There is no assurance of which of a context's listed LDAP servers will be used for any given query.</p>
+<p>The NAS server may access LDAP servers using either basic unencrypted LDAP or LDAP-over-TLS (TLS was formerly known as SSL). If needed, credentials may be supplied to authenticate the NAS server with the LDAP server. Credentials and TLS enable are all configured using the <strong>ldap-security</strong> command. If you configure authentication credentials it is <strong>strongly</strong> suggested that you also enable TLS: the credentials are sent to the LDAP server using a "simple bind" which means that the credentials (username/password) are not encrypted unless TLS is enabled.</p>
+<p>Note that the username credential supplied to ldap-security must be in the form of an LDAP distinguished name, and not a simple username. This is discussed further in the ldap-security man page.</p>
+<h2>LDAP Server Performance</h2>
+<p>When the NAS server queries an LDAP server it normally searches the entire directory tree starting from the root specified by the <strong>domainname</strong> command. In most cases this should be acceptable since the NAS server will cache the search results for later reuse.</p>
+<p>However in some cases it may be desirable to limit the search space. This not only reduces the portion of the directory which individual LDAP queries search over, but with some LDAP server configurations may avoid having queries trip over parts of the directory tree which the NAS server is not authenticated to access.</p>
+<p>The LDAP search space may be limited by selecting different starting points in the tree for user, group and host lookups, and / or by limiting the depth of searches. Both of these setting types are controlled using the <strong>ldap-search-config</strong> command. The particular settings made here will depend strongly on your local LDAP configuration; consult your local LDAP administrator for the values to use.</p>
+<p>If you are concerned about LDAP query performance, the NAS server's <strong>ldap-stats</strong> command may be used to inspect performance for both individual LDAP servers and NIS query types. Once the NAS server has been used for a while so that it has made LDAP queries, the ldap-stats command may indicate that certain query types are taking much longer on average than others. If this is the case you might wish to check that your LDAP server has indexes for all attribute types used by your schema. Some LDAP servers, especially those used with RFC-2307, do not always have full indexing of RFC-2307 attributes enabled by default.</p>
+<p>If efforts to improve LDAP query performance still leave queries running slowly, the NAS server offers the <strong>ldap-timeout</strong> command to adjust the maximum time allowed for individual queries. By default the NAS server will time out an LDAP query after 15 seconds; ldap-timeout may extend that up to a maximum of 60 seconds.</p>
+<p>LDAP query performance may also be impacted when searching for host names within nested netgroups of large LDAP databases. The <strong>nis-netgroups-nobyhost-config --on</strong> command can be used to reduce the number of LDAP queries.</p>
+<h2>Troubleshooting</h2>
+<p>LDAP connection problems should be investigated using the following command:</p>
+
+<p><strong>trouble ldap</strong></p>
+
+<p>If you are experiencing LDAP performance problems, you may wish to also follow the steps discussed in the LDAP Server Performance section above.</p>
+<h1>See Also</h1>
+<p><a href="../User/domainname.html">domainname</a> <a href="../User/evs-security.html">evs-security</a> <a href="../Supervisor/ldap-schema.html">ldap-schema</a> <a href="../Supervisor/ldap-search-config.html">ldap-search-config</a> <a href="../Supervisor/ldap-security.html">ldap-security</a> <a href="../Supervisor/ldap-server.html">ldap-server</a> <a href="../Supervisor/ldap-stats.html">ldap-stats</a> <a href="../Supervisor/nis-ldap-mode.html">nis-ldap-mode</a> <a href="../Supervisor/nis-ldap-version.html">nis-ldap-version</a> <a href="../Supervisor/nis-state.html">nis-state</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

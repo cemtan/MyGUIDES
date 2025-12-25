@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-group-add</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>sd-group-add</h1>
+<p>Add system drives to an existing group</p>
+<h1>Syntax</h1>
+<pre>sd-group-add [(--set-tier | -t) &lt;tier&gt;] &lt;device-ID-of-SD-in-group&gt;... &lt;device-ID-of-SD-to-add-to-group-see-&#39;man sd-spec&#39;&gt;...
+Alias:       adsdg
+</pre>
+
+<h1>Description</h1>
+<p>Adds one or more system drives (SDs) to an existing SD group.  See the 'sd-group' man page for background.</p>
+<p>Specify at least one SD from the group you want to extend and at least one SD that is not yet in a group.  The SDs can be specified in any order: the order of SDs in a group is not significant.</p>
+<p>The SDs you add to the group must not be in an open span.  (A span is open if any of its file systems is mounted or is being checked, fixed, etc.)  The SDs that are already in the group when you run 'sd-group-add' are not subject to this restriction.</p>
+<p>The --set-tier switch assigns the new SDs to the same tier as those already in the SD group.  If the tier assignments cannot be made, no SD groups are created.  If --set-tier is not provided, the new SDs must be in the same tier as those already in the group before the command is run.</p>
+<h1>Examples</h1>
+<pre>server:$ sd-group-list -m
+Serial: 0 1
+</pre>
+<p></p>
+<pre>server:$ sd-group-add 0 2 3
+Success
+server:$ sd-group-list -m
+Serial: 0 1 2 3
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>You can specify any SD from the existing group; it need not be the first.  You can also specify more than one SD from the existing group if it is more convenient.  So the command demonstrated here could have been written in any of the following ways:</p>
+<pre>sd-group-add 0 2 3
+sd-group-add 1 2 3
+sd-group-add 1-3
+sd-group-add 0-3
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../Supervisor/sd-group-delete.html">sd-group-delete</a> <a href="../Supervisor/sd-group-export.html">sd-group-export</a> <a href="../Supervisor/sd-group-import.html">sd-group-import</a> <a href="../User/sd-group-list.html">sd-group-list</a> <a href="../Supervisor/sd-group-remove.html">sd-group-remove</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

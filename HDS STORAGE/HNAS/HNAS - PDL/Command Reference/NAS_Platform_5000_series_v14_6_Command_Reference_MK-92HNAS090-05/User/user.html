@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>user</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>user</h1>
+<p>Manage management users</p>
+<h1>Syntax</h1>
+<pre>user add [&lt;username&gt; &lt;password&gt; &lt;level&gt;]|del &lt;username&gt;|delall|list
+</pre>
+
+<h1>Description</h1>
+<p>The user command is used to administer management users. You can add, remove or list users.</p>
+<p>If "user add" is used without options, then the command prompts for a username, level and password, in that order. A final interactive password confirmation is required for all "user add" invocations, even if the username, password and level are specified, in that order, on the command line.</p>
+<p>The maximum number of users that can be created is 20. Built-in users, e.g. supervisor, do not count towards this limit.</p>
+<p>"user list" displays all users of equal or lower level.</p>
+<p>Supported levels are "user" and "supervisor". Users of level "user" are only allowed to execute commands of "user" level and lower. These are expected to be read-only commands. Such users may, then, inspect but not alter configuration. Users of "supervisor" level are allowed to execute commands which modify the configuration. A command's minimum level is given by its "help" - see "man help". Some commands have several sub-commands, which may enforce further restrictions. "user list", for example, is available at "user" level, while "user add" requires "supervisor" privilege.</p>
+<p>"user del" removes a single user and requires a username. Use "user delall" to remove all users except the current user and supervisor, if extant.</p>
+<h1>Examples</h1>
+<p>To add a user called 'viewonly' as a 'user' level user:</p>
+<pre>user add viewonly password user
+</pre>
+<p></p>
+<p>To delete all users except the current user and supervisor:</p>
+<pre>user delall
+</pre>
+<p></p>
+<p>To show currently configured users:</p>
+<pre>user list
+</pre>
+<p></p>
+<p>To show currently logged-in users:</p>
+<pre>who
+</pre>
+<p></p>
+<p>To show the user logged in on the current console:</p>
+<pre>whoami
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/console.html">console</a> <a href="../Any/help.html">help</a> <a href="../Any/login.html">login</a> <a href="../Any/logout.html">logout</a> <a href="../User/password.html">password</a> <a href="../Supervisor/who.html">who</a> <a href="../Any/whoami.html">whoami</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

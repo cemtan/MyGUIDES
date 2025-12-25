@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>event-log-filter</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>event-log-filter</h1>
+<p>Manage event log filters</p>
+<h1>Syntax</h1>
+<pre>event-log-filter operation
+where &#39;operation&#39; is one of:
+list [&lt;event-id&gt;]
+add &lt;event-id&gt;
+update &lt;event-id&gt; &lt;filter-index&gt; [--set-level &lt;level-specifier&gt;] [--ignore &lt;ignore-specifier&gt;] [--command &lt;command-to-run&gt;] [--text &lt;text-to-check&gt;]
+delete &lt;event-id&gt; &lt;filter-index&gt;
+delall
+</pre>
+
+<h1>Description</h1>
+<p>The event-log-filter command enables you to list, add, update and delete event log filters.</p>
+<p>The event log filter will enable you to:</p>
+<ol>
+<li>Change the severity of the event to information, warning or severe.</li>
+<li>Ignore the event, i.e. do not log it.</li>
+<li>Specify a command to run when the event is raised. The command will not be run if the event is being ignored.</li>
+</ol>
+<p>Multiple filters may be configured for a single event. These filters will be uniquely identified by the event-id and the text-to-check value. A temporary filter-index will be generated to make it easier to update/delete the filter. The filter will only be applied if the text-to-check can be found in the formatted event string. If no text-to-check is set, then this filter will be used by default if none of the others satisfy the check.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>list [&lt;event-id&gt;]</strong></dt>
+<dd><p>List all event filters, or all filters for the specified event.</p></dd>
+<dt><strong>add &lt;event-id&gt;</strong></dt>
+<dd><p>Add a new event filter, using the parameters listed below.</p></dd>
+<dt><strong>update &lt;event-id&gt; &lt;filter-index&gt;</strong></dt>
+<dd><p>Update an existing event filter, using the parameters listed below. The filter-index can be obtained using the list option.</p></dd>
+<dl>
+<dt><strong>-s, --set-level &lt;level-specifier&gt;</strong></dt>
+<dd><p>Override the event severity level. &lt;level-specifier&gt; is one of the following:</p></dd>
+<dl>
+<dt><strong>I, info</strong></dt>
+<dt><strong>W, warning</strong></dt>
+<dt><strong>S, severe</strong></dt>
+<dt><strong>C, critical</strong></dt>
+<dt><strong>D, default</strong></dt>
+</dl>
+<dt><strong>-i, --ignore &lt;ignore-specifier&gt;</strong></dt>
+<dd><p>Ignore the event, i.e. do not log. &lt;ignore-specifier&gt; is one of the following:</p></dd>
+<dl>
+<dt><strong>N, normal</strong></dt>
+<dd><p>The event is excluded from the log, but will appear on the console.</p></dd>
+<dt><strong>C, completely</strong></dt>
+<dd><p>The event is not even displayed on the console.</p></dd>
+<dt><strong>D, default</strong></dt>
+<dd><p>Switches off the ignore option, i.e. event will not be ignored.</p></dd>
+</dl>
+<dd><p>An ignored event will increment a raised count, which will be displayed in the list option.</p></dd>
+<dd><p>The ignore option takes precedence over the command option, i.e. if an event is ignored, but has a command set, the command will never run.</p></dd>
+<dt><strong>-c, --command &lt;command-to-run&gt;</strong></dt>
+<dd><p>Run command when event is raised. The command will be run asynchronously from a different fiber.</p></dd>
+<dd><p>The command-to-run can be specified within quotes, and should be if it has parameters separated by spaces. Specifying 'none' will result in no command-to-run being set.</p></dd>
+<dt><strong>-t, --text &lt;text-to-check&gt;</strong></dt>
+<dd><p>Check for the specified text in the formatted event. If a match is found then use this filter. Multiple filters can be configured for the same event but with different text-to-check.</p></dd>
+<dd><p>The text-to-check can be specified within quotes, and should be if there are spaces within the text. Specifying 'none' will result in no text-to-check being set.</p></dd>
+</dl>
+<dt><strong>delete &lt;event-id&gt; &lt;filter-index&gt;</strong></dt>
+<dd><p>Delete the specified event filter. The filter-index can be obtained using the list option.</p></dd>
+<dt><strong>delall</strong></dt>
+<dd><p>Delete all event filters.</p></dd>
+</dl>
+<h3>Notes</h3>
+<p>Older versions of the software cannot cope with multiple filters per event. If multiple filters are configured for events and the server is later downgraded to an older release, then only the first filter (in the order we see them in the registry) for each event will be used, the rest will be disregarded. The text-to-check value will also be ignored.</p>
+<h1>Examples</h1>
+<p>To list all of the event filters:</p>
+<pre>event-log-filter list
+</pre>
+<p></p>
+<p>To display event filters for 9995:</p>
+<pre>event-log-filter list 9995
+</pre>
+<p></p>
+<p>To add an event filter for 9995, to override severity level to warning:</p>
+<pre>event-log-filter add 9995 -s warning
+</pre>
+<p></p>
+<p>To add an event filter for 9995, to ignore completely:</p>
+<pre>event-log-filter add 9995 -i completely
+</pre>
+<p></p>
+<p>To update filter (index 1) for event 9995, to run "nim event-log-definitions display 9995":</p>
+<pre>event-log-filter update 9995 1 -c "nim event-log-definitions display 9995"
+</pre>
+<p></p>
+<p>To delete event filter (index 1) for 9995:</p>
+<pre>event-log-filter delete 9995 1
+</pre>
+<p></p>
+<p>When the next sparse directory event is logged, fire off a pir and self-destruct:</p>
+<pre>event-log-filter add 1350 -c "pir --file-system fs -r alerts@example.com -s 'case 42'; event-log-filter delete 1350"
+</pre>
+<p></p>
+<p>If the logged event contains the text string "cranberry juice" then run command "echo drink it", otherwise ignore it.</p>
+<pre>event-log-filter add 9995 -c "echo drink it" -t "cranberry juice"
+event-log-filter add 9995 -i normal
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/event-log-definitions.html">event-log-definitions</a> <a href="../Supervisor/event-log-generate.html">event-log-generate</a> <a href="../Supervisor/event-log-show.html">event-log-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

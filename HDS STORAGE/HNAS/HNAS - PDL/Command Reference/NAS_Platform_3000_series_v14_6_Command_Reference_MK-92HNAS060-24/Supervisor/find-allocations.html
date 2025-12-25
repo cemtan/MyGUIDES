@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>find-allocations</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>find-allocations</h1>
+<p>Search volume and report on owner of allocations and the FSA bitmap state</p>
+<h1>Syntax</h1>
+<pre>find-allocations  &lt;-a | &lt;--block &lt;block-number&gt; ... | --byte &lt;byte-number&gt; ... | --sector &lt;sector-number&gt; ...&gt;&gt; -f &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Supplied with a file-system and one or more address arguments, find-allocations searches the file system for the objects that own the allocations that correspond to them, reporting whether the allocations themselves are root onode allocations, or printing the object number of the object that owns the allocation.</p>
+<p>The on-disk address may be supplied as a fs block-number, sector-address, or byte-address. A "block" is a file system unit that is currently either 4K or 32K bytes in size, depending on which size was specified at format time. A block-number is therefore an offset in blocks into a given file system. A sector is 512 bytes in size, and is the basic addressing unit of almost all on-disk metadata.</p>
+<p>If searching for addresses found in the on-disk metadata, then the sector-address is likely to be the easiest to use as translation is seldom warranted. If, however, the address has been found by some translation from the underlying storage, then a byte-address might be the obvious way to specify the arguments. It is difficult to imagine why anyone would want to search by block-number as it is not used in on-disk metadata, and the user would have to calculate the block-number from some other unit. Having said that, however, it remains an option although its use is not recommended.</p>
+<p>Note: find-allocations is an asynchronous utility and may be run with the file system mounted or unmounted.</p>
+<p>Consult the dynamic log to view the results of the search.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a</strong></dt>
+<dd><p>Abort the currently running instance of this utility.</p></dd>
+<dt><strong>--block</strong></dt>
+<dd><p>One or more FS block numbers for which to search</p></dd>
+<dt><strong>--byte</strong></dt>
+<dd><p>One or more byte addresses for which to search</p></dd>
+<dt><strong>--sector</strong></dt>
+<dd><p>One or more sector addresses for which to search</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>To determine who owns the blocks at sectors 0x88000 and 0x12800 on file system 0
+    find-allocations -f 0 --sector 0x88000 0x12800
+</pre>
+<p></p>
+<pre>To determine who owns the block at byte address 0x45289000 on file system testfs
+    find-allocations -f testfs --byte 0x45289000
+</pre>
+<p></p>
+<pre>To determine who owns block numbers 832 1943 on file system 2
+    find-allocations -f 2 --block 832 1943
+</pre>
+<p></p>
+<pre>To abort find-allocations on file system myfs
+    find-allocations -a -f myfs
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

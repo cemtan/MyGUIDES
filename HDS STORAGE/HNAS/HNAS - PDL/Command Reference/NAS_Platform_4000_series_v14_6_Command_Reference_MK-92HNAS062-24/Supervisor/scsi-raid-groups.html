@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-raid-groups</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>scsi-raid-groups</h1>
+<p>Display the Raid Groups for each storage rack or the Raid Group information for a SD.</p>
+<h1>Syntax</h1>
+<pre>scsi-raid-groups [device id] [--unknowns]
+</pre>
+
+<h1>Description</h1>
+<p>Display Raid group information for all storage racks or for the specified SD. Each Raid group relates to one or more of the discovered storage devices.</p>
+<p>The information displayed includes the following: the Raid group type; the group number; a sub group number (for Raid group type only); the Raid level; the group status; and the members of the group, showing the device ID, the external (host) LUN and the internal LUN.</p>
+<p>The group type may be one of the following: Raid group; DP pool; external group; snapshot volume; or unknown.</p>
+<p>Note, Raid group information will only be retrieved from HDS storage arrays.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>device id</strong></dt>
+<dd><p>Display the Raid group information for the specified device ID. This option is used primarily to check the cached Raid group information for the SD.</p></dd>
+<dt><strong>-u, --unknowns</strong></dt>
+<dd><p>Include the Raid Groups with unknown type as well.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server1:$ scsi-raid-groups
+</pre>
+<p></p>
+<pre>Raid groups for storage rack : 0 (s/n 83053794)
+</pre>
+<p></p>
+<pre>  Group Type:    Raid Group
+  Group Number:  0
+  Sub number:    0
+  Raid level:    RAID 5
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  0            200             0200
+  4            0               0000
+</pre>
+<p></p>
+<pre>  Group Type:    Raid Group
+  Group Number:  1
+  Sub number:    0
+  Raid level:    RAID 5
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  1            201             0201
+  5            1               0001
+</pre>
+<p></p>
+<pre>  Group Type:    Raid Group
+  Group Number:  2
+  Sub number:    0
+  Raid level:    RAID 5
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  2            202             0202
+  6            2               0002
+</pre>
+<p></p>
+<pre>server2:$ scsi-raid-groups -u
+</pre>
+<p></p>
+<pre>Raid groups for storage rack : 0 (s/n 91250502)
+</pre>
+<p></p>
+<pre>  Group Type:    Raid Group
+  Group Number:  0
+  Sub number:    0
+  Raid level:    RAID 5
+  Status:        OK
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  0            0               0000
+</pre>
+<p></p>
+<pre>  Group Type:    Raid Group
+  Group Number:  1
+  Sub number:    0
+  Raid level:    RAID 5
+  Status:        OK
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  1            1               0001
+</pre>
+<p></p>
+<pre>  Group Type:    DP Pool
+  Group Number:  0
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  2            2               0100
+  3            3               0101
+  4            4               0102
+  5            5               0103
+</pre>
+<p></p>
+<pre>  Group Type:    Unknown type
+  Group Number:  0
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  6            6               0200
+  7            7               0201
+  8            8               0202
+  9            9               0203
+</pre>
+<p></p>
+<pre>server3:$ scsi-raid-groups
+</pre>
+<p></p>
+<pre>Raid groups for storage rack : 0 (s/n 210043)
+</pre>
+<p></p>
+<pre>  Group Type:    DP Pool
+  Group Number:  0
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  64           0               002E
+  65           1               002F
+  66           2               0030
+  67           3               0031
+  68           4               0032
+  69           5               0033
+  70           6               0034
+  71           7               0035
+  72           8               0036
+  73           9               0037
+  74           10              0038
+  75           11              0039
+  76           12              003A
+  77           13              003B
+  78           14              003C
+  79           15              003D
+  .
+  .
+  .
+</pre>
+<p></p>
+<pre>Raid groups for storage rack : 1 (s/n 210052)
+</pre>
+<p></p>
+<pre>  Group Type:    DP Pool
+  Group Number:  0
+  Status:        Unknown
+  Group Members:
+  Device ID    External LUN    Internal LUN
+  ---------    ------------    ------------
+  0            12              003A
+  1            13              003B
+  2            14              003C
+  3            15              003D
+  4            16              003E
+  5            17              003F
+  6            18              0040
+  7            19              0041
+  8            20              0042
+  9            21              0043
+  10           22              0044
+  11           23              0045
+  12           24              0046
+  13           25              0047
+  14           26              0048
+  15           27              0049
+  .
+  .
+  .
+</pre>
+<p></p>
+<p>Note, the above example output has been truncated.</p>
+<h1>Applies To</h1>
+<p>Cluster</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-racks.html">scsi-racks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

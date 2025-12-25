@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-recover-from-changed-luids</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sd-recover-from-changed-luids</h1>
+<p>Try to salvage spans after system drives&#39; Luids change</p>
+<h1>Syntax</h1>
+<pre>sd-recover-from-changed-luids [--ignore-unlicensed-old-sds] [--span-base-name &lt;span-to-unload&gt;] [[--ssfs] &lt;change-map-filename&gt;]
+</pre>
+
+<h1>Description</h1>
+<h2>BACKGROUND</h2>
+<p>When you create a span, the server stores the span's configuration on every system drive (SD) that is used in the span.  This structure is called 'Cod' (Configuration On Disk), and is explained in the 'cod' man page.</p>
+<p>Cod does not store SDs' device IDs, because those IDs can change if you move storage between clusters or if you forget (using 'sd-forget') and rediscover an SD.  Instead, it stores Luids.  A Luid is a long piece of text, constructed from information provided by the storage, that uniquely identifies an SD worldwide.</p>
+<p>Occasionally, in response to storage trauma or certain maintenance procedures, the storage changes an SD's Luid.  Because the server identifies SDs by their Luids, it will believe that the SD has failed and a new SD has appeared, and will give the 'new' SD a new device ID.</p>
+<p>It might be expected that licensing the 'new' SD with 'sd-allow-access' would let the server load the span from Cod.  Instead, the server detects the changed Luid and, to prevent inadvertent mounting of file systems that have undergone trauma, it refuses to load the span.</p>
+<h2>RECOVERING A SIMPLE SPAN</h2>
+<p>This section explains how to recover most spans, including those that have been expanded, are tiered, or have multiple filesystems.</p>
+<ol>
+<li>If you are using a Unified system, log on as dev.</li>
+<li>Use 'sd-allow-access' to license the 'new' SDs.  (To identify these SDs, you can use 'sd-list --healthy --denied'.  To license all eligible SDs you can use 'sd-allow-access all:healthy:denied'.)  Wait for Cod to load by running 'span-wait-for-loading'.  The server will log events about changed Luids.</li>
+<li>If 'span-list' shows the failed span, unload it by typing 'sd-rescan-cod &lt;span-instance-name&gt;'.  If more than one span is affected, run this command for each one in turn.  After rescanning Cod on all affected spans, use 'span-wait-for-loading' to wait for Cod to be rescanned, and then check that 'span-list' does not show any of the spans you wish to recover.  The presence of the old spans in memory would prevent the new versions of the spans from being recovered.</li>
+<p>If 'sd-rescan-cod' does not unload the span, abandon this procedure and use 'span-replace-sd' instead.</p>
+<li>Use 'sd-list-changed-luids' to check that the server has detected all changed Luids.</li>
+<li>Use 'sd-recover-from-changed-luids' to make the server reload spans.  Do not specify any command-line arguments.  Run 'span-wait-for-loading' to wait for the Cod to load.  Run 'span-list' to see which spans have been recovered.  Do not, for now, rewrite the recovered spans' Cod.</li>
+<li>Use 'check-directory' to verify the integrity of all file systems on the affected spans.  If problems are found, it may mean that other storage trauma has occurred, or it may mean that the server has not correctly recovered the span.  In the latter case, unload the recovered spans using 'sd-rescan-cod &lt;span-instance-name&gt;' and go no further.</li>
+<li>Use 'span-rewrite-cod' to update the Cod, reflecting the updated configuration.</li>
+<li>Mount file systems.  They are now ready for use.</li>
+<li>Use 'sd-forget' to remove the 'old' SDs from the server's registry.</li>
+</ol>
+<p>Some specialist situations are described below.</p>
+<h2>RECOVERING MIRRORED SPANS</h2>
+<h3>Not for use during simple 2DC failover</h3>
+<p>In releases older than 5.0, 'sd-recover-from-changed-luids' was used to handle failover of storage-based mirroring systems such as TrueCopy and HUR.  For straightforward mirroring configurations in which TrueCopy or HUR is used alone, and there are only two copies of each span, or where only two copies of the data are exposed to file servers, 'sd-recover-from-changed-luids' should no longer be used.  Instead, see the 'storage-based-mirror' man page for TrueCopy and HUR and 'storage-based-snapshot' for Thin Image and CoW.</p>
+<p>If you have used 'sd-mirror*' commands to configure mirror relationships into the server, there is no need to use 'sd-recover-from-changed-luids' when you fail over from your production storage to your backup storage.  As soon as the failover is complete, the server will automatically bring the span back to health and mount file systems.  The 'storage-based-mirror' man page explains the failover procedure.</p>
+<p>If you have a 2DC mirrored span on which the 'sd-mirror*' commands have not been run and for which 'span-list -s' does not show any mirror relationships, and if your post-failover recovery strategy relies on 'sd-recover-from-changed-luids', we recommend following the configuration instructions in the 'storage-based-mirror' man page.  If you do this before failover becomes necessary, the server will fail over more reliably, more flexibly, with reduced down-time and without operator intervention.  It will also be able to warn you in advance if S-Vols become unhealthy or uncontactable and failover becomes impossible.</p>
+<h3>If mirrored P-Vols' Luids change</h3>
+<p>In the rare event that your primary SDs' Luids change (and you are not responding to storage failover), follow the same procedure as for simple spans.  However, after Cod has been rewritten, one further step is usually needed: use 'sd-mirror-prepare' and 'sd-mirror-detect' to re-detect mirror relationships and configure them into the server.</p>
+<h3>When there are three or more copies of the data</h3>
+<p>Where three or more copies of the data, all exposed to file servers -- for example, HUR + TrueCopy, HUR + ShadowImage or GAD + Thin Image -- the server's internal storage-based mirroring facilities cannot handle failover without help.  For these advanced systems, an external program called HDRS uses a special 'sd-recover-from-changed-luids --span-base-name' syntax, specifying the base name of a span.  The differences between this and ordinary 'sd-recover-from-changed-luids' are as follows:</p>
+<ul>
+<li>The span specified at the command line need not be loaded into memory (i.e. it need not be visible in the output of 'span-list') at the moment when 'sd-recover-from-changed-luids' is run.  However, if it is:</li>
+<ul>
+<li>It must conain no healthy, licensed, primary SDs and no mounted file systems.</li>
+<li>All its SDs must be assigned to sites, as described in the 'site' man page.</li>
+<li>The number of healthy, primary, licensed, unspanned SDs with the wrong Cod Luids must be at least as high as the specified span.</li>
+<li>The server will unload the specified span from memory before attempting recovery of the failed-over copy of the span.</li>
+</ul>
+<li>Spans with a base name different from that of the span specified on the command line will not be recovered.  The server will log an event for each SD whose Cod it chooses to ignore.</li>
+<li>Cod will not be loaded from SDs that have been left at the default site of 0, or which are at the same site as the span specified at the command line (if that span was loaded at the time).  The server will log an event for each SD whose Cod it chooses to ignore.</li>
+<li>Span Cod will automatically be written back to disk as soon as the recovered span becomes healthy.  This rewriting is only a safeguard, and will not take place if the Admin Service migrates before the span becomes healthy.</li>
+<li>On Unified systems, 'sd-recover-from-changed-luids' normally requires the user to be logged in as dev, but --span-base-name waives this requirement so that routine failover tests can be run without a dev password.</li>
+</ul>
+<p>During initial setup, HDRS ensures that the SDs in each copy of the data are assigned to a different SD site.  When working with Thin Image, it uses 'sd-rescan-cod &lt;span-instance-name&gt;' or 'span-deny-access' to unload one copy of a snapshot before recovering another.  After running 'sd-recover-from-changed-luids', it runs 'span-wait-for-loading' in order to wait until the span has been recovered.  It then uses 'span-rewrite-cod' to rewrite Cod in case the server was unable to update Cod before the Admin Service failed over.</p>
+<h2>RECOVERING STORAGE-BASED SNAPSHOTS</h2>
+<p>Storage-based snapshots present a unique difficulty, because several snapshots can contain identical Cod.  (This happens when the contents of one snapshot are copied to another by storage-based commands.)  As a result, if Luids change and SDs change their identities, the server cannot distinguish one snapshot's SDs from another's.  Without help, therefore, it cannot assign the right set of SDs to each snapshot.</p>
+<p>To recover storage-based snapshots, follow the same procedure as for simple spans with two differences:</p>
+<p>First, do not run 'sd-list-changed-luids'.  It will not work, and will prompt the server to log events about snapshots that cannot be recovered.</p>
+<p>Second, when you run 'sd-recover-from-changed-luids', pass the name of a change map file, which you have created in a text editor.  Each line of this file should contain one device ID, some white space, and either a second device ID or a Luid.  The first device ID identifies a 'new' SD.  The second device ID or Luid tells the server the device ID or Luid that this new SD used to have before storage trauma occurred.  (Do not specify the SD's current Luid: the server already knows that.  If 'sd-forget' has been used to remove the 'old' SD from the server's registry, the old Luid must be used: the old device ID will not work.)</p>
+<p>A simple change map file looks like this:</p>
+<pre>22 16
+23 17
+24 18
+</pre>
+<p></p>
+<p>This states that SD 22 used to be known as SD 16, SD 23 used to be known as SD 17, and so on.  A more complex file looks like this:</p>
+<pre>22 [03:01:00]60:06:0E:80:10:0D:25:00:05:30:4A:58:00:00:0B:CE
+23 [03:01:00]60:06:0E:80:10:0D:25:00:05:30:4A:58:00:00:0B:CF
+24 [03:01:00]60:06:0E:80:10:0D:25:00:05:30:4A:58:00:00:0B:D0
+</pre>
+<p></p>
+<p>This file states that SD 22 used to have the Luid shown beside it.  The server's registry may know of an SD with that Luid, but is not required to.</p>
+<p>The change map file can include blank lines and comments, which the server will ignore.  A comment starts with a hash mark (#).  If present, it must be the first thing on the line: it cannot follow other data.</p>
+<p>Because an incorrect or malicious change map file might damage data, you must log in as dev before using one.</p>
+<p>You can match up old and new Luids by comparing the output of 'sd-list --raid-names' before and after storage trauma.  You can also identify an SD's old Luid from the historic (not current) output of 'sd-luids-list'.  Both these commands run in showall.txt in diagnostic email, and so the most recent diagnostics taken before storage trauma occurred will prove invaluable.</p>
+<p>As an alternative to this time-consuming procedure, consider deleting all snapshots with 'span-delete-snapshot' and disabling snapshot mode with 'span-disable-snapshots' before starting storage maintenance.  This approach, although it destroys snapshots, reduces down-time and risk by avoiding the need to construct a Luid change map file by hand.</p>
+<h2>SWITCHES</h2>
+<p>The --ignore-unlicensed-old-sds or -i switch makes the server ignore 'old' SDs that are not licensed.  This switch has no effect if you follow the steps listed here in the specified order.  It controls the way the server maps 'old' to 'new' SDs, and so it cannot be specified if you specify an explicit Luid change map file.</p>
+<p>The --ssfs or -s file tells the server where to find the Luid change map file, if you specify one.</p>
+<ul>
+<li>If you are using ssc or pssc, the --ssfs switch instructs the server to read the file from the SSFS file system.  Without --ssfs, the file is read from the file system of the machine running ssc or pssc.</li>
+<li>In any other environment, the file is always read from the SSFS file system, and the --ssfs switch is ignored.</li>
+</ul>
+<p>If the file is read from the SSFS file system, it will, by default, be read from whichever server is running the Admin Service.  If the file resides on another cluster node, you will need to say so explicitly, using the syntax described in the 'ssfs' man page.</p>
+<p>The --span-base-name switch is intended for HDRS, and is described above.</p>
+<h1>Examples</h1>
+<pre>sd-recover-from-changed-luids
+</pre>
+<p></p>
+<pre>sd-recover-from-changed-luids changemap.txt
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/check-directory.html">check-directory</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-forget.html">sd-forget</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-list-changed-luids.html">sd-list-changed-luids</a> <a href="../Supervisor/sd-luids-list.html">sd-luids-list</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-disable-snapshots.html">span-disable-snapshots</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-replace-sd.html">span-replace-sd</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/ssfs.html">ssfs</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-get-path</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>migration-get-path</h1>
+<p>Displays the migration destination for the specified vivol/file system.</p>
+<h1>Syntax</h1>
+<pre>migration-get-path -s &lt;fs label&gt; [-v &lt;vivol name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Options:</p>
+<dl>
+<dt><strong>-s, --source &lt;fs label&gt;</strong></dt>
+<dd><p>Source file system.</p></dd>
+<dt><strong>-v, --vivol &lt;vivol name&gt;</strong></dt>
+<dd><p>Name of source Virtual Volume (optional).</p></dd>
+</dl>
+<p>Displays information about a Data Migration path. This includes its target file system(s) or remote storage path(s) and current status which is one of the following:</p>
+<dl>
+<dt><strong>Undefined</strong></dt>
+<dd><p>This return value should never be seen as the path is defined.</p></dd>
+<dt><strong>No migrated files</strong></dt>
+<dd><p>The path has no outstanding migrated files. (It may be deleted)</p></dd>
+<dt><strong>Files have been migrated</strong></dt>
+<dd><p>There are migrated files at the destination.</p></dd>
+<dt><strong>Files have been migrated (via file system path)</strong></dt>
+<dd><p>For a Virtual Volume - there are files that have been migrated via the file system level migration path.</p></dd>
+<dt><strong>Active migration in progress</strong></dt>
+<dd><p>A migration process is in progress.</p></dd>
+<dt><strong>Migration target deleted/reformatted</strong></dt>
+<dd><p>The target is no longer available. It has been removed or has been reformatted.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-get-path -s vol1
+</pre>
+<p></p>
+<p>Display details and status of the migration path for file system vol1.</p>
+<pre>migration-get-path -s Accounts -v HR
+</pre>
+<p></p>
+<p>Display details and status of the migration path for Virtual Volume HR on file system Accounts.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-add-external-path.html">migration-add-external-path</a> <a href="../Supervisor/migration-add-path.html">migration-add-path</a> <a href="../Supervisor/migration-change-external-path.html">migration-change-external-path</a> <a href="../Supervisor/migration-delete-external-path.html">migration-delete-external-path</a> <a href="../Supervisor/migration-delete-path.html">migration-delete-path</a> <a href="../Supervisor/migration-expand-external-path.html">migration-expand-external-path</a> <a href="../Supervisor/migration-expand-path.html">migration-expand-path</a> <a href="../Supervisor/migration-get-dependencies.html">migration-get-dependencies</a> <a href="../Supervisor/migration-list-paths.html">migration-list-paths</a> <a href="../Supervisor/migration-update-paths.html">migration-update-paths</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

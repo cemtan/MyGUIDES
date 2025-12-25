@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>check-fsa-bitmap</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>check-fsa-bitmap</h1>
+<p>Schedules a check of the FSA bitmap on the specified, unmounted file system</p>
+<h1>Syntax</h1>
+<pre>check-fsa-bitmap [-a] -f &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Performs a check of the FSA bitmap for a given file system. If diagnostics indicate that the FSA bitmap is corrupt, then check-fsa-bitmap can identify corruption quicker than would checkfs. However, it is possible that check-fsa-bitmap will erroneously flag over-allocations. Such warnings are best ignored.</p>
+<p>If more widespread corruption is suspected, then checkfs or check-directory is the appropriate tool to use.</p>
+<p>Users should consult the event log to see the results of the check or the dynamic-log for more detailed analysis.</p>
+<p>check-fsa-bitmap will only run on a file system that is unmounted. check-fsa-bitmap is an asynchronous utility.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-a</strong></dt>
+<dd><p>Abort the instance of this utility.</p></dd>
+</dl>
+<h2>Allocation discrepancy warnings due to file system conversion to support dedupe</h2>
+<p>fs-convert-to-support-dedupe may leave behind some discrepancies in the interest of speed. checkfs invoked internally by check-fsa-bitmap reports these as "allocation type discrepancies possibly due to conversion to support dedupe". Refer to checkfs man page for details.</p>
+<h1>Examples</h1>
+<p>To check the FSA bitmap on the file system fs1:</p>
+<pre>check-fsa-bitmap -f fs1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/checkfs.html">checkfs</a> <a href="../Supervisor/fs-convert-to-support-dedupe.html">fs-convert-to-support-dedupe</a> <a href="../Supervisor/utility-progress.html">utility-progress</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

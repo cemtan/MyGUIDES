@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>snapshots</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>snapshots</h1>
+
+<h1>Description</h1>
+<p>Snapshots are space-efficient point-in-time representations of file systems.</p>
+<p>Snapshots may be accessed using the .snapshot directory at the root-of-mount. Each snapshot is represented by a sub-directory under the .snapshot directory.</p>
+<p>In addition to manually creating snapshots, snapshot rules may be defined to create and delete snapshots based on a schedule.</p>
+<h2>Types of snapshots</h2>
+<ul>
+<li><strong>Object-based snapshots</strong> work by tracking objects that have changed between one snapshot and the next. While this is space-efficient, it can result in slow performance when deleting a snapshot. It also necessitates the deletion of all snapshots if a file system is rolled back.</li>
+<li><strong>Block-based snapshots</strong> track changed blocks instead of changed objects. Besides addressing the aforementioned shortcomings of object-based snapshots, block-based snapshots also provide several other advantages:</li>
+<ul>
+<li>Ability to delete the latest snapshot.</li>
+<li>Ability to calculate the space consumed by individual snapshots.</li>
+<li>No need for a special "scrub" mode when deleting the last snapshot on a file system.</li>
+<li>Faster access to snapshotted files.</li>
+<li>Ability to monitor snapshot deletion progress.</li>
+</ul>
+</ul>
+<h2>WFS-2</h2>
+<p>A WFS-2 file system may be recovered from a snapshot, returning it to its snapshotted state. Only those WFS-2 file systems that don't have dedupe support can support both object-based as well as block-based snapshots (see below). File systems that have existing object-based snapshots will switch to block-based snapshots once all their snapshots are deleted. All newly created WFS-2 file systems will use block-based snapshots by default.</p>
+<h2>WFS-2 with dedupe support</h2>
+<p>WFS-2 file systems that support dedupe can support block-based snapshots only. Any object-based snapshots must be deleted before converting an existing WFS-2 file system to support dedupe.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/kill-snapshots.html">kill-snapshots</a> <a href="../User/snapshot-deleter-queue.html">snapshot-deleter-queue</a> <a href="../User/snapshot-list.html">snapshot-list</a> <a href="../Supervisor/snapshot-recover-fs.html">snapshot-recover-fs</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

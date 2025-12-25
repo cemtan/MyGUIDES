@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-deny-access</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-deny-access</h1>
+<p>Unload a span from memory; deny access to all its host system drives</p>
+<h1>Syntax</h1>
+<pre>span-deny-access [--primaries | --secondaries] &lt;span-instance-name&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command unlicenses (denies access to) some or all of the system drives (SDs) in a span.  Used in certain ways, it also unloads the span from memory (so that it no longer appears in 'span-list') and carries out other cleanup.</p>
+<h2>With --secondaries or -s</h2>
+<p>Unlicenses the secondary SDs in the span, as configured by 'sd-mirror' and listed by 'span-list --sds'.  This prevents the server from failing over to the secondaries if the mirror roles should ever change.  It makes the server ignore primary--primary mirror relationships and keep serving data if the mirror should ever be broken.  It also sets a flag that prevents the server from warning about unlicensed SDs being used in this span, and which prevents events from being logged when an unlicensed SD changes status or mirror role.</p>
+<p>It has no other effect on the span or the server.</p>
+<p>At least some primaries must be licensed when you run this command.  To unlicense all the SDs in the span, run the command without either of --primaries and --secondaries.</p>
+<h2>With --primaries or -ps</h2>
+<p>Unlicenses all the primary SDs in the span.  This causes the span and its filesystems to fail.  Therefore, it cannot be used if any of the span's file systems are mounted.</p>
+<p>None of the span's file systems can be mounted until the secondaries are promoted to primaries (because you change mirror roles or break the mirror) or you relicense the primaries.</p>
+<p>This command also sets a flag that prevents the server from warning about unlicensed SDs being used in this span, and which prevents events from being logged when an unlicensed SD changes status or mirror role.</p>
+<p>At least some secondaries must be licensed when you run this command.  To unlicense all the SDs in the span, run the command without either of --primaries or --secondaries.</p>
+<h2>Without --secondaries or --primaries</h2>
+<p>Unlicenses all the SDs in the span, regardless of their mirror roles.  Deletes all NVRAM data for the file systems on the span.  Removes all EVS bindings for the file systems.  Frees up the device IDs used by the filesystems.  Unloads the span from memory.</p>
+<p>The effect is to make the server forget and ignore the span and all its filesystems, even if the server remains connected to the storage.  However, the span and the filesystems are left intact.  It is possible to load and mount them using the 'sd-allow-access', 'span-allow-access', 'span-assign-to-cluster' and 'evsfs' commands.  Even so, any data in NVRAM (that is, writes which have been acknowledged to clients but not yet written to disk) will be permanently destroyed by 'span-deny-access'.</p>
+<h2>Which system drive is primary?</h2>
+<p>For the purposes of this command, 'primary' refers to the SD that the server is configured to use as a primary; similarly, 'secondary' refers to the SD that the server is configured to use as a secondary.  These SDs may not actually have primary and secondary mirror roles -- they may not be P-Vols and S-vols -- at the moment when 'span-deny-access' is run.  For example, while a storage failover is taking place, there will be a brief moment for which both SDs in a pair have a secondary mirror role and the span has failed.</p>
+<p>If the server can't tell which SD in any pair is supposed to be primary and which is secondary, 'span-deny-access --primaries' and 'span-deny-access --secondaries' will fail with the following error message:</p>
+<p>"For some ranges, the server can't distinguish the primary SD from the secondary"</p>
+<p>This will happen if both SDs in a mirror have the same role (both primary, both secondary or both unknown) and both SDs have the same licensing status (both licensed or both unlicensed).</p>
+<p>Faced with a set of primary-primary relationships, if you wish to unlicense one side of each mirror, you'll need to run 'span-deny-access' without a --primaries or --secondaries switch and then use 'sd-allow-access' to relicense just the SDs you want to use on the local cluster.  As described above, filesystems' EVS bindings and NVRAM data are destroyed by this procedure.  EVS bindings can be remade by the 'evsfs' command.</p>
+<h2>When to use --secondaries and --primaries</h2>
+<p>Some customers have an intermittent storage-based mirror between two sites.  They repeatedly make the mirror, synchronize the SDs, break the mirror, and mount file systems at the backup site, either to take tape backups or to serve data read-only.  The 'storage-based-mirror' has more details.</p>
+<p>When the mirror is broken, the server will ordinarily detect the SDs' primary--primary mirror role.  Not knowing which SDs to write to, it will fail the span.</p>
+<p>To avoid this problem, follow these steps:</p>
+<ul>
+<li>Create SDs at both sites.  Set up mirror relationships between them.</li>
+<li>Walk to the main site.  Use 'sd-allow-access' or 'span-allow-access' to license all SDs, both primaries and secondaries.</li>
+<li>Create a span and some filesystems at the main site.  Alternatively, if they already exist, you may need to use 'span-assign-to-cluster' to assign the span to the main cluster and/or 'evsfs' to bind the filesystems to local vnodes.  You can now mount the filesystems at the main site.</li>
+<li>Use 'sd-mirror' to store the mirror relationships in the Cod.</li>
+<li>Use 'span-add-cluster-uuid' to add the remote cluster's UUID to the Cod.</li>
+<li>Use 'span-deny-access --secondaries' to prevent the main cluster from seeing the remote SDs and to allow it to keep serving data when the mirror is broken.</li>
+<li>Walk to the backup site.</li>
+<li>Use 'sd-allow-access' to license the secondaries at the backup site.  If you accidentally license some primary SDs, use 'span-deny-access --primaries' to unlicense them.</li>
+<li>Break the mirrors, so that the secondaries move into a stand-alone role.  The backup cluster will now load the span and filesystems.  The span will already be assigned to the backup cluster.</li>
+<li>Use 'evsfs' to bind the filesystems to local vnodes.</li>
+<li>You can now mount the replicated copies of the file systems on the backup cluster.</li>
+</ul>
+<p>If you are setting up a complex, multi-stage replication then 'secondaries' refers to the ultimate secondaries at the end of the replication chain -- the SDs that will host the file systems you wish to mount.</p>
+<h1>Examples</h1>
+<pre>span-deny-access ProjectX
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/evsfs.html">evsfs</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Supervisor/span-add-cluster-uuid.html">span-add-cluster-uuid</a> <a href="../Supervisor/span-allow-access.html">span-allow-access</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

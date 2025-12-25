@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-expedite-hdp-space-check</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-expedite-hdp-space-check</h1>
+<p>Tell the server to use new space on HDP pools at once if filesystems need auto-expanding</p>
+<h1>Syntax</h1>
+<pre>span-expedite-hdp-space-check 
+</pre>
+
+<h1>Description</h1>
+<p>When 'span-unmap-vacated-chunks' unmaps HDP pages, the storage zero-initializes them before returning them to the pool.  Depending on the configuration of the storage, this process can take many times longer than it took to unmap the HDP pages, and it results in a long, gradual increase in the free space on the HDP pool.</p>
+<p>Every 30 minutes, the server checks for increased free space and, if it finds some, it allocates it to any over-full file systems that need to auto-expand.  This 30-minute delay, in conjunction with a limit on the size of most auto-expansions, helps to prevent one filesystem from taking all the new space and leaving none for other filesystems on the same span.</p>
+<p>However, you can use 'span-expedite-hdp-space-check' to make the server check for new space more quickly.</p>
+<p>It is not necessary to run this command before creating a new filesystem or expanding a filesystem manually.  In fact, it could be counter-productive to do so, because it would encourage the server to allocate any new space to auto-expansions, rather than leaving it for the administrator to use as intended.</p>
+<p>The server regularly checks for new space even when 'span-unmap-vacated-chunks' has not been run.  It is not necessary to run 'span-expedite-hdp-space-check' after expanding an HDP pool by adding new pool volumes.</p>
+<p>Since all auto-expansion is disabled when an administrator has run 'span-hdp-preallocation no', 'span-expedite-hdp-space-check' does nothing in that configuration.</p>
+<p>'span-expedite-hdp-space-check' returns at once.  It does not wait for new space to be detected and used in auto-expansions.</p>
+<h1>Examples</h1>
+<pre>server:$ span-expedite-hdp-space-check
+The check will be performed shortly
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-release.html">filesystem-release</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

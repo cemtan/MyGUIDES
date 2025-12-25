@@ -1,0 +1,245 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>true-sparse-files</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>true-sparse-files</h1>
+<p>Displays/Updates the state of true sparse file handling</p>
+<h1>Syntax</h1>
+<pre>true-sparse-files [--enable|--disable|--reset] &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The true-sparse-files command displays or enables/disables/resets a file system's sparse-files support.</p>
+<p>Sparse files will only allocate data blocks for sections of the file that have actually been written. For example, it is possible to create a 1 gigabyte file by writing a single byte at an offset of 1 GiB. Normally a file system would allocate 1 GiB worth of data blocks to create this file.  A sparse file will only allocate a single data block for the byte at offset 1 GiB and recognize the unwritten parts of the file as implied or "sparse" data blocks.  The file length will still be reported as 1 GiB, however the actual disk usage will be smaller than this and can be as displayed with the du command.</p>
+<p>Sparse blocks are supported by default for length changes greater than or equal to a certain threshold. The factory default threshold is 0 GiB for WFS-2. However, unless true-sparse-files support is enabled, the file system will not allow the use of more space (real or sparse) than it actually has available.  Enabling true-sparse-files support will allow many multi-terabyte sparse files in a file system much smaller than any one of its files.  Consequently, disabling true-sparse-files may result in a file system that is over-full and essentially read-only.  If this happens, re-enable sparse files support and remove files until the implied size of all files will fit into the actual size of the file system.</p>
+<p>For simplicity the rest of this man page will use abbreviations and terminology in Table 1 below.</p>
+<pre>                                  Table 1.  Glossary
+   +----------------------+-------------------------------------------------------------------+
+   | TSF                  | true-sparse-files                                                 |
+   |----------------------|-------------------------------------------------------------------|
+   | Default TSF          | cluster-wide true-sparse-files support                            |
+   |                      | (also known as global true-sparse-files support,                  |
+   |                      | which is defined to be the same as sparse-metadata support)       |
+   |----------------------|-------------------------------------------------------------------|
+   | Local TSF            | per-volume true-sparse-files support, unique to each file system  |
+   |----------------------|-------------------------------------------------------------------|
+   | Effective TSF        | true-sparse-files setting actually in use                         |
+   |                      | (its value is determined algorithmically, not stored on disk)     |
+   |----------------------|-------------------------------------------------------------------|
+   | SparseBlockThreshold | per-volume on-disk sparse-blocks threshold in bytes               |
+   |----------------------|-------------------------------------------------------------------|
+   | Raw threshold        | another name for SparseBlockThreshold                             |
+   |----------------------|-------------------------------------------------------------------|
+   | On-disk threshold    | another name for SparseBlockThreshold                             |
+   |----------------------|-------------------------------------------------------------------|
+   | Effective threshold  | sparse-blocks threshold used in determining sparse blocks support |
+   |                      | (its value is determined algorithmically, not stored on disk)     |
+   |----------------------|-------------------------------------------------------------------|
+   | Default threshold    | sparse-blocks threshold associated with the following variable:   |
+   |                      | "SparseBlockThresholdInGB-for-wfs-2" for WFS-2 file systems       |
+   |----------------------|-------------------------------------------------------------------|
+   | Factory default      |                                                                   |
+   |  threshold           | SparseBlockThresholdInGB-for-wfs-2 = 0 for WFS-2                  |
+   +----------------------+-------------------------------------------------------------------+
+</pre>
+<p></p>
+<h2>A. Impact of true-sparse-files support on sparse-blocks support</h2>
+<p>The file system normally uses the on-disk threshold when the effective TSF support is disabled. But when the effective TSF is enabled, it uses an effective threshold of 1 byte, effectively ignoring any on-disk threshold and making sparse-blocks support enabled automatically. This behavior is summarized in Table 2.</p>
+<pre>         Table 2. Impact of true-sparse-files support on effective sparse-blocks threshold.
+  +-------+-----------------------------------------------------------------------------------+
+  |       |                                True-Sparse-Files Support                          |
+  |       |---------------------------------------------------------+-------------------------|
+  |       |                      Disabled                           |         Enabled         |
+  | File  |-------------------------------------------+-------------|-----------+-------------|
+  | System|           Sparse-blocks threshold         |Sparse-blocks| Effective |Sparse-blocks|
+  |       |------------+------------------+-----------|   support   | threshold |   support   |
+  |       |User-defined|  On-disk or Raw  | Effective |    state    |     T     |    state    |
+  |       | threshold  |     threshold    | threshold |             |           |             |
+  |       |     U      |        R         |     T     |             |           |             |
+  |  (1)  |    (2)     |       (3)        |    (4)    |     (5)     |    (6)    |     (7)     |
+  |-------|------------|------------------|-----------|-------------|-----------|-------------|
+  |       |            |                  |           |             |           |             |
+  |       |   U &lt; 0    |R=0x7FFFFFFFFFFFFF|   T = R   |  Disabled   |           |             |
+  |       |            |        or        |           |             |           |             |
+  |       |            | R = 32,768 TiB   |           |             |           |             |
+  |       |------------|------------------|-----------|-------------|           |             |
+  |       |            |                  |           |             | T=1 byte  |             |
+  |       |   U = 0    |                  |           |  Enabled    |           |             |
+  | WFS-2 |            |      R = 0       |   T = 0   |             | Applied to|   Enabled   |
+  |       | default is |                  |           | Applied to  | all file  |             |
+  |       |     0      |                  |           | all files   | sizes &gt;=1 |             |
+  |       |------------|------------------|-----------|-------------|           |             |
+  |       |            |                  |           |             |           |             |
+  |       |            |                  |           |  Enabled    |           |             |
+  |       |   U &gt; 0    |      R = U       |   T = R   |             |           |             |
+  |       |            |                  |           | Applied to  |           |             |
+  |       |            |                  |           | file sizes  |           |             |
+  |       |            |                  |           |   &gt;= T      |           |             |
+  +-------+------------+------------------+-----------+-------------+-----------+-------------+
+</pre>
+<p></p>
+<h2>B. Impact of sparse-metadata support</h2>
+<p>When a file system is created, it does not have its own setting of true-sparse-files support. It is said to have its local TSF support undefined and use the default TSF support. The default TSF support is also known the cluster-wide TSF support, which has the same value as sparse-metadata support. The local TSF setting can only be defined by the true-sparse-files command with option --enable or --disable. Once defined, the local setting will be used instead of the global setting.</p>
+<p>Toggling sparse-metadata support does not change the on-disk threshold of any file system; it merely changes how the effective true-sparse-files support is calculated for all file systems that are currently using the global TSF support.  Specifically,</p>
+<p>(1) If sparse-metadata support is enabled, these file systems will use an effective threshold of 1 byte, effectively ignoring any on-disk threshold and making sparse-blocks support enabled automatically. This is described in columns 6 and 7 of Table 2.</p>
+<p>(2) If sparse-metadata support is disabled, these file systems will use the on-disk threshold to decide on sparse-blocks support as shown in columns 3 to 5 of Table 2.</p>
+<h2>C. Usage</h2>
+<dl>
+<dt><strong>--enable</strong></dt>
+<dd><p>(optional) Defines the local TSF setting, sets its state to enabled and the on-disk threshold to 1 byte. The file system will use this local setting instead of the global setting. Thus, the effective threshold is 1 byte, making sparse blocks possible for all file sizes shown in column 6 of Table 2.</p></dd>
+<dt><strong>--disable</strong></dt>
+<dd><p>(optional) Defines the local TSF setting, sets its state to disabled, and updates the on-disk threshold with the current default threshold (see Table 1). The file system will use this local setting instead of the global setting. This results in the file system using the on-disk threshold to decide on sparse-blocks support based on columns 3, 4, 5 of Table 2.</p></dd>
+<dd><p>Disabling TSF support may result in zero free space remaining in the file system, effectively rendering it read-only!  To remedy this situation, re-enable TSF support.</p></dd>
+<dt><strong>--reset</strong></dt>
+<dd><p>(optional) Clears (undefines) the local TSF setting and resets the on-disk threshold to the current value of the default threshold variable (see Table 1). This results in the file system using the default TSF setting, which is the same as sparse-metadata support. Therefore, the file system will be subject to sparse-metadata support as described in section B.</p></dd>
+<dt><strong>&lt;file-system&gt;</strong></dt>
+<dd><p>(required) The file system this command refers to.</p></dd>
+</dl>
+<p>Note that the three options --enable, --disable, and --reset are mutually exclusive. If none of them is specified, the command will display the current status of TSF support of the file system. If any of them is specified, it changes not only the TSF support but also the on-disk threshold value.</p>
+<h2>D. Per-volume on-disk parameters associated with true-sparse-files support</h2>
+<p>The effective true-sparse-files support per file system can be either the local TSF or the default TSF (sparse-metadata support) depending on whether it has been changed by the true-sparse-files command.  The relevant on-disk parameters can be displayed using the command 'dsb' for WFS-2.</p>
+<p>The following cases 1 and 2 show an excerpt of the dsb output for a new WFS-2 file system that has never been changed by the true-sparse-files command.</p>
+<p>Case 1. Sparse-metadata support enabled</p>
+<pre>  Line
+       . . . . . .
+   1   SparseBlockThreshold             : 0x1 (raw=0x0)
+   2   WfsDynamicVolumeConfigFlags      : 0x1 (Wfs2 sparse-blocks threshold used)
+   3   SpaceRsvdNonUse100thsPercent     : 0x0
+   4   TrueSparseFileSupport            : 0x1 (local=0:undefined, effective=sparse-metadata support)
+</pre>
+<p></p>
+<pre>Explanation:
+</pre>
+<p></p>
+<pre>  - SparseBlockThreshold
+    The listed value for it is the effective sparse-blocks threshold in bytes.
+  - raw
+    The listed value for it is the actual on-disk threshold in bytes.
+  - If line 2 says 'local TrueSparseFileSupport changed', then the true-sparse-files
+    command was run at least once to change/define the local TSF support.
+  - TrueSparseFileSupport
+    The listed value for it is the effective TSF support (1=enabled, 0=disabled)
+  - local
+    The listed value tells if the local TSF support is defined. It is undefined when
+    its value is 0 AND line 2 does not say 'local TrueSparseFileSupport changed'.
+    Otherwise, it is defined and can have value "0:disabled" or "1:enabled".
+  - effective
+    This tells if the effective TSF comes from the local or default TSF setting.
+    The default TSF setting is the same as sparse-metadata support.
+</pre>
+<p></p>
+<p>Thus, line 4 says the local TSF setting is undefined and hence the effective TSF is defaulted to sparse-metadata support. The effective TSF is enabled (TrueSparseFileSupport=0x1), which is consistent with the fact that sparse-metadata support is enabled.</p>
+<p>Line 1 shows that the effective threshold is different from the raw threshold because it is a calculated value.</p>
+<p>Line 2 says 'Wfs2 sparse-blocks threshold used'. This flag means that the default sparse-blocks threshold variable specific to WFS-2, namely, 'SparseBlockThresholdInGB-for-wfs-2', was used.  This flag is necessary to identify WFS-2 file systems that had been created before this variable was defined. These early WFS-2 file systems used the 'SparseBlockThresholdInGB' variable, and hence, will not show the flag 'wfs2 sparse-blocks threshold used' in line 2.</p>
+<p>Case 2. Same file system, now disable sparse-metadata support</p>
+<pre>  Line
+       . . . . . .
+   1   SparseBlockThreshold             : 0x0 (raw=0x0)
+   2   WfsDynamicVolumeConfigFlags      : 0x1 (Wfs2 sparse-blocks threshold used)
+   3   SpaceRsvdNonUse100thsPercent     : 0x0
+   4   TrueSparseFileSupport            : 0x0 (local=0:undefined, effective=sparse-metadata support)
+</pre>
+<p></p>
+<p>The effective TSF is disabled because sparse-metadata support is disabled, not because the local TSF is undefined. Based on Table 2, the file system now enforces sparse-blocks support based on the on-disk threshold.  In other words, the on-disk threshold becomes the effective threshold. That's why line 1 shows two identical values 0x0.</p>
+<p>The following cases 3 and 4 are for a WFS-2 file system that has been changed by the 'true-sparse-files' command. The command updates the on-disk threshold and forces the file system to use its own TSF setting instead of the global one.</p>
+<p>Case 3. Running "true-sparse-files --enable"</p>
+<pre>  Line
+       . . . . . .
+   1   SparseBlockThreshold             : 0x1 (raw=0x1)
+   2   WfsDynamicVolumeConfigFlags      : 0x3 (Wfs2 sparse-blocks threshold used, local TrueSparseFileSupport changed)
+   3   SpaceRsvdNonUse100thsPercent     : 0x0
+   4   TrueSparseFileSupport            : 0x1 (local=1:enabled, effective=local)
+</pre>
+<p></p>
+<p>Line 2 records the fact that the local TSF setting has been changed, i.e., defined. Therefore, the effective TSF setting is shown as 'local' on line 4. This command also updated the on-disk threshold to 1. The effective threshold is 1 byte as required when the effective TSF is enabled.</p>
+<p>Case 4. Running "true-sparse-files --disable"</p>
+<pre>  Line
+       . . . . . .
+   1   SparseBlockThreshold             : 0x0 (raw=0x0)
+   2   WfsDynamicVolumeConfigFlags      : 0x3 (Wfs2 sparse-blocks threshold used, local TrueSparseFileSupport changed)
+   3   SpaceRsvdNonUse100thsPercent     : 0x0
+   4   TrueSparseFileSupport            : 0x0 (local=0:disabled, effective=local)
+</pre>
+<p></p>
+<p>Note the factory default threshold for WFS-2 is 0 (Table 1) and this value has not been changed. Line 1 shows that the command updated the on-disk threshold with the default threshold. The effective threshold is equal to the raw value as required when the effective TSF is disabled.</p>
+<h1>Examples</h1>
+<p>Assume sparse-metadata support is disabled and the file system "genomes" is WFS-2. The following examples are run in the order listed.</p>
+<p>1. true-sparse-files genomes</p>
+<p>Displays whether the file system supports true-sparse-files.  Possible output:</p>
+<pre>   Effective true-sparse-files support        : same as sparse-metadata support
+   Sparse-metadata support                    : disabled
+   On-disk sparse-blocks threshold            : 0 B
+   Effective sparse-blocks threshold          : 0 B
+</pre>
+<p></p>
+<p>This particular example shows the file system has never been changed by the true-sparse-files command. Therefore, it has been using the default TSF support, which is the same as sparse-metadata support.</p>
+<p>2. true-sparse-files --enable genomes</p>
+<p>Enables true-sparse-files support for the file system "genomes". This sets the local TSF support to enabled state, which will override the default TSF setting. The on-disk threshold is also reset to 1 byte. Output:</p>
+<pre>   Effective true-sparse-files support        : same as local true-sparse-files support
+   Local true-sparse-files support            : enabled
+   On-disk sparse-blocks threshold (updated)  : 1 B
+   Effective sparse-blocks threshold          : 1 B
+</pre>
+<p></p>
+<p>3. true-sparse-files --disable genomes</p>
+<p>Disables TSF support for the file system "genomes". This sets the local TSF setting to disabled, which will override the default TSF setting. The on-disk threshold is also reset to the default sparse-blocks threshold. Possible output:</p>
+<pre>   Effective true-sparse-files support        : same as local true-sparse-files support
+   Local true-sparse-files support            : disabled
+   On-disk sparse-blocks threshold (updated)  : 0 B
+   Effective sparse-blocks threshold          : 0 B
+</pre>
+<p></p>
+<p>4. true-sparse-files --reset genomes</p>
+<p>Resets the local TSF setting of "genomes" to undefined state. This causes the file system to fall back on the default TSF setting, which is the same to sparse-metadata support. In addition, the on-disk threshold will be updated with the current default sparse-blocks threshold.  Possible output:</p>
+<pre>   Effective true-sparse-files support        : same as sparse-metadata support
+   Sparse-metadata support                    : disabled
+   On-disk sparse-blocks threshold (updated)  : 0 B
+   Effective sparse-blocks threshold          : 0 B
+</pre>
+<p></p>
+<p>5. Check the on-disk parameters relevant to true-sparse-files support.</p>
+<pre>   dsb genomes
+</pre>
+<p></p>
+<pre>   Output:
+</pre>
+<p></p>
+<pre>   . . . . . . . . . . . . .
+   Software:
+     . . . . . . . . . . . . .
+     SparseBlockThreshold             : 0x0 (raw=0x0)
+     WfsDynamicVolumeConfigFlags      : 0x1 (Wfs2 sparse-blocks threshold used)
+     SpaceRsvdNonUse100thsPercent     : 0x0
+     TrueSparseFileSupport            : 0x0 (local=0:undefined, effective=sparse-metadata support)
+     . . . . . . . . . . . . .
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/dsb.html">dsb</a> <a href="../User/du.html">du</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

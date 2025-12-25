@@ -1,0 +1,2505 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strquery</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>strquery</h1>
+<p>Process one or more inquiries about a string</p>
+<h1>Syntax</h1>
+<pre>... | strquery [simple-report-options] | [advanced-report-options] &lt;query1&gt; [&lt;query2&gt; ... &lt;queryN&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command/filter provides a number of string functionalities in the C/C++ runtime library such as strcmp, strlen, strstr, etc. The result can be a string or a number depending on individual functionalities. If a number, a positive value is interpreted as success or true, 0 as fail or false, and negative (usually -1) as error. The result can be formatted with advanced reporting options to produce a report with statistics from unit-testing viewpoint.</p>
+<p>The command/filter always runs in a minishell environment described in section D, and hence can be aborted by running the 'mse-abort --set' command. By default, strquery operates in a local minishell environment if started directly in a Bali shell, or shares the same minishell environment with the mse interpreter if started by mse.</p>
+<p>The tool supports multiple inquiries where numeric results are stored in an internal stack and string results in variables.  Stack operations in RPN style are supported so that users can combine these intermediate results to get a final result for strquery to display.</p>
+<p>The original goal of this tool is to query a property of a string, hence the "strquery" name. The tool has grown in scope to provide advanced capabilities beyond simple querying: it now supports conditional execution and can run any BALI command in the context of strquery.</p>
+<h2>Motivation</h2>
+<p>The initial goal of this tool is to convert a string query into a number that can be interpreted as true/false for decision making.</p>
+<p>It is more user-friendly to design a query statement of the form</p>
+<pre>        strquery &lt;string1&gt;  &lt;operator&gt;  &lt;string2&gt;
+</pre>
+<p></p>
+<p>However, this form is not suitable for the strquery filter because one of the strings, namely 'string1', is chosen to be the standard input of the filter. With this in mind, the query statement can be reduced to the following form:</p>
+<pre>        strquery &lt;operator&gt; &lt;string2&gt;
+</pre>
+<p></p>
+<p>This choice of the query statement requires 'string1' to be specified via an option when strquery is run as a command. For instance,</p>
+<pre>        strquery --first-string &lt;string1&gt; &lt;operator&gt; &lt;string2&gt;
+</pre>
+<p></p>
+<p>e.g.,</p>
+<pre>       # Is "abc" less than "xyz"?
+       $ echo abc | strquery --lt xyz
+       1
+       $ strquery --first-string abc --lt xyz
+       1
+</pre>
+<p></p>
+<p>The tool has evolved in to an advanced utility that can support text processing like a minishell (see 'mse' man page). To this end, it can execute multiple queries with support for flow control; it also supports macros and escape sequences in the values of options.</p>
+<p>When run as a filter, it can provide some functionalities of 'awk', with pre- and post-processing support as shown heuristically below.</p>
+<pre>      // on-startup queries (preprocessing)
+      --on-startup
+      [
+      &lt;startup-query1&gt;
+      &lt;startup-query2&gt;
+      . . . . . .
+      ]
+      // strquery's body: applies to every line from standard input:
+      // for (linenum = 1; linenum &lt;= total_input_lines; linenum++)
+      // {
+             &lt;query1&gt;
+             &lt;query2&gt;
+             . . . . . .
+             &lt;query3&gt;
+             --if &lt;...&gt;
+               --break         # break out of the for-loop
+             --elseif &lt;...&gt;
+               --continue      # go back to process the next line
+             --elseif &lt;...&gt;
+               --abort         # exit the strquery command
+             -- else
+             [
+                . . . . . .
+                . . . . . .
+             ]
+      // }
+      // on-exit queries (post-processing)
+      --on-exit
+      &lt;exit-query1&gt;
+      &lt;exit-query2&gt;
+      . . . . . .
+</pre>
+<p></p>
+<h2>Syntax:</h2>
+<pre>   Command: strquery [options] &lt;query1&gt; [&lt;query2&gt; ... &lt;queryN&gt;]
+</pre>
+<p></p>
+<pre>   Filter:  strquery [init-options] [options] &lt;query1&gt; [&lt;query2&gt; ... &lt;queryN&gt;] [exit-options]
+</pre>
+<p></p>
+<p>where</p>
+<pre>   options          ::=  [environment-options] &lt;report-options&gt;
+   query            ::=  [query-options] &lt;query-statement&gt;   # mandatory order
+   query-statement  ::=  &lt;query-operator&gt; [query-operands]
+   startup-options  ::=  --on-startup "[" &lt;startup-query1&gt; [&lt;startup-query2&gt; ... &lt;startup-queryM&gt;] "]"
+   exit-options     ::=  --on-exit &lt;exit-query1&gt; [&lt;exit-query2&gt; ... &lt;exit-queryK&gt;]
+</pre>
+<p></p>
+<p>All query operators must be specified explicitly as is, i.e., cannot contain macros. All query operands can contain macros and escape sequences, which are resolved when the query involved is executed.</p>
+<p>Example:</p>
+<pre>   $ echo ABC def | strquery   --insensitive    --has       abc
+                               &lt;-----------&gt;    &lt;---&gt;     &lt;-----&gt;
+                                  option       operator   'string2' operand
+                                                &lt;---------------&gt;
+                                                    statement
+                               &lt;---------------------------------&gt;
+                             query (full command line of --has sub-command)
+</pre>
+<p></p>
+<p>1. A query is a sub-command of strquery to perform a certain action. The token that specifies the main action of the sub-command is called the query operator. A query operator may have one or more operands that follow it and all of them constitute a query statement.</p>
+<p>2. The complete command line of a sub-command is called a query, which consists of query options, query operators, and operands if any.</p>
+<p>3. Query options are persistent across subsequent queries. They need to be specified before the affected query operator. If a query option is not specified to the first query statement, it will use the default value for that option.</p>
+<p>4. 'string1' and 'string2'</p>
+<p>Certain operators require one string such as string length inquiry. Others require two strings such as string compare. The first string is denoted as 'string1' and the second is 'string2' throughout this man page.</p>
+<p>When strquery is run as a filter, 'string1', by default, comes from the standard input with the newline character removed. But this can be overridden by the --first-string option.</p>
+<p>When run as a command, 'string1' is empty unless specified by the --first-string option. Specifying an option for 'string1' is necessary in the design of strquery because the tool can support multiple operations acting on the same 'string1'. Thus, using an option allows 'string1' to be specified only once for multiple queries.</p>
+<p>5. All queries are numbered from left to right, starting with 1. The query number is also known as query id. If the query has options, they must precede it.</p>
+<p>6. Not all queries result in actions. Some command line arguments, such as "[" and "]", are treated as queries although they are used merely as delimiters to group queries. See section B4.</p>
+<p>7. If the query fails for any reason, strquery usually displays -1 and aborts itself.</p>
+<h2>A. Overview</h2>
+<h2>A1. Built-in variables</h2>
+<p>To support multi-query processing strquery pushes all the intermediate results to an internal stack and maintains built-in variables to store the state of the engine. The following table lists all variables that are updated by strquery and can be specified to certain types of queries.</p>
+<pre>                   Table 1: strquery's built-in variables
+     +------------------------------------------------------------------------------+
+     | Variables |  Built-in Values                                                 |
+     |-----------|------------------------------------------------------------------|
+     |           |  --------- Stack Variables -----------------------------------   |
+     |  .X&lt;i&gt;    |  The i-th value on the numeric stack, i = 1, 2, 3, ...     (*)   |
+     |  .X       |  Synonym for .X1 (top entry on the numeric stack)                |
+     |  .Y       |  Synonym for .X2 (entry below .X) on the numeric stack           |
+     |  .Z       |  Synonym for .X3 (entry below .Y) on the numeric stack           |
+     |  .T       |  Synonym for .X4 (entry below .Z) on the numeric stack           |
+     |  .NV      |  Number of values on the numeric stack                           |
+     |  .FC      |  Count of false results (zero) on the numeric stack              |
+     |  .TC      |  Count of true results (positive) on the numeric stack           |
+     |           |                                                                  |
+     |           |  ------- Miscellaneous Variables ------------------------------  |
+     |  RES      |  Numerical result of previous query (can be changed by users)    |
+     |  .QR      |  Result of previous query (can be numeric or string)             |
+     |  .QR&lt;n&gt;   |  Result of the n-th query (n starts from 1)                (!)   |
+     |  .ID      |  Current query number (1 for the first query)                    |
+     |  .eid     |  Minishell environment id used by strquery                       |
+     |  .line    |  Current input text line with newline removed              (+)   |
+     |  .rawline |  Current input text line with newline preserved            (+)   |
+     |  .lineno  |  Line number of the current input line (1 for first line)  (+)   |
+     |  .__      |  Same as .line (2 underscores)                             (+)   |
+     |  .___     |  Same as .rawline (3 underscores)                          (+)   |
+     |  .____    |  Same as .lineno (4 underscores)                           (+)   |
+     |  __       |  Same as .line                                             (#)   |
+     |  ___      |  Same as .rawline                                          (#)   |
+     |  ____     |  Same as .lineno                                           (#)   |
+     +------------------------------------------------------------------------------+
+         * i = 1 for top of the stack, i = 2 for value immediately below the top, etc.
+         ! n = 1 for the leftmost query, 2 for next query to the right, etc.
+           Note n and i are not necessarily the same because the stack can shrink, making i &lt; n.
+           If the number of queries is very large and memory is of concern, each .QR&lt;n&gt;
+           can be deleted on the fly by specifying --unset .QR&lt;n&gt;.
+         + Same convention as described in Section D7.2 of the 'mse' man page.
+         # Same convention as described in Section I of the 'calculate' man page,
+           intended for use with --calculate option.
+</pre>
+<p></p>
+<p>Built-in variables starting with a dot are designed to be read-only; They are hidden similar to how file names starting with a period respond to the 'ls' command. The RES variable is defined without a dot to allow users to modify its value in mse scripts to affect final reporting. This variables is special in that its values is also stored in the minishell library discussed below.</p>
+<p>Each query always produces a result that is either numeric or string. But strquery always treats the result of a query as having two components:</p>
+<pre>  - a numeric component, which will be pushed to the numeric stack and saved in variable RES
+  - a string component, which will be saved in .QR and .QR&lt;n&gt; variables where n is the query number
+</pre>
+<p></p>
+<p>The string component of a numeric result is the text representation of the number. The numeric component of a string result is the length of the string.</p>
+<pre>  Example:
+     echo 5   | strquery --EQ 5       # result: 1    =&gt; push 1 to stack (.X=1), RES=1, .QR="1"
+     echo abcd | strquery --substr 2  # result: "cd" =&gt; push 2 to stack (.X=2), RES=2, .QR="cd"
+</pre>
+<p></p>
+<h3>A2. Where are strquery's built-in variables stored?</h3>
+<p>By default, strquery stores its built-in variables in both the minishell library and the local minishell environment. The --dump-all query can be used to show where the variables are stored.</p>
+<pre>   $ echo 5 | strquery .push. --push 7 --dump-all
+   Minishell library:
+   [cmdid_6].FC=0
+   [cmdid_6].ID=3
+   [cmdid_6].NV=2
+   [cmdid_6].QR=7
+   [cmdid_6].QR1=5
+   [cmdid_6].QR2=7
+   [cmdid_6].TC=2
+   [cmdid_6].X=7
+   [cmdid_6].X1=7
+   [cmdid_6].X2=5
+   [cmdid_6].Y=5
+   [cmdid_6].__=5
+   [cmdid_6].___=5
+</pre>
+<p></p>
+<pre>   [cmdid_6].____=1
+   [cmdid_6].cid=6
+   [cmdid_6].eid=139819974255584
+   [cmdid_6].fid=0
+   [cmdid_6].lid=6
+   [cmdid_6].line=5
+   [cmdid_6].linelen=1
+   [cmdid_6].lineno=1
+   [cmdid_6].rawline=5
+</pre>
+<p></p>
+<pre>   [cmdid_6].rawlinelen=2
+   [cmdid_6].trimmedline=5
+   [cmdid_6].trimmedlinelen=1
+   [cmdid_6]RES=7
+   [cmdid_6]__=5
+   [cmdid_6]___=5
+</pre>
+<p></p>
+<pre>   [cmdid_6]____=1
+   Local minishell environment:
+   .QR=7
+   RES=7
+</pre>
+<p></p>
+<p>Note that variables stored in the library are prefixed with "[cmdid_N]" where N is the command id. The command id is a number assigned by the minishell framework to commands that support minishell such as mse, mse-run, strquery, strtoken, etc. It is a persistent counter starting from 1 on startup.</p>
+<p>Consider the following example:</p>
+<pre>   $ mse 'echo 5 | strquery .push --push 7 --calc .X+.Y | strquery --EQ 12 --calc .X==1; echo "Result=%RES"'
+</pre>
+<p></p>
+<p>The minishell environment is defined in detail in sections A4-A6 of the 'mse' man page. Each minishell environment can create, or share, a database component called minishell library described in subsection A6.3. Only the so-called root command, defined as the command that is run directly in the Bali console, can create a minishell library. In the example above, mse is the root command.  All other filters are run by mse and hence can only share the library created by mse.</p>
+<p>Suppose mse has command id 5, the first strquery has id 6, and the second has id 7, etc. By design, every strquery automatically adds its signature prefix to library variables that are not specified with a prefix. Thus, the actual --calc queries are as follows:</p>
+<pre>       --calc .X+.Y  ==&gt; means: --calc =%[cmdid_6].X+%[cmdid_6].Y
+       --calc .X==1  ==&gt; means: --calc =%[cmdid_7].X==1
+</pre>
+<p></p>
+<p>Note that strquery removes its library variables, but not minishell environment variables, upon termination. Thus, the last statement in the script works because RES is still persistent. But if we change it to:</p>
+<pre>    echo "Result=%RES, X=%.X"
+</pre>
+<p></p>
+<p>it will fail because .X is outside strquery's scope.</p>
+<h3>A3. When are strquery's built-in variables updated?</h3>
+<p>1. When strquery is started:</p>
+<pre>   - If advanced reporting is specified, it will display a test header line.
+   - Then it will execute the startup script(s) if any.
+   - Set .lineno and ____ (4 underscores) to 0, RES to 0
+   - All other variables in Table 1 are undefined.
+   - Attempts to use undefined variables in the startup script will cause failure.
+</pre>
+<p></p>
+<p>2. When strquery begins processing the k-th input line (k = 1, 2, etc.):</p>
+<pre>   - The stack is instantiated.
+     Thus, all stack variables are reset to zero with .X3, .X4, and so on undefined.
+   - All .QR1, .QR2, etc. are undefined.
+   - Initialize all underscore built-in variables, .lineno, .line, .rawline variables.
+   - Attempts to use undefined variables will cause failure.
+</pre>
+<p></p>
+<p>3. When strquery begins processing query number n on an input line (n = 1, 2, etc):</p>
+<pre>   - Update the .ID variable with the query number n.
+</pre>
+<p></p>
+<p>4. When strquery completes processing the n-th query on an input line (n = 1, 2, etc):</p>
+<pre>   a) it saves the query result as is (string result) in
+         - .QR&lt;n&gt; where n is the query id (removed when starting a new line),
+         - .QR
+      Thus, .QR is always overwritten by query after query.
+</pre>
+<p></p>
+<pre>   b) it saves the numeric query result in the RES variable.
+      Thus, RES is always overwritten by query after query. Note that if the query
+      result is a string, the numeric result of the query is the length of the string.
+</pre>
+<p></p>
+<pre>   c) it converts the result to a number and push to an internal numeric stack:
+         - if the result is numeric, push as is.
+         - if the result is a string, push the length of the string instead.
+         - ".X" is the entry at the top of the stack.
+         - ".Y" is the entry immediately below the top of the stack.
+         - If the stack size is i, all variables .X&lt;i&gt; store the
+           the i-th entry in the stack, starting with 1 for the top.
+</pre>
+<p></p>
+<pre>   d) it updates a number of other built-in variables as shown in Table 1.
+        - All variables .QR1 up to .QR&lt;n&gt; inclusive store all the intermediate
+          results of queries 1 to n.
+</pre>
+<p></p>
+<p>5. When strquery completes processing the k-th input line (k = 1, 2, etc):</p>
+<pre>   - The stack is destroyed. Thus, all stack variables associated
+     with the k-th input line are undefined.
+   - By design, strquery displays only the result of the last query.
+     To display all the intermediate results, specify '--verbose 2'.
+</pre>
+<p></p>
+<p>6. When strquery is aborted, it will skip all the remaining queries on the current input line. It also skips all the remaining input lines. If an exit script is specified, it will be skipped, too.</p>
+<p>7. When strquery completes processing all input lines graciously:</p>
+<pre>   - strquery will execute the exit script if such a script is specified.
+   - Attempts to use undefined variables in the exit script will result in a failure.
+   - The final value of RES is defined as the overall result of strquery.
+   - If advanced reporting is specified, strquery will reformat the result line
+     to report statistics.
+</pre>
+<p></p>
+<p>8. The strquery creates its own stack variables in the shared minishell library, and non-stack variables in the minishell environment. The stack variables can be dumped at any time by --mylib (or --run mylib). The non-stack variables can be dumped at any time by --myenv (or --run myenv). Both types of variables can be dumped by --dump-all. The --dump query can also be used to dump a short list of variables commonly used for debugging.</p>
+<p>For example, the following inquiries result in 1/0 for yes/no and push the integer result to the numeric stack:</p>
+<pre>   # Does 'string1' have 'foo'?
+   $ echo foo bar | strquery --has foo   # "--has foo" is a query
+   1
+</pre>
+<p></p>
+<pre>   # Display the last result only
+   $ echo foo bar | strquery --has foo --has xyz
+   0
+</pre>
+<p></p>
+<p>If the query result is a string, its length will be pushed to the stack:</p>
+<pre>   # Display 'bar' and push its length, which is 3, to the stack:
+   $ echo 'foo bar xyz' | strquery --substr 4 3
+   bar
+</pre>
+<p></p>
+<p>Let's look at the built-in variables when strquery is processing the third query in the following example:</p>
+<pre>   # Find out if 'string1' has at least one specified token
+   $ echo foo bar | strquery --has foo   --has xyz   --calculate '.X || .Y'
+   2
+                             ---------   ---------   ---------------------
+                              query1       query2      query3
+                                .Y           .X       currently processed
+</pre>
+<p></p>
+<p>The state of strquery when executing query3 can be depicted schematically as follows:</p>
+<pre>    +--------------------------------------------------------------------------------+
+    |       Query Result Array         Result Stack                                  |
+    |                                                                                |
+    |   |--------------------------|                                                 |
+    |   | Query 3: .QR3 undefined  |                                                 |
+    |   |--------------------------+-----------------+                               |
+    |   | Query 2: .QR2=0          |   .X = .X1 = 0  |                               |
+    |   |--------------------------|-----------------|  Visible part of stack        |
+    |   | Query 1: .QR1=1          |   .Y = .X2 = 1  |                               |
+    |   +-------------------------------------------------------------------------   |
+    |                              :        0        :                               |
+    |                              :.................:  Hidden part of stack         |
+    |                              :        0        :                               |
+    |                              :.................:                               |
+    |                              :                 :  (.Z and .T not defined yet)  |
+    |                              :                 :                               |
+    |                                                                                |
+    |                 +-------------+   +----------+   +----------+                  |
+    |                 | .lineno = 1 |   | .ID = 3  |   | RES = 0  |                  |
+    |                 +-------------+   +----------+   +----------+                  |
+    |                 +-------------+   +----------+   +----------+                  |
+    |                 |   .NV = 2   |   | .TC = 1  |   | .FC = 1  |                  |
+    |                 +-------------+   +----------+   +----------+                  |
+    +--------------------------------------------------------------------------------+
+                          Figure 1. strquery's state variables
+</pre>
+<p></p>
+<p>It can be seen from the diagram that the result stack contains two parts:</p>
+<pre>   - the visible part has two entries.
+   - the invisible part has infinitely many entries of zero values.
+     Thus, stack operations never fail due to running out of entries in the stack.
+</pre>
+<p></p>
+<pre>   # Find out if 'string1' contains both foo and xyz
+   $ echo foo bar | strquery --has foo --has xyz --calculate .TC==.NV
+   0
+</pre>
+<p></p>
+<h3>A4. Generalized Queries</h3>
+<p>A generalized query is a sub-command that does not inquire about a property of the source string. For example, it can be the --calculate sub-command to calculate an expression. Or it can be a sub-command to manipulate the internal stack or to control the flow of execution of queries. All generalized queries about the stack have their names defined with a preceding and trailing period.</p>
+<p>A useful generalized query is the --echo query, which takes one string operand. If the operand contains a variable to be expanded, the variable must be preceded with a macro symbol, which is '%' by default. For instance,</p>
+<pre>   $ echo foo bar | strquery --occur foo --quiet --echo 'Found foo %.X times'
+   Found foo 1 times
+</pre>
+<p></p>
+<p>Note that '-q' tells strquery not to display any output because the output will be handled by the --echo query.</p>
+<h3>A4.1 Stack Operation Queries</h3>
+<p>These queries manipulate the internal result stack.  The stack operators and operands must be specified in the Reverse Polish Notation (RPN). For example,</p>
+<pre>   # Use logical AND to find out if 'string1' contains both foo and xyz?
+   $ echo foo bar | strquery --has foo --has xyz .and.
+   # Same as: echo foo bar | strquery --has foo --has xyz --calculate '.Y &amp;&amp; .X'
+   0
+</pre>
+<p></p>
+<pre>   # Use logical OR to find out if 'string1' contain either foo or xyz?
+   $ echo foo bar | strquery --has foo --has xyz .or.
+   # Same as: echo foo bar | strquery --has foo --has xyz --calculate '.Y || .X'
+   1
+</pre>
+<p></p>
+<p>Note that the --calculate query pushes the result on to the stack:</p>
+<pre>   # Specify &lt;expression&gt; using syntax of the 'calculate' command
+   $ echo foo bar | strquery --has foo --calculate '1 + 3' .add.
+   5
+</pre>
+<p></p>
+<h3>A4.2 Conditional Queries</h3>
+<p>A number of if-then-else style queries are supported to control the flow of execution of queries.</p>
+<pre>   # Check if line has foo and echo accordingly
+   $ echo foo bar | strquery --has foo --if .X [ --echo 'has foo' ] --else [ --echo 'no foo' ]
+   has foo
+</pre>
+<p></p>
+<p>Note the following syntax is wrong:</p>
+<pre>   $ echo foo bar | strquery --has foo --if .X [--echo 'has foo'] --else [--echo 'no foo']
+</pre>
+<p></p>
+<p>It is wrong because the square brackets are not stand-alone tokens.</p>
+<h3>A5. Variables</h3>
+<p>The strquery filter operates in a minishell environment, which supports escape sequences (see the 'quoted-text' man page) and macros (see the 'macro-support' and 'mse' man pages). Macros are variables preceded with a leading macro symbol. By default the support is disabled. Support for escape sequences can be enabled via option --escape-char and for macros via --macro-symbol.</p>
+<p>Users can specify their own variables and built-in variables in all operands. But the filter does not resolve all escape sequences and macros on the command line at once. Rather, it will resolve one query at a time. Specifically, there are two phases of processing a query.</p>
+<p>1. Phase 1</p>
+<p>The filter expands all escapes and macros that are present in the operands of the query's operator. If the operands should be used as is, disable escapes and macros by specifying -x 0 and -m 0 before the operator.</p>
+<pre>   # Use macros in a query operand
+   $ echo 'foo bar' | strquery --quiet --has foo --echo "found foo: %.X"
+   found foo: 1
+</pre>
+<p></p>
+<p>2. Phase 2</p>
+<p>If an operator expects a math expression operand, it will treat all string tokens in the expression as variable names and replace them with their values. Thus, support for math variables does not need to have the macro symbol defined.</p>
+<p>To be a valid user-defined variable name, the token must begin with an underscore or a letter. The subsequent characters can be underscores, letters, or digits.</p>
+<p>A built-in variable name is a token starting with a period followed by a name that complies with the syntax of a user-defined variable.</p>
+<pre>   # Variables in a math expression are resolved in the context of the calculate engine.
+   $ echo 'foo bar' | strquery --find bar --calculate '.X+1' # find column number of 'bar'
+   5
+</pre>
+<p></p>
+<h2>B. Query Statements</h2>
+<p>A query statement is generally of the form:</p>
+<pre>        strquery &lt;operator&gt; [&lt;string2&gt; [additional parameters]]
+</pre>
+<p></p>
+<p>The optional parameters can be the offset in to the string, the number of characters to compare, etc.</p>
+<p>By convention, the offset, or index, always starts from 0 for the first character of the string. In some cases the column number, which starts from 1, is preferred over the offset. Thus, the first character in the string is at offset 0 or column number 1.</p>
+<p>For user's convenience, strquery allows negative offsets where -1 is the position of the last character of the string, -2 is the next to the last, etc. But internally all negative offsets are converted to the true offsets relative to the start of the string.</p>
+<pre>    Example:   string2 = "abcd";
+</pre>
+<p></p>
+<pre>    - 'a' is at offset 0, 'b' offset 1, 'c' offset 2, 'd' offset 3
+    - 'd' is at offset -1 (converted to 3), 'c' offset -2 (converted to 2), etc.
+</pre>
+<p></p>
+<p>In general, strquery will evaluate the query statement to get an integer result, then push it to the internal stack, and display it if the query is the last one on the command line. The displayed value can be changed by option -d or -b or advanced reporting options.</p>
+<p>Some query statements have a fixed number of arguments, others do not. When multiple queries are specified on the command line, the tool is smart enough to know their boundaries even if they have a variable number of arguments. However, if the boundary turns out to be incorrect, users can override by specifying a stand-alone "--" argument to mark the end of the argument list.  For example,</p>
+<pre>      # Use the result of --substr as the first string for subsequent operations
+      $ sscat file.txt | strquery --substr 3 -- -P --eq abc
+</pre>
+<p></p>
+<p>The remaining of this section is divided into sub-sections for readability purposes:</p>
+<pre>  - B1: Startup/exit script options
+  - B2: List of all string queries
+  - B3: List of all case-insensitive string queries
+  - B4: How to change the flow of queries
+  - B5: List of all queries about the internal stack
+</pre>
+<p></p>
+<p>Note that all strings are affected by the decoding options discussed in Section C.</p>
+<h2>B1. Startup and Exit Queries</h2>
+<p>These queries are available only when strquery is run as a filter.</p>
+<dl>
+<dt><strong>--on-startup, -S  "[" query1 [query2] ... [queryN] "]"</strong></dt>
+<dd><p>Specify one or more queries to execute when strquery is started. If more than one query are executed at startup, they must be listed between the two arguments "[" and "]", i.e., two stand-alone square bracket tokens.</p></dd>
+<dt><strong>--on-exit, -X query1 [query2] ... [queryN]</strong></dt>
+<dd><p>Specify one or more queries to execute when strquery completes processing of all input lines. These so called exit queries must be specified at the end of the strquery command line and hence they required no bracket delimiters.</p></dd>
+<dd><p>When --on-exit is specified, all the intermediate results from all input lines will not be displayed. After the last exit query is executed, strquery will display the value of "RES" unless the last exit query is --echo, --mse, --ssrun, or --run. In this case, it is the responsibility of the exit query to handle the output.</p></dd>
+</dl>
+<h2>B2. String Queries</h2>
+<dl>
+<dt><strong>--first-string, -f  &lt;string1&gt;</strong></dt>
+<dd><p>Specify the first string, which is known as 'string1' throughout this man page. This string is to be used as the first operand of subsequent queries.</p></dd>
+<dd><p>If 'string1' is specified this way, it will be subject to decoding (i.e., resolving all escape sequences and macros) like any other 'string2' operands of all queries. The resulting text is saved in .QR&lt;n&gt;, and its length is pushed to the stack and saved in RES. Note 'string1' persists across all subsequent queries until changed again by any of the queries -f|-I|-P|-Q.</p></dd>
+<dd><p>When strquery is run as a filter, 'string1' comes from the standard input by default and will be used as is without being subject to decoding. To decode the standard input line requires specifying the --decode-stdin option.</p></dd>
+<dd><p>This query does not change the stack nor save variables in the minishell environment.</p></dd>
+<dt><strong>--use-initial-first-string, -I</strong></dt>
+<dd><p>Specify that 'string1' is to be reverted to the initial value for all subsequent queries until changed again by any of the queries -f|-I|-P|-Q. When run as a filter, this means revert to the standard input line with the newline removed. When run as a command, this means revert to the initial value specified in the first occurrence of --first-string.</p></dd>
+<dd><p>This query does not change the stack nor save variables in the minishell environment.</p></dd>
+<dt><strong>--use-preceding-result-as-first-string, -P</strong></dt>
+<dd><p>Specify that the first operand string, 'string1', for all subsequent queries is now changed to the result string of the query preceding the current query. The change is effective until changed again by any of the queries -f|-I|-P|-Q. In other words, if -P is query #5, then all queries #6, #7, etc will use the result of query #4 as their first operand.</p></dd>
+<dd><p>This query does not change the stack nor save variables in the minishell environment.</p></dd>
+<dt><strong>--pipe-result-to-next-query, -Q</strong></dt>
+<dd><p>Specify that every subsequent query will use the result from its preceding query as the first operand until changed by any of the queries -f|-I|-P|-Q.</p></dd>
+<dd><p>This query does not change the stack nor save variables in the minishell environment.</p></dd>
+<dt><strong>--lt | --le | --gt | --ge | --eq | --ne  &lt;string2&gt; [offset M [count N&gt;0]]</strong></dt>
+<dd><p>Compare two strings 'string1' and 'string2': is 'string1' &lt;, &lt;=, &gt;, &gt;=, ==, or != 'string2'? The result is 1 if yes, 0 if no, and -1 if syntax error. This result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>If offset M is specified, only the substring of 'string1' starting from offset M is used in the comparison. The default offset is 0.</p></dd>
+<dd><p>If the number of characters, N, is specified, only N characters from each string will be compared. If N is not specified, the entire strings are used for comparison.</p></dd>
+<dd><p>If case-insensitive comparison is desired, specify the -i option before the query operator.</p></dd>
+<dd><p>Note that the C-language counterpart is:</p></dd>
+</dl>
+<pre>            RES = strcmp(string1, string2)      &lt;, &lt;=, &gt;, &gt;=, ==, !=  0;
+            RES = strncmp(string1, string2, N)  &lt;, &lt;=, &gt;, &gt;=, ==, !=  0;
+</pre>
+<p></p>
+<pre>      $ echo Monday Tuesday | strquery --eq tuesday 7
+      0
+      $ echo Monday Tuesday | strquery --insensitive --eq tuesday 7
+      1
+      $ echo Sunday Monday Tuesday | strquery --insensitive --eq tuesday -7
+      1
+      $ echo 'Monday Tuesday' | strquery --substr 0 6 -P --eq 'Monday'
+      # Same as: echo 'Monday Tuesday' | strquery --substr 0 6 --first-string %.QR1 --eq 'Monday'
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--LT | --LE | --GT | --GE | --EQ | --NE  &lt;number2&gt; [numeric-token N]]</strong></dt>
+<dd><p>a) If --rpn-style has never been specified, the behavior is as follows.</p></dd>
+<dd><p>Compare &lt;number1&gt; and &lt;number2&gt; numerically where &lt;number1&gt; is the N-th numeric token in 'string1'. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>If N is not specified or specified as 0, the entire 'string1' is treated as &lt;number1&gt;. If N is specified as a nonzero number, only the specified numeric token in 'string1' will be used for comparison. Specifically, 'string1' will be processed as follows.</p></dd>
+</dl>
+<pre>   - All non-numeric data will be ignored (or treated like white spaces).
+   - All occurrences of numeric data (decimal, hex, octal, binary) will be numbered 1, 2, etc
+     from left to right, and -1, -2, etc from right to left.
+   - The N-th number, where N is nonzero, will be used to compare with &lt;number2&gt;.
+</pre>
+<p></p>
+<pre>      $ echo 'The show will start in 3 hours 30 minutes' | strquery --EQ 30 2
+      # Same as: echo 'The show will start in 3 hours 30 minutes' | strquery --EQ 30 -1
+      1
+</pre>
+<p></p>
+
+<p>b) If --rpn-style has been specified, the query operates on the numeric stack. Specifically, it compares the top of the stack (left operand) with &lt;number2&gt; (right operand). If the stack is empty, the left operand is taken from the standard input, assuming N is not specified.</p>
+<p>If option N is specified, the left operand is the N-th number on the stack, where N = 0 is the top, N = 1 is the one below the top, etc. If N exceeds the depth of the stack, the left operand is zero.</p>
+<p>--rpn-style</p>
+<p>Specify that all the binary numeric comparisons (-LT | --LE | --GT | --GE | --EQ | --N) operate on the numeric stack; i.e., the left operand is taken from the stack.</p>
+<p>Once specified, this style remains in effect until changed by option -I|--use-initial-first-string or -P|--use-preceding-result-as-first-string.</p>
+<p>--has/rwi, -h &lt;string2&gt; [offset M, default 0]</p>
+<p>Query if the substring of 'string1' starting from offset M, contains 'string2'. C-language counterpart: RES = strstr(string1+M, string2) ? 1 : 0.</p>
+<p>Offset M can be specified as a negative number as explained previously. If M is beyond the end of 'string1', the result is 0. Otherwise, the result is 1 if 'string2' is found, 0 if not. It is pushed to the stack, and saved in RES and .QR&lt;n&gt;. C-language counterpart: strstr(string1+M, string2) != 0</p>
+<p>Note that this query does not attempt to find out all occurrences of 'string2' in 'string1'. It will stop searching as soon as it finds the first occurrence of 'string2' in 'string1'.</p>
+<p>The searching is case insensitive if --insensitive option has been specified earlier.</p>
+
+<pre>      $ echo foo bar | strquery --has bar
+      1
+      $ echo foo BAR | strquery --insensitive --has bar
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--hasno/rwi &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>Same as --has, except that the result is 1 if 'string1' does not contain 'string2', and 0 otherwise.</p></dd>
+<dt><strong>--has-all/rwi &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--has-all/rwi --eol &lt;end-marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;end-marker&gt;</strong></dt>
+<dd><p>Query if 'string1' contains all of the strings specified in the list 'str1', 'str2', etc. The termination of the list is based on the first argument after the --has-all option:</p></dd>
+<dd><p>a) If it is not "--eol", the list consists of all arguments after --has-all until the last command-line argument, or before any argument starting with "--", whichever occurs first.</p></dd>
+<dd><p>b) If it is "--eol", the list consists of all arguments between the two specified &lt;end-marker&gt;'s.</p></dd>
+<dd><p>The result of the query is 1 if 'string1' contains all strings in the list, 0 if not. If case insensitive comparison is desired, precede the --has-all query with the --insensitive option or use the --ihas-all query counterpart. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+</dl>
+<pre>      # The list includes all strings to the last command-line argument:
+      $ echo foo BAR abc blah | strquery --insensitive --has-all foo bar blah
+      1
+</pre>
+<p></p>
+<pre>      # The list ends when encountering a token starting with "--"
+      $ echo foo bar abc blah | strquery --has-all foo bar --has xyz
+      0
+</pre>
+<p></p>
+<pre>      # The list is delimited between two end-of-line markers using --eol option
+      $ echo foo --bar abc blah | strquery --has-all --eol END foo --bar abc END
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--has-any/rwi &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--has-any/rwi --eol &lt;marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;marker&gt;</strong></dt>
+<dd><p>Query if 'string1' contains any of the specified strings 'str1', 'str2', etc. The syntax is identical to the '--has-all' query. The final result of the query is the total number of unique matches of 'str1', 'str2', etc in 'string1'.  In other words, all occurrences of 'str1' in 'string1' are counted as 1 unique match, all occurrences of 'str2' in 'string1' are counted as 1 unique match, etc.</p></dd>
+<dt><strong>--has-either/rwi &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--has-either/rwi --eol &lt;marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;marker&gt;</strong></dt>
+<dd><p>Query if 'string1' contains exactly one the specified 'str1', 'str2', etc. The syntax is identical to the '--has-all' query. The only difference is that if 'string1' contains exactly one specified string, the result is 1.</p></dd>
+<dt><strong>--has-none/rwi &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--has-none/rwi --eol &lt;end-marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;end-marker&gt;</strong></dt>
+<dd><p>Query if 'string1' contains none of the specified strings 'str1', 'str2', etc. The syntax is identical to the '--has-all' query. The only difference is that if 'string1' does not contain any of the specified strings, the result is 1.</p></dd>
+<dt><strong>--exp-has/rwi &lt;expression&gt; &lt;str1&gt; &lt;str2&gt; ... &lt;strN&gt;</strong></dt>
+<dd><p>This query computes the specified algebraic and/or logical &lt;expression&gt;, which complies to the same syntax as the 'calculate' command. The expression contains a number of variables named v1, v2, ..., v&lt;N&gt; where the j-th variable is associated with the j-th string argument, i.e., &lt;strj&gt;, that follows &lt;expression&gt;. Thus, the highest index of v variables is also the required number of string arguments to follow &lt;expression&gt;.</p></dd>
+<dd><p>The vj variable is used to store the result of evaluating --has &lt;strj&gt;, where j = 1 to N. If other words, v1 is replaced with 1 if 'string1' has 'str1', and 0 if not. Similarly, v2 is replaced with 1 if 'string1' has 'str2', and 0 if not, etc.</p></dd>
+<dd><p>If case insensitive checking is desired, precede the --exp-has query with the --insensitive option, or use the --iexp-has query counterpart.</p></dd>
+<dd><p>Example:</p></dd>
+</dl>
+<pre>      # a) Does the input line contain both ab and cd, or zz?
+      # i.e., compute: ((--has ab) &amp;&amp; (--has cd)) || (--has zz)
+</pre>
+<p></p>
+<pre>      $ echo ab cd ef xy zz | strquery --exp-has '(v1&amp;&amp;v2) || v3' ab cd zz
+      1
+</pre>
+<p></p>
+<pre>      # b) Does the input line contain both ab and cd, or not zz?
+      # i.e., compute: ((--has ab) &amp;&amp; (--has cd)) || !(--has zz)
+</pre>
+<p></p>
+<pre>      $ echo ab cd ef xy zz | strquery --exp-has '(v1&amp;&amp;v2) || !v3' ab cd zz
+      1
+</pre>
+<p></p>
+<pre>      # d) The expression can contain other variables:
+      # e.g., compute: count ? (--has ab) || (--has cd) : (--has mnp)
+</pre>
+<p></p>
+<pre>      $ env-set count 3
+      $ echo ab cd ef xy zz | strquery --exp-has 'count? (v1||v2) : v3' ab cd mnp
+      1
+</pre>
+<p></p>
+
+<p>Note that mnemonic operators and functions can also be used (see 'calculate' man page). For example, (b) can be run as:</p>
+
+<pre>      $ echo ab cd xy zz | strquery --exp-has '(v1 .and. v2) .or. .not.v3' ab cd zz
+      $ echo ab cd xy zz | strquery --exp-has '(v1.and.v2).or..not.v3' ab cd zz # spacing in expression is insignificant
+</pre>
+<p></p>
+<dl>
+<dt><strong>--expression/rwi &lt;expression&gt; &lt;operator1&gt; &lt;str1&gt; &lt;operator2&gt; &lt;str2&gt; ... &lt;operatorN&gt; &lt;strN&gt;</strong></dt>
+<dd><p>This query computes the specified algebraic and/or logical &lt;expression&gt;, which complies to the same syntax as the 'calculate' command. The expression contains a number of variables named v1, v2, ..., v&lt;N&gt; where the j-th variable is associated with the j-th operation, i.e., &lt;operatorj&gt;, that follows &lt;expression&gt;. Thus, the highest index of v variables is also the required number of operations to follow &lt;expression&gt;.</p></dd>
+<dd><p>The vj variable is used to store the result of evaluating the j-th operation, where j = 1 to N. The following operations, or queries, can be specified:</p></dd>
+</dl>
+<pre>         a) --length without any argument.
+         b) --ndata, --nword
+         c) All case-insensitive queries listed in section B3.
+            Each query in this list must be specified with exactly one string argument.
+         d) The case-sensitive counterparts of all queries listed in section B3.
+            Each query in this list must be specified with exactly one string argument.
+</pre>
+<p></p>
+
+<p>For example, to check if the input line has more than 10 characters, and starts with "ab", and has foo (case insensitive), and ends with zz (case insensitive):</p>
+
+<pre>      $ echo ab cd FOO BAR Zz | strquery --expression 'v1&gt;10 &amp;&amp; v2 &amp;&amp; v3 &amp;&amp; v4' --length --start-with ab --ihas foo --end-with zz
+</pre>
+<p></p>
+<dl>
+<dt><strong>--in/rwi &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>Query if the substring of 'string1' starting from offset M is contained in 'string2'. C-language counterpart: RES = strstr(string2, string1+M) != 0</p></dd>
+<dd><p>If offset M is beyond the end of 'string1', the result is 0. The result is 1 if 'string2' contains it, 0 if not. It is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+</dl>
+<pre>      $ echo foo | strquery --in 'foo bar'
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--length, -l  [offset M, default 0]</strong></dt>
+<dd><p>Compute the length of 'string1' starting from offset M. The length is pushed to the stack, and saved in RES and .QR&lt;n&gt;. C++ counterpart: RES = string1.length().</p></dd>
+</dl>
+<pre>      $ echo 'Hello there' | strquery --length
+      11
+</pre>
+<p></p>
+<dl>
+<dt><strong>--zero-length, -z [offset M, default 0]</strong></dt>
+<dd><p>Query if 'string1', starting from offset M, has zero length (empty). The result is 1 if yes, 0 if not. It is pushed to the stack, and saved in RES and .QR&lt;n&gt;. C-language counterpart: RES = !strlen(string1)</p></dd>
+</dl>
+<pre>      $ echo | strquery --zero-length
+      1
+      $ echo abc | strquery --zero-length 4
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--white-spaces [offset M, default 0]</strong></dt>
+<dd><p>Query if 'string1', starting from offset M, contains only white spaces (spaces, tabs, and newlines). The result is 1 if yes, 0 if not. It is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dt><strong>--occurrence-count/rwi, -o &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>Compute the number of occurrences of 'string2' in 'string1' starting from offset M. If M is beyond the end of 'string1', the result is 0. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+</dl>
+<pre>      $ echo 'Hello there' | strquery --occur e
+      3
+</pre>
+<p></p>
+<dl>
+<dt><strong>--exp-occurrences/rwi &lt;expression&gt; &lt;str1&gt; &lt;str2&gt; ... &lt;strN&gt;</strong></dt>
+<dd><p>This query computes the specified algebraic and/or logical &lt;expression&gt;, which complies to the same syntax as the 'calculate' command. The expression contains a number of variables named v1, v2, ..., v&lt;N&gt; where the j-th variable is associated with the j-th string argument, i.e., &lt;strj&gt;, that follows &lt;expression&gt;. Thus, the highest index of v variables is also the required number of string arguments to follow &lt;expression&gt;.</p></dd>
+<dd><p>The vj variable is used to store the result of evaluating --occurrence-count &lt;strj&gt;, where j = 1 to N. If other words, v1 is replaced with the number of occurrences of 'str1' in 'string1'. Similarly, v2 is replaced with the number of occurrences of 'str2' in 'string1', etc.</p></dd>
+<dd><p>If case insensitive checking for occurrence is desired, precede the --exp-occurrences query with the --insensitive option, or use the --iexp-occurrences query counterpart.</p></dd>
+</dl>
+<pre>      # Does the input line contain two occurrences of "ab", or have both cd and zz?
+      $ echo ab ab ef xy zz | strquery --exp-occurrences '(v1==2) || (v2&amp;&amp;v3)' ab cd zz
+      1
+</pre>
+<p></p>
+
+<p>Note that mnemonic operators and functions can also be used (see 'calculate' man page). For example, the example above can be run as:</p>
+
+<pre>      $ echo ab ab ef xy zz | strquery --exp-occurrences v1==2.or.(v2.and.v3) ab cd zz
+</pre>
+<p></p>
+<dl>
+<dt><strong>--grep-count, -g [-v|--] &lt;regular expression pattern&gt;</strong></dt>
+<dd><p>Compute the number of occurrences of the rpattern in 'string1'. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>This pattern has the same syntax as in the grep filter (see the 'grep' man page), i.e., it can contain regular expressions. If -v is specified, it is an inverted grep. Note that if -v is not specified and the pattern begins with "-v", specify a double dash before the pattern.</p></dd>
+</dl>
+<pre>      $ echo 'Hello there' | strquery --grep ^Hello
+      1
+      $ echo 'Hello there' | strquery --grep -v foo
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--find/rwi &lt;string2&gt; [offset M [occurrence-number N]]</strong></dt>
+<dd><p>Find the offset of the N-th occurrence of 'string2' in 'string1', starting from offset M of 'string1'. Note that M &gt;= 0 and N != 0. By default, M is 0 and N is 1. For user's convenience, N = -1 is the last occurrence, -2 is the next to the last occurrence, etc.</p></dd>
+<dd><p>If M is beyond the end of string1 or the N-th occurrence of string2 is not found, the result is -1. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;. C++ counterpart when N = 1: RES = string1.find(string2, M).</p></dd>
+<dd><p>Note that a zero result means 'string2' is found at the start of 'string1', not a failure. So the output of --find should not be used in unit test reporting because zero will be displayed as "TEST FAILED", which is misleading. For unit test reporting, it is better to use --cfind instead.</p></dd>
+</dl>
+<pre>      $ echo    'abc def xyz def' | strquery --find def
+      # offset:  0123456789 1234
+      4
+      $ echo    'abc def xyz def' | strquery --find def 0 2
+      12
+      $ echo    'abc def xyz def' | strquery --find def 0 -1
+      12
+</pre>
+<p></p>
+<dl>
+<dt><strong>--rfind/rwi &lt;string2&gt; [&lt;offset M&gt; [occurrence-number N]]</strong></dt>
+<dd><p>Find the offset of the N-th occurrence of 'string2' in 'string1' where the occurrences are counted from right to left. If the offset M is specified, all characters beyond offset M are excluded from the search. If the occurrence is not found, the result is -1. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>Note that offset M &gt;= 0 and N &gt;= 1. By default, offset M is at the end of the string and N is 1. C++ counterpart when N = 1: RES = string1.rfind(string2, M).</p></dd>
+<dd><p>The result of this query is misleading in unit test reporting (see --find). It is better to use --crfind instead.</p></dd>
+</dl>
+<pre>      $ echo 'abc def xyz def' | strquery --rfind def
+      12
+</pre>
+<p></p>
+<dl>
+<dt><strong>--cfind/rwi &lt;string2&gt; [&lt;column K&gt; [occurrence-number N]]</strong></dt>
+<dd><p>Find the column number of the N-th occurrence of 'string2' in 'string1', starting from column K of 'string1'. If the occurrence is not found, the result is -1. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>This query is similar to --find except the column number is equal to the offset plus 1. Note that column K &gt;= 1 and N != 0. By default, K is 1 and N is 1. For user's convenience, N = -1 is the last occurrence, -2 is the next to the last occurrence, etc.</p></dd>
+<dd><p>Note that --cfind and --has can be used to determine if 'string1' contains 'string2' because a positive result is interpreted as true.</p></dd>
+<dd><p>C++ counterpart when N = 1: RES = string1.find(string2, K-1) + 1.</p></dd>
+</dl>
+<pre>      $ echo    'abc def xyz def' | strquery --cfind def
+      # column:  123456789 12345
+      5
+      $ echo    'abc def xyz def' | strquery --cfind def 1 2
+      13
+      $ echo    'abc def xyz def' | strquery --cfind def 1 -1
+      13
+</pre>
+<p></p>
+<dl>
+<dt><strong>--crfind/rwi &lt;string2&gt; [column K [occurrence-number N]]</strong></dt>
+<dd><p>Find the column number of the N-th occurrence of 'string2' in 'string1' where the occurrences are counted from right to left, excluding all characters beyond column K. If the occurrence is not found, the result is -1. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>Note that column K &gt;= 1 and N &gt;= 1. By default, column K is at the end of the string and N is 1.</p></dd>
+<dd><p>C++ counterpart when N = 1: RES = string1.rfind(string2, K-1) + 1.</p></dd>
+</dl>
+<pre>      $ echo 'abc def xyz def' | strquery --crfind def
+      13
+</pre>
+<p></p>
+<dl>
+<dt><strong>--start-with/rwi &lt;string2&gt;  [offset M, default 0]</strong></dt>
+<dd><p>Query if 'string1' at offset M starts with 'string2'. C-language counterpart: strncmp(string1+M, string2, strlen(string2)) == 0</p></dd>
+<dd><p>If offset M is beyond the end of 'string1', the result is 0. Otherwise, the result is 1 if 'string2' is the first part of 'string1', 0 if not. It is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>C++ counterpart: RES = string1.find(string2, M) == 0.</p></dd>
+</dl>
+<pre>      $ echo 'abc def xyz def' | strquery --start-with abc
+      1
+      $ echo 'abc def xyz def' | strquery --start-with def 4
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--end-with/rwi &lt;string2&gt;  [ending offset M]</strong></dt>
+<dd><p>Query if 'string1' would end with 'string2' if all characters from offset M were discarded. By default, M is at the end of 'string1'. If M is 0 or negative, all characters in 'string1' would be discarded. If M is at or beyond the end of 'string1', all characters in 'string1' would be retained. The result is 1 if 'string2' would be found at the new end of 'string1', 0 if not. It is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>C++ counterpart: RES = string1.find(string2, M) + string2.length() == string1.length().</p></dd>
+</dl>
+<pre>      $ echo 'abc def xyz def' | strquery --end-with def
+      1
+      $ echo   'abc def xyz def' | strquery --end-with def 7
+      # offset  012345678
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--substr &lt;offset M&gt; [count N &gt;=1, default all]]</strong></dt>
+<dd><p>Extract the substring starting at the specified offset M of 'string1'. C++ counterpart: string1.substr(M, N).</p></dd>
+<dd><p>If offset M is beyond the end of 'string1', the result is an empty string (this behavior is different from C++). If N is specified, display N characters starting from offset M. Otherwise, display all characters from M to the end of 'string1'.</p></dd>
+<dd><p>The result of this query is a string, which is saved in .QR&lt;n&gt;. Its length will be pushed to the stack and saved in RES.</p></dd>
+</dl>
+<pre>      $ echo    'abc def xyz' | strquery --substr 4 3
+      # Offset:  012345678
+      def
+      $ echo    'abc def xyz' | strquery --substr -3 3
+      xyz
+</pre>
+<p></p>
+<dl>
+<dt><strong>--chop/rwi &lt;string2&gt; [&lt;occurrence-number N=1&gt; [count K=0]]</strong></dt>
+<dd><p>Chop all leading characters in 'string1' up to offset P, where P is the position of the N-th occurrence of 'string2' plus K characters, where K can be negative, zero, or positive. The result is the remaining part of 'string1', which is saved in .QR&lt;n&gt;. Its length will be pushed to the stack and saved in RES.</p></dd>
+<dd><p>If the N-th occurrence is not found or P is negative, 'string1' is left intact. If P is beyond the end of 'string1', the result is an empty string.</p></dd>
+<dd><p>Note that N != 0.  By default, N is 1 and K is zero. For user's convenience, N = -1 is the last occurrence of 'string2' in 'string1', -2 is the next to the last occurrence, etc.</p></dd>
+<dd><p>C++ counterpart when N = 1: RES = string1.substr(string1.find(string2) + K).</p></dd>
+</dl>
+<pre>      $ echo  'abc def xyz default' | strquery --chop def
+      def xyz default
+      $ echo  'abc def xyz default' | strquery --chop def 1 4
+      xyz default
+      $ echo  'abc def xyz default' | strquery --chop def 2
+      default
+      $ echo  'abc def xyz default' | strquery --chop def 2 -2
+      z default
+      $ echo  /abc/def/ghi/xyz | strquery --chop / -1 1  # find base name
+      xyz
+</pre>
+<p></p>
+<dl>
+<dt><strong>--trunc/rwi &lt;string2&gt; [&lt;occurrence-number N=1&gt; [count K=0]]</strong></dt>
+<dd><p>This is the complement of --chop. It truncates all trailing characters in 'string1' from P to the end of 'string1'. Here, P is the position of the N-th occurrence of 'string2' plus K, where K can be negative, zero, or positive. The result is the remaining part of 'string1', which is saved in .QR&lt;n&gt;. Its length will be pushed to the stack and saved in RES. If the N-th occurrence is not found, 'string1' is left intact. If P is negative, the result is an empty string. If P is beyond the end of 'string1', the result is the entire 'string1'.</p></dd>
+<dd><p>Note that N != 0.  By default, N is 1 and K is zero. For user's convenience, N = -1 is the last occurrence of 'string2' in 'string1', -2 is the next to the last occurrence, etc.</p></dd>
+<dd><p>C++ counterpart when N = 1: RES = string1.substr(0, string1.find(string2) + K).</p></dd>
+</dl>
+<pre>      $ echo  'abc-def-xyz-default' | strquery --trunc def
+      abc-
+      $ echo  'abc-def-xyz-default' | strquery --trunc def 1 -1
+      abc
+      $ echo  'abc-def-xyz-default' | strquery --trunc def 1 3
+      abc-def
+      $ echo  /abc/def/ghi/xyz | strquery --trunc / -1   # find directory name
+      /abc/def/ghi
+</pre>
+<p></p>
+<dl>
+<dt><strong>--token-count, -k  [--delims &lt;delimiter-chars&gt;]</strong></dt>
+<dd><p>Find the total number of tokens in 'string1'. By default, the token delimiters are white spaces. To override the default, use the --delims option. For instance, --delims " ,.@n@t" means that the delimiter can be any character: space, newline, tab. Note that @n and @t are the newline and tab characters because @ is the default escape character.</p></dd>
+<dd><p>The result of this query is a number, which is pushed to the stack and saved in .QR&lt;n&gt; and RES.</p></dd>
+</dl>
+<pre>      $ echo  'abc def xyz default' | strquery -k
+      4
+      $ echo  -E \ 'abc-def\txyz-default' | strquery -k --delims -@t
+      # Same: echo  -E \ 'abc-def\txyz-default' | strquery -e \ -k --delims -\t
+      4
+</pre>
+<p></p>
+<dl>
+<dt><strong>--token, -t  &lt;token number N&gt; [--delims &lt;delimiter-chars&gt;]</strong></dt>
+<dd><p>Extract the N-th string token from 'string1'. The --delims option is identical to that in the --token-count query statement. The result of this query is always a string, which is saved in .QR&lt;n&gt;. Its length will be pushed to the stack and saved in RES.</p></dd>
+<dd><p>If N is 0, the result is a new string that consists of all tokens separated by a space.</p></dd>
+<dd><p>If N &lt; 0, the token number is counted backwards from the right: -1 is the ending token, -2 is the next to the ending token, etc.</p></dd>
+<dd><p>If token N does not exist, the result is an empty string.</p></dd>
+</dl>
+<pre>      $ echo  -E \ 'abc-def\txyz-default' | strquery -t 2 --delims -@t
+      def
+      $ echo  -E \ 'abc-def\txyz-default' | strquery -t 0 --delims -@t
+      abc def xyz default
+      $ echo  -E \ 'abc-def\txyz-default' | strquery -t -2 --delims -@t
+      xyz
+</pre>
+<p></p>
+<dl>
+<dt><strong>--token-with-string, -w  &lt;string2&gt; [&lt;occurrence number N&gt; [--delims &lt;delimiter-chars&gt;]]</strong></dt>
+<dd><p>Similar to --token, except that only tokens that contain &lt;string2&gt; are counted.</p></dd>
+</dl>
+<pre>      $ echo Today is Monday, not Sunday  | strquery -w day 2  --delims " ,"
+      Monday
+</pre>
+<p></p>
+
+<p>Note that only tokens containing "day" are counted. Hence, "Today" is token 1 or -3, "Monday" is token 2 or -2, and "Sunday" is token 3 or -1.</p>
+<p>--ntoken, -T  [strtoken filter options] &lt;output-line&gt;</p>
+<p>Following -T is a number of arguments that are identical to the options described in the strtoken man page. The only difference is that the long option names must be preceded by ++ and the short option name by +. All strtoken options are supported except the sorting option. Note that strquery already supports escape character and macro symbol of its own. Thus, there is no need to specify options +e, +E and +m to strtoken.</p>
+<p>The default is to display &lt;output-line&gt;, which can contain tokens from 'string1'. The &lt;output-line&gt; can be constructed as a BALI command that can be run if preceded by ++run option.</p>
+<p>Note &lt;output-line&gt; can consist of more than one argument:</p>
+
+<pre>        &lt;output-line&gt;  ::= [&lt;argument&gt;] [&lt;argument&gt;] [&lt;argument&gt;] ...
+</pre>
+<p></p>
+
+<p>The list of arguments constituting &lt;output-line&gt; is terminated at the first argument that starts with a dash. If an argument starting with a dash actually part of the &lt;output-line&gt;, it should not be specified as a stand-alone argument.</p>
+<p>If evaluation of &lt;output-line&gt; results in a single number, the number will be pushed to the stack, and saved in RES and .QR&lt;n&gt;. Otherwise, the result is treated as a string, which is saved in .QR&lt;n&gt;, and its length is pushed to the stack and saved in RES.</p>
+
+<pre>      $ echo abc 15 def 0x20 xyz 0b1000_0111 30 | strquery -T +n %2       # display number string as is
+      0x20
+      $ echo abc 15 def 0x20 xyz 0b1000_0111 30 | strquery -T +n %[2,Td]  # display in decimal format
+      32
+      $ echo abc 15 def 0x20 xyz 0b1000_0111 30 | strquery -T +n %0
+      15 0x20 0b1000_0111 30
+      $ echo abc 15 def 0x20 xyz 0b1000_0111 30 | strquery -T +n %1 %2 %4
+      15 0x20 30
+</pre>
+<p></p>
+<pre>      $ echo 2015-08-30 04:00:59-07:00 | strquery -T +T %1 # read the time part and display as is
+      04:00:59-07:00
+</pre>
+<p></p>
+<pre>      # Read the full date time in to a 64-bit time value and display in decimal or hex:
+      $ echo 2015-08-30 04:00:59-07:00 | strquery -T +F %[1,Td]   # display in decimal
+      6188757787149860864
+      $ echo 2015-08-30 04:00:59-07:00 | strquery -T +F %[1,Th]   # display in hex
+      0x55e2e26b00000000
+</pre>
+<p></p>
+<pre>      # Same, but convert to 32-bit time value (number of seconds since midnight 1970/01/01), and display in decimal:
+      $ echo 2015-08-30 04:00:59-07:00 | strquery -T +F %[1,Ct,Td]
+      1440932459
+</pre>
+<p></p>
+
+<p>Note that if strquery with any token n is used in an mse script, the token should be specified as %[n] or %&lt;n&gt; to prevent the mse interpreter from interpreting them as its own positional parameter.</p>
+<p>--ntoken/end, -T/end &lt;delimiter-tag&gt;  [strtoken filter options] &lt;output-line&gt; &lt;delimiter-tag&gt;</p>
+<p>Same as --ntoken, except that a tag is specified to limit the scope of the strtoken arguments. This tag must be specified immediately after the --ntoken/end option, and specified again after the last argument to strtoken.</p>
+<p>Normally, strquery can recognize the last argument to --ntoken in the command line. But if it cannot recognize correctly, specifying the /end sub-option is the best way to help strquery parse correctly.</p>
+<p>The following command line tests if the input line has "abc" and the product of the first two numbers in the line is equal to 300:</p>
+
+<pre>      $ echo abc 15 def 20 | strquery -T/end XYZ +n ++run calculate %1*%2==300 XYZ --has abc .and.
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--ntoken-count, -K  [strtoken filter options]</strong></dt>
+<dd><p>Find the total number of tokens from 'string1'. It is possible to count only certain types of tokens by specifying additional constraints after -K. The result of this query is a number, which is pushed to the stack and saved in .QR&lt;n&gt; and RES.</p></dd>
+<dd><p>Following -K are a number of arguments that are identical to the options described in the strtoken man page. The only difference is that the long option names must be preceded by ++ and the short option name by +.</p></dd>
+</dl>
+<pre>      $ echo abc 15 def 0x20 xyz 0b1000_0111 30 | strquery -K +n
+      4
+      $ echo abc 15 def 0x20 xyz 0b1000_0111 30 | strquery -K +b
+      1
+</pre>
+<p></p>
+
+<p>Starting with release 13.1, strtoken reserves the '+' token as the number of tokens in the standard input line. Thus, this option can now be replaced with --ntoken option as follows:</p>
+
+<pre>        --ntoken, -T  [strtoken filter options] %+
+</pre>
+<p></p>
+<dl>
+<dt><strong>--ntoken-count/end, -K/end  &lt;delimiter-tag&gt; [strtoken filter options]  &lt;delimiter-tag&gt;</strong></dt>
+<dd><p>Same as --ntoken, except that a tag is specified to limit the scope of the strtoken arguments. This tag must be specified immediately after the --ntoken-count/end or -K/end option, and specified again after the last argument to strtoken.</p></dd>
+<dd><p>Normally, strquery can recognize the last argument to --ntoken-count in the command line. But if it cannot recognize correctly, specifying the /end sub-option is the best way to help strquery parse correctly.</p></dd>
+<dd><p>The following command lines produce the same result. They test if the input line has "abc", two decimal numbers, and one hex number.</p></dd>
+</dl>
+<pre>      $ echo abc 15 def 30 xyz 0x50 | strquery -K +n -K +h --has abc --cal '.X==1 &amp;&amp; .Y==1 &amp;&amp; Z==2'
+      1
+      $ echo abc 15 def 30 xyz 0x50 | strquery -K/end XYZ +S X +d +h XYZ --has abc  --cal '.X==1 &amp;&amp; XAcount==2 &amp;&amp; XBcount==1'
+      1
+</pre>
+<p></p>
+
+<p>Note that the last example specifies a single -K query with two token types: the first token type +d is associated with the A-token list, and the second token type +h with the B-token list. The total tokens in these lists are Acount and Bcount, respectively. Option '+S X' causes the X prefix to prepend to these variables. Thus, XAcount is the total number of decimal numbers, and XBcount the total number of hex numbers.</p>
+<p>--ndata &lt;numeric data number N&gt;</p>
+<p>This query is a shortcut for --ntoken +n %&lt;N&gt;,  which extracts the N-th numeric data from 'string1'.</p>
+<p>The result of this query is always a string, which is saved in .QR&lt;n&gt;. Its numerical value will be pushed to the stack and saved in RES.</p>
+
+<pre>      $ echo file25.txt has 100 bytes | strquery --nd 1
+      25
+</pre>
+<p></p>
+<dl>
+<dt><strong>--nword &lt;numeric word number N&gt;</strong></dt>
+<dd><p>This query is a shortcut for --ntoken +w +n %&lt;N&gt;,  which extracts the N-th numeric word from 'string1'.</p></dd>
+<dd><p>Thus, this query is similar to --ndata except that the numeric data must be a word, i.e., it cannot be surrounded by alphabetic characters.</p></dd>
+</dl>
+<pre>      $ echo file25.txt has 100 bytes | strquery --nw 1
+      100
+</pre>
+<p></p>
+<dl>
+<dt><strong>--match-ctype &lt;string2&gt;</strong></dt>
+<dd><p>Display 1 if all characters in string1 have either their ctypes or literal values specified in string2, display 0 otherwise. This is the implementation of match_ctype(string1,string2), which is described in detail in Table 2 in the 'mse-functions' man page.</p></dd>
+</dl>
+<pre>      # Matching 4 alphabetic characters, 2 digits, one dot, 3 lower case letters?
+      # Dot is a special character to signify that the next character is literal.
+      $ echo file25.txt | strquery --match-ctype '4a2d..3l'
+      1
+</pre>
+<p></p>
+<dl>
+<dt><strong>--set &lt;variable-name&gt; &lt;value&gt;</strong></dt>
+<dd><p>Set the variable to the specified value in the current minishell environment that strquery operates in. The result of this query is a string, which is &lt;value&gt; and is saved in .QR&lt;n&gt;. Its length will be pushed to the stack and saved in RES. The variable is removes only when the minishell environment is destroyed.</p></dd>
+<dt><strong>--mse-set &lt;variable-name&gt; &lt;value&gt;</strong></dt>
+<dd><p>Same as --set but the variable resides in the global minishell environment.</p></dd>
+<dt><strong>--unset &lt;variable-name&gt;</strong></dt>
+<dd><p>Remove the variable from the current minishell environment that strquery operates in.</p></dd>
+<dt><strong>--mse-unset &lt;variable-name&gt;</strong></dt>
+<dd><p>Remove the variable from the global minishell environment.</p></dd>
+<dt><strong>--save &lt;variable-name&gt;</strong></dt>
+<dd><p>Save the numeric result of the most recent query in the specified variable in the current minishell environment that strquery operates in.</p></dd>
+<dt><strong>--mse-save &lt;variable-name&gt;</strong></dt>
+<dd><p>Same as --save but the variable resides in the global minishell environment.</p></dd>
+<dt><strong>--strsave &lt;variable-name&gt;</strong></dt>
+<dd><p>Save the string result of the most recent query in the specified variable in the current minishell environment that strquery operates in.</p></dd>
+<dt><strong>--mse-strsave &lt;variable-name&gt;</strong></dt>
+<dd><p>Same as --strsave but the variable resides in the global minishell environment.</p></dd>
+<dt><strong>--strcat &lt;string2&gt;</strong></dt>
+<dd><p>Append 'string2' to 'string1'.</p></dd>
+</dl>
+<pre>      $ echo abc | strquery --strcat def
+      abcdef
+</pre>
+<p></p>
+<dl>
+<dt><strong>--get-key-value &lt;key&gt; &lt;delimiter&gt; &lt;defaultValue&gt;</strong></dt>
+<dd><p>Get the value associated with a key name in 'string1', assuming 'string1' to be of the form: &lt;key-name&gt; &lt;delimiter&gt; &lt;key-value&gt;. The white spaces surrounding &lt;key&gt;, &lt;delimiter&gt;, and &lt;value&gt; are insignificant. If &lt;key-name&gt; is equal to &lt;key&gt;, the result of the query is &lt;key-value&gt; with all leading and trailing white spaces removed. Otherwise, the result is set to the default value specified by &lt;defaultValue&gt;. To handle a complex 'string1' that contains a primary key and a subkey, or to return &lt;value&gt; with leading and trailing spaces preserved, use the 'get-key-value' filter.</p></dd>
+</dl>
+<pre>      $ echo "day = Monday" | strquery --get-key-value day = error
+      Monday
+</pre>
+<p></p>
+<pre>      $ echo "day = Monday" | strquery --get-key-value day : error   # display default value if key is not found
+      error
+</pre>
+<p></p>
+<dl>
+<dt><strong>--erase &lt;offset M&gt;  [character count N, default all]</strong></dt>
+<dd><p>Erase N characters starting from offset M of 'string1'. Offset M is negative if counted from right to left: -1 is the last character, -2 is the next to the last character, etc. If N &gt; 0, erase N characters starting from offset M. If N &lt; 0, erase |N| characters to the left of the character at offset M.</p></dd>
+</dl>
+<pre>      $ echo abcdefgh | strquery --erase 3
+      abc
+      $ echo abcdefgh | strquery --erase 2 2
+      abefgh
+      $ echo abcdefgh | strquery --erase -3 2
+      abcdeh
+      $ echo abcdefgh | strquery --erase -3 -2
+      abcfgh
+</pre>
+<p></p>
+<dl>
+<dt><strong>--insert &lt;string2&gt; &lt;offset M&gt;</strong></dt>
+<dd><p>Insert 'string2' at offset M of 'string1'. Offset M is negative if counted from right to left: -1 is the last character, -2 is the next to the last character, etc. If M is greater than the length of 'string1', the effect is to append 'string2' to 'string1'. If M is zero, the effect is to prepend 'string2' to 'string1'.</p></dd>
+</dl>
+<pre>      $ echo abcdef | strquery --insert XYZ 3
+      abcXYZdef
+      $ echo abcdef | strquery --insert XYZ
+      XYZabcdef
+      $ echo abcdef | strquery --insert XYZ 100
+      abcdefXYZ
+</pre>
+<p></p>
+<dl>
+<dt><strong>--replace/rwi &lt;oldstring&gt; [&lt;newstring&gt; [occurrence-number N, default 1]]</strong></dt>
+<dd><p>Replace the N-th occurrence of 'oldstring' in 'string1' with 'newstring'. If 'newstring' is empty or not specified, the effect is to delete the N-th occurrence of 'oldstring' in 'string1'.</p></dd>
+<dd><p>If N = 0, replace all occurrences.  The occurrence number is counted from left to right if N &gt; 0, and from right to left if N &lt; 0.</p></dd>
+<dd><p>If 'oldstring' is empty, the occurrence is counted as follows. Given a string s, imagine there is an empty string at the start of each character in s as well as at the end of s. For example, if s = "abc", there will be 4 empty strings located at offset 0, 1, 2, and 3 (immediately after 'c').</p></dd>
+</dl>
+<pre>      $ echo abc def abc def xyz | strquery --replace abc XYZ
+      XYZ def abc def xyz
+      $ echo abc def abc def xyz | strquery --insensitive --replace aBc XYZ 2
+      abc def XYZ def xyz
+</pre>
+<p></p>
+<pre>      $ echo abc def abc def xyz | strquery --replace abc XYZ 0  # replace all occurrences
+      XYZ def XYZdef xyz
+      $ echo abc def abc def xyz | strquery --replace abc "" 2   # delete 2nd occurrence
+      abc def  def xyz
+      $ echo abc | strquery --replace "" XYZ     # prepend
+      XYZabc
+      $ echo abc | strquery --replace "" XYZ 1
+      aXYZbc
+      $ echo abc | strquery --replace "" XYZ -1  # append
+      abcXYZ
+      $ echo abc | strquery --replace "" XYZ  0  # insert XYZ at every character, including at start end end of "abc"
+      XYZaXYZbXYZcXYZ
+</pre>
+<p></p>
+<dl>
+<dt><strong>--change &lt;offset M&gt;  &lt;character count N&gt; &lt;newstring&gt;</strong></dt>
+<dd><p>Change N characters from offset M of 'string1' to 'newstring' if N &gt; 0. If N &lt; 0, change |N| characters to the left of the character at offset M of 'string1' to 'newstring'. If M is outside 'string1', do not change 'string1'.</p></dd>
+</dl>
+<pre>      $ echo abc def abc def xyz | strquery --change 3 4 XYZ
+      abcXYZ abc def xyz
+      $ echo abc def abc def xyz | strquery --change 7 -3 XYZ
+      abc XYZ abc def xyz
+</pre>
+<p></p>
+<dl>
+<dt><strong>--tolower [&lt;offset M&gt;  [character count N, default all]]</strong></dt>
+<dd><p>Convert to lowercase N characters of 'string1' starting from offset M if N &gt; 0. If N &lt; 0, the conversion applies to |N| characters to the left of the character at offset M. If M is negative, the offset is counted from right to left: -1 is the last character, -2 is the next to the last character, etc. If M is outside 'string1', no conversion is performed.</p></dd>
+</dl>
+<pre>      $ echo ABC DEF | strquery --tolower
+      abc def
+      $ echo ABC DEF | strquery --tolower 4
+      ABC def
+      $ echo ABC DEF | strquery --tolower 4 2
+      ABC deF
+      $ echo ABC DEF | strquery --tolower 5 -3
+      ABc dEF
+</pre>
+<p></p>
+<dl>
+<dt><strong>--toupper [&lt;offset M&gt;  [character count N, default all]]</strong></dt>
+<dd><p>Perform conversion to uppercase with all parameters as described in the --tolower query.</p></dd>
+<dt><strong>--basename [&lt;suffix&gt;]</strong></dt>
+<dd><p>Get the file name. Consider 'string1' as a path name and strip the directory and 'suffix' from it like the standard Linux command 'basename'. The 'suffix' is removed only when it is shorter than the original file name.</p></dd>
+</dl>
+<pre>      $ echo abc/def/xyz.txt | strquery --basename .txt
+      xyz
+      $ echo abc/def/xyz.txt | strquery --basename xyz.txt  # suffix same as file name
+      xyz.txt
+</pre>
+<p></p>
+<dl>
+<dt><strong>--dirname [&lt;offset M&gt;]</strong></dt>
+<dd><p>Consider the substring starting from offset M of 'string1' as a path name and strip the last component like the standard Linux command 'dirname'.</p></dd>
+</dl>
+<pre>      $ echo abc/def/xyz.txt | strquery --dirname
+      abc/def
+      $ echo abc | strquery --dirname
+      .
+</pre>
+<p></p>
+<dl>
+<dt><strong>--calculate, -c &lt;expression&gt;</strong></dt>
+<dd><p>This query computes the &lt;expression&gt; using the 'calculate' command engine, which operates in the minishell environment owned by strquery. Note &lt;expression&gt; can contain formatting options listed in square brackets as described in syntax (a1) and (b1) and example 18 in the 'calculate' man page. The expression can also contain built-in functions listed in Table 2 of the 'mse-functions' man page.</p></dd>
+<dd><p>The output can be a string or a number.</p></dd>
+</dl>
+<pre>            - If number, the value is pushed to the stack, and saved in RES and .QR&lt;n&gt;.
+            - If string, the string is saved in .QR&lt;n&gt;, and its length is
+              pushed to the stack and saved in RES.
+</pre>
+<p></p>
+<pre>      # Read two numeric tokens and add them together
+      $ echo 7 8 | strquery -T -n 1 -T -n 2 -c .X+.Y
+      15
+      $ echo 7 8 | strquery -T -n 1 -T -n 2 -c '[-h] .X+.Y'  # formatting embedded in expression
+      0xf
+</pre>
+<p></p>
+<dl>
+<dt><strong>--join-calculate, -j &lt;string2&gt;</strong></dt>
+<dd><p>Join .QR (the preceding query's result) and &lt;string2&gt; to form an expression, then evaluate it as if "--calculate '&lt;.QR&gt;&lt;string2&gt;'" were specified. If there is no preceding query, use string1 in place of the .QR variable.</p></dd>
+</dl>
+<pre>      $ echo abc | strquery --length -j "==3"   # use preceding result
+      # same as: echo abc | strquery --length --calculate ".QR==3"
+      1
+      $ echo 3 | strquery -j "&amp;0x06"            # use string1
+      # same as: echo 3 | strquery -j "__&amp;0x06"
+      2
+</pre>
+<p></p>
+<dl>
+<dt><strong>--run, -r [-o|-b]  "[" &lt;command-name&gt; [command arguments] "]"</strong></dt>
+<dd><p>Execute the command specified between the square bracket arguments. The brackets, known as command delimiters, can be omitted if they enclose only one token. Note this query can run only one command at a time. To run more than one command, specify multiple -r queries, or use 'ssrun' or 'mse' command.</p></dd>
+<dd><p>The result of this query depends on the command name. If the command name is 'calculate', the result is processed as described in the --calculate query. For all other commands, the result is processed as follows:</p></dd>
+</dl>
+<pre>        1. If the -o option is specified, capture the output and save it in .QR&lt;n&gt;.
+           The length of the output is pushed to the stack and saved in RES.
+        2. If the -b option is specified, capture both the standard output and standard error,
+           save the resulting string in .QR&lt;n&gt;. The length of the string is pushed
+           to the stack and saved in RES.
+        3. If no option is specified:
+            - If the command succeeded (or failed), the result is 1 (or 0) and is pushed
+              to the stack and saved in RES and .QR&lt;n&gt;.
+            - If the command fails with syntax error, strquery will be aborted.
+            - The specified command, not strquery, is responsible for any output of this query.
+</pre>
+<p></p>
+<pre>      $ df
+</pre>
+<p></p>
+<pre>        ID  Label      Size         Used  Snapshots  Reduction           Avail  Thin  ThinSize  ThinAvail              FS Type
+      ----  -----  --------  -----------  ---------  ---------  --------------  ----  --------  ---------  -------------------
+      1024     fs  7.938 GB  Not mounted   0 B (0%)         NA  5.814 GB (73%)    No                       4 KB,WFS-2,128 DSBs
+      1025    fs1  348.4 GB  Not mounted   0 B (0%)         NA  292.2 GB (84%)    No                       4 KB,WFS-2,128 DSBs
+      1026    fs2  5.969 GB  Not mounted   0 B (0%)         NA  1.208 GB (20%)    No                       4 KB,WFS-2,128 DSBs
+</pre>
+<p></p>
+<pre>      $ df | strquery -v 0 --start-with 102 --if .X [  --token 2  --run [ echo %.QR ] ]
+      fs
+      fs1
+      fs2
+</pre>
+<p></p>
+<p>Note that '-v 0' has been used to disable strquery's output to let the echo command handle the output exclusively.</p>
+
+<p>Notes on command delimiters:</p>
+<p>The command delimiter can consist of one or multiple square brackets as long as the number of left square brackets is equal to the number of right square brackets. For example,</p>
+
+<pre>            --run [[ echo This is a right square bracket: ]  ]]
+</pre>
+<p></p>
+
+<p>In addition, parentheses or curly brackets or angle brackets can be used instead of square brackets. For instance,</p>
+
+<pre>            --run "{" echo This is a right square bracket: ]  "}"
+</pre>
+<p></p>
+
+<p>The following set of seven characters, "+ - / : . , =", can also be used as command delimiters. If a string of one or more identical characters in the set is used as the left command delimiter, that string must be used as the right command delimiter as well. For example,</p>
+
+<pre>            --run +++ echo This is a right square bracket: ]  +++
+</pre>
+<p></p>
+<dl>
+<dt><strong>--echo &lt;string&gt;</strong></dt>
+<dd><p>This query writes &lt;string&gt; and a newline to the standard output after resolving all escape sequences and macros. The string is saved in .QR&lt;n&gt;, and its length is pushed to the stack and saved in 'RES'.</p></dd>
+<dd><p>Another method is to use '--run "[" echo [&lt;echo-arguments&gt;] "]"', but this method does not save the string result in .QR&lt;n&gt; and its length in 'RES'.</p></dd>
+<dt><strong>--echo-n &lt;string&gt;</strong></dt>
+<dd><p>Same as --echo but without the ending newline.</p></dd>
+<dt><strong>--echo2 &lt;string&gt;</strong></dt>
+<dd><p>This query writes &lt;string&gt; and a newline to the standard error after resolving all escape sequences and macros. The string is not saved in .QR&lt;n&gt;, and its length is not pushed to the stack nor saved in 'RES'.</p></dd>
+<dt><strong>--echo2-n &lt;string&gt;</strong></dt>
+<dd><p>Same as --echo2 but without the ending newline.</p></dd>
+<dt><strong>--mse, -M "["  mse arguments "]"</strong></dt>
+<dd><p>A shortcut for --run "[" mse [mse-arguments] "]". The square brackets can be omitted if there is only argument following the --mse option.</p></dd>
+<dd><p>As described in the --run option, the variable .QR&lt;n&gt; is not updated but the mse script can change RES because it is a user-modifiable variable.</p></dd>
+<dd><p>By design, if mse is run directly by --mse or --run, strquery will start an mse command instance that uses the same minishell environment as strquery.</p></dd>
+<dd><p>Note that strquery will not attempt to display anything for this query. Any output is the responsibility of the script executed by mse.</p></dd>
+</dl>
+<pre>      # Display all lines having less than 40 characters
+      $ sscat file.txt | strquery --length  --mse 'if (.X &lt; 40) echo %__'
+</pre>
+<p></p>
+<dl>
+<dt><strong>--ssrun -c &lt;command line&gt; | [-x] &lt;script name&gt;</strong></dt>
+<dd><p>A shortcut for --run "[" ssrun -c &lt;command line&gt; | [-x] &lt;script name&gt; "]".</p></dd>
+<dd><p>If ssrun runs an mse command, users are responsible for specifying the minishell environment for the mse command. This is because ssrun does not support minishell environments and hence cannot pass strquery's minishell environment to mse. By default, the mse command uses the global minishell environment whereas strquery uses a local minishell environment if launched directly in a Bali console. Thus, they cannot see the variables owned by the other.</p></dd>
+<dd><p>Note that strquery will not attempt to display anything for this query. Any output is the responsibility of the command launched by ssrun.</p></dd>
+</dl>
+<pre>      # Remove all files with names starting with "tmpfile"
+      $ ls | strquery -v 0 --start-with tmpfile --if .X [ --ssrun -c 'echo %__' ]
+</pre>
+<p></p>
+<dl>
+<dt><strong>--tcount, --fcount, --ecount  &lt;key: query-operator/string2&gt;</strong></dt>
+<dd><p>Get the total count of true/false/error results of queries that match the specified key. The result is pushed to the stack, and saved in RES and .QR&lt;n&gt;.</p></dd>
+<dd><p>Note that strquery keeps a record of how many times a query ran successfully, failed, or was errored. In addition, it keeps counters to store the sum of all positive and negative results (see --psum below).</p></dd>
+<dd><p>To this end, each query is assigned a full key, which is defined to be the full name of the query operator (i.e., including the leading double dash) followed by a slash, which, in turn, is followed by the 'string2' operand if any. Here, 'string2' is the string operand associated with the query involved. For example, the full key of the '--has foo' query (operator: --has, string2: "foo") is '--has/foo', of '--le xyz' is '--le/xyz'. Note most of string queries contain 'string2' except --length, --zero-length, --substr, --echo --calculate, --mse, --ssrun, --run. The keys for stack operations are not supported and hence all the counts for stack queries are zero.</p></dd>
+<dd><p>As an example, consider the strquery filter case:</p></dd>
+</dl>
+<pre>       # Does every line have "foo"?
+       $ sscat file.txt | strquery --has foo --on-exit --tc --has/foo  --calc .X==.lineno
+       1
+</pre>
+<p></p>
+
+<p>Each string query is executed once per input line and its result can be true/false/errored. On exit, '--tc --has/foo' gives the total number of times the '--has foo' query returns true. This value is pushed to the stack, whose top value is represented by the .X variable. The built-in variable '.lineno' is the number of lines read so far. Thus, this example displays whether or not the file contains 'foo' on every line.</p>
+<p>Note that the key can be specified with just enough characters to make it unique. If the key is not unique, the counts from all matching queries will add up.</p>
+<p>--psum, --nsum, --asum &lt;key: query-operator/string2&gt;</p>
+<p>Similar to --tcount but --psum returns the sum of all positive values of the results, --nsum the sum of all negative values of the results, and --asum the accumulative sum of all positive and negative values of the results,</p>
+<p>For example, to find the length of an input line with the newline included, it is necessary to specify the %___ macro (3 underscores) as 'string1'. To find the total length of a file:</p>
+
+<pre>       # Find file length
+       $ sscat file1.txt | strquery --first-string %___ --length --on-exit --psum --length/
+       175
+</pre>
+<p></p>
+<p>Similarly, to find the number of occurrences of 'foo' in a file:</p>
+<pre>       # Count 'foo' in a file
+       $ sscat file1.txt | strquery --occurrence foo --on-exit --psum --occur
+       7
+</pre>
+<p></p>
+<h2>B3: List of All Case-Insensitive String Queries</h2>
+<p>Each string query operation in Section B2 can be case-insensitive if the preceding query is --insensitive.  For example,</p>
+<pre>      # Case-sensitive query:
+      $ echo foo BAR | strquery --has bar
+      0
+</pre>
+<p></p>
+<pre>      # Case-insensitive query:
+      $ echo foo BAR | strquery --insensitive --has bar
+      1
+</pre>
+<p></p>
+<p>It is convenient to combines both queries into one. The name of the new query will be prefixed with an 'i' letter, which stands for case-insensitive:</p>
+<pre>      $ echo foo BAR | strquery --ihas bar
+</pre>
+<p></p>
+<p>These case-insensitive queries are useful in query wrappers such as --expression. For example,</p>
+<pre>      $ echo abc foo BAR | strquery --expression v1.or.v2  --has foo --ihas bar
+</pre>
+<p></p>
+<p>Only a subset of queries in section B2 will be supplied with a case-insensitive counterpart. The complete list of case-insensitive queries is given below.</p>
+<dl>
+<dt><strong>--icfind &lt;string2&gt; [&lt;column K&gt; [occurrence-number N]]</strong></dt>
+<dd><p>Same as --cfind, except strings are case insensitive.</p></dd>
+<dt><strong>--icrfind &lt;string2&gt; [column K [occurrence-number N]]</strong></dt>
+<dd><p>Same as --crfind, except strings are case insensitive.</p></dd>
+<dt><strong>--iend-with &lt;string2&gt;  [ending offset M]</strong></dt>
+<dd><p>Same as --end-with, except strings are case insensitive.</p></dd>
+<dt><strong>--iexp-has &lt;expression&gt; &lt;str1&gt; &lt;str2&gt; ... &lt;strN&gt;</strong></dt>
+<dd><p>Same as --exp-has, except strings are case insensitive.</p></dd>
+<dt><strong>--iexp-occurrences &lt;expression&gt; &lt;str1&gt; &lt;str2&gt; ... &lt;strN&gt;</strong></dt>
+<dd><p>Same as --exp-occurrences, except strings are case insensitive.</p></dd>
+<dt><strong>--iexpression &lt;expression&gt; &lt;operator1&gt; &lt;str1&gt; &lt;operator2&gt; &lt;str2&gt; ... &lt;operatorN&gt; &lt;strN&gt;</strong></dt>
+<dd><p>Same as --expression, except strings are case insensitive.</p></dd>
+<dt><strong>--ifind &lt;string2&gt; [offset M [occurrence-number N]]</strong></dt>
+<dd><p>Same as --find, except strings are case insensitive.</p></dd>
+<dt><strong>--irfind &lt;string2&gt; [&lt;offset M&gt; [occurrence-number N]]</strong></dt>
+<dd><p>Same as --rfind counterpart, except strings are case insensitive.</p></dd>
+<dt><strong>--ihas/rw &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>Same as --has, except strings are case insensitive.</p></dd>
+<dt><strong>--ihasno/rw &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>Same as --hasno, except strings are case insensitive.</p></dd>
+<dd><p>The following two examples are equivalent:</p></dd>
+</dl>
+<pre>      $ echo foo BAR | strquery --insensitive --has bar
+      $ echo foo BAR | strquery --ihas bar
+</pre>
+<p></p>
+<dl>
+<dt><strong>--ihas-all/rw &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--ihas-all/rw --eol &lt;end-marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;end-marker&gt;</strong></dt>
+<dd><p>Same as the case-sensitive --has-all counterpart. Note the end-of-list markers are still case sensitive.</p></dd>
+<dt><strong>--ihas-any/rw &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--ihas-any/rw --eol &lt;end-marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;end-marker&gt;</strong></dt>
+<dd><p>See the case-sensitive --has-any counterpart.</p></dd>
+<dt><strong>--ihas-either/rw &lt;str1&gt; &lt;str2&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--ihas-either/rw --eol &lt;end-marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;end-marker&gt;</strong></dt>
+<dd><p>See the case-sensitive --has-either counterpart.</p></dd>
+<dt><strong>--ihas-none/rw &lt;str&gt; &lt;str2&gt; &lt;str3&gt; ... [--&lt;next-option&gt;]</strong></dt>
+<dt><strong>--ihas-none/rw --eol &lt;end-marker&gt; &lt;str1&gt; &lt;str2&gt; .... &lt;end-marker&gt;</strong></dt>
+<dd><p>See the case-sensitive --has-none counterpart.</p></dd>
+<dt><strong>--iin/rw &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>See the case-sensitive --in &lt;string2&gt; counterpart.</p></dd>
+<dt><strong>--ilt | --ile | --igt | --ige | --ieq | --ine  &lt;string2&gt; [offset M [count N&gt;0]]</strong></dt>
+<dd><p>See the case-sensitive counterparts: --lt | --le | --gt | --ge | --eq | --ne  &lt;string2&gt; [offset M [count N&gt;0]]</p></dd>
+<dt><strong>--ioccurrence-count/rw, -o &lt;string2&gt; [offset M, default 0]</strong></dt>
+<dd><p>See the case-sensitive --occurrence-count counterpart.</p></dd>
+<dt><strong>--istart-with/rw &lt;string2&gt;  [offset M, default 0]</strong></dt>
+<dd><p>See the case-sensitive --start-with counterpart.</p></dd>
+</dl>
+<h2>B4. Change Order of Query Execution</h2>
+<dl>
+<dt><strong>--if | --elseif | --else</strong></dt>
+<dd><p>These queries control the flow of execution of other queries.</p></dd>
+</dl>
+<pre>        Syntax:
+</pre>
+<p></p>
+<pre>             --if &lt;expression1&gt; [ &lt;query_a1&gt; &lt;query_a2&gt; ... &lt;query_aM&gt; ]
+             --elseif &lt;expression2&gt; [ &lt;query_b1&gt; &lt;query_b2&gt; ... &lt;query_bN&gt; ]
+             --elseif &lt;expression3&gt; [ &lt;query_c1&gt; &lt;query_c2&gt; ... &lt;query_cK&gt; ]
+             . . . .
+             --else [ &lt;query_x1&gt; &lt;query_x2&gt; ... &lt;query_xL&gt; ]
+</pre>
+<p></p>
+
+<p>The stand-alone square bracket tokens (arguments) are optional if there is only one query following an expression, but are mandatory if there are more than one query. These tokens are assigned query id's, i.e., treated as queries, for internal processing purposes.</p>
+<p>All the expressions are evaluated as if a --calculate query were specified except that nothing is pushed to the stack nor saved in any variable. If the expression conditional is evaluated to true (nonzero), then strquery will execute the query group following the expression. Otherwise, strquery will skip over the group. The --else query will be executed if all of the preceding expressions are false. Note that nested conditionals are supported and must be surrounded by square bracket arguments.</p>
+<p>Note that each &lt;expression&gt; can be replaced with a single query that produces a numeric result. For example</p>
+
+<pre>        $ echo Tom | strquery --has Tom
+        1
+        $ echo Tom | strquery --has Tom --if .X --echo "Hello Tom" --else --echo "Hello there"
+        Hello Tom
+        $ echo Tom | strquery --if --has Tom --echo "Hello Tom" --else --echo "Hello there"
+        Hello Tom
+</pre>
+<p></p>
+<dl>
+<dt><strong>--break</strong></dt>
+<dd><p>For a command, stop processing the current query and all remaining queries. For a filter, stop processing the current input line and skip all subsequent lines, and jump to execute the exit script if any (see the long example listing in the Motivation section).</p></dd>
+<dt><strong>--continue</strong></dt>
+<dd><p>Skip all the remaining queries. For a strquery command, this query behaves like --break. For a strquery filter, this query stops processing the current input line and begins processing the next input line.</p></dd>
+<dt><strong>--abort</strong></dt>
+<dd><p>Abort strquery immediately.</p></dd>
+<dt><strong>--dump</strong></dt>
+<dd><p>Dump the results of up to the latest five queries. Each query result consists of two components: a numeric value and a string value. The numeric values are stored on a numeric stack where the top is the most recent. The string values are store in an array where the leftmost query is number 1.</p></dd>
+<dt><strong>--dump-all</strong></dt>
+<dd><p>Same as '--dump', but list the results of all queries executed so far. The list consists of variables in the minishell library and the minishell environment. Note that strquery will remove all of its variables from the minishell library upon termination. The variables in the minishell environment can stay longer depending on the type of environment. If local minishell environment, the variables will be removed when the command that created the local minishell environment is terminated. If global minishell environment, the variables are persistent until system restart.</p></dd>
+<dd><p>When a minishell-aware command such as mse or strquery starts, it is assigned a system-wide unique integer id called command id. The id value starts from 1 on system start-up.</p></dd>
+<dd><p>Note that an mse script can run multiple instances of strquery commands. Each strquery instance has its own set of stack variables that have the same generic names such as .X, .Y, .Z, etc. In order for the mse script to distinguish these variables, each variable will have two names: a short name such as ".X", and a fully qualified name such as "[cmdid_&lt;id&gt;].X"</p></dd>
+<dd><p>By design, all stack variables are stored in a common library for sharing purposes.</p></dd>
+<dt><strong>--mylib</strong></dt>
+<dd><p>To dump all the variables in the current minishell library.  This query is equivalent to the "--run mylib" query.</p></dd>
+<dt><strong>--myenv</strong></dt>
+<dd><p>To dump all the variables in the current minishell environment that strquery operations in. This minishell environment can be global, local, shared, or inherited (see 'mse' man page). This query is equivalent to the "--run myenv" query.</p></dd>
+<dt><strong>--mse-env</strong></dt>
+<dd><p>To dump all the variables in the global minishell environment.</p></dd>
+</dl>
+<h2>B5. Queries About Internal Stacks</h2>
+<p>Syntax:</p>
+<pre>          strquery . . .  &lt;query1&gt; &lt;query2&gt; &lt;query3&gt; &lt;math-operator&gt;
+                                      Y        X       .operator.
+</pre>
+<p></p>
+<p>A math operator can be arithmetic or logical (zero is false, non-zero is true). The complete name is defined with two surrounding periods (cf., Table 1 of the 'calculate' man page). The result of a stack query is also pushed to the stack, and saved in RES and .QR&lt;n&gt;</p>
+<p>The stack is instantiated before the first query is executed and is destroyed after the last query is completed. The stack is created with infinitely many zero entries in the hidden part of the stack (see Figure 1). If an operation requires more entries than available in the stack, strquery will automatically take entries in the hidden part. Therefore, all stack operations never fail because of empty stack.</p>
+<p>In the following two sub-sections, X is the value on top of the stack (i.e., the value of the .X built-in variable) and Y the value immediately below the stack (i.e., .Y built-in variable).</p>
+<p>If an operator is listed in two formats, the first is the complete name of the operator and the second is the shortest name that can be specified unambiguously.</p>
+<h3>B5.1 Logical Operators On Stack</h3>
+<p>A value on the numeric stack is interpreted as false if zero and true if nonzero. The result of a logical operator is mapped to 1 if true and 0 if false.</p>
+<p>Note that some operators can be specified by symbols. The result of the operation will be saved in the variables RES and .QR&lt;n&gt;, where n is the query number or query id.</p>
+<dl>
+<dt><strong>.and., &amp;&amp;</strong></dt>
+<dd><p>Evaluate Z = .Y &amp;&amp; .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.or., ||</strong></dt>
+<dd><p>Evaluate Z = .Y || .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.eq., ==</strong></dt>
+<dd><p>Evaluate Z = .Y == .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.ne., !=</strong></dt>
+<dd><p>Evaluate Z = .Y != .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.ge., &gt;=</strong></dt>
+<dd><p>Evaluate Z = .Y &gt;= .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.gt., &gt;</strong></dt>
+<dd><p>Evaluate Z = .Y &gt; .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.le., &lt;=</strong></dt>
+<dd><p>Evaluate Z = .Y &lt;= .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.lt., &lt;</strong></dt>
+<dd><p>Evaluate Z = .Y &lt; .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.not., !</strong></dt>
+<dd><p>Evaluate Z = !.X, pop once, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+</dl>
+<h3>B5.2 Arithmetic Operators On Stack</h3>
+<dl>
+<dt><strong>.add., +</strong></dt>
+<dd><p>Evaluate Z = .Y + .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.sub., -</strong></dt>
+<dd><p>Evaluate Z = .Y - .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.div., /</strong></dt>
+<dd><p>If .X is zero, strquery will fail and exit. Otherwise, evaluate Z = .Y / .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.mul., *</strong></dt>
+<dd><p>Evaluate Z = .Y * .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.mod., %</strong></dt>
+<dd><p>If .X is zero, strquery will fail and exit. Otherwise, evaluate Z = .Y % .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt; By default, the macro symbol is '%'. To avoid conflict, use the mnemonic operator .mod. or the escape sequence @p instead.</p></dd>
+<dt><strong>.band., &amp;</strong></dt>
+<dd><p>Evaluate Z = .Y &amp; .X (bitwise AND), pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.bor., |</strong></dt>
+<dd><p>Evaluate Z = .Y | .X (bitwise OR), pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.lsh., &lt;&lt;</strong></dt>
+<dd><p>Evaluate Z = .Y &lt;&lt; .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.rsh., &gt;&gt;</strong></dt>
+<dd><p>Evaluate Z = .Y &gt;&gt; .X, pop twice, push Z, and save Z in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.chs., _   (underscore)</strong></dt>
+<dd><p>Replace the top of the stack with -.X (change sign), and save the result in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.comp., ~</strong></dt>
+<dd><p>Replace the top of the stack with ~.X (complement), and save the result in RES and .QR&lt;n&gt;</p></dd>
+<dt><strong>.swap.</strong></dt>
+<dd><p>Swap the contents of .X and .Y. Update the RES and .QR&lt;n&gt; variables with the top value on the stack.</p></dd>
+<dt><strong>.save.  &lt;variable name&gt;</strong></dt>
+<dd><p>Save the result of the preceding query in the specified variable. The preceding result can be numeric or string. This operation does not change the stack.</p></dd>
+</dl>
+<pre>       $ echo abcd | strquery --length .save. LEN --echo length=%LEN
+       length=4
+</pre>
+<p></p>
+<dl>
+<dt><strong>.pop.</strong></dt>
+<dd><p>Pop the top entry of the stack (remove the top number). The result will be the next number on the stack, which will be saved in "RES" and .QR&lt;n&gt; variables.</p></dd>
+<dd><p>This operation never fails because there are infinitely many zero entries in the hidden part of the stack.</p></dd>
+<dt><strong>.push.</strong></dt>
+<dd><p>Push the result of the last query to the stack. If this query turns out to be the first to push to the stack, then push the line from standard input (with ending newline removed).</p></dd>
+<dd><p>Each query always produces a result that is either numeric or string. But strquery always treats the result of a query as having two components:</p></dd>
+</dl>
+<pre>          - a numeric component, which will be pushed to the numeric stack and saved in variable RES
+          - a string component, which will be saved in .QR and .QR&lt;n&gt; variables where n is the query number
+</pre>
+<p></p>
+<h2>C. Local Query Options</h2>
+<p>The following options are called local because they are specific to each query statement. In general, if a local option is not specified to a query, the query will inherit it from the preceding query statement. In other words, once specified, a query's option is persistent until later changed. The exception is the --insensitive option, which is limited to one query and is not inheritable.</p>
+<p>All query options, except the verbose option, are also known as decoding options.</p>
+<h3>C1. Decoding Text</h3>
+<p>By default, strquery supports escape sequences and macros where the default escape character is '@' and the default macro symbol is '%'. These special characters can be set to zero individually to disable the corresponding support.</p>
+<p>In general, decoding a string consists of the following steps:</p>
+<pre>  1. First, replace escape sequences and macros in the text with their actual values.
+     This is performed if the escape character and/or macro symbol are nonzero.
+  2. If the text is the header/result templates, replace all "^" tokens based on Table 2.
+  3. Finally, convert the text to lowercase if the --insensitive option is specified
+     and use this text for insensitive-case operations.
+</pre>
+<p></p>
+<h3>C2. Options to Query Statements</h3>
+<p>These options must precede a query statement.</p>
+<dl>
+<dt><strong>--escape-char, -e &lt;escape character&gt;</strong></dt>
+<dd><p>Use the specified character as the escape character. By default, it is '@'. If it is set to 0 (zero), escape interpretation is disabled.</p></dd>
+</dl>
+<pre>       $ strquery -e 0 ab@ncd # turn off escape support
+       ab@ncd
+       $ strquery  ab@ncd     # turn on escape support
+       ab
+       cd
+</pre>
+<p></p>
+<dl>
+<dt><strong>--macro-symbol, -m &lt;macro symbol&gt;</strong></dt>
+<dd><p>Use the specified character as the macro symbol.  By default, it is '%'. If it is set to 0 (zero), macro support is disabled.</p></dd>
+<dt><strong>--decode-stdin, -D</strong></dt>
+<dd><p>Decoding all input lines from the standard input of the filter. This is the default. This setting stays for all subsequent queries until changed.</p></dd>
+<dt><strong>--no-decode-stdin</strong></dt>
+<dd><p>Disable decoding all input lines from the standard input of the filter. This setting stays for all subsequent queries until changed.</p></dd>
+<dt><strong>--insensitive, -i</strong></dt>
+<dd><p>When specified, all string operands in the query statement are case-insensitive. If not specified, all string operands are case sensitive. This option is not inheritable; it applies only to the query that follows it immediately.</p></dd>
+<dt><strong>--verbose-level, -v &lt;level&gt;</strong></dt>
+<dd><p>Specify the verbose level to control the output of queries.</p></dd>
+</dl>
+<pre>            level = 0: do not display the query result from any query.
+            level = 1: display the last value of RES after processing all input lines.
+            level = 2: display the last value of RES after processing each input line.
+            level = 3: display all the intermediate values of RES after processing a query.
+            level = 4: same as 3 plus information on query number and operator name.
+            level = 5: turn on debugging mode (same as 4 plus debug information).
+            level = 6: more verbose than level 5.
+</pre>
+<p></p>
+<p>Other levels may also be supported for debugging. In general, the higher the level, the more information is displayed; some information may be very specific to the internal implementation.</p>
+
+<p>By default, the verbose level is 1 if --on-exit is specified and 2 if not.</p>
+<p>--dbg</p>
+<p>This is a shortcut for --verbose 6.</p>
+<p>--quiet, -q</p>
+<p>This is a shortcut for --verbose 0. If this option is specified, strquery will not attempt to output anything. It is then up to the individual queries to display the output. This option is usually used when the output is taken care by such queries as --echo, --mse, --run, --ssrun.</p>
+
+<h2>D. Environment Options</h2>
+<p>Note that strquery supports minishell environment variables (see the 'mse' man page). Its default minishell environment depends on whether strquery is run in a Bali shell or a minishell.</p>
+<p>If strquery is run directly in a Bali console, it will create its own local minishell environment by default. In this case its variables cannot be seen by other instances of strquery or mse, and are destroyed when strquery exists. If strquery is run by a minishell interpreter, it will share the same minishell environment that the interpreter operates in.</p>
+<p>The minishell environment can be changed by the following environment options. They are global to all queries regardless of where are specified. They have the same name and meaning as described in the 'mse' man page.</p>
+<dl>
+<dt><strong>--global-env|-g | --local-env | --inherited-env | --shared-env|-s</strong></dt>
+<dd><p>Specify that strquery is to use the global/local/inherited/shared minishell environment to store variables. They can be specified multiple times but only the last occurrence is used. By default, strquery runs in a local minishell environment if run directly in a Bali console, and in the parent mse's minishell environment if run by the mse interpreter.</p></dd>
+<dt><strong>--env-id, -V &lt;mse-eid&gt;</strong></dt>
+<dd><p>This option is meaningful only when the --inherited-env or --shared-env option is specified. It specifies the id of an existing minishell environment that strquery will inherit from or share with. This option can be specified multiple times but only the last occurrence is used.</p></dd>
+<dd><p>If the --inherited-env or --shared-env option is specified and if --env-id is not specified or is specified with an mse id of 0, strquery will inherit from, or share with, the global minishell environment.</p></dd>
+</dl>
+<pre>       # (a) By default, strquery uses its own minishell environment if run directly in a Bali console
+       $ echo abc | strquery  --length .save. LEN; mse-env --name LEN
+       mse-env: Undefined variable name: LEN
+</pre>
+<p></p>
+<pre>       # (b) By default, if run by mse, strquery will use the parent minishell environment:
+</pre>
+<p></p>
+<pre>       $ mse 'echo abc | strquery  --length .save. LEN; echo length=%LEN'; mse-env --name LEN
+       length=3
+       LEN=3
+</pre>
+<p></p>
+<pre>       $ mse --local-env 'echo abc | strquery  --length .save. LEN; echo length=%LEN'; mse-env --name LEN
+       length=3
+       mse-env: Undefined variable name: LEN
+</pre>
+<p></p>
+<pre>       # (c) same effect if strquery is specified to share the parent mse's environment
+       $ mse --local-env 'echo abc | strquery --shared --env-id %.eid --length .save. LEN; echo length=%LEN'; mse-env --name LEN
+       length=3
+       mse-env: Undefined variable name: LEN
+</pre>
+<p></p>
+<p>In (c) the mse interpreter knows its environment id, which is accessed by the built-in variable ".eid". After mse resolves the macro %.eid in the script, strquery will share the same environment as the interpreter. Hence, mse and strquery can communicate with each other in the local minishell environment, and hence store nothing in the global minishell environment. Thus, the trailing mse-env fails because it tries to dump the variable LEN in the global environment.</p>
+<h2>E. Reporting Options</h2>
+<dl>
+<dt><strong>--echo-stdin-and-cmdline, -E [echo-level L]</strong></dt>
+<dd><p>This option is available only when strquery is run as a filter.</p></dd>
+<dd><p>In releases 12.x and earlier, -E is a stand-alone option without any value. When specified, strquery will echo the standard input before executing the first query.</p></dd>
+<dd><p>Starting with release 13.0, -E can accept an optional value L called the echo level to control the echo of the standard input and the chained command line that contains strquery. If -E is specified without a number, the value L = 1 is used.</p></dd>
+<dd><p>The echo level L is interpreted as follows:</p></dd>
+</dl>
+<pre>               L = 10*M + N
+</pre>
+<p></p>
+<pre>     1) N controls how to echo the standard input line.
+        N = 0 : Don't echo standard input
+          = 1 : Echo standard input
+          &gt; 1 : Unsupported
+</pre>
+<p></p>
+<pre>     2) M controls how to echo the command line.
+        This value has no effect if strquery is not run by the mse interpreter.
+</pre>
+<p></p>
+<pre>        M = 0 : Don't echo the command line.
+            1 : Echo the command line in a smart way:
+                 - Do not echo if it already appears as part of the
+                   test header (see Section E3.1).
+                 - Otherwise, expand all macros in the command line:
+                     - Display the expanded version if it is not too
+                       long and contains no newlines.
+                     - Display the unexpanded version otherwise.
+            2 : Display the command line as is (without expanding macros in it).
+            3 : Display the command line with all macros expanded.
+            4 : Expand all macros in the command line, then:
+                 - Display the expanded result if it is not too long
+                   and contains no newlines.
+                 - Display the unexpanded version otherwise.
+          K+4 : Expand macros in the certain individual commands in the chain.
+                If bit #n of K is 1, expand all macros in command #n.
+                The commands are numbered from left to right, starting from 0.
+</pre>
+<p></p>
+
+<p>Note the expanded version of the command line is considered too long if its length exceeds the unexpanded version by 80 bytes or more.</p>
+<p>The following examples illustrate the rules above:</p>
+
+<pre>       $ sscat test.scr  # example (a)
+       x = 4
+       y = 5
+       echo %x | calculate __+%y  | strquery --GT 0;  # Line 3 of script
+       $ mse -f test.scr
+       1
+</pre>
+<p></p>
+
+<p>The output displays only the final result of the query. If we want to know what is fed into strquery, we can add option -E to echo the standard input:</p>
+
+<pre>       # Line 3 changed to: echo %x | calculate __+%y  | strquery --GT 0 -E
+       $ mse -f test.scr  # example (b)
+       9                &lt;&lt;&lt; echo standard input before displaying the result
+       1                &lt;&lt;&lt; display result
+</pre>
+<p></p>
+
+<p>If test.scr contains a lot of commands, it is desirable to show the command line first:</p>
+
+<pre>       # Line 3 changed to: echo %x | calculate __+%y  | strquery --GT 0 -E 21
+       $ mse -f test.scr  # example (c)
+       echo %x | calculate __+%y  | strquery --GT 0 -E 21     &lt;&lt;&lt;  show command line
+       9
+       1
+</pre>
+<p></p>
+<pre>    Note that the command line is a chain of 3 commands:
+</pre>
+<p></p>
+<pre>       Command line:   echo %x | calculate __+%y  | strquery --GT 0 -E 2
+                       -------   ---------------    --------------------
+                       cmd #0      cmd #1                 cmd #2
+</pre>
+<p></p>
+<pre>    To expand macros in command #0, set bit 0 of K to 1.
+    To expand macros in command #1, set bit 1 of K to 1.
+    Thus, K = 3, M = K+4 = 7, and hence the echo level is 71.
+    Rerun example with "-E 71" option to expand macros in commands #0 and #1:
+</pre>
+<p></p>
+<pre>       # Line 3 changed to: echo %x | calculate __+%y  | strquery --GT 0 -E 71
+       $ mse -f test.scr  # example (d)
+       echo 4 | calculate __+5  | strquery --GT 0 -E 71  &lt;&lt;&lt; Compare to example (c)
+       9
+       1
+</pre>
+<p></p>
+<pre>    Same as example (d) but do not echo the standard input:
+       # Line 3 changed to: echo %x | calculate __+%y  | strquery --GT 0 -E 70
+       $ mse -f test.scr  # example (e)
+       echo 4 | calculate __+5  | strquery --GT 0 -E 70
+       1
+</pre>
+<p></p>
+<h2>E1. Simple Reporting Options</h2>
+<p>The result of the last query on the command line is called the result status of strquery processing the input line, or simply the status. The status is always an integer but can be changed to a string if desired.</p>
+<dl>
+<dt><strong>--boolean-message, -b</strong></dt>
+<dd><p>Convert the status to a boolean string before display: positive displayed as "true", zero as "false", and negative as "error".</p></dd>
+</dl>
+<pre>       $ echo Hello | strquery --insensitive --eq hello -b
+       true
+</pre>
+<p></p>
+<dl>
+<dt><strong>--display-message, -d</strong></dt>
+<dd><p>Convert the value of the "RES" variable to a message as follows:</p></dd>
+</dl>
+<pre>            "TEST PASSED" if positive
+            "TEST FAILED" if zero
+            "TEST FAILED OR ERRORED" if negative
+</pre>
+<p></p>
+
+<p>These messages are known as true, false, and error messages, respectively. They can be overridden by the next three options.</p>
+<p>Note that -b and -d options are mutually exclusive. Furthermore, they cannot be specified if advanced reporting options -A or -G is specified (see section E3.2).</p>
+
+<pre>       $ echo abc | strquery --eq xyz
+       0
+       $ echo abc | strquery --eq xyz -d
+       TEST FAILED
+</pre>
+<p></p>
+<dl>
+<dt><strong>--tmessage, --fmessage, --emessage &lt;message&gt;</strong></dt>
+<dd><p>Specify the true/false/error messages for use with the -d option. The default true/false/error messages are "TEST PASSED", "TEST FAILED", and "TEST FAILED OR ERRORED", respectively.</p></dd>
+<dd><p>These values are stored in the global minishell variables GROUP&lt;id&gt;_MESSAGE_FOR_{TRUE,FALSE,ERROR}, respectively. They can be changed directly by running the mse-set command.</p></dd>
+</dl>
+<pre>       $ calculate '3+4' | strquery --EQ 7 -d
+       TEST PASSED
+       $ calculate '3+4' | strquery --EQ 7 -d --tm OK --fm FAILED --em ERROR
+       OK
+</pre>
+<p></p>
+<p>Note that these two examples are also known as two tests.</p>
+<h2>E2. Test versus Sub-Test</h2>
+<p>For our purposes a test is defined as a BALI command line consisting of:</p>
+<pre>  - one strquery command with at least option -d, -A, or -G specified,
+  - or a command followed by a chain of filters such that the last filter is strquery
+    with at least option -d, -A, or -G specified.
+</pre>
+<p></p>
+<p>If option -d is specified, the test is not assigned a test number. If option -A or -G is specified, the test is assigned a test number. If strquery processes more than one input line, the processing of each line is a sub-test or an execution pass. For example, if file.txt contains 3 lines:</p>
+<pre>    foo
+    bar
+    bar foo
+</pre>
+<p></p>
+<p>then the following command consists of 1 test with 3 sub-tests, or 3 execution passes:</p>
+<pre>    $ sscat file.txt | strquery --has foo -d
+    TEST PASSED
+    TEST FAILED
+    TEST PASSED
+</pre>
+<p></p>
+<p>Thus, the total number of tests is not necessarily equal to the total number of sub-tests.</p>
+<h2>E3. Advanced Reporting Options</h2>
+<p>All the advanced reporting options are described in section E3.3.</p>
+<h2>E3.1. Advanced Reporting Style</h2>
+<p>The simple reporting style in section E1 does not show the statistics about the number of tests, the number of execution passes that passed, failed, or errored. These statistics are supported only in advanced reporting style, which maintain them in the global minishell environment. The following commands show what the advanced report looks like.</p>
+<p>a) First, clear all statistics</p>
+<pre>    $ mse-unset --all
+</pre>
+<p></p>
+<p>b) Run two advanced reporting tests</p>
+<pre>    $ calculate 3+4 | strquery --EQ 7 --anonymous-group --name "Verify add"
+</pre>
+<p></p>
+<pre>    ====== TEST 1 : Verify add ======
+</pre>
+<p></p>
+<pre>    TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>    $ calculate 3*4 | strquery --EQ 12 --anonymous-group --name "Verify multiply"
+</pre>
+<p></p>
+<pre>    ====== TEST 2 : Verify multiply ======
+</pre>
+<p></p>
+<pre>    TEST 2 : RESULT = TEST PASSED (Total so far: Passed=2/2, Failed=0/2, Errored=0/2, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<p>Note the two commands share the same --anonymous-group option, which means they belong to the same group. This allows for assigning test numbers and test statuses to all tests in the same group.</p>
+<p>c) Run advanced reporting tests in a different group</p>
+<p>Option --group can be used to specify a non-anonymous group and strquery will maintain distinct statistics for each test group.</p>
+<pre>    $ calculate 12/3 | strquery --EQ 4 --group 1 --label myrun --name "Verify divide"
+</pre>
+<p></p>
+<pre>    ====== [myrun] TEST 1: Verify divide ======
+</pre>
+<p></p>
+<pre>    [myrun] TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<p>Note that the first test in a new group is always number 1. To run the second test in group 1:</p>
+<pre>    $ calculate 12-3 | strquery --EQ 4 --group 1  --name "Verify subtract"
+</pre>
+<p></p>
+<pre>    ====== [myrun] TEST 2: Verify subtract ======
+</pre>
+<p></p>
+<pre>    [myrun] TEST 2 : RESULT = TEST FAILED (Total so far: Passed=1/2, Failed=1/2, Errored=0/2, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<p>Note that the --name and --label options are persistent until changed. Thus, option --name should be specified for each test unless it has the same name as the previous test.</p>
+<h2>E3.2. How to customize advanced reporting</h2>
+<p>Suppose we want to run the following group of three tests multiple times:</p>
+<pre>     Test 1: Verify ls command
+     Test 2: Verify mv command
+     Test 3: Verify cp command
+</pre>
+<p></p>
+<p>Suppose we want obtain the following report for the first run where each test is labeled "Monday's run" as follows.</p>
+<pre>   ====== [Monday's run] TEST 1 : Verify ls command ======
+</pre>
+<p></p>
+<pre>   .... &lt;test output&gt; ....
+</pre>
+<p></p>
+<pre>   [Monday's run] TEST 1 : TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   ====== [Monday's run] TEST 2 : Verify mv command ======
+</pre>
+<p></p>
+<pre>   .... &lt;test output&gt; ....
+</pre>
+<p></p>
+<pre>   [Monday's run] TEST 2 : TEST PASSED (Total so far: Passed=2/2, Failed=0/2, Errored=0/2, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   ====== [Monday's run] TEST 3 : Verify cp command ======
+</pre>
+<p></p>
+<pre>   .... &lt;test output&gt; ....
+</pre>
+<p></p>
+<pre>   [Monday's run] TEST 3 : TEST PASSED (Total so far: Passed=3/3, Failed=0/3, Errored=0/3, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<p>In other words, each test output should be added with two lines:</p>
+<pre>  1. Test header:
+</pre>
+<p></p>
+<pre>        ====== [&lt;group label&gt;] TEST &lt;test number&gt; : &lt;test name&gt; ======
+</pre>
+<p></p>
+<pre>  2. Test result:
+</pre>
+<p></p>
+<pre>       [group label] TEST &lt;test number&gt; : RESULT = &lt;test result&gt; (Total so far: Passed=K/N, Failed=L/N, Errored=M/N, OVERALL=&lt;overall status&gt;)
+</pre>
+<p></p>
+<p>These two lines can be generated using the following templates, which are defined in Table 2 below:</p>
+<pre>    Header line:   "^n====== [^L] TEST ^# : ^N ======^n"
+    Result line:   "^n[^L] TEST # : STATUS = ^S (Total so far: Passed=^P, Failed=^F, Errored=^E, OVERALL=^o)^n"
+</pre>
+<p></p>
+<pre>             Table 2: Options and tokens used in unit test reporting
+     +-----------------------------------------------------------------------+
+     | Token | Description                |   How to specify                 |
+     |-------|----------------------------|----------------------------------|
+     |       | header line template       |   user-input : -H &lt;string&gt;       |
+     |       | result line template       |   user-input : -R &lt;string&gt;       |
+     |  ^I   | group id                   |   user-input : -G &lt;id&gt; | -A      |
+     |  ^L   | group label (run label)    |   user-input : -L &lt;label&gt;        |
+     |  ^N   | current test name          |   user-input : -N &lt;test name&gt;    |
+     |  ^#   | current test number        |   computed, reset to 1 by -F     |
+     |  ^+   | total sub-tests            |   computed                       |
+     |  ^S   | current test status        |   computed                       |
+     |  ^p   | total passed sub-tests     |   computed                       |
+     |  ^f   | total failed sub-tests     |   computed                       |
+     |  ^e   | total errored sub-tests    |   computed                       |
+     |  ^o   | overall status             |   computed                       |
+     |  ^P   | short for ^p/^+            |   computed                       |
+     |  ^F   | short for ^f/^+            |   computed                       |
+     |  ^E   | short for ^e/^+            |   computed                       |
+     |  ^n   | newline character          |   predefined                     |
+     |  ^t   | TAB character              |   predefined                     |
+     +-----------------------------------------------------------------------+
+</pre>
+<p></p>
+<pre>
+</pre>
+<p></p>
+<p>In order to keep track of the test statistics and information on a test group, the strquery filter has to store them in a database so that different instances of strquery can access and update the data. By design, the database is the global minishell environment and the involved variables are listed in Table 3.</p>
+<pre>       Table 3: Test group variables in the global minishell environment (*)
+     +-----------------------------------------------------------------------+
+     |  Variable names                |  Values                              |
+     |--------------------------------|--------------------------------------|
+     |  GROUP&lt;id&gt;_ID                  |  group id (empty for anonymous)      |
+     |  GROUP&lt;id&gt;_HEADER_TEMPLATE     |  template for header line            |
+     |  GROUP&lt;id&gt;_HEADER_IS_DEFAULT   |  "no" if -H specified, else "yes"    |
+     |  GROUP&lt;id&gt;_RESULT_TEMPLATE     |  template for result line            |
+     |  GROUP&lt;id&gt;_RESULT_IS_DEFAULT   |  "no" if -R specified, else "yes"    |
+     |  GROUP&lt;id&gt;_LABEL               |  value of ^L token                   |
+     |  GROUP&lt;id&gt;_TEST_NUMBER         |  value of ^# token for current test  |
+     |  GROUP&lt;id&gt;_TEST_NAME           |  value of ^N token for current test  |
+     |  GROUP&lt;id&gt;_TEST_STATUS         |  value of ^S token for current test  |
+     |  GROUP&lt;id&gt;_TOTAL_PASSES        |  value of ^p token                   |
+     |  GROUP&lt;id&gt;_TOTAL_FAILS         |  value of ^f token                   |
+     |  GROUP&lt;id&gt;_TOTAL_ERRORS        |  value of ^e token                   |
+     |  GROUP&lt;id&gt;_OVERALL             |  value of ^o token                   |
+     |  GROUP&lt;id&gt;_MSG_FOR_TRUE        |  value of ^S if a test result &gt; 0    |
+     |  GROUP&lt;id&gt;_MSG_FOR_FALSE       |  value of ^S if a test result = 0    |
+     |  GROUP&lt;id&gt;_MSG_FOR_ERROR       |  value of ^S if a test result &lt; 0    |
+     +-----------------------------------------------------------------------+
+           (*) To list all groups, run:   mse-env | grep ^GROUP
+               To delete all groups, run: mse-env | grep ^GROUP | mse-unset
+               To delete current group, specify -C to strquery.
+               Or run 'strquery -C -A' to delete the anonymous group,
+               run 'strquery -C -G &lt;id&gt;' to delete the specified group.
+               To delete all global minishell variables: mse-unset --all
+</pre>
+<p></p>
+<p>For convenience, strquery supports one and only one anonymous group. This is the group defined with an empty "&lt;id&gt;" string. Thus, the list of anonymous group variables can be derived from Table 3 as shown below.</p>
+<pre>       Table 4: Anonymous group variables in the global minishell environment
+     +-----------------------------------------------------------------------+
+     |  Variable names                |  Values                              |
+     |--------------------------------|--------------------------------------|
+     |  GROUP_ID                      |  group id (empty for anonymous)      |
+     |  GROUP_HEADER_TEMPLATE         |  template for header line            |
+     |  GROUP_HEADER_IS_DEFAULT       |  "no" if -H specified, else "yes"    |
+     |  GROUP_RESULT_TEMPLATE         |  template for result line            |
+     |  GROUP_RESULT_IS_DEFAULT       |  "no" if -R specified, else "yes"    |
+     |  GROUP_LABEL                   |  value of ^L token                   |
+     |  GROUP_TEST_NUMBER             |  value of ^# token for current test  |
+     |  GROUP_TEST_NAME               |  value of ^N token for current test  |
+     |  GROUP_TEST_STATUS             |  value of ^S token for current test  |
+     |  GROUP_TOTAL_PASSES            |  value of ^p token                   |
+     |  GROUP_TOTAL_FAILS             |  value of ^f token                   |
+     |  GROUP_TOTAL_ERRORS            |  value of ^e token                   |
+     |  GROUP_OVERALL                 |  value of ^o token                   |
+     |  GROUP_MSG_FOR_TRUE            |  value of ^S if a test result &gt; 0    |
+     |  GROUP_MSG_FOR_FALSE           |  value of ^S if a test result = 0    |
+     |  GROUP_MSG_FOR_ERROR           |  value of ^S if a test result &lt; 0    |
+     +-----------------------------------------------------------------------+
+</pre>
+<p></p>
+<h2>E3.3. Advanced Reporting Options</h2>
+<p>Advanced reporting refers to the ability to display the status of a test in the form of a header line and/or the result line. This capability is available only when a test joins a test group. To join a group, specify -A, or -G, or -W option. These three options are hereafter referred to as the group membership option.</p>
+<p>In general, the strquery command line must contain at least one query. The only exception is when the strquery command line contains advanced reporting options where one of them must be a group membership option.</p>
+<dl>
+<dt><strong>--anonymous-group, -A</strong></dt>
+<dd><p>Specify the test belongs to the anonymous group.</p></dd>
+<dt><strong>--group, -G &lt;group-id&gt;</strong></dt>
+<dd><p>Specify the test belongs to a group identified by the specified integer id.</p></dd>
+<dd><p>Options -A and -G are mutually exclusive. Specifying either of them will trigger (or enable) advanced reporting for the current test.</p></dd>
+<dd><p>When advanced reporting is enabled, the integer status is converted to a status message as discussed in the -d option. The filter then evaluates the templates for the header line and result line and displays them instead of the status message.</p></dd>
+<dt><strong>--first-test, -F</strong></dt>
+<dd><p>Specify the current test is the first one in the group. This will reset all the counters of the group before executing the test. In particular, the test number is reset to 1 and all statistics are initialized to 0.  Thus, this option is normally specified for the first test in the group.</p></dd>
+<dd><p>If not specified, a test specified with -G|-A will have its test number automatically incremented in the order of its execution.</p></dd>
+<dt><strong>--cleanup-variables, -C</strong></dt>
+<dd><p>Clean up all the environment variables (counters, names, etc) defined for the group of the current test before strquery exits.</p></dd>
+<dd><p>This option is usually specified to the last test in the group. Or it can be specified to a separate strquery command:</p></dd>
+</dl>
+<pre>            strquery -C -A       # clean up the anonymous group
+            strquery -C -G &lt;id&gt;  # clean up the specified group
+</pre>
+<p></p>
+
+<p>An alternative is to run 'mse-unset --all' to delete all global minishell environment variables.</p>
+<p>--label, -L &lt;group label&gt;</p>
+<p>Define/Change the group label, or the run label for the group. An empty group label can be specified as "" or a period.</p>
+<p>If not specified, a test specified with -G|-A will continue to use the group label that was defined/changed most recently by another test in the group.</p>
+<p>--name, -N &lt;test name&gt;</p>
+<p>Specify the test name, or the description, for the current test. An empty test name can be specified as "" or a period.</p>
+<p>If not specified, a test specified with -G|-A will continue to use the same test name that was defined/changed most recently by another test in the group.</p>
+<p>--write-report, -W &lt;test name&gt;</p>
+<p>A convenient way to write unit test report by displaying the header line, echo the standard input to strquery (i.e., test output), and the result line. An empty test name can be specified as "" or a period.</p>
+<p>This option is functionally equivalent to options "-E -A -N &lt;test name&gt;", To override the implied -A option, specify -G in addition to -W.</p>
+<p>If this option is not specified, a test specified with -G|-A will continue to use the same test name that was defined/changed most recently by another test in the group.</p>
+<p>--header-template, -H &lt;header line template&gt;</p>
+<p>Define the template for the header line, which applies to every test in the entire group. In other words, the template is persistent for all subsequent tests until changed again. An empty header is specified as "" or a period. If -H has never been specified or is specified with "..", the group defaults to using the following standard header lines:</p>
+
+<pre>                            Table 5. Standard header line
+            +------------------------------------------------------------------------+
+            | Group Label |  Test Name  |   Default header line                      |
+            |-------------|-------------|--------------------------------------------|
+            |    empty    |    empty    |   "^n====== TEST ^# ======^n"              |
+            |    empty    |  non-empty  |   "^n====== TEST ^# : ^N ======^n"         |
+            |  non-empty  |    empty    |   "^n====== [^L] TEST ^# ======^n"         |
+            |  non-empty  |  non-empty  |   "^n====== [^L] TEST ^# : ^N ======^n"    |
+            +------------------------------------------------------------------------+
+</pre>
+<p></p>
+<dl>
+<dt><strong>--result-template, -R &lt;result line template&gt;</strong></dt>
+<dd><p>Define the template for the result line, which applies to every test in the entire group. In other words, the template is persistent for all subsequent tests until changed again. An empty template is specified as "" or a period. If -R has never been specified or is specified with "..", the group defaults to using the following standard result line template:</p></dd>
+</dl>
+<pre>        a) Empty group label:
+</pre>
+<p></p>
+<pre>             "^nTEST ^# : RESULT = ^S (Total so far: Passed=^P, Failed=^F, Errored=^E, OVERALL=^o)^n"
+</pre>
+<p></p>
+<pre>        b) Non-empty group label:
+</pre>
+<p></p>
+<pre>             "^n[^L] TEST ^# : RESULT = ^S (Total so far: Passed=^P, Failed=^F, Errored=^E, OVERALL=^o)^n"
+</pre>
+<p></p>
+<h2>E4. Option to Mark the Beginning of a Unit Test</h2>
+<dl>
+<dt><strong>--unit-test-begins, -U</strong></dt>
+<dd><p>Specify that a new unit test has begun. This option is needed to help the minishell interpreter compute statistics correctly when the unit test fails on syntax errors.</p></dd>
+</dl>
+<p>The following example explains why this option is needed.</p>
+<p>First, note that sections E1 to E3 show that a command chain that passes its output to a strquery filter with options -A|-G|-W|-d will cause the filter to display a status report for the test.</p>
+<p>The minishell interpreter has special support for strquery specified with reporting options -A|-G|-W|-d. In particular, it can display a summary of execution of all unit tests in an mse script if its internal flag 'display-summary-on-exit' is set to true. (The default value of the flag is false.) To this end, the mse script is usually written as follows:</p>
+<pre>    Line
+           $ sscat mytest.scr
+       1   mse::set display-summary-on-exit true
+       2   mse-unset --all
+</pre>
+<p></p>
+<pre>       3   strquery --unit-test-begins
+       4   &lt;command1&gt;
+       5   &lt;command2&gt;
+       6   &lt;........&gt;
+       7   &lt;commandN&gt; | &lt;commandM&gt; | ... | strquery ...  -A|-G|-W|-d
+</pre>
+<p></p>
+<pre>       8   strquery --unit-test-begins
+       9   &lt;some-command1&gt;
+      10   &lt;some-command2&gt;
+      11   &lt;........&gt;
+      12   &lt;some-commandN&gt; | &lt;some-commandM&gt; | ... | strquery ...  -A|-G|-W|-d
+</pre>
+<p></p>
+<pre>      13   &lt;more unit tests&gt;
+      14   &lt;........&gt;
+</pre>
+<p></p>
+<pre>      15   $ mse -f mytest.scr
+</pre>
+<p></p>
+<p>Suppose &lt;some-command2&gt; of the second unit test fails on syntax error.  What happened is as follows.</p>
+<pre>   - Line 7 was executed successfully, producing the following RESULT line:
+</pre>
+<p></p>
+<pre>            TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   - Line 8 was executed successfully (see Note 1 below):
+        * strquery marked in the global minishell environment that test #2 began.
+</pre>
+<p></p>
+<pre>   - Line 10 failed on syntax error (see Notes 2, 3 below):
+        * syntax error caused mse to skip all the remaining lines in the script (see Note 4 below).
+        * strquery in line 12 was not executed, hence no report of "TEST FAILED OR ERRORED".
+        * mse will execute a cleanup routine upon exit.
+</pre>
+<p></p>
+<p>Because the internal flag display-summary-on-exit is true, one of mse's tasks in the cleanup routine is to display a summary for all unit tests. To this end,</p>
+<pre>   - mse checked the status of the current test in the global minishell environment and found out that
+        * test #2 already began, and
+        * test #2 was not marked completed.
+        * Thus, mse, not strquery, would display a RESULT line for unit test #2 as follows
+</pre>
+<p></p>
+<pre>             TEST 2 : RESULT = TEST FAILED OR ERRORED (Total so far: Passed=1/2, Failed=0/2, Errored=1/2, OVERALL=FAILED)
+</pre>
+<p></p>
+<pre>   - mse computed and displayed the overall statistics for all tests in the global minishell environment.
+     The overall status was displayed as follows:
+</pre>
+<p></p>
+<pre>             Overall script status : SCRIPT FAILED
+</pre>
+<p></p>
+<p>Thus, the option --unit-test-begins is needed for mse to produce a correct summary for all unit tests in an mse script.</p>
+<p>Note 1: If lines 1 and 8, or just line 8, had been removed from the script, the output of line 15 would have shown the RESULT line for test #1 only. This would have led to the wrong conclusion that the script was executed successfully if it relied on the absence of "TEST FAILED" or "TEST FAILED OR ERRORED" in the output.</p>
+<p>Note 2: If line 10 is a child mse command:</p>
+<pre>            line 10:  mse "&lt;child's script&gt;"
+</pre>
+<p></p>
+<p>a syntax error in the child's script causes the child to skip the rest of the child's script and return a failed status to the parent mse. Because the status is failed, not syntax error, the parent mse continues to execute line 11.</p>
+<p>Note 3: If line 10 is a function call:</p>
+<pre>            line 10:  call '&lt;some_function&gt; &lt;arg1&gt; &lt;arg2&gt; ...'
+</pre>
+<p></p>
+<p>the behavior is the same as described in Note 2. The reason that a function call behaves the same way as a child mse is that the minishell interpreter always converts a function call to a child mse that executes a script that is the body of the function.</p>
+<p>Note 4: To force the parent mse to abort after a child mse or function call failure, one can run the mse command with option --abort-on-error|-A:</p>
+<pre>           $ mse --abort-on-error -f mytest.scr
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>A large number of trivial examples will be provided to show the formats of the output.  Users can scan them quickly to choose an appropriate output format for their own use.</p>
+<p>1. Check if the output contains certain string(s):</p>
+<pre>   $ echo "The command has completed successfully" | strquery -h success
+   1
+</pre>
+<p></p>
+<p>2. Run multiple queries and use RPN stack operators to combine them into the final result:</p>
+<pre>   $ echo "The command has completed successfully" | strquery -h command -h success .and.
+   1
+</pre>
+<p></p>
+<p>3. Compute the total number of occurrences of 'foo' in a file:</p>
+<pre>   # By using startup and exit queries:
+   $ sscat file1.txt | strquery -S --mse 'total=0' --occur foo -c total=total+.X -X --mse 'echo -n %total'
+   10
+</pre>
+<p></p>
+<pre>   # By using the counter that stores all the positive values of results:
+   $ sscat file1.txt | strquery --occur foo  -X  --psum --occurrence/foo
+   10
+</pre>
+<p></p>
+<p>4. Values of options can be specified with macros:</p>
+<pre>   # What time is the demo?
+   $ echo The demo is on Monday at 3PM | strquery --find on --cal .X+3 --substr %.X
+   Monday at 3PM
+</pre>
+<p></p>
+<p>Note that the option names --cal and --substr must be specified explicitly as is. However, their values can be specified with macros.</p>
+<p>5. To dump all built-in variables of strquery:</p>
+<p>The mse-env command cannot be used because it lists the variables in the global minishell environment only. The local minishell environment is destroyed as soon as strquery runs to completion. In order to see the variables in the local minishell environment, we have to display them while strquery is running. To this end, we need to run the minishell's built-in commands 'mylib' and 'myenv' in the context of strquery (see Section D8.6 in the 'mse' man page).</p>
+<p>For strquery,</p>
+<p>5a. Specify --mylib query,  or '--run mylib', to list the stack variables in the minishell library</p>
+<pre>   $ echo foo bar | strquery --has 'foo' --has 'xyz' -c '.X || .Y' --mylib
+   [cmdid_12].FC=1
+   [cmdid_12].ID=4
+   [cmdid_12].NV=3
+   [cmdid_12].QR=1
+   [cmdid_12].QR1=1
+   [cmdid_12].QR2=0
+   [cmdid_12].QR3=1
+   [cmdid_12].TC=2
+   [cmdid_12].X=1
+   [cmdid_12].X1=1
+   [cmdid_12].X2=0
+   [cmdid_12].X3=1
+   [cmdid_12].Y=0
+   [cmdid_12].Z=1
+   [cmdid_12].__=foo bar
+   [cmdid_12].___=foo bar
+</pre>
+<p></p>
+<pre>   [cmdid_12].____=1
+   [cmdid_12].cid=12
+   [cmdid_12].eid=140401148863104 # this value can be different because it is a memory address
+   [cmdid_12].fid=0
+   [cmdid_12].lid=12
+   [cmdid_12].line=foo bar
+   [cmdid_12].lineno=1
+   [cmdid_12].rawline=foo bar
+</pre>
+<p></p>
+<pre>   [cmdid_12]RES=1
+   [cmdid_12]__=foo bar
+   [cmdid_12]___=foo bar
+</pre>
+<p></p>
+<pre>   [cmdid_12]____=1
+</pre>
+<p></p>
+<p>Note that "RES" is both local and global across the entire command line of the top-level strquery command/filter.  As local, its fully qualified name is "[cmd_12]RES". As global across the command chain, it has no prefix and can be dumped by "--myenv" query:</p>
+<p>5b. Specify --myenv query, or '--run myenv', to list the non-stack variables in the local minishell environment</p>
+<pre>   $ echo foo bar | strquery --has 'foo' --has 'xyz' -c '.X || .Y' --myenv
+   .QR=1
+   CALCULATE_EXPR=.X || .Y
+   CALCULATE_RC=Success
+   RES=1
+</pre>
+<p></p>
+<p>5c. Specify --dump-all query to see both the library and the local minishell environment</p>
+<pre>   $ echo foo bar | strquery --has 'foo' --has 'xyz' -c '.X || .Y' --dump-all
+   MInishell library:
+   [cmdid_3].FC=1
+   [cmdid_3].ID=4
+   [cmdid_3].NV=3
+   [cmdid_3].QR=1
+   [cmdid_3].QR1=1
+   [cmdid_3].QR2=0
+   [cmdid_3].QR3=1
+   [cmdid_3].TC=2
+   [cmdid_3].X=1
+   [cmdid_3].X1=1
+   [cmdid_3].X2=0
+   [cmdid_3].X3=1
+   [cmdid_3].Y=0
+   [cmdid_3].Z=1
+   [cmdid_3].__=foo bar
+   [cmdid_3].___=foo bar
+</pre>
+<p></p>
+<pre>   [cmdid_3].____=1
+   [cmdid_3].cid=3
+   [cmdid_3].eid=140654243949696
+   [cmdid_3].fid=0
+   [cmdid_3].lid=3
+   [cmdid_3].line=foo bar
+   [cmdid_3].linelen=7
+   [cmdid_3].lineno=1
+   [cmdid_3].rawline=foo bar
+</pre>
+<p></p>
+<pre>   [cmdid_3].rawlinelen=8
+   [cmdid_3].trimmedline=foo bar
+   [cmdid_3].trimmedlinelen=7
+   [cmdid_3]RES=1
+   [cmdid_3]__=foo bar
+   [cmdid_3]___=foo bar
+</pre>
+<p></p>
+<pre>   [cmdid_3]____=1
+   Local minishell environment:
+   .QR=1
+   CALCULATE_EXPR=.X || .Y
+   CALCULATE_RC=Success
+   RES=1
+</pre>
+<p></p>
+<p>5d. Specify --dump query to see just a small set of variables frequently needed for debugging</p>
+<pre>   $ echo foo bar | strquery --has 'foo' --has 'xyz' -c '.X || .Y' --dump
+   Numeric results on stack (indexed from top of stack, starting from 1):
+      RES=1
+      X1=X=1
+      X2=Y=0
+      X3=Z=1
+   String results (indexed after query numbers, leftmost query is 1):
+      .QR=.QR3=1
+      .QR2=0
+      .QR1=1
+</pre>
+<p></p>
+<p>Note that all queries are numbered from left to right. But a number of queries do not change the stack such as all the --dump, --dump-all, --myenv, --mylib, etc. These queries are not saved to .QR&lt;n&gt; variables, either. Thus, the index of stack variables is consecutive, but that of QR may not be consecutive as seen in the following example (.QR2 is non-existent):</p>
+<pre>   $ echo 3 | strquery .push. --dump --push 7 --push 8 --dump
+   Numeric results on stack (indexed from top of stack, starting from 1):
+      RES=3
+      X1=X=3
+   String results (indexed after query numbers, leftmost query is 1):
+      .QR=.QR1=3
+   Numeric results on stack (indexed from top of stack, starting from 1):
+      RES=8
+      X1=X=8
+      X2=Y=7
+      X3=Z=3
+   String results (indexed after query numbers, leftmost query is 1):
+      .QR=.QR4=8
+      .QR3=7
+      .QR1=3
+</pre>
+<p></p>
+<p>5e. Specify --mse-env query to see a snapshot of all global minishell at that point in time</p>
+<pre>   $ mse-unset --all
+   $ echo 3 | strquery .push. --mse-env # show show nothing
+</pre>
+<p></p>
+<p>In general, strquery does not create any variables in the global minishell unless users specify queries such as --mse-set, --mse-save, etc.</p>
+<p>6. Debug multiple queries</p>
+<p>To display the intermediate results all queries, specify a verbosity level as early as possible.</p>
+<pre>   $ echo foo bar | strquery -v 4 --has 'foo' --has 'xyz' --calculate '.X || .Y'
+   1	[query #1: --has]
+   0	[query #2: --has]
+   1	[query #3: --calculate]
+</pre>
+<p></p>
+<p>7. Conditional queries</p>
+<pre>   $ echo Tom foo bar | strquery -v 4 --has Tom --if .X [ --echo 'Hello Tom' ] --else [ --echo "Hello there" ]
+   1	[query #1: --has]
+   1	[query #2: --if]
+   Hello Tom	[query #4: --echo]
+</pre>
+<p></p>
+<pre>   Note there is a jump in the query number because each of the stand-alone square brackets
+   is treated as a delimiter query. Thus, the first "[" on the command line is query #3.
+</pre>
+<p></p>
+<p>8. Report checkfs status</p>
+<p>Normally, the checkfs output is displayed by a background fiber and hence it cannot be captured by any filter such as grep, strquery, etc. However, checkfs supports a -c dev-level option, which will output the completion status in the foreground fiber in the following format:</p>
+<pre>     checkfs/&lt;file-system&gt; completion status: &lt;status&gt;
+</pre>
+<p></p>
+<p>This line is usually hard to see because it is mixed with the long checkfs output from the background fiber.  To avoid this, we can save the completion status in an environment variable and process with strquery as follows.</p>
+<pre>   $ checkfs -c fs1 | grep 'completion status' | env-set checkfs_status
+   $ sleep 1  # wait for background output to be done
+   $ echo "$checkfs_status" | strquery -E -h CheckedOk -d
+   checkfs/fs1 completion status: CheckedOk
+   TEST PASSED
+</pre>
+<p></p>
+<p>9. Simple test reporting</p>
+<pre>   a. Show simple status:
+      $ calculate '3+4' | strquery --eq 7 -d
+      TEST PASSED
+</pre>
+<p></p>
+<pre>   b. Echo standard input for visual inspection:
+      $ calculate '3+4' | strquery --eq 7 -E -d
+      7
+      TEST PASSED
+</pre>
+<p></p>
+<p>10. Advanced test report for the anonymous group, which is specified by -A</p>
+<pre>   a. Turn on advanced reporting for the anonymous group
+      $ calculate '3+4'    | strquery --eq 7 -E -A -F    # -F (first test)  to reset counters
+      ====== TEST 1 ======
+</pre>
+<p></p>
+<pre>      7
+</pre>
+<p></p>
+<pre>      TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   b. For subsequent tests, drop -F to allow the test number to be incremented automatically
+      $ calculate '10/2'   | strquery --eq 5 -E -A
+      ====== TEST 2 ======
+</pre>
+<p></p>
+<pre>      5
+</pre>
+<p></p>
+<pre>      TEST 2 : RESULT = TEST PASSED (Total so far: Passed=2/2, Failed=0/2, Errored=0/2, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>
+</pre>
+<p></p>
+<pre>   c. Assign a run label to group. This label is persistent until changed again.
+      $ calculate '3*4'    | strquery --eq 12 -E -A -L Run18
+      ====== [Run18] TEST 3 ======
+</pre>
+<p></p>
+<pre>      12
+</pre>
+<p></p>
+<pre>      [Run18] TEST 3 : RESULT = TEST PASSED (Total so far: Passed=3/3, Failed=0/3, Errored=0/3, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   d. Define the test name. This test name is persistent until changed again.
+      $ calculate '10-4'    | strquery --eq 6 -E -A -N 'Verify subtract'
+      ====== [Run18] TEST 4 : Verify subtract ======
+</pre>
+<p></p>
+<pre>      6
+</pre>
+<p></p>
+<pre>      [Run18] TEST 4 : RESULT = TEST PASSED (Total so far: Passed=4/4, Failed=0/4, Errored=0/4, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   e. Options -E -A -N is the same as -W. Use this shortcut for the next text
+      $ calculate '1 &amp;&amp; 1'    | strquery --eq 1 -W 'Verify logical AND'
+      ====== [Run18] TEST 5 : Verify logical AND ======
+</pre>
+<p></p>
+<pre>      1
+</pre>
+<p></p>
+<pre>      [Run18] TEST 5 : RESULT = TEST PASSED (Total so far: Passed=5/5, Failed=0/5, Errored=0/5, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>      $ mse-env | grep ^GROUP
+      GROUP_HEADER_IS_DEFAULT=yes
+      GROUP_HEADER_TEMPLATE=^n====== TEST ^# : ^N ======^n
+      GROUP_ID=
+      GROUP_LABEL=
+      GROUP_LABEL=Run18
+      GROUP_MSG_FOR_ERROR=TEST FAILED OR ERRORED
+      GROUP_MSG_FOR_FALSE=TEST FAILED
+      GROUP_MSG_FOR_TRUE=TEST PASSED
+      GROUP_OVERALL=SUCCESSFUL
+      GROUP_RESULT_IS_DEFAULT=yes
+      GROUP_RESULT_TEMPLATE=^nTEST ^# : RESULT = ^S (Total so far: Passed=^P, Failed=^F, Errored=^E, OVERALL=^o)^n
+      GROUP_TEST_NAME=Verify logical AND
+      GROUP_TEST_NUMBER=5
+      GROUP_TEST_STATUS=TEST PASSED
+      GROUP_TOTAL_ERRORS=0
+      GROUP_TOTAL_FAILS=0
+      GROUP_TOTAL_PASSES=5
+</pre>
+<p></p>
+<pre>   f. Run the last test and clean up everything in the anonymous group
+      $ calculate '1 || 1'    | strquery --eq 1 -C -W 'Verify logical OR'
+      ====== [Run18] TEST 6 : Verify logical OR ======
+</pre>
+<p></p>
+<pre>      1
+</pre>
+<p></p>
+<pre>      [Run18] TEST 6 : RESULT = TEST PASSED (Total so far: Passed=6/6, Failed=0/6, Errored=0/6, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>      $ mse-env | grep ^GROUP
+      # empty output
+</pre>
+<p></p>
+<pre>   g. Change the header line template
+      Suppose we want to rerun (a) with a different header line. The change will persist until changed again.
+</pre>
+<p></p>
+<pre>      $ calculate '3+4'    | strquery --eq 7 -E -A -F -H "xxxx Running test ^# xxxx"
+      xxxx Running test 1 xxxx
+</pre>
+<p></p>
+<pre>      7
+</pre>
+<p></p>
+<pre>      TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   h. Change the result line template
+      Suppose we want to rerun (a) with a different header line
+</pre>
+<p></p>
+<pre>      $ calculate '3+4'    | strquery --eq 7 -E -A -R "Test ^#'s result: ^S (so far: ^p passed, ^f failed, ^e errored, overall=^o)"
+      xxxx Running test 2 xxxx
+</pre>
+<p></p>
+<pre>      7
+</pre>
+<p></p>
+<pre>      Test 2's result: TEST PASSED (so far: 2 passed, 0 failed, 0 errored, overall=SUCCESSFUL)
+</pre>
+<p></p>
+<p>11. Advanced test report for a specific group specified by a group id.</p>
+<pre>    Suppose we want all tests in example 11 to be in a group with group id of 11.
+    All we need to do is as follows:
+</pre>
+<p></p>
+<pre>    a) Clean up all strquery variables in the global minishell environment:
+</pre>
+<p></p>
+<pre>           $ strquery -C -A
+</pre>
+<p></p>
+<pre>       Two methods to delete all variables in the global minishell environment:
+</pre>
+<p></p>
+<pre>           $ mse-unset --all
+           $ mse-env | mse-unset
+</pre>
+<p></p>
+<pre>    b) Replace -A option with -G 12 in all the tests and rerun them.
+       The output will be identical to example 10.
+</pre>
+<p></p>
+<p>12. Use the mse's built-in variable .cmdline in test report</p>
+<pre>       $ strquery -C -A
+       $ mse "calculate 3+4 | strquery --EQ 7 -E -A -N %.cmdline"
+</pre>
+<p></p>
+<pre>       ====== TEST 1 : cal 3+4 | strquery --EQ 7 -E -A -N %.cmdline ======
+</pre>
+<p></p>
+<pre>       7
+</pre>
+<p></p>
+<pre>       TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+
+<p>Note that the entire command line "calculate ... -N %.cmdline" is run in the context of the mse command. Thus, all mse's built-in variables are available for use (see section D7.2 of the mse man page). In particular, the following variables are available when mse executes "calculate ... -N %.cmdline":</p>
+
+<pre>        - current command line:
+            %.cmdline = "calculate 3+4 | strquery --EQ 7 -E -A -N %.cmdline"
+        - simple commands in the current command line:
+            %.cmd0 = "calculate 3+4"
+            %.cmd1 = "strquery --EQ 7 -E -A -N %.cmdline"
+        - total number of simple commands in the current command line:
+            %.cmdc = 2
+</pre>
+<p></p>
+<p>13. Use the mse's built-in variable .lastcmdline in test report</p>
+<pre>       $ sscat test.mse
+       strquery -C -A
+       calculate 3+4
+       strquery --EQ 7 -E -A -N "%.lastcmdline | %.cmdline"
+</pre>
+<p></p>
+<pre>       $ mse -n -test.mse
+       ====== TEST 1 : cal 3+4 | strquery --EQ 7 -E -A -N %.cmdline ======
+</pre>
+<p></p>
+<pre>       7
+</pre>
+<p></p>
+<pre>       TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+
+<p>Note that all command lines are placed in a script file, which is then executed in the mse context. When mse executes a command line, the built-in variables of the previous command line are accessed via the %.lastxxx variables: %.lastcmdline, %.lastcmd0, etc. Thus, when mse executes 'strquery --EQ 7 -E -A -N "%.lastcmdline | %.cmdline"':</p>
+
+<pre>        - last command line:
+            %.lastcmdline = "calculate 3+4"
+        - simple commands in the last command line (only 1):
+            %.lastcmd0 = "calculate 3+4"
+        - total number of simple commands in the last command line (only 1):
+            %.lastcmdc = 1
+        - For the current command line:
+            %.cmdline = "strquery --EQ 7 -E -A -N "%.lastcmdline | %.cmdline"
+            %.cmd0 = "strquery --EQ 7 -E -A -N "%.lastcmdline | %.cmdline"
+            %.cmdc = 1
+</pre>
+<p></p>
+<p>14. Check if a file exists</p>
+<p>Suppose file foobar does not exist:</p>
+<pre>   $ ls foobar
+   error: VolumeNotFound.
+</pre>
+<p></p>
+<p>Let's capture this message with strquery and parse it for the "NotFound" token. We expect to see strquery display 1:</p>
+<pre>   $ ls foobar | strquery -h NotFound
+   error: NotFound.
+</pre>
+<p></p>
+<p>We do not see "1" displayed because the "ls" command wrote the "error: VolumeNotFound." message to standard error but the strquery filter can only read from the standard output only. One way to fix this is to use the "backquote" command to run the "ls" command. We need to specify either '--capture-stderr' or '2&gt;&amp;1' so that backquote will redirect both the standard output and the standard error of the ls command to the standard output of the backquote command.</p>
+<pre>   $ backquote -c -- ls foobar # same as: backquote -- ls foobar '2&gt;&amp;1'
+   error: VolumeNotFound.
+</pre>
+<p></p>
+<p>Now we will be able to query the "NotFound" token programmatically:</p>
+<pre>   $ backquote -c -- ls foobar | strquery -h NotFound
+   1
+</pre>
+<p></p>
+<p>15. Use in an mse script</p>
+<p>The 'backquote' command becomes unnecessary if we use strquery in an mse script. For example, we can write an mse function to query if a file exists:</p>
+<pre>   $ sscat example.mse
+   function fileExist {
+      x ::=: ls %1;
+      strquery -f %x -h NotFound .not. ;
+   }
+</pre>
+<p></p>
+<pre>   exist ::=: call fileExist foobar;
+   if ( %exist ) {
+     echo File foobar exists;
+     # or do something here
+   } else {
+     echo File foobar does not exist;
+     # or do something here
+   }
+</pre>
+<p></p>
+<pre>   $ vn 1
+   $ mount fs1
+   $ cv fs1
+   # Assume foobar does not exist
+   $ mse -f example.mse
+   File foobar does not exist
+</pre>
+<p></p>
+<p>16. How to clean up all global minishell environment variables before unit testing?</p>
+<p>Run 'mse-unset --all' before running any test.</p>
+<p>17. How to display a summary of unit test execution?</p>
+<p>- Run mse to execute the following built-in command to display a summary:</p>
+<pre>    mse::execution-summary
+</pre>
+<p></p>
+<p>- To display the summary automatically when mse exits, run mse to enable the following mse setting:</p>
+<pre>    mse::set display-summary-on-exit true
+</pre>
+<p></p>
+<p>18. Sample summary of unit testing</p>
+<pre>    See the mse-unit-testing man page
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Dev/backquote.html">backquote</a> <a href="../../Filter/Dev/calculate.html">calculate</a> <a href="../../Filter/Dev/get-key-value.html">get-key-value</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Dev/mse-abort.html">mse-abort</a> <a href="../../Topic/mse-env.html">mse-env</a> <a href="../../Topic/mse-functions.html">mse-functions</a> <a href="../../Filter/Dev/mse-set.html">mse-set</a> <a href="../../Topic/mse-unit-testing.html">mse-unit-testing</a> <a href="../../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../../Topic/quoted-text.html">quoted-text</a> <a href="../../Filter/Dev/strjoin.html">strjoin</a> <a href="../../Filter/Dev/strline.html">strline</a> <a href="../../Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strreplace.html">strreplace</a> <a href="../../Filter/Dev/strsplit.html">strsplit</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

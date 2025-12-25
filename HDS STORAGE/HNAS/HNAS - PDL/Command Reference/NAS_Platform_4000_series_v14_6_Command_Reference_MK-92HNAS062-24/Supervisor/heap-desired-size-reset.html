@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>heap-desired-size-reset</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>heap-desired-size-reset</h1>
+<p>Reset the desired heap size</p>
+<h1>Syntax</h1>
+<pre>heap-desired-size-reset [--force]
+</pre>
+
+<h1>Description</h1>
+<p>Show, set, reset or remove the desired maximum heap size. This value is used by mfb-run to configure Bali memory usage on start-up. The value is stored in the registry and is mirrored to all nodes in a cluster. When the value is set, it is propagated to a configuration file in Linux, where mfb-run can access it. The setting is thus persistent, cluster-wide and only takes effect on reboot.</p>
+<dl>
+<dt><strong>heap-desired-size-show</strong></dt>
+<dd><p>Displays the desired maximum heap size. To view the actual heap size, and utilization, use heap-size.</p></dd>
+<dt><strong>heap-desired-size-set &lt;size&gt; [--force]</strong></dt>
+<dd><p>Size specifies a positive decimal number usually suffixed with "G" to indicate GiB. If size is positive, sets the desired maximum heap size to the given value. The configuration is capped by available memory, even if the desired heap size is larger. The size need not be an integer.</p></dd>
+</dl>
+<p>On models where the license and hardware allows, raising the heap size automatically configures the system to support a larger configuration. Perhaps the most notably increased aspects are the system's ability to support extra open files and extra file serving connections. The relationship between heap size and open files is subject to change and is not specified at this time. After configuring a desired heap size and rebooting, the number of supported open files can be observed with the poolstats command. In this example configuration, 60 000 open files are supported:</p>
+<pre>server:$ poolstats OpenFileState | grep capacity | head -1
+  capacity : 60000, 4.12 MB (4320000 B)
+server:$
+</pre>
+<p></p>
+<p>The heap-desired-size-set command may also be used to reduce the heap size, hence reduce the supported configuration, including open files. This may be useful in certain circumstances to transfer resources for more performant operation of Linux-hosted features. Consultation with your support provider is advised before reconfiguring the system using this command.</p>
+<dl>
+<dt><strong>heap-desired-size-reset [--force]</strong></dt>
+<dd><p>Resets the maximum heap size to the current default value.</p></dd>
+<dt><strong>heap-desired-size-remove [--force]</strong></dt>
+<dd><p>Removes the configuration, letting mfb-run choose.</p></dd>
+</dl>
+<p>The -reset and -remove commands are anticipated to have the same effect in most circumstances. Systems are shipped with no configuration, so the -remove command returns to the factory default.</p>
+<p>The -set, -reset and -remove commands are subject to a check to ensure the system will not be placed at risk of overcommitting the physical memory available as a result. This check is equivalent to using the resource-config-test command. If this check fails, the command is aborted before any changes are made to the system. The --force parameter overrides the result of this check and is equivalent to supplying --force-memory-overcommit to resource-config-apply.</p>
+<h1>Examples</h1>
+<p>This example output is from a medium-sized system. Limits for other models can be seen with the <code>system-limits-show all</code> command.</p>
+<pre>server:$ heap-desired-size-show
+Desired maximum heap is not set
+PAPI configuration is not set
+  Minimum allowed value: 4.5 GB (4831838208 B)
+  Default value: 6 GB (6442450944 B)
+  Maximum allowed value: 16 GB (17179869184 B)
+server:$
+</pre>
+<p></p>
+<pre>server:$ heap-desired-size-set 12G
+server:$
+</pre>
+<p></p>
+<pre>server:$ heap-desired-size-show
+Desired maximum heap is 12 GB (12884901888 B)
+PAPI configuration is 12 GB (12884901888 B)
+  Minimum allowed value: 4.5 GB (4831838208 B)
+  Default value: 6 GB (6442450944 B)
+  Maximum allowed value: 16 GB (17179869184 B)
+server:$
+</pre>
+<p></p>
+<pre>server:$ heap-desired-size-reset
+server:$
+</pre>
+<p></p>
+<pre>server:$ heap-desired-size-remove
+server:$
+</pre>
+<p></p>
+<pre>server:$ heap-desired-size-show
+Desired maximum heap is not set
+PAPI configuration is not set
+  Minimum allowed value: 4.5 GB (4831838208 B)
+  Default value: 6 GB (6442450944 B)
+  Maximum allowed value: 16 GB (17179869184 B)
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Filter/User/grep.html">grep</a> <a href="../Filter/User/head.html">head</a> <a href="../Supervisor/heap-desired-size-remove.html">heap-desired-size-remove</a> <a href="../Supervisor/heap-desired-size-set.html">heap-desired-size-set</a> <a href="../User/heap-desired-size-show.html">heap-desired-size-show</a> <a href="../Supervisor/heap-size.html">heap-size</a> <a href="../Supervisor/poolstats.html">poolstats</a> <a href="../Topic/resource-config.html">resource-config</a> <a href="../Dev/system-limits-show.html">system-limits-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

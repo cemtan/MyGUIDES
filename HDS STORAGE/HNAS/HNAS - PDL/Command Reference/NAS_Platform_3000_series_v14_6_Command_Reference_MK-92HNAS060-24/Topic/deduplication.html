@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>deduplication</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>deduplication</h1>
+
+<h1>Description</h1>
+<p>Deduplication (henceforth dedupe) is a mechanism for improving the storage utilization of a file system. It involves identifying duplicate chunks of data in a file system and replacing the duplicates with a reference to a single copy of the data.  This process reduces the amount of space required to store the data on disk.</p>
+<p>The dedupe feature has the following characteristics:</p>
+<ul>
+<li>It supports detecting and removing duplication at a fixed-sized, block-based boundary. The block size for dedupe is same as the file system's block size.</li>
+<li>File system data is analyzed and processed for dedupe after it is written to disk, i.e. data is not deduped in-line as it is being written to disk.</li>
+<li>Data is deduped within a file system only and not across multiple file systems.</li>
+<li>A dedupe index is used to store and identify duplicate blocks in a file system. There is one such index per file system.</li>
+<li>Up to 239 identical data blocks can be deduped and replaced by a single physical block on disk.</li>
+<li>Only user data is deduped.</li>
+<li>Existing WFS-2 file systems need to be converted to support dedupe.</li>
+<li>NDMP recovery targets and read cache file systems cannot be deduped</li>
+<li>Object replication targets can be deduped on release 13.6 or higher, although this is not supported on HNAS-3080, HNAS-3090, HNAS-4020, or HNAS-4040 systems.</li>
+</ul>
+<h2>How to prepare a file system for dedupe</h2>
+<p>WFS-2 file systems can be formatted (see 'filesystem-create' and 'format') or converted (see 'fs-convert-to-support-dedupe') to support dedupe.  Once a file system has support for dedupe, then dedupe can be enabled or disabled. Enabling dedupe on a file system allows it to be processed by the dedupe service. By default, file systems that are formatted or converted to support dedupe also have dedupe enabled on them.  An exception to this is WORM file systems which can be formatted with dedupe support but cannot have dedupe enabled as they are write-once so dedupe is not possible.</p>
+<p>To enable or disable dedupe on a file system use the 'fs-dedupe-status-set' command. 'fs-dedupe-status-get' can be used to view whether dedupe is enabled on a file system.</p>
+<p>Any data that is already deduped continues to remain so even if dedupe is disabled on the file system.</p>
+<h4>Creating a new file system with dedupe support</h4>
+<p>In order to create a new file system with dedupe support, use the '--dedupe-supported' option with the 'filesystem-create' or 'format' command. Dedupe will be automatically enabled if a file system is formatted with this option.</p>
+<h4>Converting an existing file system to support dedupe</h4>
+<p>Existing WFS-2 file systems that do not have dedupe support can be converted to support dedupe. This can be done using the 'fs-convert-to-support-dedupe' command.</p>
+<p>Note that as part of the conversion process, key data structures of the file systems are changed for dedupe, so once a file system is converted to support dedupe the change cannot be reversed, i.e. file systems with dedupe support cannot be converted to a file system without dedupe support. However, after a file system is converted to support dedupe, it is possible to rollback to a snapshot that was created <strong>before</strong> the conversion. This can be treated as a way to restore the file system's data structures to pre-dedupe format, i.e. a way to reverse the conversion process, <strong>but note that rolling back to the snapshot would mean that any user data that was written to the file system after the snapshot was created will be lost!</strong></p>
+<p>Dedupe is automatically enabled for a file system as part of the conversion process. At the first mount after a successful conversion, the file system will be automatically scheduled for a full dedupe run.</p>
+<p>Several constraints apply for a successful conversion of a WFS-2 file system to support dedupe. See 'fs-convert-to-support-dedupe' for more details.</p>
+<p>It can be seen whether a file system supports dedupe and whether it is enabled by using the 'df' command:  Example:</p>
+<pre>	$ df
+</pre>
+<p></p>
+<pre>          ID   Label     Size         Used  Snapshots  Reduction          Avail  Thin                               FS Type
+        ----  ------  -------  -----------  ---------  ---------  -------------  ----  ------------------------------------
+        1027  m13fs3  15.0 GB  Not mounted         NA   0 B (0%)  12.7 GB (85%)    No  4 KB,WFS-2,128 DSBs,dedupe supported
+        1039  m13fs4  4.75 GB  2.42 GB (51%)       NA   0 B (0%)  2.33 GB (49%)    No   32 KB,WFS-2,128 DSBs,dedupe enabled
+</pre>
+<p></p>
+<h2>Dedupe Types</h2>
+<p>There are 2 types of dedupe that can be performed:</p>
+<dl>
+<dt><strong>Incremental dedupe</strong></dt>
+<dd><p>This type of job processes the changes written to the file system since the previous incremental dedupe.</p></dd>
+<dt><strong>Full dedupe</strong></dt>
+<dd><p>This type of job processes the entire file system.  It typically only needs to be executed when an existing file system is first converted to support dedupe.  However there may be other times when it is useful to run a full dedupe, for example if previous incremental dedupes failed or were aborted.</p></dd>
+</dl>
+<h2>Dedupe Scheduling</h2>
+<h3>Automatic scheduling</h3>
+<p>Dedupe is automatically triggered for a file system in the following scenarios:</p>
+<ul>
+<li>After file system conversion to support dedupe</li>
+<p>A <strong>full</strong> dedupe is automatically scheduled for a file system at the first read-write mount after the file system is converted to support dedupe. This ensures that all existing data in the file system is analyzed and processed by dedupe.</p>
+<li>Based on the amount of changed data</li>
+<p>An <strong>incremental</strong> dedupe is automatically scheduled for a file system when the amount of data changes made to the file system cross predefined thresholds. See the 'Thresholds for triggered incrementals' section below for more information.</p>
+<li>Object replication target file systems after a replication.</li>
+<p>An <strong>incremental</strong> dedupe is automatically scheduled for an object replication target file system that supports dedupe whenever a replication to that target completes.</p>
+</ul>
+<h3>Manual scheduling</h3>
+<p>A dedupe job (full or incremental) can be submitted manually using the 'dedupe-queue-add' command.</p>
+<h3>Job queue</h3>
+<p>Once a dedupe job has been scheduled - either automatically or manually - the job is added to a queue. The contents of the queue can be seen using the 'dedupe-queue-status' command.</p>
+<p>Each node in a cluster has its own queue and jobs are processed from this queue one at a time. Full dedupes have lower priority than incremental dedupes.  Dedupe jobs do not run concurrently meaning that, at most, there will be one dedupe job running per node at any given time.</p>
+<p>It is possible to view the status of an individual file system's dedupe jobs using the 'fs-dedupe-history' command. This command reports the status of any currently running job and the most recent jobs that ran on the file system.</p>
+<h3>Constraining when Dedupes take place</h3>
+<p>The dedupe service is responsible for running jobs from the dedupe queue. The 'dedupe-service' command can be used to show the status of the service and can also be used to start or stop the service.  This command is available to users with supervisor privilege</p>
+<p>By default the dedupe service is always enabled.  It is built-in with a self-throttling mechanism to help minimize its impact on the file serving performance of the node. However it is also possible to restrict the times when dedupes will be performed by defining cron jobs.</p>
+<p>For example, the following weekly dedupe schedule...</p>
+<pre>    - Sat-Sun: Enable dedupe the whole day from 0:00 to 24:00
+    - Mon-Fri: Enable dedupe from 0:00 to 7:30,
+               disable from 7:30 to 19:30,
+               and enable again from 19:30 to 24:00
+</pre>
+<p></p>
+<p>... could be implemented using:</p>
+<pre>    crontab add "0 0 * * *" "dedupe-service --start"
+    crontab add "30 7 * * 1-5" "dedupe-service --stop"
+    crontab add "30 19 * * 1-5" "dedupe-service --start"
+</pre>
+<p></p>
+<p>For more detailed information and further examples see the 'dedupe-service' and 'crontab' man pages.</p>
+<h2>Dedupe Resource Usage</h2>
+<p>The 'resource-config-show', 'resource-config-test' and 'resource-config-apply' commands can be used to monitor and modify the system resources used by the deduplication service.</p>
+<h2>Dedupe Space Saving</h2>
+<p>The 'df' command's column 'Reduction' represents a percentage of saved space achieved by either file system packing or dedupe, or both. This represents how much storage space has been saved in proportion to the logical file system size (the physical disk space that would be required if the data were not packed or deduped). It is not possible to calculate how much space was saved only by dedupe on a file system which has packing enabled. For a file system with packing disabled, it is calculated as:</p>
+<pre>    Deduped space
+    -------------  X 100
+    Logical space
+</pre>
+<p></p>
+<p>For example, if the output from 'df' is</p>
+<pre>        ID           Label      Size            Used      Snapshots       Reduction           Avail
+      ----  --------------  --------  --------------  -------------  --------------  --------------
+      1037    evs01-fs01-s  1.778 TB  693.3 GB (38%)             NA  940.9 GB (58%)  1.101 TB (62%)
+</pre>
+<p></p>
+<p>then:</p>
+<pre>                            940.9
+    Dedupe percentage =   -------------   X 100  = 58% (rounded)
+                          940.9 + 693.3
+</pre>
+<p></p>
+<p>Another meaningful metric is the dedupe ratio, which is the ratio of logical to used space:</p>
+<pre>                        Logical space      940.9 + 693.3
+    Dedupe ratio    =   -------------  =   -------------  =~ 2.3
+                          Used space           693.3
+</pre>
+<p></p>
+<p>Even on a newly-formatted file system, there is still some hidden administrative data which is treated as user data.  It is this data that may get deduped and shows up in the dedupe percentage reported by the 'df' command.</p>
+<p>Also, note that duplicate blocks are not freed for a period of time after a dedupe job completes. A number of further checkpoints need to complete to fully recover the deduped space.  This number will be at least the number of DSBs on the file system, which defaults to 128, and may be larger with decoupled freed-block lists</p>
+<p>Any duplicate blocks that are part of a snapshot will not be freed until those snapshots have been deleted.</p>
+<p>If the file system is not a replication target, then the dedupe server itself creates a snapshot which is deleted once the dedupe job completes.</p>
+<p>Thus, the true savings may not be apparent for some time after a dedupe job completes.</p>
+<h2>Dedupe Window</h2>
+<p>The dedupe process maintains a per-file system index to map block signatures to their respective physical location.  The size of this index determines how many unique data blocks are available to check for possible deduplication of new data.</p>
+<p>This index is only used during the dedupe process and is not required for normal file system (read/write) operations.</p>
+<p>The index size is restricted to prevent it growing beyond limits that might affect the file serving performance of a node. This means that if a new unique block is added to an index that is at its full capacity, then the least recently used unique block will be discarded to make way for the new block.  Therefore as a file system sees data churn, the index will be updated with new unique data blocks and will forget older blocks.</p>
+<p>The maximum index size determines the dedupe window size, which is the maximum amount of filesystem data that can be monitored by the index.  The dedupe window size varies according to which indexer is in use and the file system's block size:</p>
+<pre>                                Dedupe Window
+	+-----------+--------------------+---------------------+
+	|  Indexer  |  4-KiB Block Size  |  32-KiB Block Size  |
+	|-----------|--------------------|---------------------|
+	|  Albireo  |     2.5 TiB        |        2 TiB        |
+	|-----------|--------------------|---------------------|
+	|  Virtuoso |     2.5 TiB        |     20.5 TiB        |
+	+-----------+--------------------+---------------------+
+</pre>
+<p></p>
+<h2>Dedupe and other sub-systems/features</h2>
+<h3>Snapshots</h3>
+<p>In deduped file systems, blocks used by snapshots may also be used by the live file system and it is not possible to separate out the references to a block made through snapshots and through the live file system. Therefore, the snapshot block usage reporting for deduped file systems suffers from the following limitations:</p>
+<ul>
+<li>The 'snapshot-list' command reports the logical (hydrated) block usage of a snapshot.  This means:</li>
+<li>Deleting a snapshot on a deduped file system may not free all the reported space when the snapshot is deleted. E.g., if a snapshot reports 100 MB of usage, some of that usage may have been deduped and could be taking less than 100 MB on disk, or could be referenced by other files.  So when this snapshot is deleted, <strong>at most</strong> 100 MB of physical space will be freed.</li>
+<li>The space used by snapshots can exceed the physical size of the file system. To avoid confusion the 'df' command's 'Snapshots' field will state 'NA' for file systems that support dedupe.</li>
+<li>Running 'kill-snapshots' on a file system that supports dedupe will leak all snapshot blocks. 'fs-reclaim-leaked-space' will recover most of the leaked space, but 'fixfs' will be needed to recover all the lost blocks.</li>
+</ul>
+<h3>fs-usage</h3>
+<p>The 'fs-usage' command allows administrators to configure file system usage alert thresholds. Since snapshot usage is not available for dedupe-supported file systems, all usage is considered live. Alerts will be issued when this usage exceeds the live thresholds as well as when it exceeds the total thresholds. Alert thresholds for snapshot usage will be ignored for such file systems.</p>
+<h3>Object- or File-based replication and backup</h3>
+<p>When performing an object or file-based replication/backup from a deduped source file system, the data will be rehydrated when it is sent to the target. So, if a file system containing 1 GB of logical data (that has been deduped to 500 MB on-disk) is backed up using file-based replication, then 1 GB of data will be transferred and copied over to the target.</p>
+<p>While NDMP recovery targets and read cache file systems cannot be deduped, NDMP recovery targets can contain deduped blocks if they were converted to recovery targets from existing deduped file systems. However once they are converted to be such targets they are not considered/scheduled for any further dedupe.</p>
+<p>If an object replication target file system has been formatted with support for (or converted to support) dedupe - and dedupe is enabled - this is automatically triggered once a replication completes if the target file system is on a supported system (see below).</p>
+<p>As the dedupe process for a replication target is independent from that of the source file system, the space saving achieved will not necessarily be the same for both.</p>
+<p>It is not possible to concurrently dedupe an object replication target and replicate to that target. Starting a replication whilst the target is being deduped will cause the dedupe to be aborted. If a replication is in progress when a dedupe job for that file system is added to the queue, it will not run. This does not affect the automatic triggering of dedupe jobs at the end of a replication..</p>
+<p>Deduplication of object replication target file systems is supported on release 13.6 or higher, although it is not supported on HNAS-3080, HNAS-3090, HNAS-4020, or HNAS-4040 systems.</p>
+<h3>File clones</h3>
+<p>A cloned file may contain diverged and undiverged blocks from the original clone (see 'file-clone' for details about clones).</p>
+<ul>
+<li>Diverged data blocks are treated as normal data blocks and can be indexed and deduped.</li>
+<li>Undiverged blocks of a clone will not be deduped.</li>
+</ul>
+<h2>How Dedupe Works</h2>
+<p>Each node in a cluster maintains a priority queue of file systems waiting to be deduped. Due to memory constraints, file systems are not deduped concurrently. Once a file system reaches the head of the queue, the following steps are followed to process it for dedupe:</p>
+<h3>Hashing</h3>
+<p>The changed data of the file system is read back and fed to an FPGA hashing engine, which computes a 32 byte long SHA256 signature per data block. The size of a dedupe block is fixed to be equal to the block size of the file system being processed, thus, it can be either be 4 KiB or 32 KiB.</p>
+<p>The maximum rate at which data blocks can be hashed by the FPGA engine depends on the block size and premium dedupe license:</p>
+<pre>                   SHA256 calculation rate
+    +-----------------------+---------------------------------+
+    |                       |          Block Size             |
+    |                       |----------------+----------------|
+    |                       |     4 KiB      |    32 KiB      |
+    |-----------------------|----------------+----------------|
+    | Default               |       up to 130 MB/s            |
+    |-----------------------|----------------+----------------|
+    | Premium dedupe license| up to 240 MB/s | up to 550 MB/s |
+    +-----------------------+----------------+----------------+
+</pre>
+<p></p>
+<p>The actual rate achieved can vary and depends on several factors, including the server model, the file serving load on the node, whether the data to be hashed is available in the buffer cache or whether it needs to be read off disk, the amount of fragmentation in the file system, the size of the file containing the changed blocks, etc.</p>
+<h3>Indexing</h3>
+<p>Once a block is hashed, its SHA256 signature is fed to a dedupe indexing engine. The indexing engine runs on the same node as the file system being deduped and is consulted for advice on whether a block with the same signature has been seen before.</p>
+<p>The indexing engine manages a large, per file system, table that maps block signatures to their physical location on disk. This table has both an in-memory and an on-disk component. On receiving the SHA256 signature hash of a block, the indexing engine performs a look up to check if the signature has been seen before. If the signature is a duplicate, then the physical location of the existing data block is returned. On the other hand, if the signature is new, then a new mapping (new SHA256 hash =&gt; its physical location) is added to the table.</p>
+<h3>Block sharing</h3>
+<p>The duplication advice received from the indexing engine is passed on to the block sharing component of the file system. This component first performs checks to ensure that the block about to be deduped contain duplicate data -- the existing block, flagged as a duplicate, could have been modified after it was indexed. One of the checks is to compare the generation number of the block's current contents vs. the generation number of the block's contents when it was indexed. If the numbers match, the block's contents have not been modified and the dedupe advice is considered to be valid (not stale).</p>
+<p>Once it is confirmed that the newly changed block is a duplicate of an existing data block, the block-sharing component modifies the blocks to point to the same physical location. This process increments the reference count of the existing block and marks the duplicate block's physical allocation to be freed up. Note that the maximum reference count of a data block is 239, which means that up to 239 identical data blocks can be deduped and replaced by a single physical block on disk.</p>
+<h3>Thresholds for triggered incrementals</h3>
+<p>The dedupe sub-system keeps track of the amount of changes written to the file system since an incremental dedupe was completed for a file system.</p>
+<p>The changed data thresholds at which a further incremental dedupe is triggered are preset and are a function of the dedupe window size. See the Dedupe Window section above for the values of the dedupe window sizes for the different indexers and data block sizes.</p>
+<p>There are 2 thresholds that are checked:</p>
+<ul>
+<li>The level-1 (minimum) threshold is defined as <strong>1%</strong> of the dedupe window size.</li>
+<p>This threshold is checked hourly.  A dedupe is triggered if the amount of change has passed the threshold and no incremental dedupe runs for the file system have been run or scheduled in the previous 24 hours.</p>
+<li>The level-2 (maximum) threshold is defined as <strong>50%</strong> of the dedupe window size.</li>
+<p>This threshold is tested when a checkpoint is performed for a file system. A dedupe is triggered if the amount of change has passed the maximum threshold. If an incremental job is running for the file system or the previously next scheduled job would have started at an older checkpoint, then a "too much data" warning is given.</p>
+<p>After triggering, the amount of change count is reset.</p>
+</ul>
+<p>Example: If the Albireo indexer is in use to dedupe a file system with a block size of 4KiB:</p>
+<pre>  The dedupe window size is 2.5 TiB.
+</pre>
+<p></p>
+<pre>  The level-1 threshold (1%)  is set at 25 GiB.
+  The level-2 threshold (50%) is set at 1.25 TiB.
+</pre>
+<p></p>
+<h3>Handling a newly-triggered incremental</h3>
+<p>Depending on the current status of the dedupe queue, the following outcomes are possible:</p>
+<pre>    +------------------------------------------------------------------------------+
+    |                            Server state                                      |
+    |-------------+----------------------------------------------------------------|
+    | Idle?       |            Busy running a job?                                 |
+    |-------------|---------------+------------------------------------------------|
+    |Action: Start|  Full job?    |            Incremental job?                    |
+    |the new      |---------------|--------------+---------------------------------|
+    |incremental  |Action: Pause  | For the same |  For a different file system?   |
+    |             |the full job   | file system? |                                 |
+    |             |and start the  |--------------|---------------------------------|
+    |             |new incremental|Action: Abort | Another incremental for the     |
+    |             |               |the existing  | same file system in the queue?  |
+    |             |               |job, start    |----------------+----------------|
+    |             |               |the new       |   No?          |    Yes?        |
+    |             |               |incremental   |----------------|----------------|
+    |             |               |and log a too-|Action:Queue the| Action: Update |
+    |             |               |much-change   |new incremental | the existing   |
+    |             |               |event(ID:5907)|                | incremental    |
+    |             |               |if needed.    |                | and log a      |
+    |             |               |              |                | too-much-change|
+    |             |               |              |                | event(ID:5907) |
+    |             |               |              |                | if needed.     |
+    +-------------+---------------+--------------+----------------+----------------+
+</pre>
+<p></p>
+<p>The same behaviour applies when a dedupe is triggered automatically for a replication target following a replication.  It means that any dedupe job that is still running for the same file system from an earlier replication is aborted and a too-much-change event is logged.</p>
+<p>A consequence of this is that if dedupes take longer than the replication frequency, it is likely that some potential deduplication on the target file system will be missed as the dedupe process will not re-visit data blocks that would have been checked on the aborted run.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/crontab.html">crontab</a> <a href="../Supervisor/dedupe-queue-add.html">dedupe-queue-add</a> <a href="../Supervisor/dedupe-queue-status.html">dedupe-queue-status</a> <a href="../Supervisor/dedupe-replication-target-index-log.html">dedupe-replication-target-index-log</a> <a href="../Supervisor/dedupe-replication-target-index-stats.html">dedupe-replication-target-index-stats</a> <a href="../Supervisor/dedupe-service.html">dedupe-service</a> <a href="../User/df.html">df</a> <a href="../Topic/file-clone.html">file-clone</a> <a href="../Supervisor/format.html">format</a> <a href="../Supervisor/fs-convert-to-support-dedupe.html">fs-convert-to-support-dedupe</a> <a href="../Supervisor/fs-dedupe-history.html">fs-dedupe-history</a> <a href="../Supervisor/fs-dedupe-status-get.html">fs-dedupe-status-get</a> <a href="../Supervisor/fs-dedupe-status-set.html">fs-dedupe-status-set</a> <a href="../User/fs-usage.html">fs-usage</a> <a href="../Supervisor/kill-snapshots.html">kill-snapshots</a> <a href="../Topic/resource-config-apply.html">resource-config-apply</a> <a href="../Topic/resource-config-show.html">resource-config-show</a> <a href="../Topic/resource-config-test.html">resource-config-test</a> <a href="../User/snapshot-list.html">snapshot-list</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

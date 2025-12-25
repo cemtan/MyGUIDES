@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>performance-info-report</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>performance-info-report</h1>
+<p>Run a performance info report (PIR)</p>
+<h1>Syntax</h1>
+<pre>performance-info-report -f &lt;fs&gt;|--file-system &lt;fs&gt;|--no-file-system [&lt;duration-in-minutes&gt;] [-r &lt;;-separated-recipients&gt;] [-s &lt;subject&gt;] [--limit-sds-cheap &lt;n&gt;] [--limit-sds-expensive &lt;n&gt;] [--no-profile] [--to-ssc] [--to-flash] [--output-file &lt;file&gt;] [--sync] [--start|--stop]
+Extra dev-only option: [--all-pnodes]
+Alias:       pir
+</pre>
+
+<h1>Description</h1>
+<p>This command gathers performance statistics from the server over a specified period, and then sends them out via email.</p>
+<p>A file system of interest should be specified on the command line (see --file-system option below) so that the performance statistics will relate to the cluster node that is hosting that file system. If a file system is not specified on the command line (dev only option) then the statistics will relate to the cluster node which is running the 'performance-info-report' command (in this latter case, note that, as with any command, "cn &lt;N&gt;" may be prefixed to the 'performance-info-report' command to force the PIR to run on a particular cluster node).</p>
+<p>By default the most recent non-continuous PIR will always be saved in flash as the default file name (see the --to-flash option). This allows it to be automatically included when diagnostic utilities are run. However, this does mean that taking a new PIR with the default name will replace the last PIR in flash with the same name. So be sure to take diagnostics after every PIR if you are not sending them by email.</p>
+<p>By default the email sent out by 'performance-info-report' will include a tarball with six files:</p>
+<p>command-output.txt</p>
+<p>At the start of the PIR a set of statistics are reset. Then at the end of the PIR a set of commands (relating to those statistics) are run to assess the state of the system. The output from these commands is included in the "command-output.txt" file. Since the statistics were reset at the start of the PIR this command output relates solely to the events on the server that occurred whilst the PIR was being taken.</p>
+<p>logged-statistics.csv</p>
+<p>A small number of statistics are logged periodically whenever the server is running. Additionally, at the start of the PIR logging is also enabled for another set of statistics. All these statistics are then sampled every ten seconds for the duration of the PIR. The results from this logging are included in the "logged-statistics.csv" file. Note that when the PIR completes the logging of the additional set of statistics will be disabled.</p>
+<p>profiling.txt</p>
+<p>During the course of the PIR, background profiles are taken from each of the CPUs in the system. The profiles will be split into 10 second chunks. The output from this profiling is contained in this file.</p>
+<p>showall.txt</p>
+<p>This file contains a set of basic information about the server and its configuration. This is the same as the "showall.txt" file that is included in a standard diagnostic email.</p>
+<p>old-command-output.txt</p>
+<p>At the very start of the PIR, before any of the statistics are reset (see "command-output.txt" above), a set of commands are run to assess the state of the system (the same set of commands that are subsequently run at the end of the PIR). The output from these commands is contained in the "old-command-output.txt" file. Since this file is generated before any of the statistics are reset these commands relate to events that occurred before the PIR was started. Normally they will relate to events that occurred between the start of the previous PIR (or boot time, if no PIR has been run previously) and the start of the current PIR. However, the data in this file must be used with caution, since if any of the statistics have been reset manually at some point then the command output may relate to events over a much shorter time span. Also, it's possible that some statistics may have been reset independently of other statistics, in which case the different commands may relate to different time spans.</p>
+<p>old-logged-statistics.csv</p>
+<p>As noted above (see "logged-statistics.csv") there are some statistics that are logged periodically whenever the server is running. The "old-logged-statistics.csv" file contains the values of these statistics, sampled every ten seconds for the previous ten minutes, and sampled every ten minutes for the previous twenty four hours. Note that in the CSV file a column of empty entries separates the "every ten second" statistics from the "every ten minutes" statistics.</p>
+<p>As usual with performance measurement, there's a cost associated. At the start of the PIR a set of commands are run to assess the current state of the system. This can take some number of seconds, and will slow the system considerably. For the specified duration of the PIR, extra statistics will be recorded, and this will have a negative effect on performance over the entire period. The impact will depend on the server workload, but typically the impact can be up to 20%. When the sampling finishes, a set of commands are again run to assess the state of the system. As at the beginning, this will take some number of seconds, and will slow the system considerably. Also during a PIR, a number of CPU performance profiles are taken, and again this will adversely affect performance. Once the PIR has completed then the system performance will return to normal.</p>
+<p>VLSI profiling is handled by the automated vlsi-profiler. Consult the vlsi-profiler-* command man pages for more information.</p>
+<p>Note that the commands run at the start and end, and the profiles taken, don't count towards the specified PIR duration. This means that a 10-minute PIR may well take somewhat longer.</p>
+<h2>Continuous Mode</h2>
+<p>As an alternative to regular fixed length PIRs, "Continuous" PIRs can be used to gather results on a repeating interval from the point a user starts it, until requested to stop. The main benefit of taking PIRs this way, is the ability to catch unexpected issues as soon as they happen, rather than trying to predict them or reacting once the interesting behaviour has already finished. Then once the issue has been captured, continuous PIR can be switched off. Note that continuous PIR cannot be used in the foreground i.e. with --sync, as user interaction is required to disable it.</p>
+<p>Warning: Server performance may degrade during monitoring and 10 minute intervals (or greater) are recommended. This feature should be enabled for performance tuning purposes only. Please contact your support personnel for additional information.</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>&lt;duration&gt;</strong></dt>
+<dd><p>Specify the duration to run for.  Default is 10 minutes.</p></dd>
+<dd><p>The minimum duration for regular PIR is 0 minutes and 1 minute for continuous. The maximum duration for both regular and continuous PIR is 60 minutes.</p></dd>
+<dt><strong>-f|--file-system &lt;fs&gt;</strong></dt>
+<dd><p>Choose what file system to concentrate on. Extra data will be gathered on this file system (and the span on which it resides, and representative SDs from that span). If you have a performance problem affecting specific file systems, this can help you track it down by comparing a "good" file system with a "bad" file system, or just by showing you extra detail about a "bad" file system.</p></dd>
+<dt><strong>--no-file-system</strong></dt>
+<dd><p>Doesn't run any of the file-system-specific commands, but does run a reduced set of global file system commands.</p></dd>
+<dt><strong>-s &lt;subject&gt;</strong></dt>
+<dd><p>Set subject.</p></dd>
+<dt><strong>-r &lt;address&gt;</strong></dt>
+<dd><p>Set recipient. Multiple recipients can be specified either by repeated use of the -r option, or by using a semicolon-separated list of email addresses instead of a single address. In the latter case, the list must be quoted because of semicolon's special meaning to the shell.</p></dd>
+<dt><strong>-l| --limit-sds-cheap &lt;n&gt;</strong></dt>
+<dd><p>With --file-system, specify the maximum number of SDs to gather data for using relatively inexpensive commands. If the span contains multiple stripesets, the SDs will (as far as possible) be drawn equally from all stripesets. By default all (primary) SDs in the file system's span are used.</p></dd>
+<dt><strong>-L| --limit-sds-expensive &lt;n&gt;</strong></dt>
+<dd><p>The same as -l, but for more expensive/verbose commands. Defaults to 4.</p></dd>
+<dt><strong>--no-profile</strong></dt>
+<dd><p>Normally, a PIR takes CPU profiles in the background. Use this option to disable that.</p></dd>
+<dt><strong>--to-ssc</strong></dt>
+<dd><p>Transfers resulting file over an ssc connection instead of sending email.  Default file name is &lt;nodename&gt;_pir_&lt;date&gt;.tgz.  Command runs synchronously rather than in the background.</p></dd>
+<dd><p>This option is not compatible with continuous PIR.</p></dd>
+<dt><strong>--to-flash</strong></dt>
+<dd><p>Outputs results to the flash file system instead of sending mail.  Default flash file name is //nim/pir.tgz</p></dd>
+<dt><strong>--output-file &lt;filename&gt;</strong></dt>
+<dd><p>Prepend a custom string to the file name of the finished PIR as opposed to the default, the name of the HNAS.</p></dd>
+<dd><p>Be warned that if this switch is combined with the --to-flash option to give the PIR in flash a non-default file name, diagnostic tools ran at a later date may not recognize the file as a PIR and ignore it, and/or collect an older PIR with a recognized name. This does not apply if sending the PIR over email, as it will have the custom name in the email attachment but take the default name in flash.</p></dd>
+<dt><strong>--sync</strong></dt>
+<dd><p>Makes the command run synchronously in the foreground.</p></dd>
+<dd><p>This option is not compatible with continuous PIR.</p></dd>
+<dt><strong>--start</strong></dt>
+<dd><p>Starts PIR in "Continuous" mode. See the "Continuous mode" sub-heading for more details.</p></dd>
+<dt><strong>--stop</strong></dt>
+<dd><p>Stop a "Continuous" mode PIR. See the "Continuous mode" sub-heading for more details.</p></dd>
+</dl>
+<p>Dev-only option, not generally useful:</p>
+<dl>
+<dt><strong>--all-pnodes</strong></dt>
+<dd><p>Gathers performance info for all nodes in the cluster. By default, information will be gathered for the node hosting the file system, or the current node if --no-file-system is specified.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To sample for an hour and send the report to "me@example.com", noting that we sampled during a backup:</p>
+<pre>performance-info-report -f fs0 60 -s "During backup" -r me@example.com
+</pre>
+<p></p>
+<p>To sample for 10 minutes and send the report to two recipients:</p>
+<pre>performance-info-report -f fs0 10 -r support@example.com -r alerts@example.com
+</pre>
+<p></p>
+<p>or:</p>
+<pre>performance-info-report -f fs0 10 -r "support@example.com;alerts@example.com"
+</pre>
+<p></p>
+<p>To start a PIR in "Continuous" mode:</p>
+<pre>performance-info-report --start -f fs0 -r support@example.com 10
+</pre>
+<p></p>
+<p>To stop a "Continuous" mode PIR:</p>
+<pre>performance-info-report --stop
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/pir-cancel.html">pir-cancel</a> <a href="../Supervisor/pir-status.html">pir-status</a> <a href="../Supervisor/pir-stop-and-send.html">pir-stop-and-send</a> <a href="../Supervisor/vlsi-profiler-add.html">vlsi-profiler-add</a> <a href="../Supervisor/vlsi-profiler-delete-all.html">vlsi-profiler-delete-all</a> <a href="../Supervisor/vlsi-profiler-list.html">vlsi-profiler-list</a> <a href="../Supervisor/vlsi-profiler-threshold-set.html">vlsi-profiler-threshold-set</a> <a href="../Supervisor/vlsi-profiler-threshold-show.html">vlsi-profiler-threshold-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

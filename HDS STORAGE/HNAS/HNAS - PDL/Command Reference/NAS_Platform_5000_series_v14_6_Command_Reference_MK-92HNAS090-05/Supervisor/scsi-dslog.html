@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-dslog</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-dslog</h1>
+<p>dump/clear the SCSI device status logs</p>
+<h1>Syntax</h1>
+<pre>scsi-dslog [-d, --dump][-c, --clear][-s, --size][-h, --help]
+Alias:       dslog
+</pre>
+
+<h1>Description</h1>
+<p>Dump or clear the device state change log for all devices or for a specified device.</p>
+<p>By default, the last 20 entries are dumped if no range is specified.</p>
+<p>Console output may be stopped or aborted with a key press or by CTRL-C.</p>
+<p>Changes in status of each device known by the server are logged. The status changes that are logged include:</p>
+<ul>
+<li>When the device was opened and the nexus used.</li>
+<li>When a failover occurred that caused a new nexus to be selected for I/O.</li>
+<li>When the device was closed.</li>
+<li>Error conditions.</li>
+<li>Media check status changes.</li>
+<li>FC link up/down events.</li>
+</ul>
+<p>Options:</p>
+<dl>
+<dt><strong><strong>-d, --dump</strong></strong></dt>
+<dd><p>Display the contents of the device status log for all devices or for the given device -- the last 20 entries are output if no range is specified.</p></dd>
+<dl>
+<dt><strong>-D &lt;device ID&gt;</strong></dt>
+<dd><p>Display the log for this device.</p></dd>
+<dt><strong>device list</strong></dt>
+<dd><p>Display the logs for the specified devices. See the 'sd-spec' man page for an explanation of how to specify a list of devices using sd-spec syntax. By default, the device list must specify system drives. To list tape devices the -t switch is required.</p></dd>
+<dt><strong>-C, --Conf</strong></dt>
+<dd><p>Suppress the message asking for confirmation before dumping all device logs.</p></dd>
+<dt><strong>-t, --type &lt;disks | tapes&gt;</strong></dt>
+<dd><p>Display only logs for disk or tape devices</p></dd>
+<dt><strong>-i, --ignore</strong></dt>
+<dd><p>When dumping all logs, ignore those that are empty, else a "Device State log is empty" message is displayed.</p></dd>
+<dt><strong>-a, --all | -n &lt;[-]no of entries to dump&gt;</strong></dt>
+<dd><p>Output all entries, last n entries or first n entries if n is negative if n = 0, dump entire log; default, dump last 20 entries.</p></dd>
+</dl>
+<dt><strong><strong>-c, --clear</strong></strong></dt>
+<dd><p>Clear the specified log or all device state change log if no device is specified.</p></dd>
+<dl>
+<dt><strong>-C, --Conf</strong></dt>
+<dd><p>Clear all logs, without requesting confirmation.</p></dd>
+<dt><strong>device ID</strong></dt>
+<dd><p>Clear the specified device log.</p></dd>
+</dl>
+<dt><strong><strong>-s, --size</strong></strong></dt>
+<dl>
+<dt><strong>device ID</strong></dt>
+<dd><p>Show the current and maximum size of the specified log or all logs if no device is specified.</p></dd>
+</dl>
+<dt><strong><strong>-h, --help</strong></strong></dt>
+<dd><p>Show help.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Dump the last 20 entries from all logs:</p>
+<pre>scsi-dslog -d
+</pre>
+<p></p>
+<p>Dump the entire log for all devices:</p>
+<pre>scsi-dslog -d -a
+</pre>
+<p></p>
+<p>Dump all of device ID 1 log:</p>
+<pre>scsi-dslog -d 1 -a
+</pre>
+<p></p>
+<p>Dump last 10 entries from system drive ID 2 log:</p>
+<pre>scsi-dslog -d 2 -n 10
+</pre>
+<p></p>
+<p>Dump all logs, ignore empty logs, do not request confirmation:</p>
+<pre>scsi-dslog -d -c -i
+</pre>
+<p></p>
+<p>Dump entire logs of system drives 1 to 10 :</p>
+<pre>scsi-dslog -d 1-10 -a
+</pre>
+<p></p>
+<p>Dump entire logs for all tape devices, do not request confirmation:</p>
+<p>dslog -d -a -t tapes -C</p>
+<p>Dump entire log of tape device ID 10 :</p>
+<pre>scsi-dslog -d -D 10 -a
+</pre>
+<p></p>
+<p>Dump entire log of tape devices 15 and 16 :</p>
+<pre>dslog -d 15,16 -a -t tapes
+</pre>
+<p></p>
+<p>Clear all logs with no confirmation:</p>
+<pre>scsi-dslog -c -C
+</pre>
+<p></p>
+<p>Clear device ID 1 log only, no conformation:</p>
+<pre>scsi-dslog -c -C 1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/scsi-devices.html">scsi-devices</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

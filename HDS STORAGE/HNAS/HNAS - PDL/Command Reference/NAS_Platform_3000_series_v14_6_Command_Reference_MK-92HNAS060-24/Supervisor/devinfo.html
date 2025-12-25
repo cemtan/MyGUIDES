@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>devinfo</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>devinfo</h1>
+<p>Display info on a specified device</p>
+<h1>Syntax</h1>
+<pre>devinfo [-s &lt;SI&gt;] { -a | -e | -r | [-v] &lt;DEVICE&gt; }
+</pre>
+
+<h1>Description</h1>
+<p>devinfo displays information from device descriptor structures in SI control memory.</p>
+<dl>
+<dt><strong><code>-a</code> <code>--all</code></strong></dt>
+<dd><p>Display summary information on numbers of outstanding and queued requests for all devices that are enabled and/or have outstanding I/O.</p></dd>
+<dt><strong><code>-e</code> <code>--enabled</code></strong></dt>
+<dd><p>Same as <code>-a</code> but only devices that are enabled.</p></dd>
+<dt><strong><code>-r</code> <code>--reset</code></strong></dt>
+<dd><p>Reset the maximum counts for all devices.</p></dd>
+<dt><strong><code>-s</code> <code>--si</code></strong></dt>
+<dd><p>Select which SI to query on systems that have more than one. &lt;SI&gt; is 0-based. By default, the single device form will use the one currently mapped for the device, while <code>-a</code>, <code>-e</code> and <code>-r</code> will be applied to all SIs.</p></dd>
+<dt><strong><code>-v</code> <code>--verbose</code></strong></dt>
+<dd><p>Dump full descriptor, including the templates for SEST entries, IRBs and FCP frames.</p></dd>
+<dt><strong>&lt;DEVICE&gt;</strong></dt>
+<dd><p>Dump detailed information for the specified device number.</p></dd>
+</dl>
+<p>The columns of the table shown for <code>-a</code> or <code>-e</code> are as follows:</p>
+<dl>
+<dt><strong>Device Number, En/Dis</strong></dt>
+<dd><p>The first column is the device number, as given by <code>sd-list</code> or <code>backup-devices-list</code>. With <code>-a</code>, this is followed by a letter <code>E</code> or <code>D</code>, indicating whether I/O to the device is enabled or disabled. (This is not shown with <code>-e</code>, which displays only the devices that are enabled anyway.) Broadly speaking, a device is usually enabled if it is open, but I/O to a device may need to be disabled temporarily for various reasons.</p></dd>
+<dt><strong>Disk Requests</strong></dt>
+<dl>
+<dt><strong>Current</strong></dt>
+<dd><p>The number of reads (R) or writes (W) that have been sent to the storage and for which SI is still waiting for a response. "All" represents the sum of these two. (However, there is a small chance that SI will update these three statistics at the same time as the command is reading them.)</p></dd>
+<dt><strong>Max</strong></dt>
+<dd><p>The maximum of the "All" value since the last reset.</p></dd>
+</dl>
+<dt><strong>Queued Reads &amp; Queued Writes</strong></dt>
+<dd><p>Queued requests are those queued internally in SI, waiting to be sent out to the storage. These all have both "Cur" (current) and "Max" values. Reads are further divided into "Normal" and "Dedupe"; writes are divided into "Normal" and "High-Priority". High-priority writes are used for certain inquiry tag numbers to help checkpoints complete quickly. Writes being retried are also given high priority.</p></dd>
+<dt><strong>Reads to Queue</strong></dt>
+<dd><p>This is an SI-internal bookkeeping value used to maintain an even balance between reads and writes (when both reads and normal-priority writes are queued and could be sent). It represents the number of read requests that SI will issue before the next write.</p></dd>
+</dl>
+<p>The detailed output includes some additional fields, most of them of interest only for debugging purposes.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

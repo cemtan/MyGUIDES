@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>pool-vptr</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>pool-vptr</h1>
+<p>Analyze pool usage</p>
+<h1>Syntax</h1>
+<pre>pool-vptr [--all] [--slot-begin &lt;n&gt;] [--to-the-last-slot | --slot-end &lt;n&gt;] [&lt;substring&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The pool-vptr command scans the tunable heap pools on the currently selected board, inspecting the first pointer in each in-use pool allocation. It counts how many times each virtual function table pointer is encountered and emits a high-score table at the end of the scan.  This can help you determine if there is an unusual or continually increasing number of any particular object.  The command is quick and safe and it is often easy for Engineering to see from the results whether there is a problem.</p>
+<p>Allocations which overflowed from pools to the heap will not be scanned. The heap-vptr command can be used for that purpose.</p>
+<p>The --all option gives a complete list of all the virtual function table pointers which were encountered.  It is only usually useful, in conjunction with grep, when testing for a particular object of interest.</p>
+<p>The --slot-begin and --slot-end switches delineate a half-open range of vptr slots within each allocation to be sampled for vptrs. The defaults are zero and one respectively, meaning that only the primary vptr - the first slot - will be sampled. Use --all-slots to sample as much of the object as the code deems expedient.</p>
+<p>The scan can be restricted to the pools whose name contains the &lt;substring&gt; argument, as with the poolstats command.</p>
+<p>There are a huge number of different states it's possible for a well-performing heap to be in at the instance the results are taken.  There are a similar variety of states for a badly performing heap.  This makes it very difficult to give advice on how to interpret the results. Familiarity with normal-looking results, both generally and for a particular system, is useful.  Sometimes a particular problem has an easily recognizable signature.</p>
+<h1>Examples</h1>
+<pre>server$ fsm pool-vptr
+...
+538 ProtocolRequestStatsAccumulators (vptr 0x127C1360)
+691 HeapVPtrAllocationHeader&lt;char, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermNonYieldingSizeBasedAllocator, LongTermBasicStringLabel&gt; &gt; (vptr 0x125C2AF0)
+1009 Mappings::LongTermMappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)0&gt; &gt; (vptr 0x1273DF98)
+1806 HeapVPtrAllocationHeader&lt;unsigned char, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;StackAllocator, BOSRegisterSet&gt; &gt; (vptr 0x12BDAD48)
+2011 Quota::SpaceTracker (vptr 0x127CBCC8)
+2037 Mappings::LongTermMappingEntry&lt;Mappings::MappingTraits&lt;(Mappings::MappingType)1&gt; &gt; (vptr 0x1273DF50)
+3675 HeapVPtrAllocationHeader&lt;LongTermBasicString&lt;char, std::char_traits&lt;char&gt; &gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermDequeBlockAllocator, ConsoleCommand&gt; &gt; (vptr 0x125C2B98)
+7340 HeapVPtrAllocationHeader&lt;ArrayQueueIterator&lt;LongTermNonYieldingDeque&lt;char, LogTraceBuffer&gt;, LongTermNonYieldingDeque&lt;char, LogTraceBuffer&gt; const, char const&gt;, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermDequeBlockAllocator, LogTraceBuffer&gt; &gt; (vptr 0x12BF6030)
+8192 net::arp::CacheEntry (vptr 0x12BC53F0)
+14454 HeapVPtrAllocationHeader&lt;char, SgiStyleByteAllocatorWithHeapVPtrLabel&lt;LongTermDequeBlockAllocator, LogTraceBuffer&gt; &gt; (vptr 0x12BF61B8)
+There were 42983 in-use allocations of which only 41753 were displayed.
+server$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Board</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/heap-vptr.html">heap-vptr</a> <a href="../Supervisor/poolstats.html">poolstats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

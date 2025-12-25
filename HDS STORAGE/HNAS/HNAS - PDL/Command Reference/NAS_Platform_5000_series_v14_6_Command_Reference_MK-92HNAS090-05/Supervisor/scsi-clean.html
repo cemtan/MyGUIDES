@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>scsi-clean</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>scsi-clean</h1>
+<p>Delete redundant SCSI driver objects</p>
+<h1>Syntax</h1>
+<pre>scsi-clean [-p, --portid] [-D, -Devid] [-d, --dry-run] [-s, &lt;serial number&gt;] [-v, --verbose] [-w, --wait][-r, --reset-link]
+</pre>
+
+<h1>Description</h1>
+<p>scsi-clean is used to delete obsolete SCSI driver and Fibre Channel (FC) driver objects after reconfiguration of attached storage or possibly after replacing the controller in a storage array. These obsolete objects do not cause any problems to the operation of the server. However, commands that show what storage is connected to the server, e.g. scsi-devices, scsi-ports, scsi-racks, fc-ports, will continue to show these obsolete objects which can make it difficult to understand the storage configuration. Previously, the only way to remove these obsolete objects was to reboot the server. A SCSI port has to be off-line for a minimum amount of time (at least 8 minutes) before the objects associated with this connection can be considered as obsolete and can potentially be deleted. A SCSI nexus object will be deleted if it is reporting "not reported" status as a consequence of LUNs being re-mapped. The SCSI nexus object must be in this state for a minimum time before the SCSI nexus object can be deleted. To delete devices (System Drives or tape devices) that are obsolete, the sd-forget or backup-device-forget command must be used; scsi-clean will not delete these objects. scsi-clean will remove any FC session object, as shown by the fc-ports command, that is off-line and does not have an associated ULP session.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-d --dry-run</strong></dt>
+<dd><p>List any objects that should be deleted but do not delete them.</p></dd>
+<dt><strong>-v --verbose</strong></dt>
+<dd><p>Output detailed information about which objects can be deleted (when –-dry-run flag specified) or which objects have been deleted.</p></dd>
+<dt><strong>-p --port &lt;SCSI port ID&gt;</strong></dt>
+<dd><p>Attempt to only delete the a ScsiPort object, and associated objects, that has the given SCSI port ID. In some instances, scsi-clean will not be able to determine which ScsiPort object should be deleted, if there are multiple Scsi ports that meet the deletion criteria but deleting them all is not permissible. When the SCSI port ID is specified, scsi-clean should only be run on the local node, not cluster wide, as the SCSI port ID is unique to each server node.</p></dd>
+<dt><strong>-D --Devid &lt;Device ID&gt;</strong></dt>
+<dd><p>Attempt to determine the storage rack that hosts the specified device ID, as shown by the scsi-racks command. The scsi-clean will only operate on that storage rack.</p></dd>
+<dt><strong>-s --serialno &lt;rack serial number string&gt;</strong></dt>
+<dd><p>Attempt to determine the storage rack identified by its serial number. The scsi-clean will only operate on that storage rack.</p></dd>
+<dt><strong>-w --wait</strong></dt>
+<dd><p>If a SCSI port has not been off-line for the minimum off-line time, wait for the minimum off-line time to be met and then continue. If a SCSI nexus object is reporting "not reported" status for less than the minimum time, wait for this time to expire and then continue. If the state of the SCSI driver changes while it is waiting, scsi-clean will be aborted.</p></dd>
+<dt><strong>-r --reset-link</strong></dt>
+<dd><p>Sometimes, an FC initiator session remains in the INACTIVE state, as shown by the fc-ports command, when the remote port is off-line. In this case, scsi-clean will not be able to remove the session object. Using the -r option will cause scsi-clean to issue a link reset to the relevant host port which should make the session transition to the off-line state so scsi-clean will remove it.</p></dd>
+<dd><p>Note : resetting one or more server host ports may cause a path failover/failback to occur.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>scsi-clean -d
+</pre>
+<p></p>
+<p>show what may be deleted but take no action.</p>
+<pre>scsi-clean -v
+</pre>
+<p></p>
+<p>show detailed information about what objects will be deleted.</p>
+<pre>scsi-clean -w
+</pre>
+<p></p>
+<p>If necessary, wait for the minimum SCSI port off-line time, then proceed to delete obsolete objects.</p>
+<pre>scsi-clean -p 3
+</pre>
+<p></p>
+<p>scsi-clean will delete SCSI port 3, if it is off-line and meets the redundant object criteria.</p>
+<pre>scsi-clean -D 1
+</pre>
+<p></p>
+<p>scsi-clean will operate on the storage rack that hosts device ID 1 only.</p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-ports.html">fc-ports</a> <a href="../Supervisor/scsi-devices.html">scsi-devices</a> <a href="../Supervisor/scsi-ports.html">scsi-ports</a> <a href="../Supervisor/scsi-racks.html">scsi-racks</a> <a href="../Supervisor/sd-forget.html">sd-forget</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

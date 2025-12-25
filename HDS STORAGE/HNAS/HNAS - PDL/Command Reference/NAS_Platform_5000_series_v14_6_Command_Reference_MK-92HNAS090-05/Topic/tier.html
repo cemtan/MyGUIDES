@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>tier</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>tier</h1>
+
+<h1>Description</h1>
+<p>This page does not describe a specific command.  Instead, it explains how to set up and use tiered file systems.</p>
+<h2>FUNDAMENTALS</h2>
+<p>Many customers wish to blend a small amount of very fast storage into a file system that resides on commodity disks.  The aim is to reap some of the performance benefits of the faster storage without having to host the entire file system on premium storage.</p>
+<p>Our implementation divides system drives (SDs) into two <strong>tiers</strong>, which are assigned by the user.  During storage setup, the user assigns the fastest SDs to Tier 0 and the other SDs to Tier 1.  A span whose SDs have been assigned to tiers is called a <strong>tiered span</strong>; other spans are <strong>untiered</strong>.</p>
+<p>When the user creates any span, the server creates a stripeset, which contains all the SDs in the span.  Each time the span is expanded, the server adds one further stripeset and appends it to the span.  (Stripesets are named after the way in which data is striped across them for optimal performance.)</p>
+<p>In a tiered span, all the SDs in a single stripeset must be in the same tier.  A user might create a span using SDs in Tier 1, expand it by adding some SDs in Tier 0, and so on.  Only when the span has free space on both tiers can filesystems be created.</p>
+<p>Every file system created on a tiered span is itself tiered.  The server automatically stores file system metadata on Tier 0 and user data on Tier 1.  User data is the data that clients store in files.  Metadata is data that the server uses to organize user data -- such as files' names, sizes and locations on disk.  Metadata is accessed frequently, but is compact, making it an ideal candidate for storage on fast, expensive media.</p>
+<h2>SETTING UP STORAGE</h2>
+<p>Setting up a tiered span and file systems involves little more than assigning SDs to tiers before, or at the same time as, creating the span.</p>
+<h3>SDs and spans</h3>
+<p>Start by dividing SDs into tiers.  You can assign tier numbers as a separate step, using 'sd-set --tier', or you can do it at the same time as setting up SD groups (using 'sd-group-create --tier' or 'sd-group-add --set-tier', on the rare occasions where SD groups are required).  Then use 'span-create' to create a span on one tier and 'span-expand' to expand it on to the other tier.</p>
+<p>Alternatively, you can create a span and assign SD tiers at the same time, using 'span-create --tier' and 'span-expand --tier'.</p>
+<h3>File systems</h3>
+<p>Create the file system in the usual way, using 'filesystem-create'.  There is no need for an extra step to indicate that the file system must be tiered.  If you specify an initial capacity, most of it will be taken from Tier 1; only a minimal amount of space will be drawn from Tier 0.  If you specify a confining capacity, it will apply to Tier 1; Tier 0 will be left unconfined unless you confine it manually.</p>
+<p>Format and mount the new file system in the usual way.</p>
+<h3>Storage-based mirrors</h3>
+<p>If only one cluster is involved, no further work is needed.</p>
+<p>If data is mirrored between sites, each with its own cluster and its own copy of the span, set up tiers at the production site and then use 'span-encode-tiers' and 'span-decode-tiers' to transfer tier information to the backup site.</p>
+<h3>Upgrading an untiered span and filesystems</h3>
+<p>The 'span-tier' command can upgrade an untiered span into a tiered span containing a single tier.  Read its man page before using it: none of the file systems on an upgraded span will be mountable until the span and file systems have been expanded on to the other tier.</p>
+<h2>ADMINISTERING A TIERED SPAN</h2>
+<p>Administration chiefly involves being aware of how full each tier of a span or file system is and being ready to expand it when necessary.</p>
+<p>'span-list' will show total and free space on each tier, and 'filesystem-list' and 'df' will also show per-tier space for file systems.  These commands make it easy to see when a tier is becoming full and needs expanding.</p>
+<p>'filesystem-confine' and 'filesystem-release' can restrict or allow auto-expansion on each tier independently.  However, 'span-confine' has the same effect as on an untiered span: it prevents all auto-expansion on the span.</p>
+<p>'filesystem-expand' can expand a single tier of a filesystem, provided that enough free space is available on the span and, where applicable, the underlying HDP pool.  If you leave the file system unconfined, the server will auto-expand it on to the correct tier, as either user-data space or metadata space becomes necessary.</p>
+<p>Note, however, that auto-expansion is disabled on HDP-resident spans if 'span-hdp-preallocation no' is in force.</p>
+<p>'sd-list --show-tier' will display SDs' tiers; 'sd-tier-export' and 'sd-tier-import' can help to copy them from one cluster to another.</p>
+<p>'filesystem-leaf-onode-tier' can be used to control which tier leaf onodes are stored on.</p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-leaf-onode-tier.html">filesystem-leaf-onode-tier</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-release.html">filesystem-release</a> <a href="../Supervisor/sd-group-add.html">sd-group-add</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Supervisor/sd-tier-export.html">sd-tier-export</a> <a href="../Supervisor/sd-tier-import.html">sd-tier-import</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-decode-tiers.html">span-decode-tiers</a> <a href="../Supervisor/span-encode-tiers.html">span-encode-tiers</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-tier.html">span-tier</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

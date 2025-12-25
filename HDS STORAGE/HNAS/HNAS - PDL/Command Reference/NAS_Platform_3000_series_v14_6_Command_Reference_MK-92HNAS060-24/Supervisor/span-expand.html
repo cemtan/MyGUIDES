@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-expand</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-expand</h1>
+<p>Add a new stripeset of up to 32 system drives to an existing span</p>
+<h1>Syntax</h1>
+<pre>span-expand [--mirror] [--tier &lt;tier&gt;] [--allow-access [--ignore-foreign]] &lt;span-instance-name&gt; &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+Alias:       expspan
+</pre>
+
+<h1>Description</h1>
+<p>Expands an existing span by adding up to 32 system drives (SDs), which will form a new stripeset.  The filesystems on the span will be able to auto-expand into the new space.  The SDs added to the span must all be healthy, licensed, and not already used in a span.</p>
+<p>Because the new SDs are striped together, they should have similar capacities: the amount of space taken from each new SD equals the capacity of the smallest SD.  Any extra space on larger SDs will be wasted.</p>
+<p>There is no need to unmount file systems before expanding a span.</p>
+<p>If a span has been placed into snapshot mode by 'span-enable-snapshots', it cannot be expanded.  First, its snapshots must be deleted by 'span-delete-snapshot', and then it must be taken out of snapshot mode by 'span-disable-snapshots'; only then can it be expanded.  It can then be placed back into snapshot mode if required.  (Snapshot mode is unrelated to file system snapshots, which need not be deleted before the span is expanded.)</p>
+<p>Do not try to expand a span by expanding the SDs or DP-Vols on which it resides: the server will not use the extra space.  Instead, follow the instructions below.</p>
+<h2>SHORTCUTS AND LICENSING</h2>
+<p>You can specify ranges of SDs at the command line, rather than having to list them all.  See the 'sd-spec' man page.</p>
+<p>The --allow-access (or -a) switch will license (allow access to) any unlicensed SDs specified on the command line.  If you do not provide this switch, all the SDs you specify must already be licensed.  (The 'sd-allow-access' command licenses an SD; the 'sd-list' command tells you whether SDs are healthy, licensed and primary.)</p>
+<p>The --ignore-foreign switch tells the server to ignore any partitions created by other operating systems when licensing system drives.  Without this switch, if the server detects a foreign partition, it will refuse to license the system drive, and the command will abort.</p>
+<p>Beginning with Hitachi Command Suite 7.6.1, a set of SDs can be created and added to an existing span in a single operation, thus automating the process described here.</p>
+<h2>EXPANDING A TIERED SPAN</h2>
+<p>The --tier (or -t) switch assigns the specified SDs to a tier before adding them to the span, replacing any tiers that may have been assigned by 'sd-set --tier' or 'sd-group-create --tier'.</p>
+<p>Without the --tier switch, 'span-expand' leaves SDs in their current tier when it adds them to the span: in this case, if the span is tiered, the SDs must already have been assigned to tiers.  Conversely, if the SDs are tiered but the span is not, you must remove them from their tiers by running a command such as</p>
+<pre>sd-set --tier -1 16-31
+</pre>
+<p></p>
+<p>You can then expand the untiered span in the usual way.</p>
+<p>No span can contain a mixture of tiered and untiered SDs; to convert an untiered span to a tiered span, use 'span-tier' followed by 'span-expand'.</p>
+<h2>BEST PRACTICES FOR HDP STORAGE</h2>
+<p>If the HDP pool is thinly provisioned, it is better to back-fill it by adding new pool volumes than to add DP-Vols and expand the span on to them.  If, however, the HDP pool is thickly provisioned, it will be necessary to create new DP-Vols and add them to the span.</p>
+<p>In case of uncertainty, you can determine whether an HDP pool is thinly provisioned by running 'span-list -s', which shows both the free space on the pool and the free space on the stripesets that reside on the pool.  If there is more free space on the stripesets than on the pool that hosts them, the HDP pool is thinly provisioned.</p>
+<ol>
+<li>Use 'span-confine' to prevent filesystem auto-expansion on this span.</li>
+<li>Add new pool volumes (or, depending on storage platform, parity groups) to the HDP pool.  If available, enable the 'Optimize' option to have the data restriped over old and new media.  The new pool volumes should be identical in performance to the existing ones: pick the same Raid level, disk type and capacity, and number of disks per pool volume.</li>
+<li>If (and only if) the total capacity of the pool volumes now exceeds that of the DP-Vols on the pool, add new DP-Vols to the pool.  The server will require at least as many as were set up when the span was first created, and they should have the same capacity.  You can check these figures by looking at the first stripeset in 'span-list -s &lt;span-instance-name&gt;'.  Once the DP-Vols have started formatting (which may not happen at once if you create or expand several HDP pools within a short period of time), license them with 'sd-allow-access' and add them to the span using 'span-expand'.</li>
+<p>From release 12.3 onwards, SD groups are optional with HDP, and we advise against their use.</p>
+<li>Wait until formatting is complete.</li>
+<li>If desired, use 'span-release' to permit filesystem auto-expansion.  Alternatively, create or expand filesystems by hand.</li>
+</ol>
+<p>The amount of space you add can be as small as you wish: even a single pool volume will make the pool faster and not introduce slow spots.  This flexibility is not available unless you use HDP's thin provisioning.</p>
+<p>Using your storage configurator to set the format priority mode to 'host access' (rather than 'normal') will increase the time taken for formatting to complete but will reduce its performance impact.</p>
+<p>No HDP pool should be shared between two or more spans, between two or more clusters, or between this server and a foreign server.  No stripeset can contain SDs from two or more HDP pools.  No span can contain a mixture of HDP DP-Vols and plain SDs.  No pool volume should be shared between two or more HDP pools.</p>
+<p>The --multiple-spans-per-hdp-pool switch enables the command to expand the span on to DP-Vols in an HDP pool that contains DP-Vols used in another span.  This condition violates best practice, which is to use one HDP pool per span.  Best practice simplifies configuration and management and optimizes I/O performance by making it unnecessary to use Scsi UNMAP to move free space from one span to another.</p>
+<p>If you run 'span-expand' (as opposed to adding pool volumes to an HDP pool), and if the new DP-Vols were previously used in a different span, it is likely that some of the HDP pages they contain are mapped to real space.  If the server detects significant leakage of space, it will launch a background process to return the leaked space to the HDP pool, as if you had run 'span-unmap-vacated-chunks --unused-chunks' against the span.  The 'span-unmap-vacated-chunks' man page details the characteristics of this background process and explains how to view and manage it.</p>
+<p>HDP thin provisioning (TP) is not the same as file system-level TP, which is described in the 'filesystem-thin' man page, and which can be used even if 'span-hdp-thickly-provisioned' is in force.</p>
+<h2>BEST PRACTICES FOR NON-HDP STORAGE</h2>
+<p>For best performance and scalability, each parity group should contain exactly one SD.  In this configuration, from release 12.3 onwards, SD groups are optional.</p>
+<p>If, for some reason, it is necessary to break this rule and place multiple SDs on each parity group, and if that parity group contains magnetic disks rather than flash, then set up SD groups before expanding the span; the 'sd-group' man page explains how and why.  If you are using Hitachi storage, 'sd-group-auto' will automate the process.</p>
+<p>To keep performance optimal and as even as possible, the stripeset you add to the span using 'span-expand' should have the same number, type and size of system drives as the first stripeset in the span.  Otherwise, expanding the span may (intermittently) slow it down, rather than making it faster.</p>
+<p>The server will impose a minimum SD count, which, for flexibility, will sometimes be less stringent than the minimum described here.  This minimum will depend on both the size of the system and the way the span was created; see the 'span-create' man page for more details.  Nevertheless, the best practice described here will provide optimal performance.</p>
+<h2>SETTING UP MIRROR RELATIONSHIPS</h2>
+<p>You can specify any number of secondary SDs alongside the normal primary SDs.  There is no need to mark secondary SDs in any way: just specify a mixture of primary and secondary SDs, and the server will use them appropriately.  After expanding the span, the server will scan these secondary SDs for mirror relationships with all the primary SDs in the span (not only the SDs that you have just added), and will configure these relationships into the server.  Typically, primary SDs are P-Vols and secondary SDs are S-Vols, but see the 'storage-based-mirror' man page for more details.</p>
+<p>As an alternative to specifying secondary SDs, you can use the --mirror (or -m) switch.  This instructs the server to scan <strong>all</strong> eligible secondary SDs for mirror relationships with the newly expanded span.  If you specify any secondary SDs alongside --mirror, they are ignored: they are scanned for mirror relationships, just like all other eligible secondary SDs.  (The command will, however, fail if any of them is not eligible, and it will warn you if any of them does not end up in the span after the command finishes.)</p>
+<p>If you specify only secondary SDs (and no primary SDs, and no --mirror switch), the command looks for synchronous mirror relationships between these SDs and the span, and configures them into the server.  It does not add a new stripeset to the span.</p>
+<p>If the primary SDs have been assigned to tiers, 'span-expand' will assign secondary SDs to the same tiers when it brings them into the span.  If this assignment is impossible, the span will be expanded but no mirror relationships will be set up.</p>
+<p>This command can detect only synchronous mirror relationships (in which data written to a primary SD is copied immediately to its secondary, as with TrueCopy).  If the mirror relationships on your span are asynchronous (so that data does not appear on secondaries until some time after the server writes it to the primaries, as with HUR), use 'sd-mirror-prepare' and 'sd-mirror-detect'.</p>
+<p>If mirroring is performed by GAD, rather than by other products such as TrueCopy or HUR, then it is impossible to mix GAD and non-GAD SDs in the same span.</p>
+<h2>COMPRESSED STORAGE</h2>
+<p>If an untiered span (or one tier of a tiered span) resides on two or more compressed HDP pools, filesystem auto-expansion will be disabled on that span, because the server cannot determine which HDP pool can most safely provide new space.  'span-expand' will not place a span into this state without an override.  If you try to add a second HDP pool to a span or a tier, 'span-expand' will require you to supply the --permanently-disable-filesystem-auto-expansion switch to show that you understand the consequences.  This switch is not accepted in any other circumstances.</p>
+<h2>IF THE CHUNK TABLE RUNS OUT OF SPACE</h2>
+<p>The server calculates how full the chunk table will be after the span has been expanded.  If it is likely that the chunk table will become full before all the space on the new stripeset has been used, the server fails the expansion command.  There are several approaches you can take.  To prepare for them all, run 'span-list -vs &lt;span-instance-name&gt;'; note the number of chunks on the span and how full the chunk table is.</p>
+<ol>
+<li>Try a smaller expansion.  If the chunk table is, say, 80% full, the server will let you expand the span by 25% but not usually by 30%.</li>
+<li>If the number of chunks in the span is slightly below 16,384, try a <strong>larger</strong> expansion.  If the chunk count exceeds 16,384, the server drops its attempt to write Cod compatible with releases 11.1 and earlier, and it uses a Cod format that is usually more compact.</li>
+<li>If the span has more than 16,384 chunks, try to make the chunk table less full.  Use 'filesystem-scalability' to find a filesystem containing a large number of runs, move the data to another span, and delete (and recycle) the filesystem from the span you wish to expand.  If the filesystem was created and expanded by a release older than 11.2, it is likely that simply recreating the filesystem and moving the data straight back will create a configuration that uses fewer runs and therefore less space in the chunk table.  If you delay recreating the filesystem until after the span has been expanded, the server will immediately make use of the new stripeset.</li>
+</ol>
+<p>If a span is created in release 11.2 or later and the allocator tuning is left at the default values, it is very unlikely that the chunk table will overflow.  To prevent overflow (as well as to maximize filesystem scalability), avoid using 'span-tune-allocator' to reduce the run bias below its default value.  Creating and expanding filesystems while the run bias is small will reduce filesystem scalability and fill up the chunk table prematurely.  However, once this has happened, increasing the run bias will not solve the problem.</p>
+<h1>Examples</h1>
+<pre>span-expand Engineering 40-49
+</pre>
+<p></p>
+<p>Creates SDs on SDs 40-49 (if necessary), combines the SDs into a new stripeset, and adds it to the existing span called 'Engineering'.  If any of these SDs are secondaries, they are scanned for mirror relationships with all the SDs in the span.</p>
+<pre>span-expand --mirror --allow-access Engineering 50-59
+</pre>
+<p></p>
+<p>Licenses any of SDs 50 to 59 that are not already licensed; builds them into a stripeset; adds them to span Engineering; and then scans all eligible secondary SDs for mirror relationships with the whole span.</p>
+<pre>sd-allow-access 40-43
+sd-set --tier 0 40-43
+span-tier Accounts 1
+span-expand Accounts 40-43
+filesystem-expand --tier 0 --by 20 ProjectX
+filesystem-expand --tier 0 --by 20 ProjectY
+</pre>
+<p></p>
+<p>Licenses SDs 40-43 and assigns the SDs to Tier 0.  Takes untiered span Accounts, makes it tiered, moves it into Tier 1, and adds the SDs to the span.  Adds 20GiB of Tier-0 space on the new SDs to each of filesystems ProjectX and ProjectY.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Topic/sd-group.html">sd-group</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-mirror-detect.html">sd-mirror-detect</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-delete-snapshot.html">span-delete-snapshot</a> <a href="../Supervisor/span-disable-snapshots.html">span-disable-snapshots</a> <a href="../Supervisor/span-enable-snapshots.html">span-enable-snapshots</a> <a href="../Supervisor/span-expansion-requirements.html">span-expansion-requirements</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-release.html">span-release</a> <a href="../Supervisor/span-tier.html">span-tier</a> <a href="../Supervisor/span-tune-allocator.html">span-tune-allocator</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

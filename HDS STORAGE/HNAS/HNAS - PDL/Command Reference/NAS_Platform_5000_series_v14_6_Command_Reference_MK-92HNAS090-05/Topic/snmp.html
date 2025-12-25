@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>snmp</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>snmp</h1>
+
+<h1>Description</h1>
+<p>The Simple Network Management Protocol (SNMP) supports network access to the configuration and status information held on the server.</p>
+<p>The SNMP agent in the server supports SNMP versions v1, v2c and v3. The protocol version is configured by the 'snmp-protocol' command. The SNMP agent listens for requests received on port 161; if required a different port can be configured by the 'snmp-port-set' and 'snmp-port-show' commands. SNMP access to management information is restricted to read-only access only.</p>
+<h2>Using SNMPv1 or SNMPv2c</h2>
+<p>When SNMPv1 or SNMPv2c is configured, access to the information on the server is restricted by community names which are configured by the 'snmp-communities' command. Access may be further restricted to specific hosts configured by the 'snmp-hosts' command.</p>
+<p>SNMPv1 and SNMPv2c may be used at the same time by configuring bilingual support via the 'snmp-protocol' command.</p>
+<h2>Using SNMPv3</h2>
+<p>When SNMPv3 is configured, access to the information on the server is restricted to users in the SNMPv3 user list. The user list is configured by the 'snmpv3-user-add', 'snmpv3-user-delete', 'snmpv3-user-delete-all' and 'snmpv3-user-list' commands. The SNMP agent uses HMAC-SHA-96 authentication and AES-128-CFB encryption for data privacy. When SNMPv3 is enabled the SNMP agent will not respond to SNMPv1 or SNMPv2c requests.</p>
+<p>Note: The hosts list configured via the 'snmp-hosts' command does not restrict SNMPv3 access to the server.</p>
+<h2>SNMP Notifications</h2>
+<p>All notifications are sent using SNMPv1 traps regardless of the configured SNMP protocol version.</p>
+<p>The trap generation is configured by the 'snmp-traps' command. The traps are normally sent to port 162; if required a different port can be configured by the 'snmp-trap-port-set' and 'snmp-trap-port-show' commands.</p>
+<h1>See Also</h1>
+<p><a href="../User/snmp-communities.html">snmp-communities</a> <a href="../User/snmp-hosts.html">snmp-hosts</a> <a href="../Supervisor/snmp-port-set.html">snmp-port-set</a> <a href="../Supervisor/snmp-port-show.html">snmp-port-show</a> <a href="../Supervisor/snmp-protocol.html">snmp-protocol</a> <a href="../Supervisor/snmp-trap-port-set.html">snmp-trap-port-set</a> <a href="../Supervisor/snmp-trap-port-show.html">snmp-trap-port-show</a> <a href="../Supervisor/snmp-trap-send.html">snmp-trap-send</a> <a href="../User/snmp-traps.html">snmp-traps</a> <a href="../Supervisor/snmpv3-user-add.html">snmpv3-user-add</a> <a href="../Supervisor/snmpv3-user-delete.html">snmpv3-user-delete</a> <a href="../Supervisor/snmpv3-user-delete-all.html">snmpv3-user-delete-all</a> <a href="../Supervisor/snmpv3-user-list.html">snmpv3-user-list</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

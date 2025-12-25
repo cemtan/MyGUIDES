@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>virusscan-max-file-size-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>virusscan-max-file-size-set</h1>
+<p>Configure the virus scanning maximum file size</p>
+<h1>Syntax</h1>
+<pre>virusscan-max-file-size-set &lt;size&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Set the maximum file size for virus scanning. Use "virusscan-max-file-size-show" to check the current setting.</p>
+<p>Scanning large files for viruses can take a noticeable time and/or consume limited bandwidth. Use this command to restrict virus scanning only to files smaller than a specified maximum.</p>
+<p>Sizes may be specified in bytes or in larger multiples by using an appropriate suffix.  Note that sizes are scaled in binary units, rather than decimal.  For example, 1 MB is 1048576 bytes, not 1000000. For more information on units, see "man units".</p>
+<h1>Examples</h1>
+<p>To set a maximum file size of 1234 bytes</p>
+<pre>virusscan-max-file-size-set 1234
+</pre>
+<p></p>
+<p>To set a maximum file size of 3 Megabytes</p>
+<pre>virusscan-max-file-size-set 3MB
+</pre>
+<p></p>
+<p>To set a maximum file size of 2.45 Gigabytes</p>
+<pre>virusscan-max-file-size-set 2.45GB
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Topic/units.html">units</a> <a href="../Supervisor/virusscan-max-file-size-disable.html">virusscan-max-file-size-disable</a> <a href="../Supervisor/virusscan-max-file-size-enable.html">virusscan-max-file-size-enable</a> <a href="../Supervisor/virusscan-max-file-size-show.html">virusscan-max-file-size-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

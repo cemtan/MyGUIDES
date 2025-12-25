@@ -1,0 +1,171 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-group</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>sd-group</h1>
+
+<h1>Description</h1>
+<p>This man page does not describe a particular command.  It explains how and when to put system drives (SDs) into groups.</p>
+<p>SD groups help to optimize performance when three conditions are all met:</p>
+<ol>
+<li>HDP is not used.</li>
+<li>Parity groups containing magnetic disks (not flash media) have been divided into more than one SD each.</li>
+<li>Dynamic Write Balancing (DWB) is used, as it is by default.</li>
+</ol>
+<p>In all other situations, from release 12.3 onwards, SD groups should not be used.</p>
+<p>In general, we advise against situations in which SD groups are necessary.  We always recommend the use of thinly provisioned HDP pools for performance, scalability and granular expansion.  When HDP is not used, each parity group should ideally host exactly one SD; dividing a parity group into multiple SDs will reduce both performance (by increasing head-movement) and scalability (by using up more SD device IDs on small amounts of storage).  It will increase available queue depth by only a small amount, because the required SD group will instruct the server to write to only one of the SDs in each parity group at once for each file system.</p>
+<h2>THE PERFORMANCE PROBLEM</h2>
+<p>Some storage systems create large Raid arrays of many tebibytes each.  They divide these large arrays into relatively small SDs, which they present to the server.  This mechanism works around the historical limit of 2TiB on the capacity of each SD or the current, slightly larger limit of only a few TiB on some storage arrays in the absence of HDP.</p>
+<p>Imagine a parity group of 6TiB, divided into two SDs of 3TiB each.  The first half of each physical disk will be allocated to the first SD and the second half of each disk to the second SD.  If the server were to write to both SDs simultaneously, the result would be continual head-movement between the first and second halves of each disk.  This would reduce both performance and the expected life of the disks.  (Techniques such as write-back caching and elevator seeking, implemented in the storage, mitigate these problems but do not eliminate them.)</p>
+<h2>THE SOLUTION: SYSTEM DRIVE GROUPS</h2>
+<p>You can place two or more SDs in an <strong>SD group</strong>.  This tells the server that the SDs are hosted on the same disks, and that it should not write to them both at once for a single file system.</p>
+<p>(Read operations are not directly affected by SD groups.  They are serviced as they come in from clients, even if it means reading from all SDs at once.  However, because sequential writes will avoid writing to multiple members of an SD group in parallel, sequential reads of the same data will benefit in the same way.  Random reads do not get the same benefit, and the server may need to read from all SDs in parallel.)</p>
+<p>The number of groups you can create is limited only by the number of SDs attached to the server or cluster, as is the number of SDs in a single group.  The SDs in a group can be licensed or unlicensed, P-Vols or S-Vols, or even temporarily inaccessible to the server.</p>
+<p>No SD can be a member of more than one group.</p>
+<p>Creating a group containing just one SD tells the server explicitly that the SD does not share disks with any other SD that is visible to the server.  From release 12.3 onwards, this has no effect, and single-SD groups have no benefit.</p>
+<p>SD groups do not affect write operations if dynamic write balancing (DWB) is disabled.  However, DWB is enabled by default and should almost always be left enabled, because it improves write performance.</p>
+<h2>BEST PRACTICE</h2>
+<p>Best practice is to use thinly provisioned HDP pools and no SD groups.</p>
+<p>In pre-existing spans where HDP cannot be used, SD groups are a work-around for SD-size restrictions in storage arrays.  Wherever possible, each parity group should  be presented to the server as a single system drive (logical unit).  This configuration will minimize head-movement, minimize failover times and maximize scalability.</p>
+<h2>SD GROUP GEOMETRY</h2>
+<p>Releases up to 12.2 supported two types of SD group: serial and parallel.  Serial SD groups affected write patterns, as described here, whereas parallel SD groups were used for other purposes.  Parallel SD groups lost their usefulness in release 12.3; from release 12.6, they are no longer supported, cannot be created, and will not be loaded from the registry at boot time.</p>
+<p>In the terminology used by release 12.2, all SD groups supported in the current release are serial.</p>
+<h2>MANAGING SD GROUPS</h2>
+<p>The quickest and most reliable way to set up SD groups correctly, in the rare cases where they are necessary, is to use the 'sd-group-auto' command.</p>
+<p>Should you wish to set up SD groups by hand, several console commands are available.  It is helpful to produce two tables converting between the server's device IDs and the internal Luns on the storage by running 'sd-list --raid-names' and 'sd-list --raid-names --sort kd' before using the following commands.</p>
+<p>To create an SD group, use the 'sd-group-create' command, specifying all the SDs in the group.</p>
+<p>To add further SDs to an existing group, run 'sd-group-add', specifying at least one SD that is already in the group you wish to extend and at least one SD that is not yet in a group.</p>
+<p>To remove one or more SDs from their groups, run 'sd-group-remove' and specify the SDs you want to remove.  Removing an SD from a group does not delete the group (unless, of course, this was the last SD left in the group).</p>
+<p>To delete one or more groups, run 'sd-group-delete', specifying one or more SDs from each of the groups you want to delete.</p>
+<p>To list groups, run 'sd-group-list'.  If you specify any SDs, all the groups that use those SDs will be listed in their entirety.  Otherwise, all groups known to the server will be listed.</p>
+<p>To copy SD group information to another server or cluster, use 'sd-group-export' and 'sd-group-import'.  These commands, respectively, write a text file containing SD group information from the server's registry, and read information from the file back into the registry.</p>
+<p>The syntax for specifying multiple SDs is described in the 'sd-spec' man page.</p>
+<h2>SD GROUPS AND SPANS</h2>
+<p>In the rare cases where SD groups are necessary, they should be created before SDs are built into spans.  Once an SD is used in a span, all the span's file systems must be unmounted before the SD's group assignment can be changed.</p>
+<p>To expand a live span without downtime or loss of performance, ensure that new SDs' group assignments (if SD groups are necessary) are correct before you add them to the span.</p>
+<h2>SD GROUPS AND SD TIERS</h2>
+<p>If you are using SD tiers, all the SDs in an SD group must be in the same tier (or all the SDs in the group must be untiered).  This implies that, if SD groups are used, all the SDs in a single parity group must be used in the same tier, or all must be untiered.</p>
+<p>Most commands that assemble SD groups have options to set SD tiers easily, and 'sd-set --tier' has options to add all SDs in the same SD group as the SDs specified explicitly on the command line.</p>
+<h2>PROPAGATION AND PERSISTENCE</h2>
+<p>Because SD groups are stored in the registry, rather than in Cod, they survive a cluster reboot, can be created on unspanned SDs, and will persist even if you delete spans.  To undo an 'sd-group-*' command, use another 'sd-group-*' command.  For the same reason, however, changes will not automatically move with the span if you manually migrate it to another cluster or if a mirrored copy of the span (provided by a product such as TrueCopy or HUR) is visible to another cluster.  In the case of storage-based mirroring, it will be necessary to set up SD groups on each cluster in turn, in the unlikely event that SD groups are needed at all.  In the case of server farm migration orchestrated by the SMU (but not manual migration performed by means of commands such as 'span-assign-to-cluster'), the SMU will automatically copy SD groups from one cluster to the other.</p>
+<h1>Examples</h1>
+<p>You will notice in these examples that SD groups do not have IDs of their own.  Instead, you specify an existing group by mentioning one or more of the SDs it contains.</p>
+<pre>server:$ sd-group-list
+No groups found
+server:$ sd-group-create 0-2
+Success
+server:$ sd-group-create 3-6
+Success
+server:$ sd-group-list -m
+Serial: 0 1 2
+</pre>
+<p></p>
+<pre>Serial: 3 4 5 6
+</pre>
+<p></p>
+<pre>server:$ sd-group-remove 4
+Success
+server:$ sd-group-list -m
+Serial: 0 1 2
+</pre>
+<p></p>
+<pre>Serial: 3 5 6
+</pre>
+<p></p>
+<pre>server:$ sd-group-add 1 4
+Success
+server:$ sd-group-list -m
+Serial: 0 1 2 4
+</pre>
+<p></p>
+<pre>Serial: 3 5 6
+</pre>
+<p></p>
+<pre>server:$ sd-group-create 7
+Success
+server:$ sd-group-create 8
+Success
+server:$ sd-group-create 9
+Success
+server:$ sd-group-list -m
+Serial: 0 1 2 4
+</pre>
+<p></p>
+<pre>Serial: 3 5 6
+</pre>
+<p></p>
+<pre>Serial: 7
+</pre>
+<p></p>
+<pre>Serial: 8
+</pre>
+<p></p>
+<pre>Serial: 9
+</pre>
+<p></p>
+<pre>server:$ sd-group-delete 5-8
+Success
+server:$ sd-group-list -m
+Serial: 0 1 2 4
+</pre>
+<p></p>
+<pre>Serial: 9
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>On a server using Hitachi storage, SD groups can be set up automatically, and most of the preceding commands are unnecessary:</p>
+<pre>server:$ sd-group-list
+No groups found
+server:$ sd-group-auto 0-23
+6 changes were made
+server:$ sd-group-list -m
+Serial: 0 1 2
+</pre>
+<p></p>
+<pre>Serial: 3 4 5
+</pre>
+<p></p>
+<pre>Serial: 6
+</pre>
+<p></p>
+<pre>Serial: 7
+</pre>
+<p></p>
+<pre>Serial: 8 9 10 11 12 13 14 15
+</pre>
+<p></p>
+<pre>Serial: 16 17 18 19 20 21 22 23
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../Topic/hdp.html">hdp</a> <a href="../Supervisor/sd-group-add.html">sd-group-add</a> <a href="../Supervisor/sd-group-auto.html">sd-group-auto</a> <a href="../Supervisor/sd-group-create.html">sd-group-create</a> <a href="../Supervisor/sd-group-delete.html">sd-group-delete</a> <a href="../Supervisor/sd-group-export.html">sd-group-export</a> <a href="../Supervisor/sd-group-import.html">sd-group-import</a> <a href="../User/sd-group-list.html">sd-group-list</a> <a href="../Supervisor/sd-group-remove.html">sd-group-remove</a> <a href="../Topic/sd-spec.html">sd-spec</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

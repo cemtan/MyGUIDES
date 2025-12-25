@@ -1,0 +1,488 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>mse-unit-testing</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>mse-unit-testing</h1>
+
+<h1>Description</h1>
+<h2>A. Introduction</h2>
+<p>Minishell unit testing refers to the cooperation between the mse interpreter and the strquery tool to report the status of certain commands in a user-friendly manner. Each command that is reported in this manner is called an mse unit test.</p>
+<p>As an example, consider the following command sequence that aims to create an empty file called myfile.txt:</p>
+<pre>     $ vn 1
+     $ mount -o fs
+     $ selectfs fs
+     $ touch myfile.txt
+</pre>
+<p></p>
+<p>Unfortunately, the Bali shell provides no easy way to get the execution status of any Bali command.</p>
+<p>To test if the touch command was successful, we can check if the 'ls myfile.txt' command shows the filename in the output:</p>
+<pre>     $ ls myfile.txt
+     myfile.txt
+</pre>
+<p></p>
+<p>Another way is to come up with a scheme to test the output of the command:</p>
+<pre>     $ ls myfile.txt | grep myfile.txt | wc -l
+     1
+     $ ls myfile.txt | grep myfile.txt | wc -l | strquery --GT 0  # Is standard input greater than 0? Answer = 1 if yes, 0 if no.
+     1
+</pre>
+<p></p>
+<p>Why should we choose strquery to perform the test?</p>
+<p>The answer is that strquery can display the result in a different message if an option such as -d|-A|-G|-W is specified. For example,</p>
+<pre>     $ ls myfile.txt | grep myfile.txt | wc -l | strquery --GT 0 --display-message
+     TEST PASSED
+</pre>
+<p></p>
+<p>In general, the presence of option -d or --display-message causes strquery to display a simple message based on the numerical value of the test result. There are three predefined messages:</p>
+<pre>     TEST PASSED if the result is positive,
+     TEST FAILED if zero,
+     TEST FAILED ON ERROR/SYNTAX if negative.
+</pre>
+<p></p>
+<p>If option -A|-G|-W is specified, strquery will display the test result along with accumulative statistics in an advanced format as follows.</p>
+<pre>     $ ls abc | grep abc | wc -l | strquery --GT 0 -A
+</pre>
+<p></p>
+<pre>     ====== TEST 1 ======
+</pre>
+<p></p>
+<pre>     TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<p>For convenience, an occurrence of strquery with option -d|-A|-G|-W is known as a reporting strquery. Thus, the presence of a reporting strquery in a command line signifies the intention of testing something. For this reason, each reporting strquery occurrence is called a strquery unit test and a command line containing at least one reporting strquery is called an mse unit test. For example, the following command line has 1 mse unit test and 2 strquery unit tests:</p>
+<pre>     $ calculate '3+4' | strquery --EQ 7 -d | strquery --eq 'TEST PASSED'  -A
+</pre>
+<p></p>
+<p>To recap, the following commands have been used to verify the 'touch' command:</p>
+<pre>     $ vn 1                      # line 1
+     $ mount -o fs               # line 2
+     $ selectfs fs               # line 3
+     $ touch myfile.txt          # line 4
+     $ ls myfile.txt | grep myfile.txt | wc -l | strquery --GT 0 --display-message  # line 5
+</pre>
+<p></p>
+<p>There are five command lines, but only command line #5 is called a strquery unit test. It is obvious that strquery can report what happens within the current command line that contains it, but not in command lines preceding it.</p>
+<p>To report failures in all command lines, we need to place all of them in an mse script. Because the mse interpreter parses and executes all commands in the script, it can report their status if requested.</p>
+<p>In summmary, there are two mechanisms for reporting testing results. The first one is using strquery to report the results at the command level. The second one is using the mse interpreter to report the results at the script level.</p>
+<h2>B. Command-level unit testing using strquery</h2>
+<p>The strquery tool supports a lot of options to query the attributes, or to compute certain properties, of the standard input text. There are four options that support displaying test status (see details in the 'strquery' man page):</p>
+<pre>     [--display-message|-d]  | [--anonymous-group|-A]  |  [--group-id|-G &lt;group-id&gt;] | [--write-report|-W &lt;testname&gt;]
+</pre>
+<p></p>
+<pre>For convenience, they are hereafter referred to as reporting options, or -d|-A|-G|-W.
+</pre>
+<p></p>
+<p>By design, strquery can be specified with a series of operations (a.k.a. subcommands or queries). The tool will execute them generally in the order of their appearances in the command line, pushing the numeric result of each query to an internal stack, and displaying the result of the final query.</p>
+<pre>   $ calculate 3+5 | strquery --LT 10            # Is standard input &lt; 10?
+   1                                             # 1 means true, 0 means false
+   $ calculate 3+5 | strquery --LT 10  --LT 5    # Is standard input &lt; 10? Is standard input less than 5?
+   0                                             # By default, strquery displays only the last result
+   $ calculate 3+5 | strquery --verbose 3 --LT 10  --LT 5    # to display all intermediate results as well
+   1
+   0
+</pre>
+<p></p>
+<h2>B1. How strquery interprets the last numerical result?</h2>
+<p>If a reporting option is specified to strquery, it will interpret the test outcome depending on the numeric result of the last query as follows.</p>
+<pre>     a. success if positive
+     b. failure if positive
+     c. error if negative (e.g. syntax error, internal errors, etc)
+</pre>
+<p></p>
+<p>By convention for mse testing, (c) is reserved for severe or fatal errors.</p>
+<p>Depending on the interpretation, strquery will display a simple or advanced message as discussed below.</p>
+<h2>B2. Simple test report</h2>
+<p>If option -d is specified, the test messages corresponding to the three test outcomes above are as follows.</p>
+<pre>    * TEST PASSED
+    * TEST FAILED
+    * TEST FAILED ON ERROR/SYNTAX
+</pre>
+<p></p>
+<p>Example:</p>
+<pre>   $ calculate 3+5 | strquery --EQ 8 -d
+   TEST PASSED
+</pre>
+<p></p>
+<pre>   $ calculate 3+5 | strquery --GT 10 -d
+   TEST FAILED
+</pre>
+<p></p>
+<pre>   $ calculate 3+5 | strquery --calc 2-__       # the double underscore represents the standard input, which is 8.
+   -6                                           # result is correct
+   $ calculate 3+5 | strquery --calc 2-__  -d   # will display a message corresponding to a negative result.
+   TEST FAILED ON ERROR/SYNTAX
+</pre>
+<p></p>
+<p>This display style is called simple reporting; strquery does not need information from recent tests.</p>
+<p>Note that the command chains above are for verifying the calculation of 3+5. It is up to the script writers to decide what status message they want to display, and hence, choose the conditional test accordingly. Observe that the last example is correct: no syntax error, no internal error, no strquery execution failure. But the message is confusing because the test was not appropriate.</p>
+<p>The standard simple test messages can be individually overridden on the fly by the following options; they must be specified in conjunction with option -d:</p>
+<pre>   strquery ... -d|--display-message [--tm|--tmessage &lt;message displayed for true result&gt;] \
+	             [--fm|--fmessage &lt;message for false result&gt;]  \
+                         [--em|--emessage &lt;message for errored result&gt;]
+</pre>
+<p></p>
+<p>Example:</p>
+<pre>   $ calculate 3+5 | strquery --EQ 8 -d --tm  "Test SUCCEEDED"
+   Test SUCCEEDED
+</pre>
+<p></p>
+<h2>B3. Advanced test report</h2>
+<p>If option -A|-G|-W is specified, strquery will display the test status along with some statistics as shown below.</p>
+<pre>   $ mse-unset --all
+   $ calculate 3+5 | strquery --EQ 8 -A
+</pre>
+<p></p>
+<pre>   ====== TEST 1 ======
+</pre>
+<p></p>
+<pre>   TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<pre>   $ calculate 3+5 | strquery --EQ 5 -A         # intentional to show a failed test message
+</pre>
+<p></p>
+<pre>   ====== TEST 2 ======
+</pre>
+<p></p>
+<pre>   TEST 2 : RESULT = TEST FAILED (Total so far: Passed=1/2, Failed=1/2, Errored=0/2, OVERALL=FAILED)
+</pre>
+<p></p>
+<pre>   $ calculate 3+5 | strquery --calc 2-__ -A    # intentional to show an errored test message
+</pre>
+<p></p>
+<pre>   ====== TEST 3 ======
+</pre>
+<p></p>
+<pre>   TEST 3 : RESULT = TEST FAILED OR ERRORED (Total so far: Passed=1/3, Failed=1/3, Errored=1/3, OVERALL=FAILED)
+</pre>
+<p></p>
+<p>This display style is called advanced reporting because strquery needs to reply on recent tests to display test statistics. To this end, it stores accumulative statistics (e.g. test number and test status counts) in the global minishell environment. That's the reason for running 'mse-unset --all' to clear all variables before testing.</p>
+<p>Note that the advanced report for each test consists of two lines; e.g.,</p>
+<pre>  - header line:  ====== TEST 1 ======
+  - result line:  TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+</pre>
+<p></p>
+<p>These lines can be customized to look different. For details, see the 'strquery' man page.</p>
+<p>Note that both the simple and advanced styles cannot report test results if the reporting strquery is not executed. But if the unit test is placed in an mse script, the mse interpreter will be able to report such a failure if requested.</p>
+<h2>C. Script-level unit testing using mse</h2>
+<p>At the script level, the mse interpreter can detect syntax errors and command statuses for all code in an mse script. This is because the interpreter parses and executes all commands in an mse script. During parsing, mse recognizes unit tests with simple or advanced reporting options, and hence, can maintain separate statistics for them. During execution, mse knows the execution status of each unit test command line, and hence, can maintain the counters for successes, failures, and errors.</p>
+<p>Therefore, mse can dump unit testing statistics at anytime if requested. The request can be specified in various ways</p>
+<pre>   a. Run built-in command: mse::execution-summary
+      This command tells the interpreter to display the statistics up to that point in time as long as
+      the script contains command lines with reporting strquery.
+</pre>
+<p></p>
+<pre>   b. Enable mse setting: mse::set display-summary-on-exit true
+      The statement can be placed anywhere in the script.
+      If the setting is true, the interpreter will display a summary just before termination.
+</pre>
+<p></p>
+<pre>   c. Specify a #pragma in the script:
+         #option --display-summary-on-exit
+      The pragma tells the interpreter to display a summary just before termination.
+</pre>
+<p></p>
+<pre>   d. Specify a command line option
+         mse --display-summary-on-exit|-Y  '{ &lt;body of mse-script&gt; }'
+         mse --display-summary-on-exit|-Y  -f &lt;script-file-name&gt;
+      Based on this option, the interpreter will display a summary just before termination.
+</pre>
+<p></p>
+<p>A good place to run the built-in command (a) is at the end of an mse script. But it may not be executed if mse aborts before reaching the command.</p>
+<p>Thus, it seems better to use method (b) to enable the setting at the beginning of an mse script. But mse may fail when parsing script for statements to execute, and hence, aborts itself before reaching the mse::set command.</p>
+<p>Method (c) seems better than (b) because it is evaluated during the preprocessing phase. But mse may fail when parsing mse command line options, and hence, aborts itself before preprocessing the script.</p>
+<p>Thus, using method (c) seems to be the best.</p>
+<h2>C1. Typical mse unit test script</h2>
+<p>An mse script that contains instruction(s) to display test statistics seen by mse is called an mse unit test script. This means that the script needs to display a summary of execution.</p>
+<p>Let's write a simple mse unit testing script to cover the example at the start of this man page and verify that the file is indeed empty.</p>
+<pre>             $ sscat mytest.scr
+      1      #option --display-summary-on-exit
+      2      #option --minimum-mse-unit-tests-expected 2
+      3      mse-unset --all
+      4
+      5      strquery --unit-test-begins
+      6      echo Verify that touch creates a new file
+      7      vn 1
+      8      mount -o fs
+      9      selectfs fs
+     10      rm -f myfile.txt
+     11      touch myfile.txt
+     12      ls myfile.txt | grep myfile.txt | wc -l | strquery --GT 0 -A
+     13
+     14      strquery --unit-test-begins
+     15      echo Verify that file created by touch is empty
+     16      cat myfile.txt | wc -l | strquery --EQ 0 -A
+</pre>
+<p></p>
+<p>Explanation:</p>
+<pre>   - Line 1:  the #option pragma tells mse, before it begins parsing and executing any commands,
+              to display a summary of execution upon exit
+   - Line 2:  the #option pragma tells mse to expect at least 2 mse unit tests.
+              This is explained in the section C2.
+   - Line 3:  clears all statistics stored in global minishell environment to start fresh
+   - Line 5:  marks the beginning of a new unit test to provide unit test context for error messages in
+              subsequent commands that belong to the unit test
+   - Line 12: defines a unit test. This line also marks the end of the unit test
+   - Line 14: marks the beginning of another new unit test
+   - Line 16: defines another unit test. This line also marks the end of the unit test
+</pre>
+<p></p>
+<p>Lines 5 and 14 are optional; they serve as a marker defining the start of a unit test. Without them, mse cannot attribute errors in lines 6-11 and 15, if any, to any specific unit test.</p>
+<h2>C2. Run mse unit test script</h2>
+<pre>     1      $ mse -f mytest.scr
+     2
+     3      ====== TEST 1 ======
+     4
+     5      Verify that touch creates a new file
+     6      File system is already mounted. Ignore error as requested.
+     7      Current selected file system: fs, number(8)
+     8      Test 1
+     9
+    10      TEST 1 : RESULT = TEST PASSED (Total so far: Passed=1/1, Failed=0/1, Errored=0/1, OVERALL=SUCCESSFUL)
+    11
+    12
+    13      ====== TEST 2 ======
+    14
+    15      Verify that file created by touch is empty
+    16      Test 2
+    17
+    18      TEST 2 : RESULT = TEST PASSED (Total so far: Passed=2/2, Failed=0/2, Errored=0/2, OVERALL=SUCCESSFUL)
+    19
+    20
+    21      SCRIPT EXECUTION SUMMARY:
+    22         [mse] Total Bali commands and mse built-in commands executed : 12
+    23               Succeeded        : 12
+    24               Failed           : 0
+    25               Fatal errors     : 0
+    26         [mse] Total unit tests processed : 2 numbered tests (commands with output piped to 'strquery -A|-G|-W')
+    27               Total results       : 2
+    28                  Succeeded        : 2
+    29                  Failed           : 0
+    30                  Fatal errors     : 0
+    31         [strquery] Total unit tests processed : 2 numbered tests (commands with output piped to 'strquery -A|-G|-W')
+    32               Total results       : 2
+    33                  Succeeded        : 2
+    34                  Failed           : 0
+    35                  Fatal errors     : 0
+    36
+    37         [compare] Compare unit tests statistics computed separately by mse and strquery:
+    38                    [mse] Total tests : 2, total results : 2 ( passed = 2, failed = 0, errored = 0 )
+    39               [strquery] Total tests : 2, total results : 2 ( passed = 2, failed = 0, errored = 0 )
+    40
+    41         Overall script status : SCRIPT PASSED
+</pre>
+<p></p>
+<p>First, the interpreter produces the script summary in lines 21-41 because line 1 of the script contains a request to dump such a summary on exit.</p>
+<p>Line 2 in the script serves to catch scripting mistakes. For example, suppose we definitely want two unit tests. However, our script is buggy; it may contain erroneous conditional statements that change the flow of execution, resulting in only one unit test executed. Without line 2, the overall script status would be "SCRIPT PASSED" because mse has encountered only one unit test and that test was successful. With line 2, the result would be "SCRIPT FAILED", which is correct.</p>
+<p>The following sections describe the five parts of the execution summary.</p>
+<h3>C2.1 Statistics for all commands that have been counted by mse</h3>
+<p>The statistics are reported in lines 22-25.</p>
+<p>Note that mytest.scr in C1 has one mse built-in command (line 2) and 12 Bali commands (lines 1, 4-15). By design, mse does not accumulate statistics unless</p>
+<pre>    - mse knows an execution summary is requested, or
+    - mse encounters a command line with a reporting strquery
+</pre>
+<p></p>
+<p>With the pragma in line 1 of the script in C1, mse knows in advance, before beginning parsing and executing any command, that it will have to display the execution summary before termination. Therefore, mse begins collecting the statistics starting with the first command in the script, namely line 2. Thus, there are 1 mse built-in command (line 2) and 11 Bali commands (lines 4-15), resulting in a total of 12 as reported in line 22.</p>
+<h3>C2.2 Statistics for all unit test commands that have been counted by mse</h3>
+<p>The statistics are reported in lines 26-30.</p>
+<p>For mse, a unit test is an instance, not an appearance, of a command line with a reporting strquery. The script in C1 has two unit tests specified in line 11 and 15.</p>
+<p>If line 15 is written as</p>
+<pre>    for (i = 0; i &lt; 5; i=i+1) {
+       cat myfile.txt | wc -l | strquery --EQ 0 -A
+    }
+</pre>
+<p></p>
+<p>then the total unit tests from this loop is 5 because the command line will be launched 5 times. Each running instance of a unit test returns a status code to the interpreter. For Bali commands, the status code is 10 (success), 12 (failure), and 11 (error), respectively. The status code is defined as the result of an mse unit test. The loop above produces 5 mse unit tests and 5 mse results.</p>
+<p>Thus, for mse, each unit test has one and only one result.</p>
+<h3>C2.3 Statistics for all unit test commands that have been counted by strquery</h3>
+<p>The statistics are reported in lines 31-35.</p>
+<p>Note that mse and strquery count the number of unit tests in the same way, but count the test results differently.</p>
+<p>For each standard input line, a reporting strquery has to perform a certain test to produce an integer result. Thus, for strquery, each unit test can produce 0, 1, or more results depending on the number of text lines piped in to strquery.</p>
+<p>Example:</p>
+<pre>    $ sscat file1.txt
+    Today is Monday.
+    We work for 5 days.
+    Then have a party on weekend.
+</pre>
+<p></p>
+<pre>    $ sscat file1.txt | strquery --has day -d
+    TEST PASSED
+    TEST PASSED
+    TEST FAILED
+</pre>
+<p></p>
+<p>As far as strquery is concerned, the command line above constitutes one unit test with 3 test results.</p>
+<h3>C2.4 Comparison between mse and strquery reports</h3>
+<p>The comparison is reported in lines 37-39,</p>
+<p>Note that mse and strquery can report different statistics because their counting methods are different.</p>
+<dl>
+<dt><strong>1. The number of strquery unit tests must be at least equal to that of mse</strong></dt>
+<dd><p>This is because each command line can have more than one reporting strquery occurrences.</p></dd>
+<dt><strong>2. The number of test results can be drastically different for mse and strquery</strong></dt>
+<dd><p>This is because one mse unit test has only one result, but one strquery unit test can have as many results as the number of output lines piped to strquery.</p></dd>
+<dt><strong>3. The number of fatal errors can be greater than 1.</strong></dt>
+<dd><p>See explanation in section D.</p></dd>
+<dt><strong>4. The number of failed results can be different for mse and strquery</strong></dt>
+<dd><p>This is because of the difference in the definition of a failed mse/strquery result.</p></dd>
+</dl>
+<p>By definition, an mse result of a unit test is "failed" if the corresponding Bali command fails (exit code 12), and a strquery result is "failed" if the final test performs by strquery produces an integer value of zero.</p>
+<p>For example, the following test is designed to test if file2.txt contains exactly 20 lines. If the file has 21 lines, the test produces the desired message:</p>
+<pre>    $ cat file2.txt | wc -l | strquery --EQ 20 -d
+    TEST FAILED
+</pre>
+<p></p>
+<p>In this example:</p>
+<pre>   - the 'cat' command succeeded, hence the Bali/mse result was 'succeeded'
+   - strquery succeeded but the strquery result was "failed".
+</pre>
+<p></p>
+<p>If this command line was included in the mse script in C1, it would increment the 'Succeeded' counts in lines 23 and 27, and the 'Failed' count in line 34 in C2.</p>
+<p>Another scenario worth mentioning is the case where mse reports a failed result but strquery reports a success. For example, the following unit test is designed to test if a file is non-existent:</p>
+<pre>    $ ls xyz.txt | grep myfile.txt | wc -l | strquery --EQ 0 --display-message
+    error: NotFound
+    TEST PASSED
+</pre>
+<p></p>
+<p>Note that mse reports a failed result for the unit test because it defines the result to be the exit code of the 'ls' command. This particular example will be explained in detail in the next subsection.</p>
+<h3>C2.5 Overall conclusion</h3>
+<p>There are two outcomes for the entire script:</p>
+<pre>        SCRIPT PASSED  or SCRIPT FAILED
+</pre>
+<p></p>
+<p>What could cause the script to fail?</p>
+<p>1. A failed Bali command does not mean that the script failed.</p>
+<p>Consider the case of the ls command used to test the existence of a file:</p>
+<pre>     $ ls xyz.txt | grep myfile.txt | wc -l | strquery --EQ 0 --display-message
+     error: NotFound
+     TEST PASSED
+</pre>
+<p></p>
+<p>The thread that ran the ls command also ran all the filters in the pipeline:</p>
+
+<p>* Because xyz.txt did not exist, the thread executing the 'ls' command wrote "error: NotFound" to the standard error, and wrote nothing to the standard output.</p>
+<p>* 'grep' received no standard input, and hence did not produce any output.</p>
+<p>* 'wc -l' received no standard input lines, and hence passed 0 to strquery.</p>
+<p>* strquery checked if the standard input was 0.  The result was 1, representing success. The --display-message option caused strquery to display a success message.</p>
+<p>* Finally, the thread exited the ls command with an exit code of 12 (failure).</p>
+
+<p>If the command chain above was in an mse script:</p>
+<pre>  - mse would count 1 failed Bali command, and 1 failed unit test result.
+  - strquery would count 1 successful unit test result.
+</pre>
+<p></p>
+<p>Thus, this example clearly demonstrates that a nonzero count of failed results in any line 24 or 29 does not fail the script.</p>
+<p>2. A fatal error in a Bali command definitely causes the script to fail.</p>
+<p>A fatal error can be syntax error, internal errors, divide by zero, etc. If a Bali command has fatal errors, it is safe to assume that the results of subsequent commands cannot be trusted even if they run successfully.</p>
+<p>Thus, a nonzero count of fatal errors in any lines 25, 30, or 35 does fail the script.</p>
+<p>3. Any failed result of strquery does fail the script.</p>
+<p>This is because strquery is designed to perform a test on the standard input line to produce an integer result with the convention that a zero value means the test fails.</p>
+<p>Thus, a nonzero count of failed results in line 34 does fail the script.</p>
+<p>In summary, the script is considered FAILED if strquery reports any failed results or fatal errors, or if mse reports fatal errors.</p>
+<h2>D. How does mse execute a script and handle errors?</h2>
+<p>By design, the mse command begins execution by parsing its command line options first.</p>
+<p>1. If any option is invalid, it will abort itself and quit with exit code 11 (syntax error). This exit code causes the Bali console to automatically display syntax help for the mse command.</p>
+<p>2. Now that all options are valid, mse will begin parsing the script for one complete statement, or command, at a time.</p>
+<p>3. If the statement or command has syntax error, mse will abort itself and quit with exit code 12 (failed). This makes sense because the syntax error does not belong to mse. If mse failed with exit code 11 (syntax), the Bali console would display syntax help for the mse command whereas there was nothing wrong with the mse command line.</p>
+<p>By design, all syntax errors are considered fatal.</p>
+<p>Can there be more than one fatal errors when executing an mse script?</p>
+<p>The short answer is yes. The long answer is best explained by example.</p>
+<pre>    1   $ sscat test1.scr
+    2   echo one
+    3   pwd xyz      # wrong syntax intentionally
+    4   echo two
+</pre>
+<p></p>
+<p>a) Let's run the test1 script once:</p>
+<pre>    5   $ mse -f test1.scr
+    6   one
+    7   Error: unexpected argument: 'xyz'.
+    8   Syntax: pwd
+</pre>
+<p></p>
+<p>Observe that mse receives a syntax failure (exit code 11) from the pwd command. Hence the mse command exits immediately to the Bali shell with exit code 12. Thus, line 4 is not executed and the output does not show "two".</p>
+<p>b) Let's run the test1 script twice in another mse script:</p>
+<pre>    9    $ sscat test2.scr
+   10    echo Run script first time
+   11    mse -f test1.scr
+   12    echo Run script second time
+   13    mse -f test1.scr
+   14    echo Done
+</pre>
+<p></p>
+<pre>   15    $ mse -f test2.scr
+   16    Run script first time
+   17    one
+   18    Error: unexpected argument: 'xyz'.
+   19    Syntax: pwd
+   20    Run script second time
+   21    one
+   22    Error: unexpected argument: 'xyz'.
+   23    Syntax: pwd
+   24    Done
+</pre>
+<p></p>
+<p>Because the exit code from the mse instance in line 11 is not a syntax error, the interpreter (the instance launched in line 15) will continue to execute the next line in the script (line 12). That is why line 13 is executed, and for the same reason, the interpreter continues to execute line 14. In summary, the parent interpreter does not see any syntax errors at all, but each mse instance at lines 11 and 13 sees one syntax error.</p>
+<p>c) Let's display unit test summary</p>
+<pre>    1    $ sscat test3.scr
+    2    #option --display-summary-on-exit
+    3    echo Run script first time
+    4    mse -f test1.scr
+    5    echo Run script second time
+    6    mse -f test1.scr
+    7    echo Done
+</pre>
+<p></p>
+<pre>    8    $ mse -f test3.scr
+         . . . . . . . . . . . . .
+    9    SCRIPT EXECUTION SUMMARY:
+   10       [mse] Total Bali commands and mse built-in commands executed : 10
+   11             Succeeded        : 6
+   12             Failed           : 2
+   13             Fatal errors     : 2 (e.g., syntax errors)
+   14       [mse] Total unit tests processed : 0 numbered tests (commands with output piped to 'strquery -A|-G|-W')
+   15             Total results       : 0
+   16                Succeeded        : 0
+   17                Failed           : 0
+   18                Fatal errors     : 0
+   19       [strquery] Total unit tests processed : 0 numbered tests (commands with output piped to 'strquery -A|-G|-W')
+   20             Total results       : 0
+   21                Succeeded        : 0
+   22                Failed           : 0
+   23                Fatal errors     : 0
+   24
+   25       [compare] Compare unit tests statistics computed separately by mse and strquery:
+   26                  [mse] Total tests : 0, total results : 0 ( passed = 0, failed = 0, errored = 0 )
+   27             [strquery] Total tests : 0, total results : 0 ( passed = 0, failed = 0, errored = 0 )
+   28
+   29       Overall script status : SCRIPT FAILED
+</pre>
+<p></p>
+<p>First, note that if we run line #4 or #6 alone, we will get the output shown in (3a) without a unit test summary. But when test3.scr is run, the mse parent passes the information from the pragma in line 2 down to the child mse commands in line 4 and 6 so that they can update the global statistics when executing their own scripts.</p>
+<p>Note that lines 14-27 report zero statistics for unit tests because there are no command lines with reporting strquery in the script. The fatal syntax error reported in line 13 causes the overall script status to fail.</p>
+<h1>See Also</h1>
+<p><a href="../Filter/User/grep.html">grep</a> <a href="../Filter/Dev/mse.html">mse</a> <a href="../Filter/Dev/mse-unset.html">mse-unset</a> <a href="../Supervisor/sscat.html">sscat</a> <a href="../Filter/Dev/strquery.html">strquery</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

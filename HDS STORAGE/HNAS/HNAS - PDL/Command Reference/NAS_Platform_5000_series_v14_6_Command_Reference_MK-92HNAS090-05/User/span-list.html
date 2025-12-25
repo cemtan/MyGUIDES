@@ -1,0 +1,447 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>span-list</h1>
+<p>List one or all spans</p>
+<h1>Syntax</h1>
+<pre>span-list [--sds] [--filesystems] [--verbose] [&lt;span-instance-name&gt;]
+Alias:       spans
+</pre>
+
+<h1>Description</h1>
+<p>(This man page contains wide output.  You may wish to use 'man -n' and widen your terminal window.)</p>
+<p>'span-list' produces a list of all spans visible to the server, or details of a single span specified at the command line.  Optionally shows the system drives (SDs) that make up the span and the filesystems that reside on the span.</p>
+<h2>Details about spans</h2>
+<pre>server:$ span-list Accounts
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Accounts               Yes   95%     9500  0,1,2,3;4,5,6,7                  90%
+server:$ span-list Hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes  100%    15400  14,15,16,17;10,11,12,13          90%
+   Tier 0: capacity    2400GiB; free:    2400GiB (100%)
+   Tier 1: capacity   13000GiB; free:   13000GiB (100%)
+server:$
+</pre>
+<p></p>
+<p>Which details are printed depends on whether you specify the --sds and --verbose switches.</p>
+<dl>
+<dt><strong>By default</strong></dt>
+<dd><p>The command shows the span instance name, health, free space, capacity, first few SDs, and auto-expansion settings.  If the span is tiered, the command also prints the capacity of each tier, as with span Hex above.</p></dd>
+<dt><strong>With --sds or -s</strong></dt>
+<dd><p>The command shows the span instance name, health, free space, capacity, chunks and auto-expansion settings.  It then shows details of each stripeset and SD in the span, including its capacity and free space and an estimate of the space available on the stripeset.</p></dd>
+<dd><p>If any SD in the span has a site ID other than zero, the --sds switch shows the site IDs of all SDs in the span.  See the 'site' man page for more details of site IDs.</p></dd>
+<dd><p>If the span is based on one or more HDP pools, each stripeset displays an HDP pool number, the amount of free space on the pool, and the instance names of any other spans that reside on the same pool.  It also shows how much space each stripeset contributes to the vacated-chunks list, which is explained in the 'hdp' man page.  In the case of Hitachi Dynamic Tiering (HDT), the free space figure is for the HDT pool as a whole, rather than for a single tier.</p></dd>
+<dd><p>If the HDP pool resides on compressed FMDs, the --sds switch also shows the total space, free space, and the percentage saving due to compression.</p></dd>
+<dt><strong>With --verbose or -v</strong></dt>
+<dd><p>The command shows everything it would show by default, and adds storage-based snapshots, chunks, Cod fullness, cluster assignment, permanent ID, DWB support, and the total free space on the HDP pools that host the span (if any).</p></dd>
+<dt><strong>With --verbose and --sds</strong></dt>
+<dd><p>The command shows everything it would with --sds alone, and adds storage-based snapshots, Cod fullness, cluster assignment, permanent ID, DWB support, and the free space on HDP pools.</p></dd>
+</dl>
+<p>Here is the meaning of each of these fields:</p>
+<dl>
+<dt><strong>Span instance name</strong></dt>
+<dd><p>The 'storage-based-snapshot-label' man page explains the three kinds of span label.</p></dd>
+<dd><p>If you are not using storage-based snapshots, the label shown here is the name that you assigned to the span when you created or last renamed it, and which is used with commands such as 'span-list'.</p></dd>
+<dt><strong>Health</strong></dt>
+<dd><p>The 'OK?' column shows 'Yes' if the server can do I/O to the filesystems on the span and 'No!' otherwise.  If you are using storage-based mirroring, a failed or unlicensed secondary will not cause 'No!' to be displayed here, because the span is capable of supporting I/O as long as all its primaries are healthy.</p></dd>
+<dd><p>(Usually, primary SDs are either stand-alone SDs or P-Vols and secondaries are mirrored S-Vols, but see the 'storage-based-mirror' man page for the exceptions.)</p></dd>
+<dd><p>On a cluster, a span may be healthy on one cluster node but not on another.  This can happen if, for example, only one of the nodes is correctly connected to the storage.  'span-list' displays the health status of the span on the cluster node where the command is run.  It can therefore be used to find a cluster node on which the given span is healthy.</p></dd>
+<dd><p>In these circumstances, consider running 'sd-list', which prints an explicit notification when system drive states differ among cluster nodes.</p></dd>
+<dt><strong>Free space</strong></dt>
+<dd><p>The 'Free' columns shows the percentage of the span that isn't currently allocated to filesystems.</p></dd>
+<dd><p>If a 10TiB span is shown as 20% free, it means that the filesystems on the span can expand by 2TiB in total.  It doesn't mean that the span is storing 8TiB of data, because the file systems themselves will usually not be completely full.</p></dd>
+<dd><p>If the span resides on one or more compressed or thinly provisioned HDP pools, as described in the 'hdp' and 'span-fmd-compression' man pages, then filesystems may not be able to expand as far as this field suggests.  Provide the --verbose or --sds switch and check the amount of free space on the HDP pools.  Conversely, if a filesystem has recently been deleted and is still in the recycle bin, other filesystems may be able to expand further than the 'free' figure suggests by recycling the deleted filesystem and reusing the space it used to occupy.</p></dd>
+<dt><strong>Cap/GiB</strong></dt>
+<dd><p>Shows the total amount of free and used space on the span in gibibytes.  One gibibyte is 2**30 bytes.</p></dd>
+<dt><strong>First few system drives</strong></dt>
+<dd><p>Lists the first few SDs in the span.  SDs in the same stripeset are separated by commas; stripesets are separated by semicolons. So '0,1,2,3;4,5,6,7' shows two stripesets, each containing four SDs. Use the --sds switch to see all the SDs in a large span and to see more details about the underlying storage.</p></dd>
+<dt><strong>Auto-expansion settings</strong></dt>
+<dd><p>Shows one of seven values:</p></dd>
+<dl>
+<dt><strong>MCP</strong></dt>
+<dd><p>The span (or one tier of the span) resides on multiple compressed HDP pools.  Auto-expansion is disabled, because the server cannot determine which HDP pool or pools can most safely provide new space.</p></dd>
+<dt><strong>LPS</strong></dt>
+<dd><p>The span (or one tier of the span) resides on a single compressed HDP pool, whose free space is below the threshold implied by 'span-set-cap-warn-thresh'.  For example, if the warning threshold is at its default value of 90%, auto-expansion becomes disabled when free physical space falls below 10%.  Setting the threshold to zero will disable this check and enable auto-expansion to proceed even when free physical space is very low, but safety will be compromised.  "LPS" stands for "low physical space".</p></dd>
+<dt><strong>PAW</strong></dt>
+<dd><p>The span's filesystems can't auto-expand, because the span resides on HDP storage and an administrator has run 'span-hdp-preallocation no' to disable pre-allocation writes.</p></dd>
+<dt><strong>UVM</strong></dt>
+<dd><p>The span's filesystems can't auto-expand, because the span resides on UVM storage.</p></dd>
+<dt><strong>Con</strong></dt>
+<dd><p>The span is confined, so that its filesystems can't auto-expand.</p></dd>
+<dt><strong>A two-digit percentage</strong></dt>
+<dd><p>The span is released, and its filesystems can auto-expand unless they themselves are confined.  A capacity warning threshold has been set up for this span.  See 'span-set-cap-warn-thresh'.</p></dd>
+<dt><strong>Rel</strong></dt>
+<dd><p>The span is released, and its filesystems can auto-expand unless they themselves are confined.</p></dd>
+</dl>
+<dd><p>If two or more of these conditions apply, the earliest in this list will take priority.  In practice, this means that 'span-list' does not report confinement and warning thresholds if storage-level considerations prevent filesystems from auto-expanding.</p></dd>
+<dt><strong>Snap</strong></dt>
+<dd><p>If the span is in snapshot mode, this field displays the number of versions of the data that exist: 1 immediately after 'span-enable-snapshots' has been run, 2 when 'span-add-snapshot' has been run once, and so on.  If the span is not in snapshot mode, this field is blank.</p></dd>
+<dt><strong>Chunks</strong></dt>
+<dd><p>The space on each stripeset is divided into chunks of roughly, but not exactly, equal size.  When you create or expand a filesystem, the server always allocates a whole number of chunks.  This field shows how many chunks are contained in the span as a whole, and the guideline (approximate) size of each chunk.</p></dd>
+<dt><strong>Cod fullness</strong></dt>
+<dd><p>Shows how much of each of the three types of Cod is full.  Cod is described in the 'cod' man page.  When span Cod is full, you can no longer expand the span.  When the filesystem catalogue is full, you can no longer create new filesystems on this span.  When the chunk table is full, you can no longer create or expand filesystem on this span.</p></dd>
+<dt><strong>Cluster assignment</strong></dt>
+<dd><p>Shows a summary of the clusters (or stand-alone servers) to which this span is assigned.  Cluster assignment controls which clusters are allowed to manage the span and mount its file systems.</p></dd>
+<dl>
+<dt><strong>None</strong></dt>
+<dd><p>The span is not assigned to any cluster.</p></dd>
+<dt><strong>This</strong></dt>
+<dd><p>This span is assigned to the local cluster.  This cluster can manage the span and mount its file systems.  This is the usual state.</p></dd>
+<dt><strong>Other</strong></dt>
+<dd><p>The span is assigned to another cluster.</p></dd>
+<dt><strong>Shared</strong></dt>
+<dd><p>The span is assigned to this cluster and at least one other.</p></dd>
+<dt><strong>Others</strong></dt>
+<dd><p>The span is assigned to two or more other clusters.</p></dd>
+</dl>
+<dd><p>See 'span-list-cluster-uuids' for more details.</p></dd>
+<dt><strong>Permanent ID</strong></dt>
+<dd><p>This long hexadecimal number uniquely identifies the span.  It never changes, even if you expand or rename the span or move it to a different cluster.  It is shown in most logged events that relate to the span, its system drives and its filesystems; searching the event log for a span's permanent ID gives you a recent history of the span.</p></dd>
+<dt><strong>DWB support</strong></dt>
+<dd><p>Shows whether this span supports dynamic write balancing (DWB).</p></dd>
+<dt><strong>HDP free</strong></dt>
+<dd><p>Shows the total free space on all the HDP pools that host this span, measured in gibibytes, or a dash if the span is hosted on non-HDP storage.  If the span is tiered, this field reads `Below' and the following two lines display the free space on the pool that hosts each tier.</p></dd>
+<dd><p>It will not usually be possible to use every last gibibyte of space on an HDP pool.  The 'hdp' man page explains why, and how to minimize the effect.</p></dd>
+<dd><p>If two or more spans share a single HDP pool, expanding one span's filesystems may reduce the free space available for other spans using the same pool.  Conversely, deleting a filesystem on one of these spans will not free up space for the others until 'span-unmap-vacated-chunks' has been run.</p></dd>
+<dt><strong>Tier capacities</strong></dt>
+<dd><p>In a tiered span, it's important to know which tiers are getting full, so that you can expand them in good time.  For each tiered span, 'span-list' prints one line per tier, showing the tier's capacity and how much of that space is unused (not allocated to a filesystem), in gibibytes and as a percentage.</p></dd>
+</dl>
+<h2>Details about system drives</h2>
+<pre>server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Hex                    Yes  100%      500    100 x    5368709120  90%
+   Tier 0: capacity     200GiB; free:     100GiB (100%)
+   Tier 1: capacity     400GiB; free:     400GiB (100%)
+</pre>
+<p></p>
+<pre><strong>   Set 0: 4 x 50GiB = 200GiB (on tier 0), of which 200GiB is free, 200GiB is available</strong>
+<strong>      SD 4</strong>
+<strong>      SD 5</strong>
+<strong>      SD 6</strong>
+<strong>      SD 7</strong>
+</pre>
+<p></p>
+<pre><strong>   Set 1: 4 x 100GiB = 400GiB (on tier 1), of which 400GiB is free, 400GiB is available</strong>
+<strong>      SD 0</strong>
+<strong>      SD 1</strong>
+<strong>      SD 2</strong>
+<strong>      SD 3</strong>
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>If you specify the --sds switch, the command shows details of each stripeset and each system drive used in the span.  'Set' introduces each stripeset in the span; 'System drive' shows details of one SD.</p>
+<p>Capacities are shown in gibibytes.  They show how much space is drawn from each SD in the stripeset.  This figure is always a few mebibytes smaller than the size of the SD, because some space is reserved for Cod and other metadata structures.  If the SDs in a stripeset differ in capacity, the space drawn from each will be determined by the capacity of the smallest.</p>
+<p>Tier numbers are shown only if you have assigned SDs to tiers; in that case, all the SDs in each stripeset should be in the same tier.  In the unlikely event that they aren't, the command will print a warning message and will display a tier number beside each SD.</p>
+<p>If the SDs' vendor IDs are known, the command shows them:</p>
+<pre>server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Hex                    Yes  100%      500    100 x    5368709120  90%
+   Tier 0: capacity     200GiB; free:     100GiB (100%)
+   Tier 1: capacity     400GiB; free:     400GiB (100%)
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 50GiB = 200GiB (on tier 0), of which 200GiB is free, 200GiB is available
+      SD 4 <strong>(Rack '75052014', SD '0000')</strong>
+      SD 5 <strong>(Rack '75052014', SD '0001')</strong>
+      SD 6 <strong>(Rack '75052014', SD '0006')</strong>
+      SD 7 <strong>(Rack '75052014', SD '0007')</strong>
+</pre>
+<p></p>
+<pre>   Set 1: 4 x 100GiB = 400GiB (on tier 1), of which 400GiB is free, 400GiB is available
+      SD 0 <strong>(Rack '75052014', SD '0002')</strong>
+      SD 1 <strong>(Rack '75052014', SD '0003')</strong>
+      SD 2 <strong>(Rack '75052014', SD '0004')</strong>
+      SD 3 <strong>(Rack '75052014', SD '0005')</strong>
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>The 'available' figure is an estimate of how much space could be allocated from the stripeset.  On parity groups, it takes into account:</p>
+<ul>
+<li>The free chunks on the stripeset</li>
+<li>Any chunks occupied by recently-deleted filesystems that are still in the recycle bin, because a request for new space can automatically recycle these filesystems and reuse the space they used to occupy.</li>
+</ul>
+<p>On uncompressed HDP pools, the calculation additionally takes into account:</p>
+<ul>
+<li>Any vacated chunks (which used to be occupied by filesystems that have since been deleted and recycled)</li>
+<li>The free space on the pool volumes or parity groups in the HDP pool</li>
+</ul>
+<p>On HDP pools that reside on compressed FMDs, the calculation additionally takes into account:</p>
+<ul>
+<li>The amount of free physical space on the FMDs</li>
+<li>The compression ratio achieved so far on this HDP pool</li>
+<li>A margin to allow for the variable compressibility of the data stored on each HDP pool.  This margin is controlled by 'span-set-cap-warn-thresh': reducing the threshold (but keeping it non-zero) will make the 'available' figure lower in cases where free physical space is the limiting factor.</li>
+</ul>
+<p>Filesystem-expansion can use not only free space but also space used by deleted filesystems (which will then be recycled) and, on HDP, vacated chunks.  Therefore, if filesystems have ever been deleted on this span, the 'available' figure may be higher than the 'free' figure.</p>
+<p>On compressed storage in particular, the 'available' figure is only approximate.  The server cannot predict the compressibility of the data that will be written to the span in the future, and cannot guarantee be certain how much data can be written before physical space becomes exhausted.</p>
+<p>No 'available' figure is displayed for a stripeset containing any UVM internal LUs, because the server cannot determine whether the corresponding external LUs are thinly provisioned and, if so, how much free space they have.</p>
+<p>If the span is mirrored, the two SDs in each mirror are separated by an equals sign:</p>
+<pre>server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Hex                    Yes  100%      500    100 x    5368709120  90%
+   Tier 0: capacity     100GiB; free:     100GiB (100%)
+   Tier 1: capacity     400GiB; free:     400GiB (100%)
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 5000GiB = 20000GiB (on tier 0), of which 20000GiB is free, 20000GiB is available
+      SD 0 (Rack '75052014', SD '0000') <strong>= SD 10 (Rack '75052014', SD '0100')</strong>
+      SD 1 (Rack '75052014', SD '0001') <strong>= SD 11 (Rack '75052014', SD '0101')</strong>
+      SD 2 (Rack '75052014', SD '0002') <strong>= SD 12 (Rack '75052014', SD '0102')</strong>
+      SD 3 (Rack '75052014', SD '0003') <strong>= SD 13 (Rack '75052014', SD '0103')</strong>
+</pre>
+<p></p>
+<pre>   Set 1: 4 x 8000GiB = 32000GiB (on tier 1), of which 32000GiB is free, 32000GiB is available
+      SD 4 (Rack '75052014', SD '0004') <strong>= SD 14 (Rack '75052014', SD '0200')</strong>
+      SD 5 (Rack '75052014', SD '0005') <strong>= SD 15 (Rack '75052014', SD '0201')</strong>
+      SD 6 (Rack '75052014', SD '0006') <strong>= SD 16 (Rack '75052014', SD '0202')</strong>
+      SD 7 (Rack '75052014', SD '0007') <strong>= SD 17 (Rack '75052014', SD '0203')</strong>
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<h3>Details about HDP pools</h3>
+<p>If the span resides on one or more HDP pools, an extra line is displayed before each stripeset and the command also shows how much space the vacated-chunks list occupies on each stripeset:</p>
+<pre>server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Hex                    Yes  100%      500    100 x    5368709120  90%
+   Tier 0: capacity     100GiB; free:     100GiB (100%)
+   Tier 1: capacity     400GiB; free:     400GiB (100%)
+</pre>
+<p></p>
+<pre><strong>   On HDP pool 0 with 4065GiB free, shared with Baz and Foo</strong>
+   Set 0: 4 x 5000GiB = 20000GiB (on tier 0), of which 1500GiB is free, 548GiB is vacated, 3091GiB is available
+      SD 0 (Rack '75052014', SD '0000') = SD 10 (Rack '75052014', SD '0100')
+      SD 1 (Rack '75052014', SD '0001') = SD 11 (Rack '75052014', SD '0101')
+      SD 2 (Rack '75052014', SD '0002') = SD 12 (Rack '75052014', SD '0102')
+      SD 3 (Rack '75052014', SD '0003') = SD 13 (Rack '75052014', SD '0103')
+</pre>
+<p></p>
+<pre><strong>   On HDP pool 5 with 3205GiB free, shared with Quux</strong>
+   Set 1: 4 x 8000GiB = 32000GiB (on tier 1), of which 32000GiB is free, 0GiB is vacated, 32000GiB is available
+      SD 4 (Rack '75052014', SD '0004') = SD 14 (Rack '75052014', SD '0200')
+      SD 5 (Rack '75052014', SD '0005') = SD 15 (Rack '75052014', SD '0201')
+      SD 6 (Rack '75052014', SD '0006') = SD 16 (Rack '75052014', SD '0202')
+      SD 7 (Rack '75052014', SD '0007') = SD 17 (Rack '75052014', SD '0203')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>'HDP pool 0' indicates the number of the HDP pool; it can be used to find out more about the pool in a storage configurator.  'with 4065GiB free' indicates the amount of free space on the HDP pool.  'shared with Baz and Foo' indicates that two other spans draw space from the same HDP pool; expanding a filesystem on Foo, Bar or Baz may reduce the space available for the other two spans but, conversely, running 'span-unmap-vacated-chunks' on any of them may increase the amount of free space available for the others.</p>
+<p>If 'span-hdp-preallocation no' is in force, the free space on an HDP pool does not fall significantly when a filesystem is created or expanded: it falls only when data is written to the new space.  As a result, in this configuration, it is important to understand that free space may fall unpredictably, long after the initial creation or expansion of the filesystem, and that seeing a certain amount of free space on an HDP pool does not make it safe to allocate an equivalent amount of space to a new or existing filesystem.  The 'span-hdp-preallocation' man page sets out important guidelines about free space.  'span-list' will display a warning if it displays the amount of free space on an HDP pool while pre-allocation writes are disabled.  Use 'span-mapped-space' to estimate how much more space (if any) is required to store chunks that have already been allocated to filesystems.</p>
+<p>The text "1500GiB is free, 548GiB is vacated" indicates that 548GiB of this stripeset's space resides on the vacated-chunks list, which is explained in the 'hdp' man page.  This space has been used in the past and was then vacated when the filesystems that used it were deleted and recycled.  You can expect to use this much space again in other filesystems on the same span without seeing any reduction in the free space on the HDP pool (unless you are using compressed FMDs; the free space on the FMDs may either rise or fall, depending on whether newly written data is more or less compressible than any data stored there previously).  When creating or expanding a span, the server always reuses chunks from the underlying span's VC list before allocating new space from the HDP pool.</p>
+<p>The same text indicates that the stripeset has 1500GiB of chunks that are neither used by filesystems nor occupied by the VC list.  Once all a span's vacated chunks have been used, further creation or expansion of filesystems on this span will cause this space to be used.  The number shown here will fall, and the "4065GiB free" figure on the previous line will fall by the same amount.</p>
+<p>If the free space on an HDP pool is smaller than the free space on all the stripesets that reside on that pool, it means the pool is thinly provisioned.  Adding more physical storage to the pool will enable filesystems to expand further on the stripesets concerned without any need for span-expansion.  Conversely, if the free space on the pool exceeds the free space on all the stripesets that use it, some of the space on the pool will be unusable until you create at least one further stripeset on other DP-Vols on that pool.</p>
+<p>If the server detects certain storage problems, 'span-list' will automatically show SD details, even if you don't provide the --sds switch.</p>
+<h3>Details about FMD compression</h3>
+<p>If the span resides on an HDP pool that is hosted on compressed FMDs, 'span-list --sds' displays statistics about compression:</p>
+<pre>server:$ span-list -s
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Hex                    Yes  100%      500    100 x    5368709120  90%
+   Tier 0: capacity     100GiB; free:     100GiB (100%)
+   Tier 1: capacity     400GiB; free:     400GiB (100%)
+</pre>
+<p></p>
+<pre>   On HDP pool 0 with 4065GiB free, shared with Baz and Foo
+   <strong>Compressed: 11839GiB (12TiB) (26%) of 44795GiB (44TiB) is free; saving is 49%</strong>
+   Set 0: 4 x 5000GiB = 20000GiB (on tier 0), of which 1500GiB is free, 548GiB is vacated, 3091GiB is available
+      SD 0 (Rack '75052014', SD '0000')
+      SD 1 (Rack '75052014', SD '0001')
+      SD 2 (Rack '75052014', SD '0002')
+      SD 3 (Rack '75052014', SD '0003')
+</pre>
+<p></p>
+<pre>   On HDP pool 5 with 3205GiB free, shared with Quux
+   <strong>Compressed: 5832GiB (6TiB) (15%) of 38120GiB (37TiB) is free; saving is 53%</strong>
+   Set 1: 4 x 8000GiB = 32000GiB (on tier 1), of which 32000GiB is free, 0GiB is vacated, 32000GiB is available
+      SD 4 (Rack '75052014', SD '0004')
+      SD 5 (Rack '75052014', SD '0005')
+      SD 6 (Rack '75052014', SD '0006')
+      SD 7 (Rack '75052014', SD '0007')
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>"Compressed" means that the storage uses FMD compression.</p>
+<p>The next set of numbers shows free FMD space and total FMD space, and calculates the percentage of FMD space that is free; see the 'span-set-cap-warn-thresh' for precautionary measures taken if this percentage is too low.</p>
+<p>The saving is the percentage by which storage requirements have been reduced by compression.  For example, a 50% saving equates to a 2:1 compression ratio, and means that 2TiB of data have been stored in each 1TiB of physical space in FMDs.</p>
+<h2>Details about filesystems</h2>
+<pre>server:$ span-list -f trio
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   50%      500  4,5,6,7;0,1,2,3                  90%
+<strong>   fs Accounts             UnMnt, EVS    1, cap     70, con    200</strong>
+<strong>   fs Engineering          UnMnt, EVS    1, cap     90, unconfined</strong>
+<strong>   fs Sales                UnMnt, EVS    1, cap     90, con    110</strong>
+</pre>
+<p></p>
+<pre>server:$ span-list -f hex
+Span instance name     OK?  Free  Cap/GiB  System drives                    Con
+---------------------  ---  ----  -------  -------------------------------  ---
+Hex                    Yes   50%      500  4,5,6,7;0,1,2,3                  90%
+   Tier 0: capacity     100GiB; free:      85GiB ( 85%)
+   Tier 1: capacity     400GiB; free:     166GiB ( 41%)
+<strong>   fs Accounts             UnMnt, EVS    1, cap      70, conf below</strong>
+<strong>      Tier 0: capacity        5, unconfined</strong>
+<strong>      Tier 1: capacity       65, confined to      200</strong>
+<strong>   fs Engineering          UnMnt, EVS    1, cap     90, conf below</strong>
+<strong>      Tier 0: capacity        5, unconfined</strong>
+<strong>      Tier 1: capacity       85, unconfined</strong>
+<strong>   fs Sales                UnMnt, EVS    1, cap     90, conf below</strong>
+<strong>      Tier 0: capacity        5, unconfined</strong>
+<strong>      Tier 1: capacity       85, confined to      110</strong>
+</pre>
+<p></p>
+<pre>server:$
+</pre>
+<p></p>
+<p>If you give the --filesystems (or -f) switch, 'span-list' shows details of the filesystems on each span.  Each line is indented and introduced by 'fs' to show that it describes a filesystem.  On a tiered span, each filesystem is followed by a sequence of further-indented lines that give information about the individual tiers in the filesystem; 'conf below' indicates that the confining capacity is displayed on these two lines.  The fields printed by 'span-list' are:</p>
+<dl>
+<dt><strong>Filesystem instance name</strong></dt>
+<dd><p>This is the name you gave the filesystem when you created it or last renamed it, modified by the storage-based snapshot name of this span (if it is a snapshot).  It is used in commands such as 'mount'.</p></dd>
+<dd><p>See 'storage-based-snapshot-label' to understand the behaviour of filesystem labels when storage-based snapshots are used.</p></dd>
+<dt><strong>Status</strong></dt>
+<dd><p>In the example above, 'Mount' and 'Ready' are file system states.  See 'filesystem-list' for the meaning of each possible state.</p></dd>
+<dt><strong>EVS</strong></dt>
+<dd><p>Shows the EVS to which the filesystem is bound.  This is the EVS that is allowed to mount the file system.</p></dd>
+<dt><strong>cap</strong></dt>
+<dd><p>Shows the capacity of the filesystem in gibibytes.</p></dd>
+<dt><strong>con/unconfined</strong></dt>
+<dd><p>Shows the capacity to which a filesystem has been confined, in gibibytes, or 'unconfined' if the filesystem hasn't been confined.  See 'filesystem-confine'.</p></dd>
+<dd><p>For a tiered filesystem, confining capacities are printed on extra tier-specific lines immediately below.</p></dd>
+<dt><strong>Information about tiers</strong></dt>
+<dd><p>On a tiered span, the command shows a series of extra lines, one per tier.  Each line shows how much space the filesystem uses in that tier and whether (and to what capacity) its use of that tier has been confined.</p></dd>
+</dl>
+<p>If you supply the --verbose switch, further fields are shown:</p>
+<dl>
+<dt><strong>perm</strong></dt>
+<dd><p>Shows the filesystem's permanent ID.  This is a long number that's set when the filesystem is created and never changes, even if you move the span between clusters.  It appear in most logged events that relate to the filesystem.</p></dd>
+<dt><strong>dev</strong></dt>
+<dd><p>Shows the filesystem's device ID.  This number can change if you move the storage between clusters or if you disconnect, forget and rediscover the storage.</p></dd>
+<dt><strong>KiB</strong></dt>
+<dd><p>Shows the cluster (or 'file system block') size of the file system.  Space is always allocated to files in whole clusters.</p></dd>
+<dt><strong>WFS</strong></dt>
+<dd><p>Shows how the file system was formatted and how the data is laid out on disk.</p></dd>
+<dt><strong>DSBs</strong></dt>
+<dd><p>Shows the number of dynamic superblocks on the file system.</p></dd>
+<dt><strong>DWB</strong></dt>
+<dd><p>Those whether dynamic write balancing (DWB) is used on this file system.  Possible values are:</p></dd>
+<dl>
+<dt><strong>Yes</strong></dt>
+<dd><p>The file system uses DWB.</p></dd>
+<dt><strong>No</strong></dt>
+<dd><p>The file system is configured not to use DWB.  See the 'filesystem-dwb' man page.</p></dd>
+<dt><strong>Span</strong></dt>
+<dd><p>This span is incapable of supporting DWB.</p></dd>
+</dl>
+<dt><strong>Thin</strong></dt>
+<dd><p>Shows whether the filesystem is thinly provisioned, as described in the 'filesystem-thin' man page, and will report an artificially large capacity to protocol clients.  This thin provisioning (TP) is different from the storage-level TP described in the 'hdp' man page.</p></dd>
+<dt><strong>AX</strong></dt>
+<dd><p>An auto-expansion attempt can fail for a number of reasons: for example, the span or the underlying HDP pool has run out of space, or the user has confined the span or the filesystem to prevent it from expanding beyond its current capacity.  In the event of such a failure, the spanning system sends the Filesystem a "full" indication, meaning that no space is likely to become available in the immediate future and the Filesystem should not attempt to auto-expand this file system again.  When more space becomes available -- for example, because the user adds space to the span or the HDP pool, or releases the span or the file system -- the spanning system sends the Filesystem a "space available" notification, meaning that the Filesystem should attempt to auto-expand the file system again if the file system is still full enough to need it.</p></dd>
+<dd><p>The "AX" field displays the word "Full" if the spanning system has sent a "full" notification, or (after an Admin Service failover) is acting as if such a notification had been sent.  It means that the next event that makes space available will cause the spanning system to send a "space available" notification to the Filesystem.  It does not necessarily mean that an auto-expansion request would fail or that one has failed in the past.  Conversely, seeing "OK" here does not prove that an auto-expansion attempt would succeed: it may be that the Filesystem has never tried to auto-expand this file system, and has therefore not been told that no space is available.</p></dd>
+<dd><p>This field is available only when 'span-list' is run on the server that is running the Admin Service; on other servers, it displays question marks.</p></dd>
+</dl>
+<h2>HOW MUCH FREE SPACE DOES THE SPAN HAVE?</h2>
+<p>On a span that uses plain SDs (and not HDP), 'span-list' shows the amount of free space as a percentage.  A simple calculation will produce the equivalent figure in gibibytes.</p>
+<p>On HDP, the calculation takes more thought.</p>
+<h3>The simplest case: one stripeset, one HDP pool</h3>
+<p>'span-list -s' shows how much space is free on each stripeset and on the HDP pool underlying that stripeset.  Think of a stripeset as a window on to the space in an HDP pool.  Consider, for now, a span with a single stripeset -- a span that has never been expanded:</p>
+<ul>
+<li>If the stripeset has 2TiB of free space and the HDP pool has 3TiB of free space, filesystems can expand by 2TiB, and then the stripeset will be full.  Expanding the span by 1TiB or more (adding a second stripeset) will enable filesystems to use the last tebibyte of space on the HDP pool.</li>
+<li>Conversely, if the stripeset has 3TiB of free space but the HDP pool has only 2TiB of free space, the server will not allocate more than 2TiB of chunks to file systems, and the stripeset will never fill up.  Adding at least 1TiB of disk space to the HDP pool (or freeing up 1TiB by running 'span-unmap-vacated-chunks' on another span that draws space from the same HDP pool) will enable the server to allocate a further tebibyte, filling up the stripeset.</li>
+</ul>
+<h3>A span with multiple stripesets</h3>
+<p>If the span has multiple stripesets and each one resides on a different HDP pool, you can simply add up the amount of free space on each stripeset to arrive at the total.  For example:</p>
+<ul>
+<li>Stripeset 0 has 1.5TiB of free chunks, and resides on HDP pool 0, which has 2TiB of free space.  You can use 1.5TiB of space on this stripeset.</li>
+<li>Stripeset 1 has 5TiB of free chunks, and resides on HDP pool 1, which has 3TiB of free space.  You can use 3TiB of space on this stripeset.</li>
+</ul>
+<p>The total amount of available space is 1.5TiB + 3TiB = 4.5TiB.</p>
+<p>If multiple stripesets reside on the same HDP pool, add up their free chunks and treat them as a unit.  For example, imagine that two stripesets each have 2TiB of free space, and they reside on a single HDP pool with 3TiB of free space.  The available space is the minimum of the total free space on the two stripesets and the free space on the HDP pool -- that is, 3TiB.</p>
+<h3>An HDP pool shared between two spans</h3>
+<p>If an HDP pool is shared between two spans, allocating space from one span may (or may not) reduce the amount of space that can be allocated from the other.  Consider two spans, each with 2TiB of free chunks, both resident on the same HDP pool with 3TiB of free space.  Either span can supply 1TiB of new space and still leave 2TiB of free space on the HDP pool, having no impact on the other span's ability to provide space.  But, if a filesystem on one span expands by 1.2TiB, it leaves only 1.8TiB of free space on the HDP pool, and now the filesystems on the other span cannot expand by more than 1.8TiB.</p>
+<p>This is why 'span-list -s' warns you if an HDP pool is shared between two or more spans.</p>
+<h3>Vacated chunks</h3>
+<p>If you create a filesystem, all its chunks will be mapped to real disk space on the HDP pool(s) underneath the span.  If you delete and recycle the filesystem, the chunks remain mapped to real disk space.  They are added to the vacated-chunks list, which is stored in Cod; when allocating chunks in the future, the server will always use chunks in the VC list if any exist.  This strategy avoids mapping further chunks to real disk space unnecessarily, and reduces the need to provision new storage.</p>
+<p>'span-list -s' shows you how much vacated space is in each stripeset.  It is <strong>likely</strong> that all this vacated space is already mapped to real disk space on the HDP pool, and therefore allocating any or all of this space will result in no decrease in free space on the HDP pool.  When calculating free space, after performing other calculations, you can usually go back and add in all space shown as vacated.</p>
+<p>For example, imagine that a stripeset has 1.8TiB of free space and 0.3TiB of vacated space, and resides on an HDP pool with 1.2TiB of free space.  The amount of new space that can be allocated is min(1.8TiB, 1.2TiB) = 1.2TiB, but the vacated space can be used at no cost to the HDP pool, yielding a total of 1.5TiB.</p>
+<p>One situation in which this assumption is unsafe is if you have ever used 'span-hdp-preallocation no' (even if you have since reversed it).  In that case, some chunks in the filesystem may not have been mapped to real disk space, and it is unsafe to assume that using those chunks will not reduce the amount of free space on the HDP pool.  The most conservative course of action is to ignore vacated space in this case.</p>
+<h3>Compressed storage</h3>
+<p>For a stripeset that resides on an HDP pool that uses compressed FMDs, physical free space imposes an additional limit.  Space is available on the stripeset only if the stripeset has free chunks <strong>and</strong> the LDEVs in the HDP pool have free space <strong>and</strong> the FMDs have free space.  For example, imagine a stripeset with 5TiB of free chunks, on an HDP pool whose pool volumes have 8TiB free, whose FMDs have 1TiB free and have achieved a 33% saving.  This saving corresponds to a compression ratio of about 1.5:1, and so we expect to be able to store about 1.5TiB more data on these FMDs before the HDP pool runs out of physical capacity and fails.  Therefore, the free space on this stripeset is only 1.5TiB -- and this capacity will be shared with any other stripesets that reside on the same HDP pool.</p>
+<p>In practice, the data stored on a span is not uniformly compressible, and so auto-expansion will stop well before this point, and the 'available' figure displayed by 'span-list -s' will show a figure smaller than 1.5TiB.  'span-list' and 'trouble' will also display a warning, because the HDP pool is in danger of running out of physical space and failing.</p>
+<h3>Space within each file system</h3>
+<p>If not confined, a file system auto-expands when it becomes 85% full.  This is a good usage target for a filesystem.  If a 2TiB file system is only 70% full, you can add 15% x 2TiB = 0.3TiB of data without needing to expand the file system further.  Conversely, if the same file system is 95% full, performance will be reduced, and you would ideally expand it by 0.2TiB to optimise its performance.</p>
+<p>To see free space inside a file system, use 'df'.</p>
+<h3>Space on UVM</h3>
+<p>UVM demands extra caution.  UVM uses "internal" LUs, which are local virtualizations of remote, "external" LUs.  The server can determine the capacity of the internal LUs, but it cannot determine whether the external LUs are thinly provisioned and, if so, how much free space remains on them.  The server therefore takes various precausions, as detailed in the 'uvm' man page, but it is the administrator's responsibility to monitor free space on the external LUs and ensure that they never run out of space.</p>
+<h3>If an allocation fails unexpectedly</h3>
+<p>If you are reading this because a filesystem expansion failed but the span and the HDP pools all have space, it usually means two things:</p>
+<ul>
+<li>All stripesets that have free space are on HDP pools that have little or no space, and</li>
+<li>All HDP pools that have free space are hosting stripesets with little or no space.</li>
+</ul>
+<p>Do one of two things:</p>
+<ul>
+<li>If possible, add (or free up) space on one of the HDP pools that are hosting stripesets that have free space.  Failing that:</li>
+<li>Expand the span on to new DP-Vols on an HDP pool that has free space.</li>
+</ul>
+<p>If the span resides on HDP DP-Vols that were previously used in a different span, it is possible that parts of those DP-Vols are still mapped to real space.  The server detects this condition and launches an unmapper to reclaim the leaked space.  However, reclamation takes time -- it usually continues well after the unmapper has terminated.  Check the event log of the server running the Admin Service to see whether an unmapper has run recently.  If so, run span-list -s twice, five minutes apart; if the free space on the HDP pool is increasing, it may indicate that space-reclamation is still in progress.</p>
+<p>One other reason for a failed auto-expansion (but not a failed manual expansion or a filesystem-creation) is that you have confined the span or the filesystem.  See 'span-confine' and 'filesystem-confine'.</p>
+<h1>Examples</h1>
+<pre>span-list
+</pre>
+<p></p>
+<pre>span-list --filesystems
+</pre>
+<p></p>
+<pre>span-list -f Accounts
+</pre>
+<p></p>
+<pre>span-list -s -f Admin
+</pre>
+<p></p>
+<pre>span-list -sfv Admin
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Topic/cod.html">cod</a> <a href="../User/df.html">df</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../User/filesystem-limits.html">filesystem-limits</a> <a href="../User/filesystem-list.html">filesystem-list</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Topic/hdp.html">hdp</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Topic/site.html">site</a> <a href="../Supervisor/span-add-snapshot.html">span-add-snapshot</a> <a href="../Supervisor/span-confine.html">span-confine</a> <a href="../Supervisor/span-delete.html">span-delete</a> <a href="../User/span-dump.html">span-dump</a> <a href="../Supervisor/span-enable-snapshots.html">span-enable-snapshots</a> <a href="../Topic/span-fmd-compression.html">span-fmd-compression</a> <a href="../Supervisor/span-hdp-preallocation.html">span-hdp-preallocation</a> <a href="../Supervisor/span-mapped-space.html">span-mapped-space</a> <a href="../Supervisor/span-set-cap-warn-thresh.html">span-set-cap-warn-thresh</a> <a href="../Supervisor/span-unmap-vacated-chunks.html">span-unmap-vacated-chunks</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a> <a href="../Topic/tier.html">tier</a> <a href="../Supervisor/trouble.html">trouble</a> <a href="../Topic/uvm.html">uvm</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

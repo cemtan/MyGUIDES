@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>max-dir-size</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>max-dir-size</h1>
+<p>Set maximum directory size parameters</p>
+<h1>Syntax</h1>
+<pre>max-dir-size [--total-chunks &lt;num&gt;] [--entries &lt;num&gt;] [--defaults] [--force]
+</pre>
+
+<h1>Description</h1>
+<p>Manage the maximum number of directory entries or directory chunks.  Two limit variables are maintained for directories: maximum number of entries and maximum number of chunks.  When either limit is hit, the directory will return IndexFull to future creation requests.</p>
+<dl>
+<dt><strong>Entry</strong></dt>
+<dd><p>A name in a directory.  An entry spans one Base Chunk and zero or more Extension Chunks.</p></dd>
+<dt><strong>Base Chunk</strong></dt>
+<dd><p>A contiguous segment in the directory index which contains the first 32 bytes of a name.  This may be enough for the entire name, which means the entry will only require a base chunk.</p></dd>
+<dt><strong>Extension Chunk</strong></dt>
+<dd><p>A contiguous segment in the directory index which contains up to 56 bytes of a name.</p></dd>
+<dt><strong>***IMPORTANT NOTE***</strong></dt>
+<dd><p>1 character may require multiple bytes as the names are stored in UTF-8.</p></dd>
+</dl>
+<p>A small name will comprise one base chunk:</p>
+<pre>     ____________
+    | Base Chunk |
+    | 'small.doc'|
+    |____________|
+</pre>
+<p></p>
+<pre>    |------------| &lt;- One Chunk.
+    |------------| &lt;- Counted as one Entry.
+</pre>
+<p></p>
+<p>And a long name will comprise a base chunk and zero or more extension chunks:</p>
+<pre>     ____________   ____________   ____________
+    | Base Chunk | | Ext Chunk  | | Ext Chunk  |
+    | 'abigfilen'| | 'amewhichs'| | 'hanonechu'|
+    |____________| | 'pansmoret'| | 'nk.doc'   |
+                   |____________| |____________|
+</pre>
+<p></p>
+<pre>    |------------| |------------| |------------| &lt;- Three Chunks.
+    |------------------------------------------| &lt;- Counted as one Entry.
+</pre>
+<p></p>
+<p>A separate, DOS-compatible 'short name' may also be created in addition to normal chunk allocations. See 'shortname' for the reasons behind short name creation.  A short name will never require more than one Chunk.</p>
+<p>As shown above, the chunk limit is far more likely to be hit before an entry limit of equal size.</p>
+<p>In some cases, increasing the amount of files a directory can hold is desirable, but the user should be aware of the potential consequences:</p>
+<pre>    - It becomes impractical to list (ls) the directory - it may take a very
+        long time and the sorting overhead could even crash an NFS client.
+</pre>
+<p></p>
+<pre>    - It is hard to delete files from the directory without being able to list
+        its content.
+</pre>
+<p></p>
+<pre>    - A job erroneously creating many files can affect the system more if the
+        limits are higher.
+</pre>
+<p></p>
+<pre>    - Additional metadata allocated to support a very large number of files
+        will never be freed.  Increasing a directory's capacity exacerbates the
+        issue.
+</pre>
+<p></p>
+<pre>    - Checkfs will perform much more slowly in the case of a very large
+        directory.  A directory's data must be thoroughly scrutinized, and a
+        directory so large it will not fit in cache will cause a large amount
+        of cache misses and churn; as a result Checkfs will take much longer to
+        complete.
+</pre>
+<p></p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--total-chunks</strong></dt>
+<dd><p>The allowable number of chunks in a directory (Default is 0x400000).</p></dd>
+<dt><strong>--entries</strong></dt>
+<dd><p>The allowable number of entries in a directory (Default is 0xffffffff).</p></dd>
+<dt><strong>--defaults</strong></dt>
+<dd><p>Return the chunk and entry limit to their original defaults.</p></dd>
+<dt><strong>--force</strong></dt>
+<dd><p>Force the given configuration on to the system.  Any chunk limit over 0x1000000 will require the force flag to be set.</p></dd>
+<dd><p>This option is only available to the DEV user.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To increase the limit of chunks to 0x500000</p>
+<pre>max-dir-size --total-chunks 0x500000
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/checkfs.html">checkfs</a> <a href="../Supervisor/ls.html">ls</a> <a href="../Supervisor/shortname.html">shortname</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

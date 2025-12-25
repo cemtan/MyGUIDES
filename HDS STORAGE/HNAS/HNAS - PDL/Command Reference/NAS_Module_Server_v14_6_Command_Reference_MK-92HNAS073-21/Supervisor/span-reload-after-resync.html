@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-reload-after-resync</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-reload-after-resync</h1>
+<p>Bring a span back up after an intermittent mirror is broken</p>
+<h1>Syntax</h1>
+<pre>span-reload-after-resync &lt;span&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The 'storage-based-mirror' man page discusses a configuration in which the storage mirrors data between two sites.  Periodically, the mirror is broken, and the system drives (SDs) at the secondary site become capable of I/O; the secondary site mounts the file systems on the secondary SDs in order to take tape backups or perform off-line database queries; later, the mirror is remade and allowed to resynchronize, in order to bring the secondary site up to date.</p>
+<p>'span-reload-after-resync' is run on the secondary server after resynchronization is complete.  It brings the secondary server up to date with changes made by the primary and brings the filesystems back online:</p>
+<ol>
+<li>It rescans Cod, in case the primary server has (for example) expanded the span or a filesystem.</li>
+<li>It re-enables event-logging and the sending of diagnostics in response to changes in status in the SDs.  These actions will typically have been disabled by the 'span-prepare-for-resync' command.</li>
+<li>It reveals the filesystems to the server's clustering subsystem, so that file systems can be automounted.  They will typically have been hidden by the 'span-prepare-for-resync' command.</li>
+<li>It prints a command that you can run to watch the file systems as they automount.</li>
+</ol>
+<p>Unless the primary site unmounted all file systems before the synchronization (which is unusual), you will need to use 'mount-requires-nvram --off' at the secondary site before running 'span-reload-after-resync'.  This command gives the secondary site permission to mount file systems, despite not having a copy of the NVRAM data for them.  After file systems have reached a stable state, you may wish to run 'mount-requires-nvram --on' to return the server to its normal configuration.</p>
+<p>'span-reload-after-resync' queues messages, making it possible for the Filesystem to auto-mount file systems, but it does not wait for those messages to be processed.  Any script running this command may need to follow it with 'span-wait-for-loading --mount' to give file systems time to mount before the script runs further commands.</p>
+<h1>Examples</h1>
+<pre>span-reload-after-resync Accounts
+</pre>
+<p></p>
+<p>Tells the server that the SDs that host span Accounts have been resynchronized, and that it should remount the file systems.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/mount-requires-nvram.html">mount-requires-nvram</a> <a href="../Supervisor/span-prepare-for-resync.html">span-prepare-for-resync</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

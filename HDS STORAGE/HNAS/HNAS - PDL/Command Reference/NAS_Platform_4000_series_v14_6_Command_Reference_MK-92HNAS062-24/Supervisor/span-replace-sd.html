@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-replace-sd</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>span-replace-sd</h1>
+<p>Replace a system drive within a span</p>
+<h1>Syntax</h1>
+<pre>span-replace-sd &lt;old-sd&gt; &lt;replacement-sd&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Removes a system drive (SD) from a span; in its place, inserts a new SD, whose contents must be identical.</p>
+<p>This man page includes wide output.  You may wish to widen your console or use 'man -n'.</p>
+<h2>WHEN TO USE THIS COMMAND</h2>
+<p>This command is useful in two circumstances:</p>
+<ul>
+<li>Use it when an SD has multiple disks with unreadable blocks, thus making a rebuild risky: you can copy the data to a new SD and then drop it into the span in place of the unreliable SD.</li>
+<p>Note that this command does not copy data between SDs.  Before running 'span-replace-sd', use a storage-based copying facility, such as TrueCopy, to copy data between SDs.</p>
+<li>Use 'span-replace-sd' when SD Luids have changed and 'sd-recover-from-changed-luids' doesn't work.  A Luid is a long string, produced from information provided by the storage, which is used to identify SDs in Cod.  If Luids change as a result of unusual storage trauma, the server can no longer tell which SD is which, and manual intervention is necessary.</li>
+</ul>
+<h2>REPLACING AN UNRELIABLE SD</h2>
+<p>Use 'sd-list' to identify the span that uses the unreliable system drive.</p>
+<p>Create a new SD, which must be at least as large as the capacity of the old SD, and should preferably have exactly the same capacity.  It will become the replacement SD.  If necessary, license it by typing:</p>
+<pre>sd-allow-access &lt;new-SD-device-ID&gt;
+</pre>
+<p></p>
+<p>Use TrueCopy (or similar) to copy data from the old SD to the new one, wait for copying to complete, and then unmount the file systems on the affected span.</p>
+<p>Use 'automount' to disable automount.</p>
+<p>Run the following command, substituting the old and replacement device IDs:</p>
+<pre>span-replace-sd &lt;old-SD-device-ID&gt; &lt;replacement-SD-device-ID&gt;
+</pre>
+<p></p>
+<p>Run 'check-directory' on each of the span's file systems to ensure that the copy was successful and the file systems are still structurally intact.</p>
+<p>'check-directory' does not write to disk.  Therefore, if you wish to revert the changes you have made and return to the original SDs, you can do so by running 'span-replace-sd' again, provided that you have not written to the storage by running commands such as 'checkfs' or 'mount'.</p>
+<p>After deciding whether to keep or revert the changes, update the span Cod so that the span will load in future by typing:</p>
+<pre>span-rewrite-cod &lt;span-instance-name&gt;
+</pre>
+<p></p>
+<p>Run 'mount' to mount each file system in turn.</p>
+<p>If the old SD (the SD that's no longer in the span) is healthy, run 'sd-wipe-cod-signature' or 'sd-deny-access' on it.  Otherwise, the server will see unloadable Cod on it; this will cause it log severe events and may prevent the span from loading in future.</p>
+<p>If you need to substitute multiple SDs, you should create and license them all; then unmount file systems; then copy the data; then run 'span-replace-sd' as many times as necessary; then reveal the span; then run 'check-directory' on each file system, and continue as before.</p>
+<h2>RECOVERING FROM CHANGED LUIDS</h2>
+<p>The server uses Luids to identify the SDs presented by storage.  If Luids change, it will appear to the server that some SDs have failed, and an equal number of new SDs have appeared in their place.  The 'new' SDs will have new device IDs, and will contain Cod that identifies the 'old' SDs.</p>
+<p>Suppose that SD 0 has failed (causing its span to fail with it) and a new SD 6 has appeared.  'sd-list' will show SD 0 as licensed but unhealthy, and it will show SD 6 as healthy but unlicensed.  In addition, SD 6 will contain Cod that identifies SD 0.  The 'sd-metadata' command produces output that's harder to read, but is more practical if a large number of SDs are affected.  'sd-dump-cod' has the advantage that it has a --denied switch, which enables you to dump the Cod without licensing the SD.</p>
+<pre>server:$ sd-metadata 6
+   6 P eLSFCH; 0 [Trio]: Trio, df2e374ac0fae4f7, 4b54b064023251d3; 207, 143
+server:$ sd-dump-cod span 6 | head
+</pre>
+<p></p>
+<pre>SD 6: valid span signature
+Schema number 9 (supported)
+Primary Luid for SD 0 ([01:01:00]XYZZY   00:00:A6:44:20:00:00:80:E5:11:A6:44:00:00:00:00:00:00:00:00)
+This SD is stripeset 0, SD 0
+This span is dual-engraved
+</pre>
+<p></p>
+<pre>Span 0:
+  Config length 238
+  Config ID 0x4b54b064023251d3
+server:$
+</pre>
+<p></p>
+<p>In this 'sd-metadata' output, the number 0 indicates that SD 6 has span Cod that originated on SD 0.  In 'sd-dump-cod', the equivalent line is the one that starts 'Primary Luid for SD 0'.  In this context, both these commands indicate that SD 0's Luid has changed and &lt;SD 0&gt; is now seen as &lt;SD 6&gt;.</p>
+<p>Identify all affected pairs of SDs.  Use 'sd-allow-access' to license the 'new' SDs.  Use 'span-replace-sd' once for each pair of SDs, replacing the 'old' SD with the 'new' one -- for example:</p>
+<pre>span-replace-sd 0 6
+</pre>
+<p></p>
+<p>Run 'check-directory' on each file system in the span to ensure that the SDs have been replaced correctly and all file systems are structurally intact.</p>
+<p>Update the span Cod so that the span will load in future by typing:</p>
+<pre>span-rewrite-cod &lt;span-instance-name&gt;
+</pre>
+<p></p>
+<p>Run 'mount' to mount each file system in turn.</p>
+<p>Finally, use 'sd-forget' to remove the 'old', apparently failed SDs from the server's registry.</p>
+<h2>USEFUL CHECKS WHEN SEVERAL SYSTEM DRIVES NEED REPLACING</h2>
+<p>Every SD in a span contains a data structure called Cod, which is explained in the 'cod' man page.  Cod specifies, among other things, how SDs are combined into stripesets and how stripesets make up spans.</p>
+<p>Each SD's Cod contains a reminder of the SD's position within the span.  This reminder is provided purely as an aid to users of 'span-replace-sd' and similar commands: the server maintains it but does not use it when loading Cod.  In the following transcript, 'span-list' shows the stripesets of span Accounts and the SDs within each stripeset, and 'sd-dump-cod' confirms that the Cod on each SD agrees with these positions.</p>
+<pre>server:$ span-list -s accounts
+Span instance name     OK?  Free  Cap/GiB  Chunks                 Con
+---------------------  ---  ----  -------  ---------------------  ---
+Accounts               Yes  100%     3200   3200 x    1073741824  90%
+</pre>
+<p></p>
+<pre>   Set 0: 4 x 400GiB = 1600GiB, of which 1600GiB is free, 1600GiB is available
+      SD 4 (rack '91250490', SD '0004')
+      SD 5 (rack '91250490', SD '0005')
+      SD 6 (rack '91250490', SD '0006')
+      SD 7 (rack '91250490', SD '0007')
+</pre>
+<p></p>
+<pre>   Set 1: 4 x 400GiB = 1600GiB, of which 1600GiB is free, 1600GiB is available
+      SD 12 (rack '91250490', SD '0012')
+      SD 13 (rack '91250490', SD '0013')
+      SD 14 (rack '91250490', SD '0014')
+      SD 15 (rack '91250490', SD '0015')
+</pre>
+<p></p>
+<pre>server:$ sd-dump-cod span accounts | grep '^SD | Label |^This SD is stripeset'
+SD 4: valid span signature
+This SD is stripeset 0, SD 0
+  Label "Accounts"
+SD 5: valid span signature
+This SD is stripeset 0, SD 1
+  Label "Accounts"
+SD 6: valid span signature
+This SD is stripeset 0, SD 2
+  Label "Accounts"
+SD 7: valid span signature
+This SD is stripeset 0, SD 3
+  Label "Accounts"
+SD 12: valid span signature
+This SD is stripeset 1, SD 0
+  Label "Accounts"
+SD 13: valid span signature
+This SD is stripeset 1, SD 1
+  Label "Accounts"
+SD 14: valid span signature
+This SD is stripeset 1, SD 2
+  Label "Accounts"
+SD 15: valid span signature
+This SD is stripeset 1, SD 3
+  Label "Accounts"
+server:$
+</pre>
+<p></p>
+<p>For example, the Cod shows that SD 6 is in span Accounts and that it is the third SD in the first stripeset.  'span-list' agrees.</p>
+<p>You can use this information in two ways.  First, before running 'span-replace-sd', you can verify that one SD is really a copy of another:</p>
+<pre>server:$ sd-dump-cod span 12,16 | grep '^SD | Label |^This SD is stripeset'
+SD 12: valid span signature
+This SD is stripeset 1, SD 0
+  Label "Accounts"
+SD 16: valid span signature
+This SD is stripeset 1, SD 0
+  Label "Accounts"
+server:$
+</pre>
+<p></p>
+<p>Second, after running 'span-replace-sd' but before running commands such as 'check-directory' or 'span-rewrite-cod', you can compare the output of 'span-list -s' with that of 'sd-dump-cod' to double-check that SDs have been been swapped into the correct positions in the span.</p>
+<h2>GENERAL NOTES</h2>
+<p>'span-replace-sd' does not insist that the two SDs you specify on the command line, or the span as a whole, be healthy.  However, if both SDs are healthy, the command reads the Cod area of each SD; if they differ, the command warns you that the two SDs aren't copies of each other, and it fails.</p>
+<p>This check helps to safeguard the data on the span, and is normally desirable.  However, if it becomes necessary to replace one SD with another that is not an exact copy, you can use the Cod Converter as an alternative to 'span-replace-sd'.  The Cod Converter does not check the contents of SDs' Cod areas.  This operation places data at risk; contact your support provider before starting the procedure.</p>
+<p>'span-replace-sd' has no impact on any span other than the one specified on the command line.  It does not require other spans' file systems to be unmounted, and does not require a reboot.  It runs quickly and has no significant performance impact while it runs.</p>
+<h1>Examples</h1>
+<pre>span-replace-sd 3 7
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/automount.html">automount</a> <a href="../Supervisor/check-directory.html">check-directory</a> <a href="../Supervisor/checkfs.html">checkfs</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/mount.html">mount</a> <a href="../Supervisor/sd-allow-access.html">sd-allow-access</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-recover-from-changed-luids.html">sd-recover-from-changed-luids</a> <a href="../Supervisor/sd-set.html">sd-set</a> <a href="../Supervisor/sd-wipe-cod-signature.html">sd-wipe-cod-signature</a> <a href="../User/span-dump.html">span-dump</a> <a href="../User/span-list.html">span-list</a> <a href="../Supervisor/span-rewrite-cod.html">span-rewrite-cod</a> <a href="../Supervisor/unmount.html">unmount</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

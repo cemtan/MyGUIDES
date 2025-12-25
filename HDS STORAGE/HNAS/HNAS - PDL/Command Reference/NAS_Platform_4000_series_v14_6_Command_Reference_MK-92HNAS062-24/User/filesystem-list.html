@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>filesystem-list</h1>
+<p>List filesystems</p>
+<h1>Syntax</h1>
+<pre>filesystem-list [--all] [--group] [--verbose] [&lt;filesystems-see-&#39;man fs-spec&#39;&gt;]
+Alias:       fss
+</pre>
+
+<h1>Description</h1>
+<h2>Options</h2>
+<p>This command lists the file systems you have created or loaded from Cod.  If you don't specify any file systems, 'filesystem-list' lists all loaded file systems; however, you can use the flexible syntax detailed in the 'fs-spec' man page to list only a subset of the available file systems.  See the examples below.</p>
+<p>This command recognizes three switches:</p>
+<dl>
+<dt><strong>--all, -a</strong></dt>
+<dd><p>Lists all filesystems, regardless of their EVS bindings.  See 'EVS bindings' below.</p></dd>
+<dt><strong>--group, -g</strong></dt>
+<dd><p>Groups filesystems by host span, so that you can easily see all filesystems on each span.  Without this switch, the filesystems are sorted by instance name.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Produces a more verbose listing, which includes storage-based snapshot information, the file system cluster size, WFS version number, DSB count, DWB state, whether thin provisioning is enabled, whether auditing is enabled, and information about auto-expansion notifications.</p></dd>
+</dl>
+<p>Filesystems that haven't been seen since the server or cluster booted don't appear in the list.  To see those, run 'trouble' or 'filesystem-list-stored'.</p>
+<h2>EVS bindings</h2>
+<p>Each filesystem is normally bound to an EVS, which determines how it is presented to client computers and, indirectly, which cluster node mounts it.  See 'evs' and 'evsfs' for more details.  The console has a current EVS context; see 'console-context' for more details.</p>
+<p>'filesystem-list' can optionally filter out filesystems bound to other EVSs.  It will show all filesystems, regardless of EVS bindings, if</p>
+<ul>
+<li>It is run in the Admin Service context, or</li>
+<li>You specify the '--all' switch, or</li>
+<li>You specify at least one filesystem instance name on the command line; so 'filesystem-list SomeFS1 SomeFS2' always displays the SomeFS1 and SomeFS2 file systems, regardless of their EVS binding, and 'filesystem-list SomeFS all:capacity&gt;1200' displays SomeFS and all other file sysems larger than 1200GiB, regardless of EVS bindings.  If you wish to avoid this behavior, use the 'evs' group, as in 'filesystem-list SomeFS evs:capacity&gt;1200', or add a :this-evs filter, as in 'filesystem-list SomeFS SomeSpan:capacity&gt;1200:this-evs'.</li>
+</ul>
+<p>Otherwise, it shows only filesystems that are bound to the current EVS, or to no EVS at all.</p>
+<p>(By contrast, 'filesystem-list-stored' and 'span-list --filesystems' always show all filesystems.)</p>
+<h2>Understanding the output</h2>
+<p>'filesystem-list' shows the following information:</p>
+<dl>
+<dt><strong>Instance name</strong></dt>
+<dd><p>The instance name of the filesystem.  If you are not using storage-based snapshots, this is the name you assigned when you created or last renamed the filesystem.  Otherwise, see the 'storage-based-snapshot-label' man page to understand the three label types and their interactions.</p></dd>
+<dt><strong>Dev</strong></dt>
+<dd><p>The filesystem's device ID.</p></dd>
+<dt><strong>On Span</strong></dt>
+<dd><p>The instance name of the span on which the filesystem resides.  (Type 'man span-create' for more details of the relationship between spans and filesystems.)</p></dd>
+<dt><strong>State</strong></dt>
+<dd><p>A filesystem can have any of these general states:</p></dd>
+<dl>
+<dt><strong>Fail!</strong></dt>
+<dd><p>One or more of the system drives (SDs) in the host span have failed or become unreachable and the server can't perform I/O to the filesystem.</p></dd>
+<dt><strong>OK</strong></dt>
+<dd><p>The server can perform I/O to the filesystem, but a more precise state can't currently be obtained.  (The file system may still be mountable, or may already have been mounted.)</p></dd>
+<dt><strong>NoEVS</strong></dt>
+<dd><p>The filesystem is not bound to an EVS.  Use 'evsfs' to bind it.</p></dd>
+<dt><strong>EVS-D</strong></dt>
+<dd><p>The filesystem is bound to an EVS, but the EVS is disabled.  Use 'evs' to enable it.</p></dd>
+<dt><strong>Hiddn</strong></dt>
+<dd><p>The SDs in the host span are healthy, but that the server is preventing the file system from being mounted, checked or fixed, perhaps because the filesystem is being wiped or you have run 'span-hide' or 'filesystem-hide'.</p></dd>
+<dt><strong>Clust</strong></dt>
+<dd><p>The span belongs to a different cluster and so its file systems can't be mounted on the local cluster; use 'span-assign-to-cluster' or 'span-deny-access'.</p></dd>
+<dt><strong>Unavl</strong></dt>
+<dd><p>The spanning system is keeping the filesystem unavailable for I/O for some other reason.</p></dd>
+</dl>
+<dd><p>The remaining states all imply that I/O is possible, and they all add further detail:</p></dd>
+<dl>
+<dt><strong>Check</strong></dt>
+<dd><p>The fs is being checked.  See 'checkfs'.</p></dd>
+<dt><strong>Fixng</strong></dt>
+<dd><p>The fs is being fixed.  See 'fixfs'.</p></dd>
+<dt><strong>Mount</strong></dt>
+<dd><p>The fs has been mounted for normal read-write access.  See 'mount'.</p></dd>
+<dt><strong>MntRO</strong></dt>
+<dd><p>The fs has been mounted read-only.</p></dd>
+<dt><strong>SysLk</strong></dt>
+<dd><p>The fs is mounted read-write but syslocked: it's read-only to protocols, but read-write to NDMP.  See 'filesystem-syslock'.</p></dd>
+<dt><strong>SysRO</strong></dt>
+<dd><p>The fs is mounted read-only and syslocked.</p></dd>
+<dt><strong>RepTg</strong></dt>
+<dd><p>The fs is mounted as a replication target.</p></dd>
+<dt><strong>Rcvry</strong></dt>
+<dd><p>The fs is mounted in order to perform an NDMP-based recovery from tape.</p></dd>
+<dt><strong>UnMnt</strong></dt>
+<dd><p>The fs is not mounted.</p></dd>
+<dt><strong>Mntg</strong></dt>
+<dd><p>The fs is being mounted</p></dd>
+<dt><strong>Formt</strong></dt>
+<dd><p>The fs is being formatted</p></dd>
+<dt><strong>Failg</strong></dt>
+<dd><p>The fs is being failed</p></dd>
+</dl>
+<dd><p>On a cluster, a filesystem may have different states on different cluster nodes.  This can happen if, for example, one node is connected to the storage but another isn't.  'filesystem-list' will print 'Fail!' if the filesystem is not healthy on the cluster node where the command is run, even if it is healthy and mounted on another node.  It can therefore be used to find a node on which a given filesystem is healthy.</p></dd>
+<dd><p>In these circumstances, consider running 'sd-list', which prints an explicit notification when system drive states differ among cluster nodes.</p></dd>
+<dt><strong>EVS</strong></dt>
+<dd><p>The EVS to which the filesystem is bound, or '-' if the filesystem isn't bound to an EVS.</p></dd>
+<dt><strong>Cap/GiB</strong></dt>
+<dd><p>The capacity of the filesystem in gibibytes.  One GiB is 2**30 bytes.</p></dd>
+<dt><strong>Confined</strong></dt>
+<dd><p>The capacity (in GiB) to which the filesystem has been confined, or '-' if the filesystem isn't confined.</p></dd>
+<dd><p>For a tiered filesystem, confining capacities are printed on extra tier-specific lines immediately below.</p></dd>
+<dt><strong>Flag</strong></dt>
+<dd><p>'Worm' for a Worm (write once, read many [times]) file system, 'RC' for a read cache that was created in version 5.0 or later, and nothing otherwise.</p></dd>
+</dl>
+<p>The following fields are added if you use the '--verbose' switch:</p>
+<dl>
+<dt><strong>Snap</strong></dt>
+<dd><p>If the host span is in snapshot mode, this field shows the number of copies of the span that exist: 1 if 'span-enable-snapshots' has just been run, 2 if 'span-add-snapshot' has been run once, and so on.  There is no guarantee that the present filesystem exists on all these snapshots, because filesystems can be independently created and deleted on each snapshot.  If the span is not in snapshot mode, the field is blank.</p></dd>
+<dt><strong>Cluster size</strong></dt>
+<dd><p>The cluster ('file system block') size of the file system in kibibytes, or '-' if the cluster size isn't available.  One KiB is 2**10 bytes, which equals 1024 bytes.</p></dd>
+<dt><strong>WFS</strong></dt>
+<dd><p>The WFS version of the file system, which is set when the file system is formatted and controls how data is laid out on disk.</p></dd>
+<dt><strong>#DSBs</strong></dt>
+<dd><p>The number of dynamic superblocks stored in the file system, if known.</p></dd>
+<dt><strong>DWB</strong></dt>
+<dd><p>Shows whether the file system is using dynamic write balancing (DWB) and, if not, why not.  Possible states are:</p></dd>
+<dl>
+<dt><strong>Yes</strong></dt>
+<dd><p>The file system uses DWB.</p></dd>
+<dt><strong>No</strong></dt>
+<dd><p>The file system is configured not to use DWB.  See the 'filesystem-dwb' man page.</p></dd>
+<dt><strong>Span</strong></dt>
+<dd><p>This span is incapable of supporting DWB.</p></dd>
+</dl>
+<dt><strong>Thin</strong></dt>
+<dd><p>Shows whether the filesystem is thinly provisioned, as described in the 'filesystem-thin' man page.  (This setting causes the server to report an artifically large filesystem capacity to protocol clients, and is different from storage-level thin provisioning, which is described in 'hdp'.)</p></dd>
+<dt><strong>Audit</strong></dt>
+<dd><p>Shows whether auditing is enabled on the file system.</p></dd>
+<dt><strong>AExp</strong></dt>
+<dd><p>If no space is available when the Filesystem tries to auto-expand a file system, the spanning system tells it to stop requesting.  It then sends the Filesystem a space-available notification if space becomes available (for example, because an administrator confines the filesystem to a larger capacity or deletes another filesystem on the same span.)</p></dd>
+<dd><p>The 'AExp' field shows 'Full' if the spanning system will send a space-available notification next time the filesystem becomes expandable, 'OK' if no such notification will be sent, and 'Belo' if the filesystem is tiered (in which case a per-tier notification will be shown on the lines below, labeled 'AX').  Note that this field is available only if the command is run on the server that is presently running the Admin Service; on other servers, it prints question marks.</p></dd>
+<dd><p>Showing 'Full' does not mean that an auto-expansion has failed.</p></dd>
+</dl>
+<p>For a tiered filesystem, the command prints one extra line per tier, showing how much space the filesystem is using on that tier and whether (and to what capacity) it has been confined on that tier.</p>
+<h1>Examples</h1>
+<p>To list all file systems in the current EVS or bound to no EVS:</p>
+<pre>server[EVS-1]:$ filesystem-list
+Instance name      Dev   On span            State  EVS  Cap/GiB  Confined Flag
+-----------------  ----  -----------------  -----  ---  -------  -------- ----
+Alpha              1024  Foo                UnMnt    1      100        -
+Foxtrot            1029  Baz                UnMnt    1      300        -
+server[EVS-1]:$
+</pre>
+<p></p>
+<p>To list all file systems in all EVSs:</p>
+<pre>server[EVS-1]:$ filesystem-list --all
+Instance name      Dev   On span            State  EVS  Cap/GiB  Confined Flag
+-----------------  ----  -----------------  -----  ---  -------  -------- ----
+Alpha              1024  Foo                UnMnt    1      100        -
+Bravo              1025  Bar                UnMnt    2      200        -
+Charlie            1026  Baz                UnMnt    3      500        -
+Delta              1027  Foo                UnMnt    2      600        -
+Echo               1028  Bar                UnMnt    3      400        -
+Foxtrot            1029  Baz                UnMnt    1      300        -
+server[EVS-1]:$
+</pre>
+<p></p>
+<p>To list a specified set of file systems:</p>
+<pre>server[EVS-1]:$ filesystem-list bravo charlie delta
+Instance name      Dev   On span            State  EVS  Cap/GiB  Confined Flag
+-----------------  ----  -----------------  -----  ---  -------  -------- ----
+Bravo              1025  Bar                UnMnt    2      200        -
+Charlie            1026  Baz                UnMnt    3      500        -
+Delta              1027  Foo                UnMnt    2      600        -
+server[EVS-1]:$
+</pre>
+<p></p>
+<p>To list Bravo and all large file systems in all EVSs:</p>
+<pre>server[EVS-1]:$ filesystem-list bravo all:capacity&gt;400
+Instance name      Dev   On span            State  EVS  Cap/GiB  Confined Flag
+-----------------  ----  -----------------  -----  ---  -------  -------- ----
+Bravo              1025  Bar                UnMnt    2      200        -
+Charlie            1026  Baz                UnMnt    3      500        -
+Delta              1027  Foo                UnMnt    2      600        -
+server[EVS-1]:$
+</pre>
+<p></p>
+<p>To list Delta and all small file systems bound to the current vnode:</p>
+<pre>server[EVS-1]:$ filesystem-list delta evs:capacity&lt;400
+Instance name      Dev   On span            State  EVS  Cap/GiB  Confined Flag
+-----------------  ----  -----------------  -----  ---  -------  -------- ----
+Alpha              1024  Foo                UnMnt    1      100        -
+Delta              1027  Foo                UnMnt    2      600        -
+Foxtrot            1029  Baz                UnMnt    1      300        -
+server[EVS-1]:$ filesystem-list delta all:capacity&lt;400:this-evs
+Instance name      Dev   On span            State  EVS  Cap/GiB  Confined Flag
+-----------------  ----  -----------------  -----  ---  -------  -------- ----
+Alpha              1024  Foo                UnMnt    1      100        -
+Delta              1027  Foo                UnMnt    2      600        -
+Foxtrot            1029  Baz                UnMnt    1      300        -
+server[EVS-1]:$
+</pre>
+<p></p>
+<p>See the 'fs-spec' man page for more details of the syntax.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/checkfs.html">checkfs</a> <a href="../User/console-context.html">console-context</a> <a href="../User/evs.html">evs</a> <a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/expandfs.html">expandfs</a> <a href="../Supervisor/filesystem-confine.html">filesystem-confine</a> <a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-delete.html">filesystem-delete</a> <a href="../Supervisor/filesystem-dwb.html">filesystem-dwb</a> <a href="../User/filesystem-limits.html">filesystem-limits</a> <a href="../Supervisor/filesystem-list-stored.html">filesystem-list-stored</a> <a href="../Supervisor/filesystem-release.html">filesystem-release</a> <a href="../Supervisor/filesystem-rename.html">filesystem-rename</a> <a href="../Supervisor/filesystem-syslock.html">filesystem-syslock</a> <a href="../Supervisor/filesystem-thin.html">filesystem-thin</a> <a href="../Dev/fixfs.html">fixfs</a> <a href="../Supervisor/format.html">format</a> <a href="../Supervisor/fs-spec.html">fs-spec</a> <a href="../Topic/hdp.html">hdp</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-snapshot.html">storage-based-snapshot</a> <a href="../Topic/storage-based-snapshot-label.html">storage-based-snapshot-label</a> <a href="../Topic/tier.html">tier</a> <a href="../Supervisor/trouble.html">trouble</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

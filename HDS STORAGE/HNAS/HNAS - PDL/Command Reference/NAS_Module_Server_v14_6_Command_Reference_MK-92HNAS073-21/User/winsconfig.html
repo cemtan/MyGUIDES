@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>winsconfig</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>winsconfig</h1>
+<p>Query/set WINS IPv4 addresses</p>
+<h1>Syntax</h1>
+<pre>winsconfig operation
+where &#39;operation&#39; is one of:
+list
+add -p ip_address [-s ip_address]
+	-p, --primary    Set primary IPv4 address
+	-s, --secondary  Set secondary IPv4 address
+del [-ps]
+	-p, --primary    Delete primary address
+	-s, --secondary  Delete secondary address
+</pre>
+
+<h1>Description</h1>
+<p>When using netbios name lookup, you can specify the IPv4 addresses of primary and secondary WINS servers. IPv6 addresses are not supported.</p>
+<p>To display the currently configured WINS servers:</p>
+<p>winsconfig list</p>
+<p>To add WINS servers:</p>
+<p>winsconfig add [(--primary|-p) &lt;primary WINS server IP&gt;] [(--secondary|-s) &lt;secondary WINS server IP&gt;]</p>
+<p>where</p>
+<dl>
+<dt><strong>--primary or -p</strong></dt>
+<dd><p>allows you to specify the primary WINS server's IP address, and</p></dd>
+<dt><strong>--secondary or -s</strong></dt>
+<dd><p>allows you to specify the secondary WINS server's IP address.</p></dd>
+</dl>
+<p>To delete WINS servers:</p>
+<p>winsconfig del [(--primary|-p)] [(--secondary|-s)]</p>
+<h1>Examples</h1>
+<p>To specify a primary WINS server:  winsconfig add -p 10.1.1.7</p>
+<p>To list existing WINS servers:  winsconfig list</p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

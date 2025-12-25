@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nim-tcb</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>nim-tcb</h1>
+<p>dump active TCBs</p>
+<h1>Syntax</h1>
+<pre>nim-tcb [ -i tcb-index | -c ] [-s state] [-p port] [-a address] -A -v -V
+</pre>
+
+<h1>Description</h1>
+<p>The nim-tcb command displays information held by the hardware about existing TCP connections. The command options control whether a single line summary or a multi-line detailed information entry is displayed for each connection.</p>
+<dl>
+<dt><strong>-i, --tcb-index &lt;index&gt;</strong></dt>
+<dd><p>Displays detailed information about the connection in TCB &lt;index&gt;.</p></dd>
+<dt><strong>-c, --count</strong></dt>
+<dd><p>Displays a count of the TCBs.</p></dd>
+<dt><strong>-s, --state &lt;state&gt;</strong></dt>
+<dd><p>Display all TCBs that match a given connection state. The state is expressed either by name or number:</p></dd>
+<ul>
+<li>CLOSED (0)</li>
+<li>SYN_SENT (1)</li>
+<li>SYN_RCVD (2)</li>
+<li>ESTABLISHED (3)</li>
+<li>FIN_WAIT_1 (4)</li>
+<li>FIN_WAIT_2 (5)</li>
+<li>CLOSING (6)</li>
+<li>CLOSE_WAIT (7)</li>
+<li>LAST_ACK (8)</li>
+</ul>
+<dt><strong>-p, --port &lt;port&gt;</strong></dt>
+<dd><p>Display all TCBs that match a given port (both local and peer ports are considered).</p></dd>
+<dt><strong>-a, --address &lt;ip-address&gt;</strong></dt>
+<dd><p>Display all TCBs that match a given IP address (both local and peer addresses are considered).</p></dd>
+<dt><strong>-A, --list-all</strong></dt>
+<dd><p>Displays full details for all TCBs. No pagination is provided.</p></dd>
+<dt><strong>-v, --verbose</strong></dt>
+<dd><p>Displays additional information when displaying the TCB details.</p></dd>
+<dt><strong>-V, --very-verbose</strong></dt>
+<dd><p>Displays explanatory text when displaying the TCB details.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To display summary information for the first page of TCBs:</p>
+<pre>nim-tcb
+</pre>
+<p></p>
+<p>To display all information for TCB 26:</p>
+<pre>nim-tcb -i 26
+</pre>
+<p></p>
+<p>To display all information for all TCBs:</p>
+<pre>nim-tcb -A -V
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

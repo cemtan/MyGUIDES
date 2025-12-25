@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-span-cod-reads</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-span-cod-reads</h1>
+<p>Suppress reading of span Cod for a few minutes</p>
+<h1>Syntax</h1>
+<pre>sd-span-cod-reads [&lt;number-of-minutes-to-suppress&gt; | --resume]
+</pre>
+
+<h1>Description</h1>
+<p>Prevents the server from loading spans from system drives that become healthy or are promoted from mirrored secondaries to primaries; re-enables the loading of spans; or shows whether the server is allowed to load spans and, if not, when the prohibition will lapse.</p>
+<p>A mirrored primary SD is normally a P-Vol.  For the exceptions to this general rule, see 'storage-based-mirror'.</p>
+<p>Normally, the server waits for system drives to become (1) healthy, (2) mirrored primaries or unmirrored, and (3) licensed (i.e. for access to be allowed to them).  When all three conditions are met, the server reads 'span Cod' -- specifications of spans -- from the SDs.  From span Cod, it loads spans into memory, where you can use commands such as 'span-list' to see them.</p>
+<p>Occasionally, during maintenance, it is useful to prevent the server from loading Cod.  One example is when you are breaking a storage-based mirror: immediately after a mirror relationship is broken, the SD that was secondary will have a copy of the primary SD's Cod on it, and it is useful to prevent the server from trying to load that Cod (resulting in error messages and severe events) until the SD's Cod signature has been wiped, making the Cod invisible to the server and making the SD available for reuse in a new span.</p>
+<p>If you run 'sd-span-cod-reads' and specify a time (in minutes), the server will be prevented from loading span Cod for the time you specify -- even if you reboot the server or cluster or migrate the Admin Service between servers.  When the time lapses, the server will resume loading span Cod from SDs that subsequently become healthy, primary and licensed, but it will not go back and load Cod from SDs whose Cod has not been loaded.</p>
+<p>If you run 'sd-span-cod-reads --resume' or 'sd-span-cod-reads -r', the server will immediately resume loading Cod as if the timeout had lapsed.  Once again, however, it will not load span Cod from SDs that became healthy, primary and licensed while the prohibition was in force.  To do that and cancel the prohibition with a single command, run 'sd-rescan-cod'.</p>
+<p>If you run 'sd-span-cod-reads' without specifying any command-line arguments, it tells you whether the server is allowed to read span Cod and, if not, when the prohibition is due to end.</p>
+<h1>Examples</h1>
+<p>The 'storage-based-mirror' man page contains a sequence of instructions that incorporate this command.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/sd-rescan-cod.html">sd-rescan-cod</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>group-mappings-add</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>group-mappings-add</h1>
+<p>Creates a group mapping</p>
+<h1>Syntax</h1>
+<pre>group-mappings-add     [--unix-name &lt;name&gt;] [--unix-id &lt;id&gt;] [--nt-name &lt;name&gt;]
+    [--nt-id &lt;id&gt;] [--nfsv4-name &lt;name&gt;]
+    [--no-unix-mapping] [--no-nt-mapping] [--no-nfsv4-mapping]
+</pre>
+
+<h1>Description</h1>
+<p>Adds a new entry to the group mappings table.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--unix-name</strong></dt>
+<dd><p>Sets the Unix name to be used for the new entry</p></dd>
+<dt><strong>--unix-id</strong></dt>
+<dd><p>Sets the Unix group id for the new entry</p></dd>
+<dt><strong>--nt-name</strong></dt>
+<dd><p>Sets the NT name (of the form DOMAIN\group) for the new entry</p></dd>
+<dt><strong>--nt-id</strong></dt>
+<dd><p>Sets the NT SID for the new entry</p></dd>
+<dt><strong>--nfsv4-name</strong></dt>
+<dd><p>Sets the NFSv4 name for the new entry</p></dd>
+<dt><strong>--no-unix-mapping</strong></dt>
+<dd><p>The entry will never have a valid Unix mapping</p></dd>
+<dt><strong>--no-nt-mapping</strong></dt>
+<dd><p>The entry will never have a valid NT mapping</p></dd>
+<dt><strong>--no-nfsv4-mapping</strong></dt>
+<dd><p>The entry will never have a valid NFSv4 mapping</p></dd>
+</dl>
+<p>Any fields set from the command line will be marked as fixed and won't be changed by the auto mapper.</p>
+<p>Any fields marked as having no mapping will be ignored by the auto mapper.</p>
+<p>The auto mapper will attempt to fill in any fields that haven't been either explicitly set or marked as having no mapping.</p>
+<p>If the server finds an existing entry that matches some of the fields set from the command line, the command will not create a new entry or modify the existing entry (use group-mappings-modify to modify an existing entry).</p>
+<h1>Examples</h1>
+<p>Add the Unix group badgers with a group id of 100 who maps to the NT group EXAMPLE\Badgers:</p>
+<pre>$: group-mappings-add --unix-name badgers --unix-id 100 --nt-name "EXAMPLE\Badgers"
+Created entry
+Unix name     : badgers*
+Unix group id : 100*
+NT name       : EXAMPLE\Badgers*
+NT id         : *unknown*
+NFSv4 name    : *unknown*
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/domain-mappings-add.html">domain-mappings-add</a> <a href="../Supervisor/group-mappings-delete.html">group-mappings-delete</a> <a href="../Supervisor/group-mappings-list.html">group-mappings-list</a> <a href="../Supervisor/group-mappings-modify.html">group-mappings-modify</a> <a href="../Supervisor/group-mappings-refresh.html">group-mappings-refresh</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

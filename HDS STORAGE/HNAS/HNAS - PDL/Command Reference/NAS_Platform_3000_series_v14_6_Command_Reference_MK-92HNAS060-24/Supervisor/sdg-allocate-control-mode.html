@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sdg-allocate-control-mode</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>sdg-allocate-control-mode</h1>
+<p>Control System Drive Group allocation mode</p>
+<h1>Syntax</h1>
+<pre>sdg-allocate-control-mode --mode &lt;NO_READ_AHEAD|READ_AHEAD&gt; -f &lt;file-system&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The command requests a change to the free space allocation mode for the specified file system.</p>
+<p>The NO_READ_AHEAD sdg allocate mode ensures that pages of the free space bitmap are only read as they are required by the allocation process.</p>
+<p>The READ_AHEAD sdg allocate mode allows pages of the free space bitmap to be read ahead of the time they are required by the allocation process. This can reduce the latency of the allocation process in and should result in a significant reduction in the FSA_CREATE_CHECKPOINT component of checkpoint dead time. The level of read-ahead is tuned automatically to match the amount of memory fitted, which is dependent on the model of server being used, and is also tuned automatically to match the activity of the file system. Further manual tuning is possible, but not recommended and should only be considered under supervision of the development team.</p>
+<p>The command may be applied to a mounted or unmounted file system. However, if applied to an unmounted file system it will only take effect when the file system is mounted. It is persistent across an unmount/mount or reboot.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--mode &lt;NO_READ_AHEAD|READ_AHEAD&gt;</strong></dt>
+<dd><p>Selects the free space allocation mode - READ_AHEAD or NO_READ_AHEAD</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Set the free space allocation mode of the fs0 file system to READ_AHEAD</p>
+<pre>sdg-allocate-control-mode --mode READ_AHEAD -f fs0
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

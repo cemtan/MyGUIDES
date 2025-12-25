@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-mirror-health</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>span-mirror-health</h1>
+<p>Show health, licensing and pegging of one or all spans&#39; system drives</p>
+<h1>Syntax</h1>
+<pre>span-mirror-health [&lt;span-instance-name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command lists summary information about the system drives (SDs) in one or all loaded spans.  Its output is intended for use by automated systems; it is not meant to be human-readable.</p>
+<p>If a span is specified at the command line, the command produces at most one data line; otherwise, it prints one data line for each loaded span.  There is no header or footer.</p>
+<p>Each line contains five fields: span instance name; span permanent ID; health and licensing of primary SDs; health and licensing of secondary SDs; and pegging.  Fields are separated by exactly one space.  Data lines are indented by one space, so that they can be automatically distinguished from error messages.</p>
+<p>The span instance name is not truncated (in the manner of 'span-list'), quoted or escaped.</p>
+<p>The permanent span ID is printed as sixteen upper-case hex digits, without a base prefix.</p>
+<p>Each health and licensing field contains two characters.  The first is 'H', 'F' or 'M', showing whether all the SDs are healthy, all are failed, or there is a mixture of statuses.  The second character is 'L', 'U' or 'M', showing whether all the SDs are licensed (i.e. an administrator has allowed access to them), all are unlicensed, or there is a mixture of licensed and unlicensed SDs.</p>
+<p>The pegging field contains the letter 'P', 'U' or 'M', showing whether all the span's SDs have had their mirror roles pegged with 'sd-peg', all SDs are unpegged, or there is a mixture of pegged and unpegged SDs.</p>
+<p>All these letters will be replaced by 'X' where no SDs exist.  For example, in a healthy, unmirrored span, the secondary health and licensing will both be shown as 'X'.</p>
+<p>When distinguishing primary SDs from secondaries, the command uses effective mirror roles, as defined in the 'sd-peg' man page.  Any ambiguous mirror relationship (such as a primary-primary relationship with both sides licensed) will prevent the command from displaying details for the affected span.</p>
+<p>Using the 'cn all' syntax will show SD health on each node of a cluster.</p>
+<h1>Examples</h1>
+<pre>server:$ span-mirror-health
+ Duo DF2E374F158714DE HL XX U
+ Trio DF2E374FE7C87057 HL XX U
+server:$ span-mirror-health trio
+ Trio DF2E374FE7C87057 HL XX U
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/cn.html">cn</a> <a href="../Supervisor/sd-peg.html">sd-peg</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

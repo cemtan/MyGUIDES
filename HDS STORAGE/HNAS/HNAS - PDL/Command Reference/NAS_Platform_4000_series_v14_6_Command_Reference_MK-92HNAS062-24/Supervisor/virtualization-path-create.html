@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>virtualization-path-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>virtualization-path-create</h1>
+<p>Creates a virtualization path for the specified target.</p>
+<h1>Syntax</h1>
+<pre>virtualization-path-create [--characterset {latin1|utf8}] [--port &lt;port&gt;] [--mountport &lt;mountport&gt;] -t &lt;fs label&gt; [-v &lt;vivol&gt;] [-d &lt;root of association&gt;] [--with-metadata-ext-copy] -n &lt;association name&gt; -s &lt;source&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Creates a virtualization path association between a remote NFS export source and a local file system, vivol or directory target.</p>
+<p>To ensure data can be managed correctly between the Legacy NAS and the HNAS, it is recommended that the mount on the Legacy NAS is exported with rw, sync, no_subtree_check, no_root_squash. It is also advised that due to no_root_squash, the mount is available only to the HNAS.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--characterset &lt;latin1|utf8&gt;</strong></dt>
+<dd><p>Character set of the legacy NAS source. The default is utf8.</p></dd>
+<dt><strong>--port &lt;port&gt;</strong></dt>
+<dd><p>NFS port of the legacy NAS source.</p></dd>
+<dt><strong>--mountport &lt;mountport&gt;</strong></dt>
+<dd><p>Mount port of the legacy NAS source.</p></dd>
+<dt><strong>-t, --target &lt;fs label&gt;</strong></dt>
+<dd><p>Target file system. Selected filesystem has to be empty if the directory or Virtual Volume is not selected for the association being created.</p></dd>
+<dt><strong>-v, --vivol &lt;vivol&gt;</strong></dt>
+<dd><p>Name of target Virtual Volume (optional). The vivol has to be empty, otherwise creation of the association will fail.</p></dd>
+<dt><strong>-d, --dir &lt;directory&gt;</strong></dt>
+<dd><p>Directory relative to the vivol or the filesystem in which to create the association (optional). Selected directory must exist and has to be empty, otherwise creation of the association will fail.</p></dd>
+<dt><strong>-n, --name &lt;association name&gt;</strong></dt>
+<dd><p>Logical name of the association.</p></dd>
+<dt><strong>-s, --source &lt;legacy NAS path URI&gt;</strong></dt>
+<dd><p>Legacy NAS path URI. The URI can contain a hostname, an IPv4 literal address, or an IPv6 literal address.</p></dd>
+<dt><strong>--with-metadata-ext-copy</strong></dt>
+<dd><p>Enable metadata external copy mode. Refer to your Support Provider for further details.</p></dd>
+</dl>
+<p>The target entity (file-system, vivol or directory) has to be empty prior to creation of a new association. It isn't possible to re-create the virtualization path association if any artifacts from previous virtualization attempts remain there.</p>
+<h1>Examples</h1>
+<pre>virtualization-path-create -t fs1 -n assoc1 -s nfs://legacy.example.com/example_fs/example_dir -d example_dir
+</pre>
+<p></p>
+<p>Creates a virtualization path association to the directory example_dir on filesystem fs1 from the legacy NAS path nfs://legacy.example.com/example_fs/example_dir.</p>
+<pre>virtualization-path-create --characterset latin1 -t fs1 -n assoc1 -s nfs://legacy.example.com/example_fs
+</pre>
+<p></p>
+<p>Creates a virtualization path to file system fs1 from the legacy NAS path nfs://legacy.example.com/example_fs using character set Latin-1.</p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/remote-server-cache-list.html">remote-server-cache-list</a> <a href="../Supervisor/virtualization-path-control.html">virtualization-path-control</a> <a href="../Supervisor/virtualization-path-delete.html">virtualization-path-delete</a> <a href="../Supervisor/virtualization-path-excluded-directory-add.html">virtualization-path-excluded-directory-add</a> <a href="../Supervisor/virtualization-path-excluded-directory-delete.html">virtualization-path-excluded-directory-delete</a> <a href="../Supervisor/virtualization-path-excluded-directory-list.html">virtualization-path-excluded-directory-list</a> <a href="../Supervisor/virtualization-path-journal-control.html">virtualization-path-journal-control</a> <a href="../Supervisor/virtualization-path-journal-show.html">virtualization-path-journal-show</a> <a href="../Supervisor/virtualization-path-list.html">virtualization-path-list</a> <a href="../Supervisor/virtualization-path-modify.html">virtualization-path-modify</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

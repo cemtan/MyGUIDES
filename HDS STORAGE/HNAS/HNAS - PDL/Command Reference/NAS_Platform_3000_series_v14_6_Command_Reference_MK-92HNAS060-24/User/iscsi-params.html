@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>iscsi-params</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>iscsi-params</h1>
+<p>Manages iSCSI configurable parameters</p>
+<h1>Syntax</h1>
+<pre>iscsi-params [-d] [-s] [&lt;parameter&gt;] [&lt;new value&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>This command manages iSCSI parameters. Parameters are used to control the behavior of the iSCSI service, including data transfer sizes, time outs, etc. The available parameters are:</p>
+<dl>
+<dt><strong>DataDigest:</strong></dt>
+<dd><p>A data digest is a CRC that's used to verify the integrity of iSCSI data. Data digests are not currently supported, so this is always set to false.</p></dd>
+<dt><strong>DataPDUInOrder:</strong></dt>
+<dd><p>This is always set to true, meaning that iSCSI data PDUs will always be transported in increasing Buffer Offset order and overlays are forbidden.</p></dd>
+<dt><strong>DataSequenceInOrder:</strong></dt>
+<dd><p>This is always set to true, meaning that iSCSI data sequences will always be in increasing Buffer Offset order and overlays are forbidden.</p></dd>
+<dt><strong>DefaultTime2Retain:</strong></dt>
+<dd><p>This is the maximum time, in seconds, after an unexpected connection reset or termination, and after the Time2Wait period has expired, before the session state will be timed out. A value of 0 means that session state will be discarded immediately.</p></dd>
+<dt><strong>DefaultTime2Wait:</strong></dt>
+<dd><p>This is the minimum time, in seconds, after an unexpected connection reset or termination, before which an implicit logout will be attempted. A value of 0 means that an implicit logout will be attempted immediately.</p></dd>
+<dt><strong>ErrorRecoveryLevel:</strong></dt>
+<dd><p>Error recovery levels represent a combination of recovery capabilities. Currently, only error recovery level 0 is supported.</p></dd>
+<dt><strong>FirstBurstLength:</strong></dt>
+<dd><p>This is the maximum amount in bytes of unsolicited data that an iSCSI initiator may send to a target during the execution of a single SCSI command. This covers the immediate data (if any) and the sequence of unsolicited Data-Out PDUs (if any) that follow the command.</p></dd>
+<dt><strong>HeaderDigest:</strong></dt>
+<dd><p>A header digest is a CRC that's used to verify the integrity of iSCSI headers. Header digests are not currently supported, so this is always set to false.</p></dd>
+<dt><strong>IFMarker:</strong></dt>
+<dd><p>This is always set to false, meaning that target to initiator markers are not used on iSCSI connections.</p></dd>
+<dt><strong>ImmediateData:</strong></dt>
+<dd><p>This is always set to true, meaning that unsolicited data can be sent as part of an iSCSI command PDU, therefore reducing the number of separate PDUs that are required to transport a command and its data.</p></dd>
+<dt><strong>InitialR2T:</strong></dt>
+<dd><p>If set to true, the initiator must wait for the target to send it an R2T (ready to transfer) PDU between sending a command and sending its data. If set to false, the initiator can begin sending a command's data as soon as it has sent the command PDU.</p></dd>
+<dt><strong>MaxBurstLength:</strong></dt>
+<dd><p>This is the maximum SCSI data payload in bytes in a Data-In or a solicited Data-Out PDU sequence. A sequence consists of one or more consecutive Data-In or Data-Out PDUs that end with a Data-In or Data-Out PDU with the F bit set.</p></dd>
+<dt><strong>MaxConcurrentCommands:</strong></dt>
+<dd><p>This controls the size of the CmdSN (command sequence number) window, which governs how many concurrent commands the initiator can have outstanding at the target at any one time.</p></dd>
+<dt><strong>MaxConnections:</strong></dt>
+<dd><p>When using MPIO (multi-path I/O), this controls the maximum number of TCP connections that can be used within a single iSCSI session.</p></dd>
+<dt><strong>MaxOutstandingR2T:</strong></dt>
+<dd><p>This is always set to 1, meaning that within a given command, there will only ever be 1 outstanding data transfer at any one time. There can, however, be more than one command in progress at any one time.</p></dd>
+<dt><strong>MaxRecvDataSegmentLength:</strong></dt>
+<dd><p>This is the maximum amount in bytes of data that can be sent in a single iSCSI PDU.</p></dd>
+<dt><strong>OFMarker:</strong></dt>
+<dd><p>This is always set to false, meaning that initiator to target markers are not used on iSCSI connections.</p></dd>
+<dt><strong>UsePhaseCollapse:</strong></dt>
+<dd><p>If set to true, the status of a successful iSCSI command will be sent in the final Data-In PDU in the response sequence. If set to false, the status will be sent in an additional Response PDU following the response sequence. So, setting this to true reduces the number of PDUs that are required to send a response.</p></dd>
+</dl>
+<p>Usage:</p>
+<pre>iscsi-params [-d] [-s] [&lt;parameter&gt;] [&lt;new value&gt;]
+</pre>
+<p></p>
+<dl>
+<dt><strong>-d</strong></dt>
+<dd><p>Resets parameters to defaults.</p></dd>
+<dt><strong>-s</strong></dt>
+<dd><p>Show supported parameters.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>iscsi-params
+</pre>
+<p></p>
+<pre>iscsi-params -d
+</pre>
+<p></p>
+<pre>iscsi-params -s
+</pre>
+<p></p>
+<pre>iscsi-params DefaultTime2Wait 60
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/iscsi-domain.html">iscsi-domain</a> <a href="../User/iscsi-stats.html">iscsi-stats</a> <a href="../User/iscsi-target.html">iscsi-target</a> <a href="../User/isns.html">isns</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

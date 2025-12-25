@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>span-list-filesystem-cod</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>span-list-filesystem-cod</h1>
+<p>Summarize the filesystem Cod on all system drives in a span</p>
+<h1>Syntax</h1>
+<pre>span-list-filesystem-cod &lt;span-instance-name&gt; [fs | chunk | allcod]
+</pre>
+
+<h1>Description</h1>
+<p>(This man page includes wide output.  You may wish to widen your terminal window and use 'man -n'.)</p>
+<p>This command lists the filesystem Cod on each of the system drives (SDs) in a loaded span.  It's useful when a span will load but its filesystems won't, or when an I/O error has recently occurred during a Cod-write, and you want to check the SDs' Cod for discrepancies.</p>
+<p>Cod is described in the 'cod' man page.</p>
+<p>The command can list the filesystem catalogue, the chunk table, or (if your terminal is about 120 characters wide) both side by side.</p>
+<p>If Cod is consistent, all the lines printed by 'span-list-filesystem-cod' will be identical.</p>
+<p>Although this command reads filesystem Cod from disk, it doesn't load it into memory.  So, if you have recently repaired damaged Cod, 'span-list-filesystem-cod' won't make the filesystems available for mounting.  Conversely, even if 'span-list-filesystem-cod' shows that the Cod has recently been damaged, it won't cause any mounted filesystems to become unmounted.</p>
+<p>If the span won't load (i.e. if it doesn't appear in the output of 'span-list'), it means that the server doesn't know which SDs are in the span.  This prevents it from showing you the Cod on all SDs in the span.  Instead, you can use the lower-level 'sd-dump-cod' command.</p>
+<h2>Listing the filesystem catalogue</h2>
+<p>Specify the span name and the letters 'fs'.  The fields listed are:</p>
+<dl>
+<dt><strong>SD</strong></dt>
+<dd><p>The system drive device ID, as used by the 'sd-list' command.</p></dd>
+<dt><strong>GenNo</strong></dt>
+<dd><p>The generation number of the filesystem catalogue.  This number is incremented every time a new catalogue is written; that happens when a filesystem is created, renamed, confined, released or deleted, but not when a filesystem is extended.  In the event of a Cod discrepancy, the generation number shows which version of the catalogue is the most recent.</p></dd>
+<dt><strong>Timestamp</strong></dt>
+<dd><p>The time and date when the catalogue was written to disk.</p></dd>
+<dt><strong>Action</strong></dt>
+<dd><p>The action that caused the catalogue to be written.  In the event of a discrepancy, you can use the action to help decide whether to roll back to the old version of Cod or roll forward to the new version.  The action types are:</p></dd>
+<ul>
+<li>CreateCat: a new catalogue was written when the span was created.</li>
+<li>CreateFs: a new filesystem was added to the span.</li>
+<li>DeleteFs: a filesystem was deleted from the span.</li>
+<li>RenameFs: a filesystem was renamed.</li>
+<li>ExpandSpan: the span was extended.</li>
+<li>DeleteAllFss: all filesystems on the span were deleted by the 'span-delete-all-filesystems' command.</li>
+<li>UpgradeLegacySpan: a span created by an earlier release of the operating system was upgraded.  (Early releases did not support multiple filesystems per span.)</li>
+<li>ConfineFs: a filesystem was confined.</li>
+<li>ReleaseFs: a filesystem was released.</li>
+<li>RewriteCod: the 'span-rewrite-cod' command was run.</li>
+<li>RestoreCod: the 'span-restore-cod' or 'sd-restore-cod' command was run.</li>
+<li>SetWorm: the filesystem became Worm (Write Once, Read Many [times]).  Obsolete.</li>
+<li>ClearWorm: the filesystem became non-Worm.  Obsolete.</li>
+<li>CapWarn: a filesystem's capacity warning threshold was set by 'filesystem-set-cap-warn-thresh' on an earlier software release.  (This command no longer exists.)</li>
+<li>DescribeFs: The FSM stored the filesystem's Worm flag, WFS version, DSB count and cluster ('block') size in the filesystem catalogue, typically because an administrator formatted the filesystem.</li>
+<li>DisableDwb: An administrator asked the server not to perform dynamic write balancing (DWB) on this filesystem.</li>
+<li>EnableDwb: An administrator asked the server to perform dynamic write balancing (DWB) on this filesystem.</li>
+<li>DisableThinProv: Thin provisioning was disabled for a filesystem.</li>
+<li>EnableThinProv: Thin provisioning was enabled for a filesystem.</li>
+</ul>
+<dt><strong>Filesystem</strong></dt>
+<dd><p>Where relevant, this field shows the instance name of the filesystem whose reconfiguration caused the filesystem catalogue to be written.  If the filesystem has been deleted, its permanent ID is printed instead of its instance name.  Some types of update (such as CreateCat) are not associated with an individual filesystem; in that case, 'None' is printed.</p></dd>
+<dt><strong>#fs</strong></dt>
+<dd><p>The number of filesystems in the catalogue.</p></dd>
+</dl>
+<h2>Listing the chunk table</h2>
+<p>Specify the span name and the word 'chunk'.  The fields listed are:</p>
+<dl>
+<dt><strong>SD</strong></dt>
+<dd><p>The system drive number, as used by the 'sd-list' command.</p></dd>
+<dt><strong>GenNo</strong></dt>
+<dd><p>The generation number of the chunk table.  This number is incremented every time a filesystem is manually or automatically extended.  It won't usually be the same as the filesystem catalogue's generation number.</p></dd>
+<dt><strong>Timestamp</strong></dt>
+<dd><p>The time and date when the chunk table was written to disk.  This need not be the same as the filesystem catalogue's timestamp.</p></dd>
+<dt><strong>#fs</strong></dt>
+<dd><p>The number of filesystems that have chunks allocated to them.  This number should be the same as in the filesystem catalogue, since every filesystem has at least one chunk allocated to it.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>server:$ span-list-filesystem-cod admin fs
+SD    GenNo  Timestamp              Action             Filesystem        #fs
+----------------------------------------------------------------------------
+0         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+1         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+2         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+3         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+4         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+5         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+6         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3
+server:$ span-list-filesystem-cod admin chunk
+SD      GenNo  Timestamp               #fs
+------------------------------------------
+0           4  18:27:06,  7 Aug 2007     3
+1           4  18:27:06,  7 Aug 2007     3
+2           4  18:27:06,  7 Aug 2007     3
+3           4  18:27:06,  7 Aug 2007     3
+4           4  18:27:06,  7 Aug 2007     3
+5           4  18:27:06,  7 Aug 2007     3
+6           4  18:27:06,  7 Aug 2007     3
+server:$ span-list-filesystem-cod admin allcod
+                      Filesystem catalogue                                             Chunk table
+      ----------------------------------------------------------------------    ----------------------------------
+SD    GenNo  Timestamp              Action             Filesystem        #fs    GenNo  Timestamp               #fs
+==================================================================================================================
+0         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+1         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+2         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+3         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+4         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+5         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+6         9  18:28:07,  7 Aug 2007  RenameFs           Accounts            3        4  18:27:06,  7 Aug 2007     3
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/chunk.html">chunk</a> <a href="../Topic/cod.html">cod</a> <a href="../Supervisor/sd-dump-cod.html">sd-dump-cod</a> <a href="../Supervisor/sd-dump-unloadable-cod.html">sd-dump-unloadable-cod</a> <a href="../Supervisor/span-create.html">span-create</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

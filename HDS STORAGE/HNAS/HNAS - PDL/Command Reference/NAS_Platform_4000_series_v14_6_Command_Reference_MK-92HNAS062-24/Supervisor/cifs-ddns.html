@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-ddns</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>cifs-ddns</h1>
+<p>Enable/disable ADS CIFS name registration with DDNS</p>
+<h1>Syntax</h1>
+<pre>cifs-ddns [on|off]
+</pre>
+
+<h1>Description</h1>
+<p>The cifs-ddns command allows you to configure whether the server attempts to register its ADS-mode CIFS serving names with DDNS.</p>
+<p>By default, DDNS registration of ADS-mode CIFS names is enabled. Note that DDNS registration of NT4-mode CIFS names is never attempted.</p>
+<p>Separate cifs-ddns configurations are kept for individual EVSs according to the current per-EVS security settings.</p>
+<p>Changes made by this command take effect immediately.</p>
+<h1>Examples</h1>
+<p>To display the present CIFS serving name DDNS registration setting:</p>
+<pre>cifs-ddns
+</pre>
+<p></p>
+<p>To disable CIFS name DDNS registration:</p>
+<pre>cifs-ddns off
+</pre>
+<p></p>
+<p>To enable CIFS name DDNS registration:</p>
+<pre>cifs-ddns on
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cifs-name.html">cifs-name</a> <a href="../User/console-context.html">console-context</a> <a href="../User/dnsserver.html">dnsserver</a> <a href="../User/evs-security.html">evs-security</a> <a href="../User/evs-select.html">evs-select</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

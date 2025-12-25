@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-stats</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>fc-stats</h1>
+<p>Show FC statistics</p>
+<h1>Syntax</h1>
+<pre>fc-stats [-a] [-r] [-R]
+Alias:       fcstats
+</pre>
+
+<h1>Description</h1>
+<p>This is a legacy command retained for backwards compatibility. It is superseded by:</p>
+<ul>
+<li><code>storage-request-stats</code></li>
+<li><code>storage-throughput-stats</code></li>
+<li><code>fc-link-congestion</code></li>
+<li><code>fc-link-errors</code></li>
+</ul>
+<p>See those commands' man pages for detailed descriptions of the output from fc-stats.</p>
+<h2>Options</h2>
+<dl>
+<dt><strong>-a, --all</strong></dt>
+<dd><p>display statistics for all interfaces, not just enabled ones</p></dd>
+<dt><strong>-r, --reset</strong></dt>
+<dd><p>reset statistics - equivalent to:</p></dd>
+<dd><p><code>storage-request-stats -r; storage-throughput-stats -r; fc-link-errors -r</code></p></dd>
+<dt><strong>-R, --reset-throughput</strong></dt>
+<dd><p>reset throughput statistics - equivalent to:</p></dd>
+<dd><p><code>storage-throughput-stats -r</code></p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/fc-link-congestion.html">fc-link-congestion</a> <a href="../User/fc-link-errors.html">fc-link-errors</a> <a href="../User/storage-request-stats.html">storage-request-stats</a> <a href="../User/storage-throughput-stats.html">storage-throughput-stats</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

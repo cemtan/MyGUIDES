@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>migration-cloud-rule-create</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>migration-cloud-rule-create</h1>
+<p>Create an external migration rule</p>
+<h1>Syntax</h1>
+<pre>migration-cloud-rule-create &lt;rule name&gt; --rule &lt;rule&gt; [--description &lt;description&gt;] [--case-sensitive &lt;no|yes&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Creates cloud external migration rule.</p>
+<dl>
+<dt><strong>&lt;rule name&gt;</strong></dt>
+<dd><p>Name of the rule, which must be unique. May be up to 30 ASCII characters long. The characters ;:/\'"&lt;&gt;*?| and a space character are not allowed.</p></dd>
+<dt><strong>--rule, -r &lt;rule&gt;</strong></dt>
+<dd><p>Syntax of the rule to be created. For details on rule syntax see the Administrator's Guide.</p></dd>
+<dt><strong>--description, -d &lt;description&gt;</strong></dt>
+<dd><p>Rule description. Any arbitrary string to help clients to manage rules. May be up to 50 ASCII characters long.</p></dd>
+<dt><strong>--case-sensitive, -c &lt;no|yes&gt;</strong></dt>
+<dd><p>Whether the rule should be treated as case sensitive or not. Default value is 'no'.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>migration-cloud-rule-create JpgFilesRule --rule "INCLUDE (&lt;FILENAME *.jpg&gt; AND &lt;INACTIVE_OVER 30 DAY&gt; AND &lt;UNCHANGED_OVER 30 DAY&gt;)"
+</pre>
+<p></p>
+<p>Creates a cloud migration rule named 'JpgFilesRule' that will match all files with .jpg extension, not case sensitive, that have not been accessed or modified for over 30 days.</p>
+<h1>Applies To</h1>
+<p>Global security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/migration-cloud-rule-delete.html">migration-cloud-rule-delete</a> <a href="../Supervisor/migration-cloud-rule-list.html">migration-cloud-rule-list</a> <a href="../Supervisor/migration-cloud-rule-modify.html">migration-cloud-rule-modify</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

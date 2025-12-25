@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>chunk</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>chunk</h1>
+
+<h1>Description</h1>
+<p>When you create a span, it contains one stripeset, which contains up to 32 system drives (SDs).  Stripesets are named after the way data is striped across them: the server writes 4MiB to one SD, 4MiB to the next, and so on.</p>
+<p>Every stripeset is divided into <strong>chunks</strong>.  A chunk is a region of disk space taken from a single stripeset.  It starts at the same location on all the SDs in the stripeset, and it draws the same amount of space from each SD.</p>
+<p>When you expand a span, you create a new stripeset, which contains further chunks.  No chunk draws space from more than one stripeset.</p>
+<p>When you create a filesystem, it contains one or more whole chunks.  When you expand the filesystem, further whole chunks are added.  These chunks all reside on the same span, but not necessarily on the same stripeset.  Indeed, if the span contains more than one stripeset, the server will try to maximize storage bandwidth by giving each filesystem chunks from as many of the span's stripesets as possible.</p>
+<p>Each span can contain up to 60,000 chunks.  The guideline chunk size, which is chosen when the span is created, therefore determines the maximum size that the span can ever reach.  Large chunks ensure scalability, but they also prevent space from being added to filesystems in small increments.  This is especially important on tiered spans, where top-tier storage is expensive.  Careful consideration should therefore be given to chunk sizes before a span is created.  Nevertheless, the server provides a default, which is based on the initial capacity of the span.</p>
+<p>A new span's guideline chunk size is always between 0.5GiB and 18GiB.  Older releases, which allowed fewer chunks in a filesystem, permitted guideline chunk sizes of up to 1TiB.  Spans with these very large chunk sizes remain usable in this release.</p>
+<p>The guideline chunk size is just that: a guideline.  To avoid waste, chunks' capacities differ, both from each other and from the guideline chunk size.  For example, if you ask the server to divide a 7005GiB stripeset into 10GiB chunks, the server will not create 700 chunks of 10GiB each and waste the last 5GiB: it will use all the available space, and most or all chunks will have a capacity slightly different from the requested 10GiB.  If a second stripeset in the same span has a capacity of 6998GiB, its chunks will have different capacities again.</p>
+<p>One consequence is that it's possible for an individual chunk to be slightly smaller than 0.5GiB or larger than 18GiB.  This phenomenon will not cause problems or warning messages.</p>
+<p>In software releases before 11.2, a filesystem could not grow beyond 1,023 chunks.  This limit, which originated in VLSI, has now been abolished.  Instead, a new chunk allocator tries to ensure that chunks are allocated consecutively, so that many more chunks can be configured into the same-sized VLSI tables.  The effectiveness of this strategy depends on a number of factors, including how full spans become (i.e. how few free chunks they have) before they are expanded; but it is now quite possible for a filesystem to grow as large as a fully-expanded span.</p>
+<p>Because of the virtualization performed by the server, a filesystem's chunks can appear anywhere in the span, and in any order.  For example, chunk 0 of a filesystem -- its first chunk -- may be chunk 20 of stripeset 2.  If stripesets 0 and 1 contain 255 chunks each, the chunk in question will be chunk 530 within the span.  The server has a number of commands to translate offsets between one format and another.</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/filesystem-create.html">filesystem-create</a> <a href="../Supervisor/filesystem-decode-si.html">filesystem-decode-si</a> <a href="../Supervisor/filesystem-expand.html">filesystem-expand</a> <a href="../Supervisor/filesystem-list-chunks.html">filesystem-list-chunks</a> <a href="../Supervisor/filesystem-scalability.html">filesystem-scalability</a> <a href="../Supervisor/filesystem-translate-offset.html">filesystem-translate-offset</a> <a href="../Supervisor/span-create.html">span-create</a> <a href="../Supervisor/span-expand.html">span-expand</a> <a href="../Supervisor/span-list-chunks.html">span-list-chunks</a> <a href="../Supervisor/span-tune-allocator.html">span-tune-allocator</a></p>
+<h1>Privilege Level</h1>
+<p>Topic</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

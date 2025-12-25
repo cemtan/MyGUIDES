@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>virtual-volume</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>virtual-volume</h1>
+<p>Virtual volume management (list/create/change/remove/remove all virtual volumes)</p>
+<h1>Syntax</h1>
+<pre>virtual-volume &lt;operation add|change|remove|removeall|list&gt;
+	add [--ensure] &lt;file-system&gt; &lt;name&gt; &lt;path&gt; [&lt;email&gt;]
+	change &lt;file-system&gt; &lt;name&gt; &lt;new name&gt; [&lt;new email&gt;]
+	remove [--delete-contents] &lt;file-system&gt; &lt;name&gt;
+	removeall [--delete-contents] [--confirm] &lt;file-system&gt;
+	list [--verbose] &lt;file-system&gt; [&lt;name&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>The virtual-volume command is used to manage file system virtual volumes.</p>
+<h2>Operations</h2>
+<h3>virtual-volume add</h3>
+<p>Creates a virtual volume.</p>
+<p>Syntax: virtual-volume add [--ensure] &lt;file-system&gt; &lt;name&gt; &lt;path&gt; [&lt;email&gt;]</p>
+<dl>
+<dt><strong>--ensure, -e</strong></dt>
+<dd><p>Ensure &lt;path&gt; exists</p></dd>
+</dl>
+<h3>virtual-volume change</h3>
+<p>Changes the name and email contact list of an existing virtual volume.</p>
+<p>Syntax: virtual-volume change &lt;file-system&gt; &lt;name&gt; &lt;new name&gt; [&lt;new email&gt;]</p>
+<h3>virtual-volume remove</h3>
+<p>Removes a virtual volume, provided it is empty. If the virtual volume is not empty, use the --delete-contents option to remove its contents.</p>
+<p>Syntax: virtual-volume remove [--delete-contents] &lt;file-system&gt; &lt;name&gt;</p>
+<dl>
+<dt><strong>--delete-contents</strong></dt>
+<dd><p>Delete the contents (if any) of the virtual volume. The contents are deleted asynchronously using the tree-delete functionality. See its man page for restrictions and other details. The resulting tree-delete job can be identified by running the following command:</p></dd>
+<dd><p>event-log-show | grep "Tree-delete.*virtual volume: &lt;vivol name&gt;"</p></dd>
+</dl>
+<h3>virtual-volume removeall</h3>
+<p>Removes all empty virtual volumes of given file system. If some or all virtual volumes are not empty, use the --delete-contents option to remove their contents.</p>
+<p>Syntax: virtual-volume removeall [--delete-contents] &lt;file-system&gt;</p>
+<dl>
+<dt><strong>--delete-contents</strong></dt>
+<dd><p>Delete the contents (if any) of the virtual volumes. The contents are deleted asynchronously using the tree-delete functionality. See its man page for restrictions and other details. The resulting tree-delete jobs can be identified by running the following command:</p></dd>
+<dd><p>event-log-show | grep "Tree-delete.*virtual volume"</p></dd>
+</dl>
+<h3>virtual-volume list</h3>
+<p>Lists virtual volumes.</p>
+<p>Syntax: virtual-volume list [--verbose] &lt;file-system&gt; [&lt;name&gt;]</p>
+<dl>
+<dt><strong>--verbose</strong></dt>
+<dd><p>Lists additional fields (the virtual volume tag, size and last modified timestamp)</p></dd>
+</dl>
+<h2>Common parameters:</h2>
+<dl>
+<dt><strong>&lt;file-system&gt;</strong></dt>
+<dd><p>File system label</p></dd>
+<dt><strong>&lt;name&gt;</strong></dt>
+<dd><p>Name of the virtual volume</p></dd>
+<dt><strong>&lt;path&gt;</strong></dt>
+<dd><p>Path to the root of the virtual volume (paths must start with '/')</p></dd>
+<dt><strong>&lt;email&gt;</strong></dt>
+<dd><p>List of contacts for the virtual volume. Addresses with a leading '*' can be specified to email virtual volume users directly about events affecting them; '*' is replaced with the user's NFS/NT account name.  Separate multiple addresses with ';' and enclose the entire list in quotes("").</p></dd>
+</dl>
+<h2>Virtual-volume size</h2>
+<p>By default, the size of a virtual volume is unrestricted. The quota command can be used to limit the size of a virtual volume. This limit can be hard or soft, and can affect how protocol clients report the file system capacity and free space of the virtual volume. See the df man page for detailed explanation and examples.</p>
+<h1>Examples</h1>
+<p>1. Create a virtual volume called 'engineering':</p>
+<pre>     $ virtual-volume add fs1 engineering /engineering engineering@example.com
+</pre>
+<p></p>
+<p>2. Rename a virtual volume:</p>
+<pre>     $ virtual-volume change fs1 engineering development development@example.com
+</pre>
+<p></p>
+<p>3. Remove a non-empty virtual volume:</p>
+<pre>     $ virtual-volume remove --delete-contents fs1 development
+</pre>
+<p></p>
+<p>4. Remove all virtual volumes (both empty and non-empty) of a file system:</p>
+<pre>     $ virtual-volume removeall --delete-contents fs1
+</pre>
+<p></p>
+<p>5. List virtual volumes:</p>
+<pre>     $ virtual-volume list fs1
+</pre>
+<p></p>
+<p>6. Limit the size of a virtual volume to 100 GB (hard limit)</p>
+<pre>     $ quota add --usage-limit 100G --usage-hard-limit yes fs1 engineering
+</pre>
+<p></p>
+<p>7. Configure the virtual volume to force protocol clients to always report the vivol quota's usage limit, either hard or soft, as the file system capacity regardless of user quotas</p>
+<pre>     $ fs-space-reporting-based-solely-on-vivol-quota --on fs1 engineering
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../User/df.html">df</a> <a href="../Supervisor/fs-space-reporting-based-solely-on-vivol-quota.html">fs-space-reporting-based-solely-on-vivol-quota</a> <a href="../User/quota.html">quota</a> <a href="../Topic/tree-delete.html">tree-delete</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

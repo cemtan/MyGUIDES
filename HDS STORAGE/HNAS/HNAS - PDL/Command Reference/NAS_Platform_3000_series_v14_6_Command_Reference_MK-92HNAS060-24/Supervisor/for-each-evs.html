@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>for-each-evs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>for-each-evs</h1>
+<p>Run a command in the context of each configured EVS</p>
+<h1>Syntax</h1>
+<pre>for-each-evs [--quiet] [--admin] [--evs-security] &lt;command&gt; [args]
+</pre>
+
+<h1>Description</h1>
+<p>The for-each-evs command runs the specified command once for each active EVS, setting the console context appropriately first, and running the command on the cnode hosting the EVS.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>--admin, -a</strong></dt>
+<dd><p>Include the Admin Service context.  Useful for a handful of commands (e.g. DNS configuration) that have cluster-wide configuration with per-EVS overrides.</p></dd>
+<dt><strong>--quiet, -q</strong></dt>
+<dd><p>Don't display each EVS id/name as commands are run.</p></dd>
+<dt><strong>--evs-security, -s</strong></dt>
+<dd><p>With this option, the specified command is run for each active EVS configured with an individual evs-security context and, if there is such an EVS, once in the context of the first active EVS that shares the global evs-security context. When used in conjunction with the --admin option, the command is first run in the context of the Admin Service followed by once in the context of each active EVS configured with an individual evs-security context.</p></dd>
+</dl>
+<p>ssrun -c can be useful when trying to run complicated commands.</p>
+<h1>Examples</h1>
+<p>Show NFS exports for all EVSs:</p>
+<pre>for-each-evs nfs-export list
+</pre>
+<p></p>
+<p>Do a name lookup for each EVS and the Admin Service:</p>
+<pre>for-each-evs --admin host server.example.com
+</pre>
+<p></p>
+<p>Show ldap schema configured in the context of the Admin Service and in each active individual evs-security context:</p>
+<pre>for-each-evs --admin --evs-security ldap-schema
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../User/console-context.html">console-context</a> <a href="../Supervisor/for-each-cnode.html">for-each-cnode</a> <a href="../User/ssrun.html">ssrun</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

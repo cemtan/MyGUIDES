@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>dump-freed-blocks-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>dump-freed-blocks-list</h1>
+<p>Dumps the contents of a given Freed Blocks List</p>
+<h1>Syntax</h1>
+<pre>dump-freed-blocks-list  [-f &lt;file system&gt;] &lt;object-number&gt;
+</pre>
+
+<h1>Description</h1>
+<p>The dump-freed-blocks-list command is used to decode and display the on-disk contents of a Freed Blocks List. A Freed Blocks List must be specified by its object-number. It may be used to decode Freed Blocks Lists on WFS-2 file systems. If no file system is specified then the command works on the currently selected file system as shown by 'selectfs'.</p>
+<p>This command may be run on a mounted or unmounted file system.</p>
+<p>NB: Freed Blocks Lists may be very long, and the output consequently copious.</p>
+<p>Usage:</p>
+<p>&lt;object-number&gt;   The object-number of the Freed Blocks List</p>
+<p>-f &lt;file-system&gt;   The file system on which the Freed Blocks List resides</p>
+<h1>Examples</h1>
+<p>To display contents of the Freed Blocks List whose object-number is 1024 on file system testfs:</p>
+<pre>dump-freed-blocks-list -f testfs 1024
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

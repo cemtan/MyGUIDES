@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-allow-access</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-allow-access</h1>
+<p>License (allow access to) one or more system drives</p>
+<h1>Syntax</h1>
+<pre>sd-allow-access [--ignore-foreign] &lt;system-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<h2>INTRODUCTION</h2>
+<p>The server will not let you create a new span on a system drive (SD) or load an existing span from an SD until you have allowed access to the SD.  Allowing access to an SD is often called licensing the SD.</p>
+<p>'sd-allow-access' allows access to the SD so that the server or cluster can use it.</p>
+<p>Licensing information is stored in the server's or cluster's registry.  The same storage can (and usually will) be licensed on one cluster and not on others, even if all the clusters are physically connected to the same storage.  However, all servers in the same cluster always agree about whether an SD is licensed.</p>
+<p>Never allow access to an SD that is being used by another server or cluster or a foreign server.</p>
+<p>Normally, 'sd-allow-access' checks the SD for foreign operating systems' signatures and aborts if any are found.  This check helps to prevent it from overwriting other operating systems' data.  The --ignore-foreign switch skips this check.</p>
+<p>You can allow access to several SDs with a single command.  See the 'sd-spec' man page.</p>
+<p>'sd-allow-access' sets off a number of asynchronous commands.  Scripts may need to use 'span-wait-for-loading' (with the appropriate command-line arguments) to wait for these processes to complete before issuing further commands.  If you wish to monitor the progress of these processes without waiting for them, run 'sd-list-queues' and 'filesystem-list-queues'.  Typically, when you are working interactively, the background processes run fast enough for monitoring to be unnecessary.</p>
+<h2>LICENSING HDP DP-VOLS</h2>
+<p>The check for foreign servers' signatures involves performing disk I/O.  If you are licensing HDP DP-Vols and the HDP pool on which they reside has not yet started formatting, this I/O will fail.  We recommend waiting until a few percent of the pool has been formatted before licensing new DP-Vols.</p>
+<h2>STORAGE-BASED MIRRORING</h2>
+<p>Some high-availability installations use storage-based mirroring; see the 'storage-based-mirror' man page.  If one of the SDs in a mirror relationship has been unlicensed in order that the server will ignore primary--primary relationships, licensing an SD might make the cluster notice a primary-primary relationship, and so fail the span.  The command will not let you license an SD if a span would fail as a result.</p>
+<h1>Examples</h1>
+<pre>sd-allow-access 0-7,16-23,Accounts
+</pre>
+<p></p>
+<p>Allows access to SDs 0 to 7 and 16 to 23, as well as all SDs used in the span called 'Accounts'.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/evsfs.html">evsfs</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../Supervisor/sd-deny-access.html">sd-deny-access</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-list-queues.html">sd-list-queues</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-assign-to-cluster.html">span-assign-to-cluster</a> <a href="../Supervisor/span-deny-access.html">span-deny-access</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ignore-unix-security-ops-disable</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>ignore-unix-security-ops-disable</h1>
+<p>Configures whether the server ignores NFS operations that attempt to set or change file/directory security attributes</p>
+<h1>Syntax</h1>
+<pre>ignore-unix-security-ops-disable [[-f|--filesystem] &lt;filesystem&gt; [[-i|--vivol] &lt;ViVol name&gt; ]] 
+</pre>
+
+<h1>Description</h1>
+<p>The ignore-unix-security-ops-* commands configure under what conditions a server ignores NFS operations that attempt to set or change file/directory security attributes.</p>
+<h2>Commands</h2>
+<p>There are 5 commands in this set:</p>
+<ul>
+<li>ignore-unix-security-ops-show    [[-f|--filesystem] &lt;filesystem&gt; [[-i|--vivol] &lt;vivol name&gt; ]]</li>
+<li>ignore-unix-security-ops-disable [[-f|--filesystem] &lt;filesystem&gt; [[-i|--vivol] &lt;vivol name&gt; ]]</li>
+<li>ignore-unix-security-ops-enable  [[-f|--filesystem] &lt;filesystem&gt; [[-i|--vivol] &lt;vivol name&gt; ]]</li>
+<li>ignore-unix-security-ops-clear --filesystem &lt;filesystem&gt; [--vivol &lt;vivol&gt;]</li>
+<li>ignore-unix-security-ops-mode [evs-override-mode|fs-vivol-mode]</li>
+</ul>
+<h2>Behaviour</h2>
+<p>This series of commands subsume and extend the older command ignore-unix-security-ops.</p>
+<p>The "ignore" behaviour can be configured to work in one of two modes:</p>
+<ul>
+<li>evs-override-mode (this was the way in which the original ignore-unix-security-ops worked)</li>
+<li>fs-vivol-mode (this is the new mode)</li>
+</ul>
+<pre>server: $ ignore-unix-security-ops-mode fs-vivol-mode
+ ignore-unix-security-ops-mode: fs-vivol-mode (EVS level ignore setting will now act as a default for all ViVols/filesystems)
+ server:$ ignore-unix-security-ops-mode evs-override-mode
+ ignore-unix-security-ops-mode: evs-override-mode (EVS level ignore setting will now override all ViVols/filesystems settings)
+</pre>
+<p></p>
+<p>When "ignore" is <strong>enabled</strong>, files/directories created over NFS (v2,v3 &amp; v4) will inherit security from the parent directory, or it will be derived from the server's file/directory umask if the parent directory has no inheritable security.  If an NFS client attempts to change the security of an existing file/directory (e.g. chmod/chown/chgrp) then the operation succeeds without making the change requested. Changes made by other protocols, such as SMB are unaffected.</p>
+<p>This can be used to ensure (remote) security changes are only made via e.g. the SMB protocols.</p>
+<p>Setting the mode to fs-vivol-mode will have a small impact on the speed of the performance of security operations.</p>
+<h1>Examples</h1>
+<pre>server:$ ignore-unix-security-ops-show  -f Span0FS
+ ignore-unix-security-ops: EVS level is disabled (fs-vivol-mode: EVS level setting acts as a default for all vivols/filesystems)
+ ignore-unix-security-ops: filesystem level [filesystem=Span0FS] is clear
+ ignore-unix-security-ops: Effective setting  [filesystem=Span0FS] is disabled (inherited from evs level)
+</pre>
+<p></p>
+<pre>server:$ ignore-unix-security-ops-clear  -f Span0FS -i vv1
+ ignore-unix-security-ops: EVS level is disabled (fs-vivol-mode: EVS level setting acts as a default for all vivols/filesystems)
+ ignore-unix-security-ops: filesystem level [filesystem=Span0FS] is clear
+ ignore-unix-security-ops: vivol level      [filesystem=Span0FS, vivol=vv1] is clear
+ ignore-unix-security-ops: Effective setting  [filesystem=Span0FS, vivol=vv1 ] is disabled (inherited from evs level)
+</pre>
+<p></p>
+<p>Most of the extended behaviour applies to the new mode (fs-vivol-mode) if that is not chosen, then behaviour is largely unchanged. You may choose to use the newer <strong>ignore-unix-security-ops-disable</strong> and <strong>ignore-unix-security-ops-enable</strong> in place of <strong>ignore-unix-security-ops --disable/--enable</strong> but there will be no change in behaviour. You can always revert to the old behaviour by selecting the <strong>evs-override-mode</strong>.</p>
+<p>The "ignore" behaviour can be selected at various levels of granularity:</p>
+<ul>
+<li>The entire cluster</li>
+<li>A single EVS</li>
+<li>A single filesystem</li>
+<li>A single virtual volume (vivol)</li>
+</ul>
+<p>If the mode <strong>evs-override-mode</strong> is enabled, then ignore setting can be set on an EVS:</p>
+<pre>  server:$ ignore-unix-security-ops-disable
+  ignore-unix-security-ops: EVS level is disabled (evs-override-mode: EVS level setting will override all vivols/filesystems settings)
+</pre>
+<p></p>
+<p>This will either affect a single EVS or the entire cluster. See evs-security multi-tenancy.</p>
+<p>If the <strong>fs-vivol-mode</strong> is in effect, settings can be made in a more fine grained manner:</p>
+<pre>  server:$ ignore-unix-security-ops-enable -f Span0FS
+  ignore-unix-security-ops: EVS level is disabled (fs-vivol-mode: EVS level setting acts as a default for all vivols/filesystems)
+  ignore-unix-security-ops: filesystem level [filesystem=Span0FS] is enabled
+  ignore-unix-security-ops: Effective setting  [filesystem=Span0FS] is enabled (explicitly set)
+</pre>
+<p></p>
+<p>Now files on the filesystem Span0FS will have "ignore" set to enabled, this includes any vivols on that filesystem. Other filesystems on this EVS will have it set to disabled.</p>
+<p>This can be further refined to the vivol level:</p>
+<pre>  server:$ ignore-unix-security-ops-disable  -f Span0FS  -i vv1
+  ignore-unix-security-ops: EVS level is disabled (fs-vivol-mode: EVS level setting acts as a default for all vivols/filesystems)
+  ignore-unix-security-ops: filesystem level   [filesystem=Span0FS] is enabled
+  ignore-unix-security-ops: vivol level        [filesystem=Span0FS, vivol=vv1] is disabled
+  ignore-unix-security-ops: Effective setting  [filesystem=Span0FS, vivol=vv1 ] is disabled (explicitly set)
+</pre>
+<p></p>
+<p>Now the vivol vv1 has a setting of disabled, all other files on Span0FS (including other vivols) have a setting of enabled while all other files on the EVS have a setting of disabled.</p>
+<p>In this mode (fs-vivol-mode) there is an inheritance from EVS to filesystem to vivol. Either/both filesystem and vivol level settings can be <strong>clear</strong>, so they simply inherit from the level above.  This allows for simpler configurations:</p>
+<pre>  server:$ ignore-unix-security-ops-clear  -f Span0FS  -i vv1
+  ignore-unix-security-ops: EVS level is disabled (fs-vivol-mode: EVS level setting acts as a default for all vivols/filesystems)
+  ignore-unix-security-ops: filesystem level [filesystem=Span0FS] is enabled
+  ignore-unix-security-ops: vivol level      [filesystem=Span0FS, vivol=vv1] is clear
+  ignore-unix-security-ops: Effective setting  [filesystem=Span0FS, vivol=vv1 ] is enabled (inherited from filesystem level)
+</pre>
+<p></p>
+<p>and:</p>
+<pre>  server:$ ignore-unix-security-ops-clear  -f Span0FS
+  ignore-unix-security-ops: EVS level is disabled (fs-vivol-mode: EVS level setting acts as a default for all vivols/filesystems)
+  ignore-unix-security-ops: filesystem level [filesystem=Span0FS] is clear
+  ignore-unix-security-ops: Effective setting  [filesystem=Span0FS] is disabled (inherited from evs level)
+</pre>
+<p></p>
+<p>The defaults are:</p>
+<ul>
+<li>ignore-unix-security-op-mode = evs-override-mode</li>
+<li>ignore-unix-security-op (EVS) = disabled</li>
+<li>ignore-unix-security-op (filesystem) = clear</li>
+<li>ignore-unix-security-op (vivol) = clear</li>
+</ul>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fs-dacl-mode.html">fs-dacl-mode</a> <a href="../Supervisor/ignore-unix-security-ops.html">ignore-unix-security-ops</a> <a href="../Supervisor/ignore-unix-security-ops-clear.html">ignore-unix-security-ops-clear</a> <a href="../Supervisor/ignore-unix-security-ops-enable.html">ignore-unix-security-ops-enable</a> <a href="../Supervisor/ignore-unix-security-ops-mode.html">ignore-unix-security-ops-mode</a> <a href="../Supervisor/ignore-unix-security-ops-show.html">ignore-unix-security-ops-show</a> <a href="../Supervisor/umask-directory-set.html">umask-directory-set</a> <a href="../User/umask-directory-show.html">umask-directory-show</a> <a href="../Supervisor/umask-file-set.html">umask-file-set</a> <a href="../User/umask-file-show.html">umask-file-show</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cluster-node-route-list</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>cluster-node-route-list</h1>
+<p>Display cluster-node-route configuration</p>
+<h1>Syntax</h1>
+<pre>cluster-node-route-list 
+</pre>
+
+<h1>Description</h1>
+<p>The cluster-node-route-list command displays the defined cluster node routes. The display format matches that used by the route command, but with the addition of the relevant cluster node ID.</p>
+<p>If this command is issued when the cluster node is in standard route mode the following warning will be issued:</p>
+<pre>  NOTE: None of these cluster-node routes is currently in effect on this node.
+</pre>
+<p></p>
+<p>as a reminder that the routes displayed are not currently active.</p>
+<h1>Examples</h1>
+<pre>$ cluster-node-route-list
+Using standard routing
+NOTE: None of these cluster-node routes is currently in effect on this node.
+PNode       Destination                    Gateway                    MTU     Flags
+       2    192.168.0.0/16                 10.1.1.1                   Default C
+       3    192.168.1.0/24                 10.1.1.2                   Default C
+$
+</pre>
+<p></p>
+<p>Lists the currently defined cluster node routes for all pnodes.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/cluster-node-route-gateway-add.html">cluster-node-route-gateway-add</a> <a href="../Supervisor/cluster-node-route-gateway-delete.html">cluster-node-route-gateway-delete</a> <a href="../Supervisor/cluster-node-route-host-add.html">cluster-node-route-host-add</a> <a href="../Supervisor/cluster-node-route-host-delete.html">cluster-node-route-host-delete</a> <a href="../extra/cluster-node-route-mtu-add.html">cluster-node-route-mtu-add</a> <a href="../extra/cluster-node-route-mtu-delete.html">cluster-node-route-mtu-delete</a> <a href="../Supervisor/cluster-node-route-net-add.html">cluster-node-route-net-add</a> <a href="../Supervisor/cluster-node-route-net-delete.html">cluster-node-route-net-delete</a> <a href="../User/route.html">route</a> <a href="../Supervisor/route-gateway-add.html">route-gateway-add</a> <a href="../Supervisor/route-gateway-delete.html">route-gateway-delete</a> <a href="../Supervisor/route-host-add.html">route-host-add</a> <a href="../Supervisor/route-host-delete.html">route-host-delete</a> <a href="../User/route-list.html">route-list</a> <a href="../Supervisor/route-mtu-add.html">route-mtu-add</a> <a href="../Supervisor/route-mtu-delete.html">route-mtu-delete</a> <a href="../Supervisor/route-net-add.html">route-net-add</a> <a href="../Supervisor/route-net-delete.html">route-net-delete</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

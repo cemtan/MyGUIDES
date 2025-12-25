@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>reverse-migrate</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>reverse-migrate</h1>
+<p>Reverse migrate a cross volume link</p>
+<h1>Syntax</h1>
+<pre>reverse-migrate [--file-system &lt;primary-file-system&gt;] [--pattern &lt;pattern&gt;] [--age &lt;age&gt;] [--cleanup] [--no-prompt] &lt;path&gt; | --cancel
+</pre>
+
+<h1>Description</h1>
+<p>The reverse-migrate command can be used to move the contents of migrated files back to the primary storage. You may either reverse-migrate individual files, or migrated files in a directory tree.</p>
+<p>Reverse migration is a background process. Up to &lt;AsyncCVLReverseMigration-threads&gt; files (up to &lt;threads-per-reverse-migration&gt; files per process) are migrated simultaneously; subsequent reverse migrations are queued and processed in order. An event will be raised when the reverse migration process has completed.</p>
+<p>You may query the status of the reverse migrations being processed, and cancel the earliest scheduled current reverse migration.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>reverse-migrate --file-system &lt;primary-file-system&gt; [--pattern &lt;pattern&gt;] [--age &lt;age&gt;] [--cleanup] [--no-prompt] &lt;path to file | path to directory&gt;</strong></dt>
+<dd><p>Schedules the reverse migration of a file or directory tree. The reverse migration will be processed in the background, and an event will be raised when the process is complete.</p></dd>
+<dd><p>The --pattern option allows you to only reverse migrate files that match a given pattern (eg *.txt).</p></dd>
+<dd><p>The --age option allows you to only reverse migrate files that have been accessed with the last &lt;age&gt; days.</p></dd>
+<dd><p>The --cleanup option allows you to reverse migrate files that have not been fully migrated, where the file is locked in a read-only state because it has been copied to the remote server but will not be converted to a cross volume link. If you supply this option, only files that have been copied to the remote server but not converted to cross volume links will be affected. If accessible, the remote copies will also be deleted. By default a warning message is printed and you are prompted to continue.</p></dd>
+<dd><p>The --no-prompt option removes the --cleanup prompt.</p></dd>
+<dt><strong>reverse-migrate --cancel</strong></dt>
+<dd><p>Cancel the earliest scheduled current (i.e. the one listed first with `reverse-migrate`) reverse migration. If a directory tree is being processed, this stops further processing of the directory tree. Reverse-migration of individual files cannot be canceled and always continues to completion or until an error occurs.</p></dd>
+<dt><strong>reverse-migrate</strong></dt>
+<dd><p>Shows the status of the reverse migrations currently being processed. It will not show the status of reverse migrations started using NDMP via the SMU, as that uses a different mechanism to perform reverse migrations.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To reverse migrate '/projects/badger/ferret' (and any contents if it's a directory) back to file system 'fso':</p>
+<pre>reverse-migrate --file-system fs0 /projects/badger/ferret
+</pre>
+<p></p>
+<p>To reverse migrate files matching '*.txt' under '/projects/badger/parade' on file system 'fs0' that have been accessed in the last 5 days:</p>
+<pre>reverse-migrate --file-system fs0  --pattern *.txt --age 5 /projects/badger/parade
+</pre>
+<p></p>
+<p>To reverse migrate only the items under '/projects/badger/clover' on file system 'fs0' that have not been fully migrated (files that have been copied but not converted to cross volume links):</p>
+<pre>reverse-migrate --file-system fs0 --cleanup --no-prompt /projects/badger/clover
+</pre>
+<p></p>
+<p>To cancel the earliest scheduled current reverse migration (first item listed by `reverse-migrate`):</p>
+<pre>reverse-migrate --cancel
+</pre>
+<p></p>
+<p>To show the status of the reverse migrations currently being processed:</p>
+<pre>reverse-migrate
+</pre>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

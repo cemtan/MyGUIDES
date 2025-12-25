@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-mirror-detect</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>sd-mirror-detect</h1>
+<p>Detect, list and configure Raid mirror relationships</p>
+<h1>Syntax</h1>
+<pre>sd-mirror-detect [--commit | -c] &lt;span-instance-name&gt; &lt;timestamp&gt; [&lt;system-drives-see-&#39;man sd-spec&#39;&gt;]
+(where the timestamp was produced by &#39;sd-mirror-prepare&#39;)
+</pre>
+
+<h1>Description</h1>
+<p>Some replication products, such as TrueCopy and HUR, can mirror pairs of system drives (SDs), automatically copying to the secondary SD ('S-Vol') all the data that the server writes to the primary SD ('P-Vol').  This technique is called 'storage-based mirroring', and is described in the 'storage-based-mirror' man page.</p>
+<p>For GAD, mirror relationships need not be configured into the server, and GAD failovers can take place while file systems are mounted.  There is no need to use 'sd-mirror*' commands with  GAD.  For other mirroring products, the server works with primary and secondary SDs, which almost always correspond to P-Vols and S-Vols.  See the 'storage-based-mirror' man page to understand the exceptions.</p>
+<p>In order to fail over correctly, the server needs to know in advance about mirror relationships that have been set up on the storage.  In nearly all situations, 'sd-mirror-prepare' and 'sd-mirror-detect' can detect these relationships automatically.</p>
+<p>'sd-mirror-prepare' writes a unique data pattern to each unmirrored, primary SD in a span.  If necessary, you then synchronize mirrors, so that the data written to the primaries is copied to the secondaries.  Finally, 'sd-mirror-detect' searches all licensed, healthy, unspanned, secondary SDs for the data pattern.  Finding primary SD 0's pattern on SD 1, for example, tells the server that SD 1 is a mirror of SD 0.</p>
+<p>The data pattern includes a timestamp and the span's permanent ID, so that the commands work correctly if you run either of them several times.</p>
+<p>You can optionally specify a set of secondary SDs.  If so, they must all be licensed, healthy, unspanned and secondary; 'sd-mirror-detect' will look only on those secondary SDs, and not on any others that may be visible to the server.  See the 'sd-spec' man page for the correct syntax.  If you do not specify any SDs, the command will search all suitable secondary SDs it can find.</p>
+<p>Without '--commit', 'sd-mirror-detect' lists all the mirror relationships it finds, but does not modify the span.</p>
+<p>If you supply the '--commit' switch, the mirror relationships are configured into the server and written to the span's Cod.  If a primary SD has been assigned to a tier, the corresponding secondary will automatically be assigned to the same tier, and the command will fail if this assignment is impossible.</p>
+<p>In very complex configurations, 'sd-mirror-prepare' and 'sd-mirror-detect' may fail to detect mirrors relationships.  In this case, 'sd-mirror' can be used to type in mirror relationships by hand.</p>
+<h1>Examples</h1>
+<p>See the examples under 'sd-mirror-prepare'.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-metadata.html">sd-metadata</a> <a href="../Supervisor/sd-mirror.html">sd-mirror</a> <a href="../Supervisor/sd-mirror-prepare.html">sd-mirror-prepare</a> <a href="../Supervisor/sd-mirror-remotely.html">sd-mirror-remotely</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../User/span-list.html">span-list</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a> <a href="../Topic/tier.html">tier</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

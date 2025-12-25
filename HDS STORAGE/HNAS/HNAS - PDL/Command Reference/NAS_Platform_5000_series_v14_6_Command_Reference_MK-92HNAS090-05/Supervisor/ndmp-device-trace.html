@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-device-trace</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>ndmp-device-trace</h1>
+<p>Dump the set of currently enabled device traces or the trace for the specified device</p>
+<h1>Syntax</h1>
+<pre>ndmp-device-trace [ [--dblog on|off] -i &lt;device number&gt; | -n &lt;device name&gt; ]
+</pre>
+
+<h1>Description</h1>
+<p>Displays the NDMP device subsystems that are currently being traced, or the trace output for a specified device. Not all NDMP device subsystems are traced by default because there is a performance penalty in doing so for certain subsystems. See "ndmp-device-trace-add" for further information.</p>
+<p>The data gathered by the NDMP device trace is complementary to that gathered using "ndmp-trace-mask". Device traces consume a fixed amount of processor memory and will therefore wrap after a certain amount of device activity.</p>
+<h2>Options:</h2>
+<dl>
+<dt><strong>--device-name, -n &lt;device name&gt;</strong></dt>
+<dd><p>Display for the device specified by its name.</p></dd>
+<dt><strong>--device-number, -i &lt;device number&gt;</strong></dt>
+<dd><p>Display for the device specified by its number.  The device number for a specific device is displayed in the output of the "ndmp-devices-list" command.</p></dd>
+<dt><strong>--dblog on|off</strong></dt>
+<dd><p>A device must be specified to use this option. Enables/disables output of the device's trace to the dblog in real time. By default the trace output is stored in memory and only output to the console when requested using this command specifying a device.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>Display list of NDMP device subsystems currently being traced:</p>
+<pre>ndmp-device-trace
+</pre>
+<p></p>
+<p>Display the trace for the specified device:</p>
+<pre>ndmp-device-trace  --device-name "Tape Drive 2"
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/ndmp-device-trace-add.html">ndmp-device-trace-add</a> <a href="../Supervisor/ndmp-device-trace-remove.html">ndmp-device-trace-remove</a> <a href="../User/ndmp-devices-list.html">ndmp-devices-list</a> <a href="../Supervisor/ndmp-session-trace.html">ndmp-session-trace</a> <a href="../Supervisor/ndmp-trace-mask.html">ndmp-trace-mask</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

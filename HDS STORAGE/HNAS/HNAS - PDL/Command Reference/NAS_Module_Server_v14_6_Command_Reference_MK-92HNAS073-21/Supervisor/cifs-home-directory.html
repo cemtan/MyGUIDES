@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>cifs-home-directory</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>cifs-home-directory</h1>
+<p>Configure options for CIFS home directories</p>
+<h1>Syntax</h1>
+<pre>cifs-home-directory [--restrict-shares | --unrestrict-shares]
+</pre>
+
+<h1>Description</h1>
+<p>Configures options for the CIFS home directory feature.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--restrict-shares, -r</strong></dt>
+<dd><p>Restrict share configurations so that only a single share per file system can be enabled for home directory operations. This setting affects the whole cluster. This is the default behaviour.</p></dd>
+<dt><strong>--unrestrict-shares, -u</strong></dt>
+<dd><p>Do not restrict the number of shares that can be enabled for home directory operations. This setting affects the whole cluster.</p></dd>
+</dl>
+<p>The cifs-home-directory command allows the administrator to configure the options to be applied to the home directory feature.</p>
+<h1>Examples</h1>
+<p>To restrict share configuration so only one share per file system can be used for home directories:</p>
+<pre>$ cifs-home-directory --restrict-shares
+</pre>
+<p></p>
+<p>To unrestrict the home directory share configuration:</p>
+<pre>$ cifs-home-directory --unrestrict-shares
+</pre>
+<p></p>
+<p>To show the cluster wide configuration:</p>
+<pre>$ cifs-home-directory
+Cluster wide CIFS home directory options:
+    Only one share can be configured for home directories per file system.
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

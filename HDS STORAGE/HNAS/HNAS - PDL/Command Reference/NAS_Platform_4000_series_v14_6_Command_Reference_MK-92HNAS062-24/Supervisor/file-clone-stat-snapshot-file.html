@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>file-clone-stat-snapshot-file</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>file-clone-stat-snapshot-file</h1>
+<p>Display information about a snapshot file object based on its file handle or its object number</p>
+<h1>Syntax</h1>
+<pre>file-clone-stat-snapshot-file [-f &lt;file system label&gt;] [--verbose] &lt;file handle&gt; | {&lt;object number&gt; [--reuse &lt;reuse count&gt;]}
+	[--name &lt;snapshot name&gt; | --checkpoint &lt;snapshot checkpoint number&gt; | --index &lt;snapshot index&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Displays information about a Snapshot File object.</p>
+<p>The Snapshot File object to be displayed, also known as the target, must be specified with enough information to identify it uniquely in a file system.</p>
+<dl>
+<dt><strong>--file-system, -f &lt;file system label&gt;</strong></dt>
+<dd><p>Specify the file system name or the volume number of the file system where the Snapshot File object resides. The currently selected file system is used if this option is not specified.</p></dd>
+<dt><strong>&lt;object number&gt;</strong></dt>
+<dd><p>Specify the object number of the Snapshot File object, which is a string about 20 characters or less. If the object number is specified, the file handle cannot be specified.</p></dd>
+<dd><p>If the object is not a Snapshot File object, the command will fail.</p></dd>
+<dt><strong>&lt;file handle&gt;</strong></dt>
+<dd><p>Specify the file handle of the Snapshot File object, which is a 48-character string (see Examples section). If the file handle is specified, the object number cannot be specified.</p></dd>
+<dd><p>If the file handle does not belong to a Snapshot File object, the command will fail. If the file handle is intended to be used to locate the Snapshot File target in a snapshot, the snapshot information must be specified as explained in the notes below.</p></dd>
+<dt><strong>--reuse, -r &lt;reuse count&gt;</strong></dt>
+<dd><p>Specify the reuse count of the Snapshot File object.  This option is optional and can only be specified if the object number is specified.</p></dd>
+<dt><strong>--verbose, -v</strong></dt>
+<dd><p>Display file handle information in human-readable form.</p></dd>
+</dl>
+<p>By default, the Snapshot File object is in the live file system if specified by an object number. If specified by a file handle, its location is contained in the file handle. If not, it is necessary to specify the snapshot where the Snapshot File target resides. The snapshot information can be uniquely specified by one of the three mutually exclusive options: -n, -c, or -i.</p>
+<dl>
+<dt><strong>--name, -n &lt;snapshot name&gt;</strong></dt>
+<dd><p>Specify the name of the snapshot where the Snapshot File object resides.</p></dd>
+<dt><strong>--checkpoint, -c &lt;snapshot checkpoint number&gt;</strong></dt>
+<dd><p>Specify the checkpoint number of the snapshot where the Snapshot File object resides.</p></dd>
+<dt><strong>--index, -i &lt;snapshot index&gt;</strong></dt>
+<dd><p>Specify the snapshot index of the snapshot where the Snapshot File object resides.</p></dd>
+</dl>
+<h3>Notes</h3>
+<p>The file handle of an object determines the object uniquely in a file system. In particular, it contains information on the location of the object, which can be the live file system or a snapshot. Therefore, if both the file handle and the snapshot are specified, there are two objects involved: the object specified by the file handle and the target object to be found and displayed. In this case, the specified file handle does not belong to the target object; rather, all the information in the specified file handle, except the object location, is used to locate the target object that is located in the specified snapshot. See example 4 below.</p>
+<h1>Examples</h1>
+<p>1. To stat a clone given its full path name to find all of its Snapshot File objects:</p>
+<pre>   $ file-clone-stat /clone -v
+   Clone: /clone
+     SnapshotFile: FileHandle[0000000000006aa9000626d46826ffffffffffffffffffff]
+                   WfsHandle[objectNumber=27305,reuseCount=403156,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+     SnapshotFile: FileHandle[0000000000006cfd000626d36826ffffffffffffffffffff]
+                   WfsHandle[objectNumber=27901,reuseCount=403155,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+     SnapshotFile: FileHandle[0000000000006b19000626d26826ffffffffffffffffffff]
+                   WfsHandle[objectNumber=27417,reuseCount=403154,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+     SnapshotFile: FileHandle[0000000000006ed1000626d16826ffffffffffffffffffff]
+                   WfsHandle[objectNumber=28369,reuseCount=403153,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+</pre>
+<p></p>
+<p>Note that FileHandle is a 48-byte object, which contains object number, reuseCount, checkpoint number, object location, etc. The object location is in the 8 least significant bytes. If all bits of the object location are 1, the object is in the live file system. Otherwise, the object location is the snapshot index. The symbolic constant MOST_UP_TO_DATE_CP_NUM in the WfsHandle implies that the object is in the live file system.</p>
+<p>2. Now we can display information on individual Snapshot File objects. For example, to stat the first Snapshot File in the list above using its object number:</p>
+<pre>   $ file-clone-stat-snapshot-file 27305 -v
+   FileHandle[0000000000006aa9000626d46826ffffffffffffffffffff]
+   WfsHandle[objectNumber=27305,reuseCount=403156,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+   References:
+     Clone: /clone
+            WfsHandle[objectNumber=27182,reuseCount=403152,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     Clone: /clone4
+            WfsHandle[objectNumber=27341,reuseCount=403155,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     Clone: /clone4a
+            WfsHandle[objectNumber=27332,reuseCount=403306,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+</pre>
+<p></p>
+<p>3. To stat the same Snapshot File above using its file handle instead:</p>
+<pre>   $ file-clone-stat-snapshot-file 0000000000006aa9000626d46826ffffffffffffffffffff -v
+   FileHandle[0000000000006aa9000626d46826ffffffffffffffffffff]
+   WfsHandle[objectNumber=27305,reuseCount=403156,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+   References:
+     Clone: /clone
+            WfsHandle[objectNumber=27182,reuseCount=403152,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     Clone: /clone4
+            WfsHandle[objectNumber=27341,reuseCount=403155,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     Clone: /clone4a
+            WfsHandle[objectNumber=27332,reuseCount=403306,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+</pre>
+<p></p>
+<p>Note the two examples (2) and (3) have identical syntax except that the file handle string is longer than the object number string.</p>
+<p>4. Suppose the live file "/xclone1" was also captured in the snapshot named "snap1" and we want to display all references of the SFO in the snapshot "snap1." To this end, we need to find the file handle of the SFO in the live file system:</p>
+<pre>   $ file-clone-stat /xclone1 -v
+   Clone: /clone1
+     SnapshotFile: FileHandle[000000000000400b001068326826ffffffffffffffffffff]
+                WfsHandle[objectNumber=16395,reuseCount=1075250,MOST_UP_TO_DATE_CP_NUM,WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+</pre>
+<p></p>
+<p>It can be seen the live SFO has object number 16395, reuseCount 1075250, and location 0xffffffffffffffff (live file system). We will specify this file handle as a way to locate the target snapshotted SFO in "snap1".</p>
+<pre>   $ file-clone-stat-snapshot-file  000000000000400b001068326826ffffffffffffffffffff -n snap1 -v
+   FileHandle[000000000000400b001068326826ffff0000001068390000]
+   WfsHandle[objectNumber=16395,reuseCount=1075250,::WfsCheckpointNumber[70468042752/0x1068390000],WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+   References:
+     Clone: /.snapshot/snap1/xfile
+            WfsHandle[objectNumber=16393,reuseCount=1075249,::WfsCheckpointNumber[70468042752/0x1068390000],WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     Clone: /.snapshot/snap1/xclone1
+            WfsHandle[objectNumber=16394,reuseCount=1075250,::WfsCheckpointNumber[70468042752/0x1068390000],WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     Clone: /.snapshot/snap1/xclone2
+            WfsHandle[objectNumber=16399,reuseCount=1075250,::WfsCheckpointNumber[70468042752/0x1068390000],WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_FSOBJECT_FILE,volumeNumber=1]]
+     SnapshotFile: FileHandle[0000000000004014001068366826ffff0000001068390000]
+                   WfsHandle[objectNumber=16404,reuseCount=1075254,::WfsCheckpointNumber[70468042752/0x1068390000],WFSAuxInfo[verifier='H' (valid),objectType=OBJ_TYPE_SNAPSHOT_OF_FSOBJECT_FILE,volumeNumber=1]]
+</pre>
+<p></p>
+<p>Note the snapshotted SFO has the same object number 16395, same reuseCount 1075250, and different location 0x1068390000 (snapshot index).</p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../Topic/file-clone.html">file-clone</a> <a href="../Supervisor/file-clone-stat.html">file-clone-stat</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

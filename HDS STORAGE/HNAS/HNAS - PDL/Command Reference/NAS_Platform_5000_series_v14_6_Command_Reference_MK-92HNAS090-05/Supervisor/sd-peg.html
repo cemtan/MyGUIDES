@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>sd-peg</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>sd-peg</h1>
+<p>Force the server to assume mirror roles for system drives</p>
+<h1>Syntax</h1>
+<pre>sd-peg ([--primary | -p | --secondary | -e | --swap | -w | --default-role | -d [--unilateral | -u]] | --full | -f) [--async | -a] &lt;System-drives-see-&#39;man sd-spec&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>This command is used only with storage-based mirroring products such as TrueCopy.</p>
+<h2>INTRODUCTION</h2>
+<p>After loss or failure of the storage at one site, it is possible for the storage to enter a state called 'SSWS', in which the storage permits the server to write to the S-Vols and not the P-Vols.  The storage does not tell the server when this condition arises.  Therefore, an administrator must manually instruct the server to treat the P-Vols as unwritable secondaries and the S-Vols as writable primaries.</p>
+<p>The 'sd-peg' command tells the server to ignore mirror roles reported by the storage, and to assume mirror roles specified at the command line.  It can be used to make the server mount filesystems on S-Vols, rather than P-Vols, provided that mirror relationships are in the SSWS state.</p>
+<p>The administrator must not peg SDs in the absence of the SSWS state, and must unpeg them as soon as the SSWS condition is resolved.  In the absence of SSWS, if an S-Vol is pegged as a primary, the span that includes that S-Vol will fail, along with all its filesystems, until the S-Vol is unpegged.  If a P-Vol is unnecessarily pegged as a primary, the span's health will not be affected, but the server will lose the ability to detect mirror roles automatically and respond to failovers.</p>
+<h2>THE THREE MIRROR ROLES</h2>
+<p>If 'sd-peg' has not been used, understanding an SD's mirror role is straightforward.  The SD has the mirror role that is configured into the storage and reported to (and by) the server.  P-Vols are primaries and S-Vols are secondaries.</p>
+<p>After 'sd-peg' is used, three distinct terms are used to distinguish between three distinct mirror roles:</p>
+<dl>
+<dt><strong>Scsi mirror role</strong></dt>
+<dd><p>This is the role configured into the storage and reported to the server via the Scsi protocol: P-Vols are primary and S-Vols secondary.</p></dd>
+<dt><strong>Pegged mirror role</strong></dt>
+<dd><p>This is the role (if any) configured into the server via 'sd-peg'.</p></dd>
+<dt><strong>Effective mirror role</strong></dt>
+<dd><p>This is the Scsi role, overridden by the pegged role (if any).</p></dd>
+</dl>
+<p>Most server operations, including failover between primary and secondary SDs, use SDs' effective roles.</p>
+<p>If an SD's role has not been pegged, the effective role is always the same as the Scsi role, and failover between primary and secondary SDs is automatic.  If an SD's role has been pegged, an administrator must intervene manually (by unpegging it) when the SSWS condition is removed.</p>
+<h2>USING 'sd-peg'</h2>
+<p>You can specify several SDs in a single 'sd-peg' command.  See the 'sd-spec' man page.</p>
+<h3>Pegging system drives' mirror roles</h3>
+<p>To configure a mirror role for one or more SDs, specify exactly one of the following switches and one or more SD device IDs:</p>
+<dl>
+<dt><strong>-p, --primary</strong></dt>
+<dd><p>Forces the server to treat the SDs as primary.</p></dd>
+<dt><strong>-e, --secondary</strong></dt>
+<dd><p>Forces the server to treat the SDs as secondary.</p></dd>
+<dt><strong>-w, --swap</strong></dt>
+<dd><p>Forces the server to swap the <strong>effective</strong> mirror role of the SDs.  If the SDs are pegged as primary (or if they have not been pegged, and their current role is primary), the server pegs them as secondary -- and vice versa.</p></dd>
+<dt><strong>-d, --default-role</strong></dt>
+<dd><p>Removes any pegged roles for the SDs, so that the effective role equals the Scsi role and failover is automatic, just as if you had never pegged the SDs' roles.  This should be the normal state for all SDs, even those in a mirror relationship.</p></dd>
+</dl>
+<p>In each case, if the SD you specify has a mirrored partner, that partner will be pegged to the opposite role to the one you specify.  For example, if SDs 0 and 1 are mirrored and a mirror relationship has been configured into the server by one of the 'sd-mirror' commands, then running</p>
+<pre>sd-peg --primary 0
+</pre>
+<p></p>
+<p>will set up the following pegs:</p>
+<pre>0: primary
+1: secondary
+</pre>
+<p></p>
+<p>To defeat this behavior and peg only SD 0, use the --unilateral (or -u) switch.</p>
+<p>Using --unilateral will also defeat some checks that would otherwise be performed.  For example, without --unilateral, the current effective roles of the two SDs must be complementary (one primary, one secondary), and the SD you propose to treat as primary must be licensed.</p>
+<p>The --default-role switch, which cancels any pegging, performs fewer checks than the other switches.  For example, it is possible to cancel pegging on two SDs even if they're currently in a primary--primary relationship, or if the SD that will become primary is unlicensed.  In the absence of the --unilateral switch, pegging one SD to its default role will do the same to its configured partner.</p>
+<p>Pegged mirror roles are stored in the registry.  They therefore survive server failovers and reboots.</p>
+<p>If you peg an SD's role on any one cluster node, all the other nodes in the cluster are immediately affected.  However, if multiple clusters (or stand-alone servers) can see the storage, roles must be pegged on each cluster.</p>
+<p>Pegging SDs will queue messages that the spanning system must read and process: potentially, Cod and some other structures must be read and checked and file systems must be mounted or unmounted.  'sd-peg' normally waits for the spanning system to process these messages (along with any others that are already queued) and, if necessary, to send messages to request the mounting or unmounting of file systems.  This delay makes 'sd-peg' safe for use in scripts.  However, the --async switch can be used to make 'sd-peg' skip the delay and return control sooner, leaving the messages to be processed in the background.  The --async switch does not affect the speed with which the messages are processed.</p>
+<h3>Listing pegged roles</h3>
+<p>If you omit the --primary, --secondary, --swap and --default-role switches, 'sd-peg' will list the pegged roles for the SDs you specify at the command line.</p>
+<p>You must specify at least one SD; the command does not default to showing everything.  To show all pegged SDs on the server, specify 'all'.</p>
+<p>If you specify the --full switch, unpegged SDs will also be shown (and their pegged roles will be shown as 'Unknown').  Otherwise, only pegged SDs will be shown.</p>
+<p>If an SD's mirror role has been pegged, 'sd-list --verbose' will show all three mirror roles: Scsi, pegged and effective.  It also has switches that can select on or sort by all three mirror roles.</p>
+<h3>Waiting for the system to stabilize</h3>
+<p>Using 'sd-peg' to change mirror roles launches background processes inside the server.  The command returns control without waiting for these processes to finish.  A script that uses 'sd-peg' in this way may need to follow it with 'span-wait-for-loading --mount' in order to be sure that all the resulting changes have been processed.  An interactive user wanting to check the progress of these progresses without waiting for them to complete can run 'sd-list-queues' and 'filesystem-list-queues'.  Typically, the processes complete fast enough to make such monitoring unnecessary.</p>
+<h1>Examples</h1>
+<pre>server:$ sd-list trio
+Device  Stat  Allow  GiByte  Mirror   In span                       Span Cap
+------  ----  -----  ------  -------  ----------------------------  --------
+0        OK    Yes       10   P 3     Trio                                30
+1        OK    Yes       10   S 2     Trio                                30
+2        OK    Yes       10   P 1     Trio                                30
+3        OK    Yes       10   S 0     Trio                                30
+4        OK    Yes       10   P 5     Trio                                30
+5        OK    Yes       10   S 4     Trio                                30
+server:$ sd-peg all
+server:$ sd-peg --primary 1 3
+1: OK
+3: OK
+0: OK
+2: OK
+server:$ sd-peg trio
+0: Secondary
+1: Primary
+2: Secondary
+3: Primary
+server:$ sd-peg --full trio
+0: Secondary
+1: Primary
+2: Secondary
+3: Primary
+4: Unknown
+5: Unknown
+server:$ sd-list trio
+Device  Stat  Allow  GiByte  Mirror   In span                       Span Cap
+------  ----  -----  ------  -------  ----------------------------  --------
+0        OK    Yes       10   S 3     Trio                                30
+1        OK    Yes       10   P 2     Trio                                30
+2        OK    Yes       10   S 1     Trio                                30
+3        OK    Yes       10   P 0     Trio                                30
+4        OK    Yes       10   P 5     Trio                                30
+5        OK    Yes       10   S 4     Trio                                30
+server:$ sd-list --verbose 0
+Device ID:      0
+Comment:
+Capacity:       10GiB (10737418240 bytes)
+Status:         OK
+Role:           Secondary (Scsi: Primary; peg Secondary); configured partner: 3
+Access:         Allowed
+Used in span:   'Trio' (capacity 30GiB)
+</pre>
+<p></p>
+<pre>server:$ sd-peg --default-role trio
+0: OK
+1: OK
+2: OK
+3: OK
+4: OK
+5: OK
+server:$ sd-peg all
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Topic/cod.html">cod</a> <a href="../Supervisor/filesystem-list-queues.html">filesystem-list-queues</a> <a href="../User/sd-list.html">sd-list</a> <a href="../Supervisor/sd-list-queues.html">sd-list-queues</a> <a href="../Topic/sd-spec.html">sd-spec</a> <a href="../Supervisor/span-wait-for-loading.html">span-wait-for-loading</a> <a href="../Topic/storage-based-mirror.html">storage-based-mirror</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

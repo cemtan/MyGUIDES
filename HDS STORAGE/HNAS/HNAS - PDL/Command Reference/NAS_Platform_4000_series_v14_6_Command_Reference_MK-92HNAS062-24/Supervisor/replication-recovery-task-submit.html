@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>replication-recovery-task-submit</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>replication-recovery-task-submit</h1>
+<p>Submit a replication recovery task for a file system</p>
+<h1>Syntax</h1>
+<pre>replication-recovery-task-submit 
+[-r | --recovery-option (promote-rw|promote-ro|promote-unmounted|demote)]
+[-l | --log-level (none|error|warning|info)]
+[--recover-fs-dr-setting]
+[--recover-shares]
+[--recover-exports]
+[--fix-name-clash]
+[--rebind-existing-exports]
+[--do-not-skip-identical]
+[-o | --override-fs-dr-default (transfer|do-not-transfer)]
+[--delete-dr-shares]
+[--delete-dr-exports]
+&lt;filesystem&gt; [&lt;recovery-rollback-snapshot&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Queue a file system recovery task.</p>
+<p>For the purposes of this man page:</p>
+<ul>
+<li>Mount points refer to NFS exports and CIFS shares.</li>
+<li>Eligible mount points refer to mount points that target the source file system and whose DR transfer setting option --disaster-recovery-setting is set to 'transfer', or set to 'use-fs-default' and the source file system's default DR transfer setting is enabled.</li>
+<p>A mount point's --disaster-recovery-setting option can be configured using the cifs-share or nfs-export command while a file system's default DR setting can be configured using the replication-recovery-default-transfer-setting-set command.</p>
+<p>Note that the file system's default DR setting can be overridden using the --override-fs-dr-default option which can impact the mount point's eligibility.</p>
+<li>Identical mount points refer to mount points that exist on the same EVS, have the same name and path, and both target the promoted file system.</li>
+<li>A link is either a CNS (namespace) link if the EVS hosting the source file system has global EVS security setting, or an EVS link in the case of an individual EVS security setting.</li>
+</ul>
+<dl>
+<dt><strong>-r, --recovery-option OPTION</strong></dt>
+<dl>
+<dt><strong>promote-rw</strong></dt>
+<dd><p>Convert a replication target to a normal file system, and then mount it read write.</p></dd>
+<dt><strong>promote-ro</strong></dt>
+<dd><p>Convert a replication target to a normal file system, and then mount it read only.</p></dd>
+<dt><strong>promote-unmounted</strong></dt>
+<dd><p>Convert a replication target to a normal file system, and then leave it unmounted.</p></dd>
+<dt><strong>demote</strong></dt>
+<dd><p>Convert a normal file system to a replication target, and then mount it.</p></dd>
+</dl>
+<dt><strong>-l, --log-level OPTION</strong></dt>
+<dl>
+<dt><strong>none</strong></dt>
+<dd><p>Do not create a log for this task.</p></dd>
+<dt><strong>error</strong></dt>
+<dd><p>Log ERROR level events only.</p></dd>
+<dt><strong>warning</strong></dt>
+<dd><p>Log WARNING and ERROR level events only.</p></dd>
+<dt><strong>info</strong></dt>
+<dd><p>Log all events including INFO level.</p></dd>
+</dl>
+<dt><strong>--recover-fs-dr-setting</strong></dt>
+<dd><p>Apply the source file system's default DR transfer setting to the promoted file system.</p></dd>
+<dt><strong>--recover-shares</strong></dt>
+<dd><p>Recover eligible CIFS shares.</p></dd>
+<dt><strong>--recover-exports</strong></dt>
+<dd><p>Recover eligible NFS exports.</p></dd>
+<dt><strong>--fix-name-clash</strong></dt>
+<dd><p>Generate a new name for the recovered mount point if there's a name clash with an existing mount point within the same EVS. The existing mount point is not affected.</p></dd>
+<dd><p>If the clashing mount points are identical, they will be skipped unless the --do-not-skip-identical option is used.</p></dd>
+<dt><strong>--rebind-existing-exports</strong></dt>
+<dd><p>This option is only effective when the source file system and the target file system are assigned to the same EVS. It is intended to be used when retiring the storage the source file system is hosted on.</p></dd>
+<dd><p>Existing exports that have a matching replicated export (same name, file system and path, and have not been recreated since the replication) are rebound to the target file system. This transitions NFS access from the source file system to the target file system. Affected NFS v2/v3 clients may pause briefly whilst this takes place but won't need to be remounted. Affected NFS v4 clients will need to be remounted.</p></dd>
+<dd><p>If there is an existing export within the same EVS that has the same name but is different from the export originally replicated, the export is recovered with a new name on the target file system if the --fix-name-clash option is used, otherwise the export's recovery is skipped.</p></dd>
+<dd><p>Any existing CNS or EVS namespace links associated with the source file system are rebound to the target file system. Note that this requires the source and target filesystems to be mounted during the rebind.</p></dd>
+<dt><strong>--do-not-skip-identical</strong></dt>
+<dd><p>Even with the --fix-name-clash or the --rebind-existing-exports option specified, a mount point eligible for recovery will be skipped if there's an existing mount point that targets the same file system and the same path (this prevents duplicate DR mount points from being created e.g. if mount point recovery is executed more than once for the same file system version).</p></dd>
+<dd><p>Use this option to recover such identical mount points (by generating a new name) instead of skipping them.</p></dd>
+<dd><p>Effective with the --fix-name-clash, --rebind-existing-exports or both.</p></dd>
+<dd><p>Affects the NFS exports and CIFS shares when the --fix-name-clash option is used, but only affects NFS exports when only the --rebind-existing-exports option is used.</p></dd>
+<dt><strong>-o, --override-fs-dr-default OPTION</strong></dt>
+<dd><p>Override the source file system's default DR transfer setting when assessing the eligibility of mount points.</p></dd>
+<dd><p>Only affects mount points that have their '--disaster-recovery-setting' field set to 'use-fs-default'. Does not affect the promoted file system's default DR transfer setting.</p></dd>
+<dd><p>When used with the --recover-fs-dr-setting, the source file system's default DR transfer setting is applied to the promoted file system, while the override setting is used to recover the affected mount points.</p></dd>
+<dl>
+<dt><strong>transfer</strong></dt>
+<dd><p>Recover the mount points with "Use File System Default" transfer setting.</p></dd>
+<dt><strong>do-not-transfer</strong></dt>
+<dd><p>Do not recover the mount points with "Use File System Default" transfer setting.</p></dd>
+</dl>
+<dt><strong>--delete-dr-shares</strong></dt>
+<dd><p>Delete the file system's recovered CIFS shares.</p></dd>
+<dt><strong>--delete-dr-exports</strong></dt>
+<dd><p>Delete the file system's recovered NFS exports.</p></dd>
+<dt><strong>&lt;filesystem&gt;</strong></dt>
+<dd><p>The file system to be recovered.</p></dd>
+<dt><strong>&lt;recovery-rollback-snapshot&gt;</strong></dt>
+<dd><p>The snapshot to recover the file system to.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>To promote the file system 'targetfs' to the version represented by snapshot AUTO_SNAPSHOT_TARGET_1, and to recover the shares and exports in that version:</p>
+<pre>replication-recovery-task-submit --recovery-option promote-rw --recover-fs-dr-setting --recover-shares --recover-exports --fix-name-clash targetfs AUTO_SNAPSHOT_TARGET_1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>File system</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-share.html">cifs-share</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/replication-recovery-task-cancel.html">replication-recovery-task-cancel</a> <a href="../Supervisor/replication-recovery-task-list.html">replication-recovery-task-list</a> <a href="../Topic/replication-recovery-task-log-events.html">replication-recovery-task-log-events</a> <a href="../Supervisor/replication-recovery-task-log-get.html">replication-recovery-task-log-get</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

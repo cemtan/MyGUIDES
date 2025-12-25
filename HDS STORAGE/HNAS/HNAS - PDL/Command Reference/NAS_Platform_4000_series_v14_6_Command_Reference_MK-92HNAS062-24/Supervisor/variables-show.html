@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>variables-show</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>variables-show</h1>
+<p>Display current and default values of SimplePersistentConfig and VnodeLocalVariable items</p>
+<h1>Syntax</h1>
+<pre>variables-show 
+Alias:       twiddles-show
+Alias:       simple-persistent-config
+</pre>
+
+<h1>Description</h1>
+<p>Display current and default values of various configuration options.</p>
+<p>Use the <code>set</code> or <code>set-for-evs</code> command, as instructed by the output of the variables-show command when given no arguments, to change the value of a configuration option. You are advised to use the <code>unset</code> or <code>unset-for-evs</code> command, rather that <code>set</code> or <code>set-for-evs</code>, to revert to the default value, as the setting will then track any future changes in the default. The "set" configuration items are cluster-wide. The "set-for-evs" configuration items apply to the EVS in context. All the settings are held in the registry, which is persistent across reboots and cluster-node replacements. Most of them take effect immediately but there's no surefire way of telling without inspecting the piece of source code which uses the configuration item. There is no documentation on the individual configuration options. Some of them are set automatically, for example when one-time upgrade checks are performed, and it would be particularly unwise to revert those, at least without consulting the corresponding source code.</p>
+<p>Although <code>supervisor</code> level is sufficient to modify any variable, using the <code>set</code> or <code>set-for-evs</code> commands, only variables changed from their default values will be displayed by this command. Values should only be changed under the direction of your support provider.</p>
+<h1>Examples</h1>
+<pre>server:$ variables-show
+CifsAuthConfig is explicitly set to the default value: true (configure with the "set" command)
+CronTabCfg-upgrade-performed == true (default value false) (configure with the "set" command)
+LoopBackExportLabel == /hcns.auto.f837d354bffffdd20100000000000000.0 (default value ) (configure with the "set" command)
+SNMPTrapsCfg-upgrade-performed == true (default value false) (configure with the "set" command)
+data-migrator-to-cloud-data-transfer-mode == 1 (default value 3) (configure with the "set" command)
+data-migrator-to-cloud-enable == 1 (default value 0) (configure with the "set" command)
+ext-migration-account-records is explicitly set to the default value: 128 (configure with the "set" command)
+ext-migration-destination-records is explicitly set to the default value: 128 (configure with the "set" command)
+fs-dacl-mode-masking-deny-aces-enabled is explicitly set to the default value: true (configure with the "set" command)
+global-automount-control-changes-since-reboot is explicitly set to the default value: 0 (configure with the "set" command)
+localgroup-upgrade-check-performed == true (default value false) (configure with the "set-for-evs" command)
+nfs-character-set == UTF-8 (default value Latin-1) (configure with the "set" command)
+posixshortnames == true (default value false) (configure with the "set" command)
+shortnames == true (default value false) (configure with the "set" command)
+server:$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/set.html">set</a> <a href="../Supervisor/set-for-evs.html">set-for-evs</a> <a href="../Supervisor/unset.html">unset</a> <a href="../Supervisor/unset-for-evs.html">unset-for-evs</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

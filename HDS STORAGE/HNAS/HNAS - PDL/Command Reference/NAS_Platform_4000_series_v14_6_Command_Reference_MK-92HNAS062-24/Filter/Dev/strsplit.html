@@ -1,0 +1,263 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>strsplit</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>strsplit</h1>
+<p>Split a line</p>
+<h1>Syntax</h1>
+<pre>... | strsplit [--split-at/rwivj=&lt;mchars&gt;,k=&lt;nchars&gt;,o=&lt;occurrence#&gt;
+	[--count &lt;number&gt;] [--trim]
+	[--save-with-prefix[/unique,local] &lt;prefix&gt;]
+	[--if-strquery &lt;arguments&gt; | --unless-strquery &lt;arguments&gt; | --if &lt;arguments&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>Split a standard input line into multiple lines.</p>
+<h2>A. Environment variables</h2>
+<p>By default, the filter splits every input line unconditionally. But users can specify options to control whether a standard input should be split.</p>
+<p>1. --if &lt;expression&gt; to evaluate an expression; e.g.,</p>
+<pre>           ... | strsplit --if strlen(.line)&gt;40
+</pre>
+<p></p>
+<p>The &lt;expression&gt; is formed by concatenating all arguments after --if with a space inserted in between. It has the same syntax as the expression specified to the calculate command. It is, in fact, evaluated by the same library as the calculate command.</p>
+<p>2. --if-strquery and --unless-strquery option to run the strquery filter in strsplit context.</p>
+<pre>           ... | strsplit --if-strquery --has summary
+           ... | strsplit --unless-strquery --has summary
+</pre>
+<p></p>
+<p>Both options invoke the strquery library to evaluate all subsequent arguments as if they were the sub-queries to the strquery filter. The result of the last sub-query is the outcome of the strquery test. For --if-strquery, the input line is split if the outcome is a positive integer. For --unless-strquery, the input line is not split if the outcome is a positive integer.</p>
+<p>In order to carry out the conditional computation, it is necessary to use information about the input line. Thus, the minishell framework creates a number of variables similar to strtoken (see the 'strtoken' man page) as follows:</p>
+<h2>A1. General built-in minishell variables</h2>
+<dl>
+<dt><strong>.__, .line</strong></dt>
+<dd><p>These two tokens are synonymous and represent the input line with the ending newline, if any, discarded.</p></dd>
+<dt><strong>.linelen</strong></dt>
+<dd><p>This represents the length of the input line, excluding the ending newline, if any.</p></dd>
+<dt><strong>.___, .rawline</strong></dt>
+<dd><p>These two tokens are synonymous and represent the raw input line (the ending newline, if any, is not discarded).</p></dd>
+<dt><strong>.rawlinelen</strong></dt>
+<dd><p>This represents the length of the raw input line, including the ending newline, if any.</p></dd>
+<dt><strong>.trimmedline</strong></dt>
+<dd><p>This represents the input line after trimming leading and trailing white space.</p></dd>
+<dt><strong>.trimmedlinelen</strong></dt>
+<dd><p>This represents the length of the trimmed input line.</p></dd>
+<dt><strong>.____, .lineno</strong></dt>
+<dd><p>These two tokens are synonymous and expand to the input line number. The input line number starts with 1 for the first line.</p></dd>
+</dl>
+<h2>A2. Default strsplit variables</h2>
+<p>In addition, the strsplit filter creates a number of variables in strsplit's local minishell environment.</p>
+<p>Suppose a line is split into multiple parts where the parts are numbered 1, 2, ..., K from left to right. The filter then creates the following variables that can be used in the --if, --if-strquery, and --unless-strquery options:</p>
+<dl>
+<dt><strong>_lineno</strong></dt>
+<dd><p>Current input line number (starting from 1), same as .lineno above</p></dd>
+<dt><strong>_line</strong></dt>
+<dd><p>Text of the current input line, same as .line above</p></dd>
+<dt><strong>_linelen</strong></dt>
+<dd><p>Length of the current input line in bytes, same as .linelen above</p></dd>
+<dt><strong>_part&lt;k&gt;</strong></dt>
+<dd><p>Text of the k-th part (k starts from 1 to K)</p></dd>
+<dt><strong>_part&lt;k&gt;len</strong></dt>
+<dd><p>Length of the k-th part in bytes</p></dd>
+<dt><strong>_partcount</strong></dt>
+<dd><p>Total number of parts obtained from splitting the current input line</p></dd>
+</dl>
+<p>If one needs to access these variables outside strsplit context, one can request that the variables be saved in the global minishell environment by specifying the --save-with-prefix option.</p>
+<h2>B. Options</h2>
+<dl>
+<dt><strong>-s, --split-at/rwivj=&lt;mchars&gt;,k=&lt;nchars&gt; &lt;token&gt;</strong></dt>
+<dd><p>Split the line at the start of the specified token. If the token occurs N times in the line (e.g. space), the line will be split at N places resulting in N+1 new lines.</p></dd>
+<dd><p>The default is to split at all occurrences of space in the line.</p></dd>
+<dd><p>A number of sub-options can be specified to the option to support regular expressions. Their meanings are described in detail in the regex-options man page and can be summarized as follows.</p></dd>
+</dl>
+<pre>      * r : interpret &lt;token&gt; as a &lt;pattern&gt; of regular expression.
+            If not specified, &lt;pattern&gt; is a fixed string.
+      * w : count only matches that are well delimited (word tokens)
+      * i : case-insensitive matching
+      * v : inverted matching
+      * o=&lt;N&gt; : split at the N-th occurrence of the match, N must be nonzero.
+                If this sub-option is specified, --count should not be specified.
+                If this sub-option is not specified, the default is to split at all occurrences.
+                If N is positive, the occurrence number is counted from left to right, starting with 1.
+                If N is negative, the occurrence number is counted from right to left, starting with -1.
+                If the occurrence number does not exist, do not split the line.
+      * j=&lt;m&gt; : stretch the start boundary of the match by m characters:
+                   (new start boundary) = (old start boundary) + m, m can be negative.
+      * k=&lt;n&gt; : stretch the end boundary of the match by n characters:
+                   (new end boundary) = (old end boundary) + n, n can be negative.
+</pre>
+<p></p>
+<dl>
+<dt><strong>--count, -c &lt;number&gt;</strong></dt>
+<dd><p>Limit splitting to the first &lt;number&gt; occurrences of matches. If &lt;number&gt; is negative, split at the last &lt;-number&gt; occurrences of matches in the line.</p></dd>
+<dd><p>The default is to split at all occurrences of matches in the line.</p></dd>
+<dt><strong>--trim, -t</strong></dt>
+<dd><p>Trim both the leading and trailing white space in each output lines. The net effect is to discard all empty output lines.</p></dd>
+<dd><p>The default is not to trim the resulting output lines.</p></dd>
+<dt><strong>-S, --save-with-prefix &lt;prefix&gt;</strong></dt>
+<dd><p>Specify that all parts resulting from splitting each input line are to be saved in the global minishell environment with the specified prefix. Thus, these variables can be shared with other mse-aware commands outside of strsplit context.</p></dd>
+<dt><strong>-S, --save-with-prefix[/unique,local] &lt;prefix&gt;</strong></dt>
+<dd><p>The default behavior of the -S option can be modified by two sub-options. (1) /local means the variables are to be saved in strsplit's local minishell environment, (2) /unique means to create unique variable names across all input lines. Note the sub-option names can be specified with enough characters to identify them uniquely.</p></dd>
+<dd><p>To see what variables are created, consider the n-th input line where the line number starts from 1. Suppose the line is split into K parts.</p></dd>
+</dl>
+
+<p>1) If --save-with-prefix option is not specified, the filter will create the default variables as listed in section A2 above.</p>
+<p>2) If '--save-with-prefix XYZ' is specified, the variables in section A2 will be prefixed with XYZ and saved in the global minishell environment; i.e.,</p>
+
+<pre>             XYZ_lineno              : current input line number (starting from 1)
+             XYZ_line                : text of the current input line
+             XYZ_linelen             : length of the current input line in bytes
+             XYZ_line_part&lt;k&gt;        : text of the k-th part of the current input line
+             XYZ_line_part&lt;k&gt;len     : length of the k-th part of the current input line
+             XYZ_line_partcount      : total parts of the current input line
+</pre>
+<p></p>
+
+<p>To save these variables in the local minishell environment of strsplit instead of the global minishell environment, specify '--save-with-prefix/local XYZ'.</p>
+<p>3) If --save-with-prefix/unique is specified with a prefix, say XYZ, the line number is added to the variable names as follows:</p>
+
+<pre>             XYZ_lineno              : current input line number (starting from 1)
+             XYZ_line&lt;n&gt;             : text of the n-th input line
+             XYZ_line&lt;n&gt;len          : length of the n-th input line in bytes
+             XYZ_line&lt;n&gt;_part&lt;k&gt;     : text of the k-th part of the n-th input line
+             XYZ_line&lt;n&gt;_part&lt;k&gt;len  : length of the k-th part of the n-th input line
+             XYZ_line&lt;n&gt;_partcount   : total parts of the n-th input line
+</pre>
+<p></p>
+
+<p>Note that n is equal to the current input line number and k runs from 1 to K.</p>
+<p>4) Clean up variables</p>
+<p>Variables saved in the local minishell environment cannot be accessed outside the context of strsplit; they are destroyed when the filter exits.</p>
+<p>Variables saved in the global minishell environment persist until the next reboot. They can be accessed by all mse-aware commands.</p>
+<p>Note that when a new instance of strsplit is started, it will clean up all global variables from the last run based on the information provided by the --save-with-prefix option specified to the current command. Thus, the following command can be used to clean up all variables created by the last run if both the current and last runs have identical --save-with-prefix option. For instance,</p>
+
+<pre>             echo | strsplit -S XYZ
+</pre>
+<p></p>
+
+<p>However, this method still creates new variables for the new run. Another solution to clean up all global variables containing XYZ in the names is to run the mse-unset command:</p>
+
+<pre>             mse-env | grep XYZ | mse-unset
+</pre>
+<p></p>
+<dl>
+<dt><strong>--if-strquery &lt;arguments&gt;</strong></dt>
+<dd><p>Specify conditional splitting: split the input line if the strquery test returns true.</p></dd>
+<dd><p>If this option is specified, it must be the last option on the command line. All tokens that appear after --if-strquery to the end of the command line are treated as if they were sub-queries specified to the 'strquery' filter:</p></dd>
+</dl>
+<pre>            strquery --quiet --first-line %.___ &lt;arguments&gt;
+</pre>
+<p></p>
+
+<p>where %.__ represents a standard input line to the 'strsplit' filter. The 'strquery' command will be evaluated without producing any output as described in its man page.</p>
+<p>The outcome of the strquery command is defined as the integer result of the last sub-query. If the value is positive, the outcome is interpreted as true or success, zero as false, and negative as error. The standard input line is always split if and only if the --if-strquery outcome is true, and remains intact otherwise.</p>
+<p>--unless-strquery &lt;arguments&gt;</p>
+<p>This option is similar to --if-strquery in that it must be the last option on the command line. It specifies conditional splitting: always split the line (even if strquery returns error) unless the strquery test returns true.</p>
+<p>The standard input line is always split except when the strquery test is true;</p>
+<p>It is important to note the subtle difference when the strquery test is errored:</p>
+
+<pre>        * The line is split for --unless-strquery option.
+        * The line is not split for --if-strquery option.
+</pre>
+<p></p>
+<dl>
+<dt><strong>--if &lt;arguments&gt;</strong></dt>
+<dd><p>This option is similar to --if-strquery in that it must be the last option on the command line. All tokens that appear after --if to the end of the command line are concatenated together with a space inserted in between. The resulting string is treated as an expression specified to the 'calculate' command. Therefore, it can have options to the 'calculate' command embedded in the expression.</p></dd>
+<dd><p>The expression is evaluated in the current minishell environment. If the result is non-zero, the test is interpreted as true and the input line is split. Otherwise, the input line remains intact.</p></dd>
+</dl>
+<h1>Examples</h1>
+<p>1. Simple splitting</p>
+<pre>   $ echo It is good | strsplit
+   It
+    is
+    good
+</pre>
+<p></p>
+<pre>   $ echo It is good | strsplit --trim
+   It
+   is
+   good
+</pre>
+<p></p>
+<pre>   $ echo It is good | strsplit --split-at is
+   It
+   is good
+</pre>
+<p></p>
+<p>2. Split at the second match of a regular expression pattern</p>
+<pre>   $ echo abc 123 def 456 xyz | strsplit --trim --split-at/r,o=2  [0-9]+
+   $ echo abc 123 def 456 xyz | strsplit --trim --split-at/r,o2   [0-9]+  # equal sign is optional
+   abc 123 def
+   456 xyz
+</pre>
+<p></p>
+<p>3. Save splitting results in the global minishell environment</p>
+<pre>   $ echo It is good | strsplit --trim --save-with-prefix ABC
+   It
+   is
+   good
+</pre>
+<p></p>
+<pre>   $ mse-env
+   ABC_line=It is good
+   ABC_linelen=10
+   ABC_lineno=1
+   ABC_part1=It
+   ABC_part1len=2
+   ABC_part2=is
+   ABC_part2len=2
+   ABC_part3=good
+   ABC_part3len=4
+   ABC_partcount=3
+</pre>
+<p></p>
+<p>To remove all global minishell variables whose names contain "ABC":</p>
+<pre>   $ mse-env | grep ABC | mse-unset
+</pre>
+<p></p>
+<p>4. Conditional splitting</p>
+<pre>   $ sscat file1
+   Job 1: Started : 2015-08-30 04:00:59-07:00 Ended : 2015-08-30 04:15:32-07:00
+   Job 2: Started : 2015-08-30 05:16:13-07:00 Ended : 2015-08-30 05:31:08-07:00
+</pre>
+<p></p>
+<p>Split the second line only:</p>
+<pre>   $ sscat file1 | strsplit --split-at Started --if-strquery --has 'Job 2'
+   Job 1: Started : 2015-08-30 04:00:59-07:00 Ended : 2015-08-30 04:15:32-07:00
+   Job 2:
+   Started : 2015-08-30 05:16:13-07:00 Ended : 2015-08-30 05:31:08-07:00
+</pre>
+<p></p>
+<pre>   $ sscat file1 | strsplit --split-at Started --if-strquery --has 'Job 2' | strsplit --split-at Ended --if-strquery --start Started
+   Job 1: Started : 2015-08-30 04:00:59-07:00 Ended : 2015-08-30 04:15:32-07:00
+   Job 2:
+   Started : 2015-08-30 05:16:13-07:00
+   Ended : 2015-08-30 05:31:08-07:00
+</pre>
+<p></p>
+<h1>See Also</h1>
+<p><a href="../../Dev/backquote.html">backquote</a> <a href="../../Filter/Dev/calculate.html">calculate</a> <a href="../../Filter/User/grep.html">grep</a> <a href="../../Filter/Dev/mse.html">mse</a> <a href="../../Filter/Dev/strjoin.html">strjoin</a> <a href="../../Filter/Dev/strquery.html">strquery</a> <a href="../../Filter/Dev/strreplace.html">strreplace</a> <a href="../../Filter/Dev/strtoken.html">strtoken</a></p>
+<h1>Privilege Level</h1>
+<p>Dev</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nfsv3-wsize-set</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nfsv3-wsize-set</h1>
+<p>Set the maximum number of bytes per NFSv3 WRITE request the client can send.</p>
+<h1>Syntax</h1>
+<pre>nfsv3-wsize-set &lt;--tcp | --udp | --all&gt; &lt;value|&#39;default&#39;&gt;
+</pre>
+
+<h1>Description</h1>
+<p>Configures the maximum number of bytes per NFSv3 WRITE request that a client can send  whilst writing data to a file. These values may be displayed using <strong>nfsv3-wsize-get</strong>. Usage:</p>
+
+<p><strong>nfsv3-wsize-set</strong> --tcp 32768</p>
+
+<p>Set configuration for TCP transports to 32768 bytes.</p>
+
+<p><strong>nfsv3-wsize-set</strong> --udp 28672</p>
+
+<p>Set configuration for UDP transports to 28672 bytes.</p>
+
+<p><strong>nfsv3-wsize-set</strong> --all 8192</p>
+
+<p>Set configuration for all transports, i.e. both TCP and UDP, to 8192 bytes.</p>
+
+<p><strong>nfsv3-wsize-set</strong> --all default</p>
+
+<p>Set configuration for all transports back to their default values.</p>
+<h2>A note on sizes</h2>
+<p>The size specified should be a multiple of the block size of any file systems which are exported, i.e. 4k or 32k.  <strong>nfsv3-wsize-set</strong> will enforce the 4k multiple but not the 32k multiple.  If you specify a value which is not a multiple of 32k and then export a 32k block size file system, clients will typically ignore the specified value and reduce their write size down to the next multiple.</p>
+<p>The maximum specifiable values are as listed below.  These are also the default values.</p>
+
+<p>TCP: 65536</p>
+<p>UDP: 57344</p>
+
+<p>Note that although the default send and receive values within a transport mechanism are the same the user may configure them to have different values.</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/nfsv3-rsize-get.html">nfsv3-rsize-get</a> <a href="../Supervisor/nfsv3-rsize-set.html">nfsv3-rsize-set</a> <a href="../Supervisor/nfsv3-wsize-get.html">nfsv3-wsize-get</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nfs-export-advertise-for-virtual-volumes</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>nfs-export-advertise-for-virtual-volumes</h1>
+<p>Configure the advertising of NFS exports at the roots of virtual volumes</p>
+<h1>Syntax</h1>
+<pre>nfs-export-advertise-for-virtual-volumes [-d | -e] [-i &lt;refresh interval in seconds&gt;] [-r]
+</pre>
+
+<h1>Description</h1>
+<p>Imagine a file system that contains two virtual volumes for two users' home directories, /fred and /joe. Imagine also that there is an NFS export at the root of this file system, named /home. When the automounter on an NFS client is used to mount one of these home directories, it will send a request to the server to get the list of exports. This is the same request that's used by the 'showmount -e' command. On receiving this list, it will choose the most suitable export to mount.</p>
+<p>If, for example, the automounter has been told to mount /home/fred but the only suitable export it finds is /home, it will first mount /home, then change directory to /fred. Although this works fine for general file system operation, and indeed many mounts are created this way, it does mean that quota information may not be returned correctly. The reason for this is that because the client has mounted the export /home, the free space that's reported for the mount will be that of the entire file system, not of the virtual volume /fred.</p>
+<p>In order to enable the server to report the correct quota information for the mount, the client must mount /home/fred directly, rather than mounting /home and then changing directory to /fred. An obvious way to achieve this is to add an export /home/fred. However, having to manually add an export at the root of every virtual volume is cumbersome.</p>
+<p>So, the server has the facility to report a 'fake' export at the root of each virtual volume. In the scenario above, with a single export /home at the root of the file system, the server would report the exports /home, /home/fred and /home/joe. On receiving this list, the client would now see that the most suitable export is /home/fred, so it would mount that path directly, therefore ensuring the correct quota information is returned to the user fred.</p>
+<p>This command is used to enable or disable the reporting of these 'fake' exports at the roots of virtual volumes. It is also used to refresh the list of exports manually and to configure the interval at which automatic refreshes of the list occur. The list is always refreshed immediately when an export or virtual volume is added or removed, but it is also refreshed in the background at regular intervals to ensure other changes, such as directory renames, are reflected in the export list.</p>
+<p>Note that the following should be taken into account when using this feature:</p>
+<p>- If UDP is used to transport MOUNT requests, only the first 64KiB of NFS   export information will be returned. So, TCP is recommended to ensure the   complete list of NFS exports will always be returned.</p>
+<p>- The server will return a maximum of 1000 mounts in response to the 'showmount   -d' command.</p>
+<p>- The linux autofs4 client will mount all available exports, using a separate   socket for each. So, if this feature causes a large number of exports to be   advertised, linux clients can end up with a large number of mounts. This can   cause port exhaustion and can cause linux clients to run very slowly.</p>
+<p>The setting is persistent and takes immediate effect, cluster wide.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>--disable, -d</strong></dt>
+<dd><p>Disable the reporting of 'fake' NFS exports at the roots of virtual volumes. This is the default.</p></dd>
+<dt><strong>--enable, -e</strong></dt>
+<dd><p>Enable the reporting of 'fake' NFS exports at the roots of virtual volumes.</p></dd>
+<dt><strong>--refresh-interval, -i</strong></dt>
+<dd><p>Configure the interval at which the list of NFS exports is automatically refreshed. The default is 10 minutes.</p></dd>
+<dt><strong>--refresh</strong></dt>
+<dd><p>Manually refresh the list of NFS exports.</p></dd>
+</dl>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../User/nfs-export.html">nfs-export</a> <a href="../User/virtual-volume.html">virtual-volume</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

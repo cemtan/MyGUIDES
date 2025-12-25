@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>ndmp-trace-mask</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>ndmp-trace-mask</h1>
+<p>Set new NDMP trace mask. (ALL/ON/OFF/NONE/&lt;number&gt;/0x&lt;hex&gt;)</p>
+<h1>Syntax</h1>
+<pre>ndmp-trace-mask [ all | on | off | none | 0x&lt;hexnum&gt; | &lt;number&gt; ]
+</pre>
+
+<h1>Description</h1>
+<p>This command should only be used under instruction from your Support Organization. The command can be used to cause the NDMP code to write trace information to the diagnostic log on the FSM. The trace output can be extracted by generating a diagnostic E-mail.</p>
+<p>Always switch trace off using "ndmp-trace-mask off" after the relevant trace has been gathered.</p>
+<p>Switching on tracing may cause a large amount of detail to be written to the log resulting in significant performance degradation. In particular the "all" setting should only be used to diagnose basic configuration and NDMP transfer start problems.</p>
+<p>The trace mask is set back to "off" whenever the server is rebooted.</p>
+<p>The settings form a bit mask indicating which particular trace points will produce output. The bit settings may be combined. If specified in hexadecimal the parameter must be prefixed by "0x".</p>
+<p>Descriptive parameter settings:</p>
+<pre>off (= 0)          No trace produced.
+on  (= 0xfffff)    Standard trace level for all functions.
+all (= 0xffffffff) All trace points enabled.
+</pre>
+<p></p>
+<p>Bit setting that may be used in combination:</p>
+<pre>0x00000001  NDMP requests.
+0x00000002  Tape device.
+0x00000004  Media changer.
+0x00000008  Transfer of backup data to/from tape.
+0x00000010  Production/interpretion of backup image.
+0x00000020  Control of NDMP transfers.
+0x00000040  NDMP configuration/management.
+0x00000080  NDMP process scheduling.
+0x00000100  File history (backup catalog).
+0x00000200  Tape/media changer device naming/management.
+0x00000400  NDMP request splitting.
+0x00000800  NDMP notifications.
+0x00001000  Recovery name lists.
+0x00002000  Direct access recovery.
+0x00004000  Checkpoint/restart.
+0x00008000  NDMP file system management.
+0x00010000  Snapshot restore list.
+</pre>
+<p></p>
+<pre>0x80000000  Recovery name lists - detailed info.
+0x40000000  Tape transfer interface - details.
+0x20000000  NDMP request splitting - details.
+0x10000000  Production/interpretion of backup image - details.
+0x08000000  Device interface details.
+0x04000000  NDMP process scheduling details.
+0x02000000  Intra-cluster relay for CNS access.
+0x01000000  Incremental comparison.
+</pre>
+<p></p>
+<h1>Examples</h1>
+<p>Turn off tracing:</p>
+<pre>ndmp-trace-mask off
+</pre>
+<p></p>
+<p>Turn on standard tracing:</p>
+<pre>ndmp-trace-mask on
+</pre>
+<p></p>
+<p>Trace NDMP interchanges with the NDMP client:</p>
+<pre>ndmp-trace-mask 0x801
+</pre>
+<p></p>
+<p>Detailed trace of all tape commands:</p>
+<pre>ndmp-trace-mask 0x4800020A
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

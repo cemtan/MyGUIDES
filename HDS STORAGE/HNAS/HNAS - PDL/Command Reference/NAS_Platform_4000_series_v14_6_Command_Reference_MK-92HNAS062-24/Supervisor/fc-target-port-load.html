@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>fc-target-port-load</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>fc-target-port-load</h1>
+<p>Display allocation of SDs to target ports &amp; RCs</p>
+<h1>Syntax</h1>
+<pre>fc-target-port-load [-v] [rack] [rc] [port] [wwpn &lt;WWPN&gt; | device &lt;N&gt;]
+</pre>
+
+<h1>Description</h1>
+<p>'fc-target-port-load' shows how many system drives are currently assigned to each FC target port/controller/rack, and optionally lists them.</p>
+<p>Options:</p>
+<dl>
+<dt><strong>-v --verbose</strong></dt>
+<dd><p>List SDs instead of just saying how many there are. Also forces display of individual target ports, whether "port" is given or not.</p></dd>
+<dt><strong>rack</strong></dt>
+<dd><p>Show all controllers in the storage rack identified by WWPN/device; ignored otherwise (as redundant).</p></dd>
+<dt><strong>rc</strong></dt>
+<dd><p>If WWPN is specified, show the controller; if device is specified, show just the controller through which it is currently accessed (unless "rack" is also given); ignored otherwise.</p></dd>
+<dt><strong>port</strong></dt>
+<dd><p>If WWPN or device is specified without "rack" or "rc", show just the corresponding single target port; otherwise break down controller load by target port.</p></dd>
+<dt><strong>wwpn</strong></dt>
+<dd><p>Select by WWPN. By default just the load on that target port is displayed.</p></dd>
+<dt><strong>device</strong></dt>
+<dd><p>Select by system drive number. By default all controllers in the rack containing that SD are shown.</p></dd>
+</dl>
+<p>The "wwpn" and "device" options are mutually exclusive. If neither is given then information will be shown for all controllers known to the system, grouped by storage rack.</p>
+<p>The load figure for a controller is simply a count of the SDs open (on at least one cluster node) via that controller. For individual ports, each SD is counted once for each cluster node that has it open via that port; in the verbose output, each additional node is indicated by a dot after the device number (e.g. "23." for device 23 open by two cluster nodes). Normally, a SD should be open on all nodes of a cluster. When SDs are moved from one controller to another, the reported load for a given controller may, temporarily, not exactly match the number of SDs listed against that controller's ports, until all cluster nodes have synchronised.</p>
+<h1>Examples</h1>
+<p>Display information for all controllers, grouped by storage rack:</p>
+<pre>fc-target-port-load
+</pre>
+<p></p>
+<p>List the SDs being accessed through a specific target port:</p>
+<pre>fc-target-port-load -v wwpn 200600A0B812DB01
+</pre>
+<p></p>
+<p>Show how the load is distributed between the ports of a controller:</p>
+<pre>fc-target-port-load rc port wwpn 2000000402E00556
+</pre>
+<p></p>
+<p>... or between controllers within a storage rack:</p>
+<pre>fc-target-port-load rack wwpn 21000080E5126975
+</pre>
+<p></p>
+<p>Show how the load is distributed between the controllers serving a SD:</p>
+<pre>fc-target-port-load device 12
+</pre>
+<p></p>
+<p>List the SDs being accessed through the same target port:</p>
+<pre>fc-target-port-load -v port device 12
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster node</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/fc-host-port-load.html">fc-host-port-load</a> <a href="../Supervisor/sdpath.html">sdpath</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

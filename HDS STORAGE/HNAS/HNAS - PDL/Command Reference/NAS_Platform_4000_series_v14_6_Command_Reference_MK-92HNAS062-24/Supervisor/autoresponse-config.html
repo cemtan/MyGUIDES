@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>autoresponse-config</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>autoresponse-config</h1>
+<p>Enables/disables autoresponse</p>
+<h1>Syntax</h1>
+<pre>autoresponse-config [--type (all|nfs|smb1|smb2)] [--operation (all:readx:writex:unlink:rmdir:trans2-find-first2:trans2-query-file:trans2-query-path:trans2-set-file:trans2-set-path)] [--confirm] [on|off]
+</pre>
+
+<h1>Description</h1>
+<p>The autoresponse-config command is used to manage which protocols are subject to autoresponse by the server.</p>
+<p>Usage:</p>
+<pre>autoresponse-config [--type &lt;protocol_type&gt;] [--operation &lt;protocol_operation&gt;] [--confirm] [&lt;state&gt;]
+</pre>
+<p></p>
+<p>Options:</p>
+<dl>
+<dt><strong>-o, --operation &lt;protocol_operation&gt;</strong></dt>
+<dd><p>Selects a specific SMB1 protocol operation to configure.  Valid choices are:</p></dd>
+
+<p>(<strong>all</strong>|<strong>readx</strong>|<strong>writex</strong>|<strong>unlink</strong>|<strong>rmdir</strong>|<strong>trans2-find-first2</strong>|<strong>trans2-query-file</strong>|<strong>trans2-query-path</strong>|<strong>trans2-set-file</strong>|<strong>trans2-set-path</strong>)</p>
+
+<dd><p>(Operation level control is not supported for NFSv2/v3 or SMB2)</p></dd>
+<dt><strong>-t, --type &lt;protocol_type&gt;</strong></dt>
+<dd><p>Selects a protocol to configure.  Valid choices are:</p></dd>
+
+<p>(<strong>all</strong>|<strong>nfs</strong>|<strong>smb1</strong>|<strong>smb2</strong>)</p>
+
+<dd><p>Notes: The '<strong>nfs</strong>' option specifies NFSv2/v3. The '<strong>smb2</strong>' option specifies SMB2.x/3.x. Defaults to <strong>all</strong>.</p></dd>
+<dd><p>Turn autoresponse <strong>on</strong> or <strong>off</strong> for the given protocol/operation. If no state is given then the current state is shown.</p></dd>
+<dt><strong>--confirm</strong></dt>
+<dd><p>Bypass any warning messages which ask the user to confirm their actions on the terminal.</p></dd>
+</dl>
+<h1>Examples</h1>
+<pre>autoresponse-config --type all
+</pre>
+<p></p>
+<p>Displays the configuration details for all protocols</p>
+<pre>autoresponse-config on
+</pre>
+<p></p>
+<p>Enables autoresponse for all protocols</p>
+<pre>autoresponse-config --type smb1 on
+</pre>
+<p></p>
+<p>Enables autoresponse for SMB1</p>
+<h1>Applies To</h1>
+<p>Cluster wide</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/autoinquiry-config.html">autoinquiry-config</a> <a href="../Supervisor/autoinquiry-stats.html">autoinquiry-stats</a> <a href="../Supervisor/autoresponse-stats.html">autoresponse-stats</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

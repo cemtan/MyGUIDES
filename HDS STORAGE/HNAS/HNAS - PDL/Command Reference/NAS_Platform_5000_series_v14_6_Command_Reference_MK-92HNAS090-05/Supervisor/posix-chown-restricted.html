@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>posix-chown-restricted</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:21:49 +0000 oemId: 1 -->
+<h1>posix-chown-restricted</h1>
+<p>Turns _POSIX_CHOWN_RESTRICTED on and off</p>
+<h1>Syntax</h1>
+<pre>posix-chown-restricted [on|off]
+</pre>
+
+<h1>Description</h1>
+<p>The posix-chown-restricted command manipulates the _POSIX_CHOWN_RESTRICTED mode.</p>
+<p>If this option is in effect (which is the default and is mandated by POSIX 1003.1-2001) then only a user with TakeOwnership right may change the owner of a file. The group of a file may only be changed to one of the groups to which the invoker of chgrp belongs, unless the invoker is root-equivalent or this setting is disabled.</p>
+<p>TakeOwnership right is granted to root-equivalent users, that is:</p>
+<ul>
+<li>unsquashed NFS root</li>
+<li>mapped equivalents of root</li>
+<li>members of certain local groups, like Root Users</li>
+</ul>
+<p>TakeOwnership right is also granted to:</p>
+<ul>
+<li>any SID explicitly granted this right by the file's security descriptor</li>
+<li>the owner of a file</li>
+</ul>
+<p>This last point doesn't have a great deal of value but it does allow a file's owner to chown it to themselves - a null operation - without error.</p>
+<p>The setting is persistent and takes immediate effect across the current EVS security context (cluster-wide or per-EVS). All operations which modify the owner or group are affected, regardless of protocol and security mode, unless the user is root-equivalent.</p>
+<p>The setting is provided to emulate systems which don't have this restriction.  It allows users to circumvent quotas by giving away ownership.  Relaxing this setting doesn't open the system to the kind of accident that can happen if unsquashed root access is allowed. The identity-conferring mode bits (setuid and setgid) are cleared when a non-root user gives away a file.</p>
+<h1>Examples</h1>
+<pre>server$ posix-chown-restricted
+_POSIX_CHOWN_RESTRICTED is on.
+server$ posix-chown-restricted off
+server$ posix-chown-restricted
+_POSIX_CHOWN_RESTRICTED is off.
+server$ posix-chown-restricted on
+server$
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS security context</p>
+<h1>See Also</h1>
+<p><a href="../User/cifs-saa.html">cifs-saa</a> <a href="../User/localgroup.html">localgroup</a> <a href="../User/nfs-export.html">nfs-export</a> <a href="../Supervisor/security-mode.html">security-mode</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

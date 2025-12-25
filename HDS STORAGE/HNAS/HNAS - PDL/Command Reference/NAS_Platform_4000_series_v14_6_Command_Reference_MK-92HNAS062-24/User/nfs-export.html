@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>nfs-export</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-05 07:29:14 +0000 oemId: 1 -->
+<h1>nfs-export</h1>
+<p>Report, create, delete, and modify NFS exports on file systems or cluster/EVS namespaces</p>
+<h1>Syntax</h1>
+<pre>nfs-export operation
+where &#39;operation&#39; is one of:
+list [-n &lt;num-entries&gt;] [[--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt;]
+add [-d] [-i] [-S (disable|hidden|enable)] [-c &lt;access-configuration&gt;] [-r (disable|enable-all|enable-cvl)] [-R (do-not-transfer|transfer|use-fs-default)] &lt;export-name&gt; &lt;namespace|file-system&gt; &lt;path&gt;
+mod [-d] [-i] [-S (disable|hidden|enable)] [-c &lt;access-configuration&gt;] [-r (disable|enable-all|enable-cvl)] [-R (do-not-transfer|transfer|use-fs-default)] [-v &lt;new-file-system&gt;] [-p &lt;path&gt;] [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt;
+del  [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt;
+delall [--delete-cns-exports] [--confirm]
+check-access  [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt; &lt;client-ip-addr&gt;
+Alias:       cns-nfs-export
+</pre>
+
+<h1>Description</h1>
+<p>The nfs-export command is used to manage NFS exports on normal file systems or cluster/EVS namespaces.</p>
+<p>In cluster/EVS namespaces, any path that is not, and does not traverse, a link to a normal filesystem can be exported.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>list [-n &lt;num-entries&gt;] [ [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt;]</strong></dt>
+<dd><p>List the details of export(s). If neither a target-label nor a export name is specified, the system will list all the namespace exports and the file system exports that are visible in the context of the current EVS. The match must be exact. Options are:</p></dd>
+<dl>
+<dt><strong>-n, --max &lt;num-entries&gt;</strong></dt>
+<dd><p>Lists at most num-entries exports.</p></dd>
+</dl>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt; &lt;export-name&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the export name. This option is valid only if a export name is provided. If this option is not specified then we try to locate the export both in the namespaces and the file systems visible in the context of the current EVS.</p></dd>
+</dl>
+<dt><strong>add [-d] [-i] [-S (disable|hidden|enable)] [-c &lt;access-configuration&gt;] [-r (disable|enable-all|enable-cvl)]  [-R (do-not-transfer|transfer|use-fs-default)] &lt;export-name&gt; &lt;namespace|file-system&gt; &lt;path&gt;</strong></dt>
+<dd><p>Create a new NFS export for the specified file system and path. The other options are as follows:</p></dd>
+<dl>
+<dt><strong>--dontcreate, -d</strong></dt>
+<dd><p>By default the path will be created if it does not already exist. This disables this behavior. Only valid for exports within file systems.</p></dd>
+<dt><strong>--ignoreoverlap, -i</strong></dt>
+<dd><p>Without this option, an export of /home/user would not be allowed if there is already an export of /home. Nested, or overlapping or hierarchical, exports are unconventional and may cause confusion. It has been known for users to think they have two copies of a directory tree when they have only one copy which is available on two different paths. Adding a nested export is not allowed by default, ie without this option. This is so that accidental creation of nested exports can be caught early. There are, however, good reasons for using nested exports. One might, for example, export the root directory for administrative access, backup or virus scanning, while only exporting subdirectories to end users.</p></dd>
+<dt><strong>--snapshot-dirs, -S</strong></dt>
+<dd><p>Sets the accessibility and visibility of the .snapshot directory:</p></dd>
+<dl>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable .snapshot directory. This option should be selected for an export that includes a virtualization path. The <em>virtualization-path-list</em> command can be used to list virtualization paths.</p></dd>
+<dt><strong>hidden</strong></dt>
+<dd><p>Enable access to but hide .snapshot directory.</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable access to and show .snapshot directory. This is the default.</p></dd>
+</dl>
+<dt><strong>--access-configuration, -c</strong></dt>
+<dd><p>Access restriction options to be applied to the export. The default is '*(rw)', meaning that all clients have read and write access to the export.</p></dd>
+<dd><p>See <em>mount-point-access-configuration</em> for more details.</p></dd>
+<dt><strong>--read-caching, -r</strong></dt>
+<dd><p>Applicable to file system exports only. Sets which files are candidates for read caching:</p></dd>
+<dl>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable read caching.</p></dd>
+<dt><strong>enable-all</strong></dt>
+<dd><p>All files are candidates for read caching.</p></dd>
+<dt><strong>enable-cvl</strong></dt>
+<dd><p>Only cross volume links are candidates for read caching.</p></dd>
+</dl>
+<dt><strong>--disaster-recovery-setting, -R</strong></dt>
+<dd><p>This setting only applies to exports that target WFS-2 file systems.</p></dd>
+<dd><p>Sets whether the export should be brought online when the replication target of this export's file system is converted to read-write.</p></dd>
+<dd><p>Defaults to 'use-fs-default' if this setting is not specified explicitly.</p></dd>
+<dd><p>Set this option to one of the following:</p></dd>
+<dl>
+<dt><strong>transfer</strong></dt>
+<dd><p>Mark the export for transfer to the replication target of this export's file system, indicating that it should be brought online when the replication target is mounted read-write.</p></dd>
+<dt><strong>do-not-transfer</strong></dt>
+<dd><p>Do not transfer this export to the replication target.</p></dd>
+<dt><strong>use-fs-default</strong></dt>
+<dd><p>Use the file system default value to decide whether this export should be transferred to the replication target or not.</p></dd>
+</dl>
+</dl>
+<dt><strong>mod [-d] [-i] [-S (disable|hidden|enable)] [-c &lt;access-configuration&gt;] [-r (disable|enable-all|enable-cvl)] [-R (do-not-transfer|transfer|use-fs-default)] [-v &lt;new-file-system&gt;] [-p &lt;path&gt;] [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt;</strong></dt>
+<dd><p>Modify an existing export. Command options are as for the add variant with the following additions:</p></dd>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the export name. If this option is not specified then we try to locate the export both in the namespaces and the file systems visible in the context of the current EVS.</p></dd>
+<dt><strong>--snapshot-dirs, -S</strong></dt>
+<dd><p>Sets the accessibility and visibility of the .snapshot directory:</p></dd>
+<dl>
+<dt><strong>disable</strong></dt>
+<dd><p>Disable .snapshot directory. This option should be selected for an export that includes a virtualization path. The <em>virtualization-path-list</em> command can be used to list virtualization paths.</p></dd>
+<dt><strong>hidden</strong></dt>
+<dd><p>Enable access to but hide .snapshot directory.</p></dd>
+<dt><strong>enable</strong></dt>
+<dd><p>Enable access to and show .snapshot directory.</p></dd>
+</dl>
+<dt><strong>--access-configuration, -c</strong></dt>
+<dd><p>Access restriction options to be applied to the export. The default is '*(rw)', meaning that all clients have read and write access to the export.</p></dd>
+<dd><p>See <em>mount-point-access-configuration</em> for more details.</p></dd>
+<dt><strong>--new-file-system, -v</strong></dt>
+<dd><p>Change file system. Only valid for exports within file systems.</p></dd>
+</dl>
+<dd><p>The -i and -d options are only relevant if used in conjunction with -v or -p.</p></dd>
+<dt><strong>del [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt;</strong></dt>
+<dd><p>Delete the specified export. This command will prevent any further access from clients currently using the export. Options are:</p></dd>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the export name. If this option is not specified then we try to locate the export both in the namespaces and the file systems visible in the context of the current EVS.</p></dd>
+</dl>
+<dt><strong>delall [--delete-cns-exports]</strong></dt>
+<dd><p>Delete all configured NFS exports in both the file systems and the EVS namespaces (applies to EVSs configured with individual security setting only) visible in the context of the current EVS.</p></dd>
+<dl>
+<dt><strong>--delete-cns-exports</strong></dt>
+<dd><p>Delete all NFS exports in the cluster namespaces visible in the context of the current EVS as well. This only applies to EVSs configured with global security settings.</p></dd>
+<dd><p>An EVS can be configured either with individual or global security setting.</p></dd>
+<dd><p>WARNING: There exists only a single instance of a cluster namespace NFS export, which is visible in the context of all EVSs configured with global security. Thus, deleting such an export using this option will delete the single instance and make it unavailable to *all* of the EVSs configured with global security settings (see 'evs-security list').</p></dd>
+</dl>
+<dt><strong>check-access [--target-label &lt;namespace|file-system&gt;] &lt;export-name&gt; &lt;client-ip-addr&gt;</strong></dt>
+<dd><p>Reports the access configuration that applies to the specified client. Options are:</p></dd>
+<dl>
+<dt><strong>--target-label &lt;namespace|file-system&gt;</strong></dt>
+<dd><p>Name of the file system or the cluster/EVS namespace in which to look for the export name. If this option is not specified then we try to locate the export both in the namespaces and the file systems visible in the context of the current EVS.</p></dd>
+</dl>
+</dl>
+<h1>Examples</h1>
+<p>Display the list of configured NFS exports:</p>
+<pre>nfs-export list
+</pre>
+<p></p>
+<pre>            Export name: /root
+            Export path: /
+      File system label: fs1
+       File system size: 150 GB
+ File system free space: 112 MB
+      File system state:
+               formatted = Yes
+                 mounted = Yes
+                  failed = No
+        thin provisioned = No
+       Access snapshots: Yes
+      Display snapshots: Yes
+           Read Caching: Disabled
+Disaster recovery setting:
+	        Recovered = No
+	 Transfer setting = Use file system default
+</pre>
+<p></p>
+<pre>   Export configuration:
+*(norootsquash)
+</pre>
+<p></p>
+<p>Add a new NFS export "subdir", which will provide access to the directory tree below "/subdir" on file system "fs0".  The new export is allowed to overlap with existing exports.</p>
+<pre>nfs-export add -i subdir fs0 /subdir
+NFS Export Add: Export added successfully
+</pre>
+<p></p>
+<p>Modify the NFS export "root" so that only clients in the 10.1.1.* subnet have read-write access, whereas all other clients have read-only access:</p>
+<p>nfs-export mod -c "10.1.1.*(rw), *(ro)" /root</p>
+<p>Restrict access to the export "root" so that only clients in the fdca:f995:220a:a00::/64 IPv6 subnet have access:</p>
+<pre>nfs-export mod -c "fdca:f995:220a:a00::/64(rw)" /root
+</pre>
+<p></p>
+<p>Check which access restriction matches a given client:</p>
+<pre>nfs-export check-access /root 10.1.1.1
+ 10.1.1.*        rw,insecure,rootsquash,noallsquash
+</pre>
+<p></p>
+<p>Check access restriction for an IPv6 address:</p>
+<pre>nfs-export check-access /root fdca:f995:220a:a00:250:56ff:fe06:d3b6
+ *       rw,insecure,rootsquash,noallsquash
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>Cluster wide or EVS</p>
+<h1>See Also</h1>
+<p><a href="../User/evs-security.html">evs-security</a> <a href="../Topic/mount-point-access-configuration.html">mount-point-access-configuration</a> <a href="../Supervisor/nfs-max-supported-version.html">nfs-max-supported-version</a> <a href="../Supervisor/protocol-character-set.html">protocol-character-set</a> <a href="../Supervisor/replication-recovery-default-transfer-setting-get.html">replication-recovery-default-transfer-setting-get</a> <a href="../Supervisor/replication-recovery-default-transfer-setting-set.html">replication-recovery-default-transfer-setting-set</a> <a href="../Supervisor/virtualization-path-list.html">virtualization-path-list</a></p>
+<h1>Privilege Level</h1>
+<p>User</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

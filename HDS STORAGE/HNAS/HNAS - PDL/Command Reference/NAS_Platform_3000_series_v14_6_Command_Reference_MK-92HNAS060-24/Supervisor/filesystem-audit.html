@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>filesystem-audit</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 10:20:39 +0000 oemId: 1 -->
+<h1>filesystem-audit</h1>
+<p>Configure or display the file system audit log policy for a file system</p>
+<h1>Syntax</h1>
+<pre>filesystem-audit &lt;operation&gt;
+where &lt;operation&gt; is one of:
+    add [-u deny|allow] [-p smb[,nfsv3]] [ --external | [--local] [-s &lt;audit-log-size&gt;] [-f overwrite|new] [-b &lt;backup-interval&gt;] [-c &lt;backup-count&gt;] [-n &lt;audit-file-name&gt;] ] &lt;fs-label&gt;
+    { enable | modify } [-u deny|allow] [-p smb[,nfsv3]] [ --external | --local [-s &lt;audit-log-size&gt;] [-f overwrite|new] [-b &lt;backup-interval&gt;] [-c &lt;backup-count&gt;] [-n &lt;audit-file-name&gt;] ] &lt;fs-label&gt;
+    delete { &lt;fs-label&gt; | -r &lt;fsid&gt; }
+    disable &lt;fs-label&gt;
+    list { &lt;fs-label&gt; | -r &lt;fsid&gt; | -a }
+    listall
+</pre>
+
+<h1>Description</h1>
+<p>The filesystem-audit command allows the user to display, add, delete, enable, modify and disable the file system audit policy for the named filesystem. In order for audit events to be recorded auditing needs to be enabled on the filesystem using a Windows client. To allow the audited events to be viewed from a Windows client, use the audit-log-consolidated-cache command to configure an audit log consolidated cache file.</p>
+<p>Client access for both SMB and NFSv3 will be audit logged when enabled. This can be changed by the use of the -p option.</p>
+<h2>NFSv3 and Namespaces</h2>
+<p>When NFSv3 is audited, this only applies to exports directly associated with a filesystem. If the filesystem is accessed via a namespace, NFSv3 access is still allowed, but will not be audited.</p>
+<h2>USAGE</h2>
+<dl>
+<dt><strong>listall</strong></dt>
+<dd><p>List all the known audit policies in the EVS. The displayed results include the raw filesystem identification string and where possible the file system label.</p></dd>
+<dt><strong>list { --all | [ -r ] &lt;file-system&gt; }</strong></dt>
+<dd><p>List the details of the audit policy for the filesystem specified by &lt;file-system&gt;, or for all file systems in the current EVS if --all is specified.</p></dd>
+<dd><p>The -r option is used when the &lt;file-system&gt; is specified as the raw filesystem identification string.</p></dd>
+<dt><strong>disable &lt;file-system&gt;</strong></dt>
+<dd><p>Disable filesystem auditing for the filesystem specified by &lt;file-system&gt;. If the filesystem does not have an audit policy or the filesystem does not exist, then an error message will be generated. The audit policy record is retained but marked as inactive, and can be reenabled with the enable command.</p></dd>
+<dt><strong>enable [&lt;audit-options&gt;] &lt;file-system&gt;</strong></dt>
+<dd><p>Enable filesystem auditing for the filesystem specified by &lt;file-system&gt;. If the filesystem does not have an audit policy or the filesystem does not exist, then an error message will be generated. The &lt;audit-options&gt; are described in their own section.</p></dd>
+<dt><strong>add [&lt;audit-options&gt;] &lt;file-system&gt;</strong></dt>
+<dd><p>A new enabled audit policy is added to the system. If the filesystem already has an audit policy (either enabled or disabled), then an error message will be generated. The &lt;audit-options&gt; are described in their own section.</p></dd>
+<dt><strong>delete [ -r ] &lt;file-system&gt;</strong></dt>
+<dd><p>Disable and remove the audit policy record from the system. The -r option is used when the &lt;file-system&gt; is specified as the raw filesystem identification string. If the audit policy does not exist, then an error message will be generated.</p></dd>
+<dt><strong>modify [&lt;audit-options&gt;] &lt;file-system&gt;</strong></dt>
+<dd><p>Modify the auditing options for the filesystem specified by &lt;file-system&gt;. If the filesystem does not exist or does not have a audit policy, then an error message is generated. The &lt;audit-options&gt; are described in their own section.</p></dd>
+</dl>
+<h2>Audit Options</h2>
+<p>The supported &lt;audit-options&gt; are:</p>
+<h3>Options which apply to all audit logs</h3>
+
+<p>[ -p smb[,nfsv3] ]</p>
+<p>Sets the protocols that are audited on the filesystem. SMB is always audited and must be supplied. Default smb,nfsv3</p>
+<p>[ -u (allow|deny) ]</p>
+<p>Set the action to be taken when a non-auditing protocol attempts access to a file on the filesystem. <strong>allow</strong> - allow access but don't generate a record of the access; <strong>deny</strong> - fail the access request. Default deny.</p>
+
+<h3>Options which apply to external audit logs</h3>
+<dl>
+<dt><strong>[ -e | --external ]</strong></dt>
+<dd><p>Configure this audit log to be <em>external</em>. An audit log which is configured to be external can only be accessed remotely. See the <em>EXTERNAL AUDIT LOG</em> section.</p></dd>
+</dl>
+<h3>Options which apply to other audit logs</h3>
+
+<p>[ -l | --local ]</p>
+<p>Configure this audit log to be <em>local</em>. This option is the opposite of <strong>--external</strong> and useful to modify an existing policy to convert it from external mode to the default local mode.</p>
+<p>[ -b &lt;backup-interval&gt; ]</p>
+<p>Set the time between automatic backups of the active audit log. A value of 0 disables time-based automatic backups. Default 0.</p>
+<p>The time interval is specified as a number followed by an optional suffix. The number can be integer or floating-point. The suffix can be any of: "s" for seconds (the default), "m" for minutes, "h" for hours, or "d" for days.</p>
+<p>The minimum time interval is 5 minutes, the maximum interval is 10 days, and the interval will be adjusted to a whole number of minutes.</p>
+<p>[ -c &lt;backup-count&gt; ]</p>
+<p>Set the number of backup audit log files to retain. Default 10, maximum 50.</p>
+<p>[ -f (overwrite|new) ]</p>
+<p>Set the active log file full policy. Determines what the system will do once the active audit log file is full. "overwrite" will cause the system to overwrite existing audit entries, "new" will cause the system to create a new active audit log file. Default "new".</p>
+<p>[ -n &lt;audit-file-name&gt; ]</p>
+<p>Set the name of the active audit log file relative to the filesystem root. The file must have a suffix of ".evt". Default ".audit/audit.evt"</p>
+<p>[ -s &lt;audit-log-size&gt; ]</p>
+<p>Set the maximum size to which the active audit log file will be allowed to grow. Default 512KB.</p>
+<p>By default the size will be assumed to be bytes; a suffix of KB, MB or GB can be used to specify the size in other units.</p>
+<p>The auditing system does not support log files larger than 50MB.</p>
+
+<h2>Backup and Log Full Behaviour</h2>
+<p>The <strong>-s</strong> option specifies the maximum size that the log file should be allowed to grow to. When the size limit is reached, if the <strong>-f</strong> option is set to <strong>overwrite</strong> the log file will wrap back to the beginning; if the option is set to <strong>new</strong> a new file will be started and the previous file will be saved as a backup file.</p>
+<p>If the file system reaches 100% capacity before the maximum size for the log file is reached it will not be possible for new records to be added to the audit log file and the log will be marked as failed.</p>
+<p>In addition to the size-based behaviour, the <strong>-b</strong> option can be used to cause a new audit log file to be started periodically, with the previous file being saved as a backup file.</p>
+<p>The time-based backups caused by the use of <strong>-b</strong> are independent of the size-based backups. If both options are set, a backup will be taken whenever either the size limit is reached or the time interval expires.</p>
+<p>Backup audit log files are named using a combination of the active log filename, the EVS id, file system label, the date and time that the backup file was saved, and an integer number to distinguish between otherwise identical filenames. For example "audit-evsid1-Span0FS-2008-12-11-120920-1.evt".</p>
+<h2>External Audit Log</h2>
+<p>Configuration of an <em>audit log consolidated cache</em> allows an external system to read the audit log from the server using the <em>Event Log Remoting Protocol</em>.</p>
+<p>In many configurations the external system will be configured to continually collect all audit logs from the server for review and archiving. When configured like this there is often no need to save the audit events to a local log on the server file system because the external server will be the authoritative archive of audit logs.</p>
+<p>When audit events will be read remotely and do not need to be stored locally the audit log should be configured to be <em>external</em> by using the <code>--external</code> option.</p>
+<p><strong>Note:</strong> An audit log which is configured to be external can only be managed using the command line. The SMU will not display external audit logs.</p>
+<h1>Examples</h1>
+<p>Display the audit policy of a newly audit enabled filesystem using the default audit policy options:</p>
+<pre>filesystem-audit list Span0FS
+</pre>
+<p></p>
+<pre>Filesystem            : Span0FS
+State                 : LogActive
+Audit filename        : .audit/audit.evt
+Maximum Log Size      : 512 KB (524288 B)
+Backup Interval       : 0
+Backup Copies to Keep : 10
+Audit Full Policy     : New
+Other Protocol Support: Deny
+Audited Protocols     : SMB NFSv3
+</pre>
+<p></p>
+<p>Change the audit file backup frequency of this filesystem to 37 minutes:</p>
+<pre>filesystem-audit modify -b 37m Span0FS
+</pre>
+<p></p>
+<p>Disable filesystem auditing for this filesystem:</p>
+<pre>filesystem-audit disable Span0FS
+</pre>
+<p></p>
+<p>List the audit policy details of all file systems in the current EVS:</p>
+<pre>filesystem-audit list --all
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+<h1>See Also</h1>
+<p><a href="../Supervisor/audit-log-clear.html">audit-log-clear</a> <a href="../Supervisor/audit-log-consolidated-cache.html">audit-log-consolidated-cache</a> <a href="../Dev/audit-log-consolidated-cache-clear.html">audit-log-consolidated-cache-clear</a> <a href="../Supervisor/audit-log-consolidated-cache-reset.html">audit-log-consolidated-cache-reset</a> <a href="../Dev/audit-log-consolidated-cache-save.html">audit-log-consolidated-cache-save</a> <a href="../Supervisor/audit-log-consolidated-cache-show.html">audit-log-consolidated-cache-show</a> <a href="../Supervisor/audit-log-perf.html">audit-log-perf</a> <a href="../Supervisor/audit-log-save.html">audit-log-save</a> <a href="../Supervisor/audit-log-show.html">audit-log-show</a> <a href="../Supervisor/audit-log-stats.html">audit-log-stats</a> <a href="../Supervisor/filesystem-audit-reset.html">filesystem-audit-reset</a></p>
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>

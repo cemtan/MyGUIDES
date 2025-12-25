@@ -1,0 +1,384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>onode</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <style type="text/css">
+  <!--
+  @page { size: 8.27in 11.69in }
+  H1  { font-family: "Verdana", sans-serif }
+  H2  { font-family: "Verdana", sans-serif }
+  H3  { font-family: "Verdana", sans-serif }
+  H4  { font-family: "Verdana", sans-serif }
+  P   { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  PRE { font-family: "Courier", monospace;  font-size: 12pt; margin-left: 40px; }
+  DT  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  LI  { font-family: "Verdana", sans-serif; font-size: 11pt; margin-left: 40px; }
+  -->
+  </style>
+
+</head>
+<body style="background-color: white">
+<!--Start header -->
+<!-- html created: 2023-03-07 12:50:50 +0000 oemId: 1 -->
+<h1>onode</h1>
+<p>Decodes an onode dumping the result to the console</p>
+<h1>Syntax</h1>
+<pre>onode [-f &lt;file system&gt;]
+	[--snapshot-name|-N &lt;snapshot name&gt; | --snapshot-checkpoint-number|-C &lt;snapshot checkpoint number&gt;
+	  | --snapshot-index|-I &lt;snapshot index&gt;]  -s &lt;sector address&gt; | -o &lt;object number&gt;
+	  [--display &lt;target&gt; [--entry-start &lt;byte offset&gt;] [--terse|--verbose] ]  [--hex [-n &lt;byte count=512&gt;]] 
+</pre>
+
+<h1>Description</h1>
+<p>The onode command is used to decode and display the on-disk contents of an onode. A root onode may be specified by either its sector address or object-number. Indirect and Direct onodes must be specified by their sector address.</p>
+<p>If a block pointer or onode pointer is following by 'X', then this indicates that the target is a clone and that the block or onode is undiverged. However, in the case of leaf onodes these indications are only accurate for file clones. A decode of a leaf onode of a snapshot file will display misleading divergence information.</p>
+<p>The onode command may be run on a mounted or unmounted file system.</p>
+<p>If initial validation of certain key fields fails, the onode contents are hex-dumped rather than decoded.</p>
+<p>Usage:</p>
+<dl>
+<dt><strong>-o &lt;object-number&gt;</strong></dt>
+<dd><p>The object-number of the object (root onode only). Normally, &lt;object-number&gt; is a decimal or hexadecimal number starting with "0x".</p></dd>
+<dd><p>For flexibility, the command will automatically calculate the object number if one specifies a path name in place of the object number. It can perform this calculation by relying on the first character of the &lt;object-number&gt; string. If the first character is a digit, the string is always interpreted as an object number.  Otherwise, it will be interpreted as the path name as described below.</p></dd>
+<dd><p>The path name can be specified as an absolute path starting with "/" or a relative path optionally starting with "./".  For mounted or unmounted file systems one can specify either an absolute or a relative path name. But the relative path name can only be specified if the current working directory is defined, i.e., the file system must be both mounted and currently selected. If the relative path name starts with a digit, one must specify an absolute path name starting with "/" or a relative path name starting with "./" so that the command will not interpret it as an object number.</p></dd>
+<dd><p>If the specified file name is in a snapshot, its absolute path can be specified with or without the leading part "/.snapshot/&lt;snapshot-name&gt;". If the leading part is not specified, the snapshot must be specified by one of the three snapshot options -N, -C, or -I that are described shortly. Otherwise, the snapshot name is already specified in the path and, hence, it is an error to specify any snapshot option.</p></dd>
+<dt><strong>-s &lt;sector-address&gt;</strong></dt>
+<dd><p>The on-disk sector address of the onode.  Options -s and -o are mutually exclusive.</p></dd>
+<dt><strong>-f &lt;file-system&gt;</strong></dt>
+<dd><p>The file system on which the onode resides</p></dd>
+<dt><strong>-N, --snapshot-name &lt;snapshot-name&gt;</strong></dt>
+<dd><p>Display the onode as it was in the given snapshot, rather than as it is now in the live file system. Can only be used on WFS-2 file systems, and only in combination with -o.</p></dd>
+<dt><strong>-C, --snapshot-checkpoint-number &lt;checkpoint-number&gt;</strong></dt>
+<dd><p>Display the onode as it was in the given snapshot, rather than as it is now in the live file system. Can only be used on WFS-2 file systems, and only in combination with -o.</p></dd>
+<dt><strong>-I, --snapshot-index &lt;snapshot-index&gt;</strong></dt>
+<dd><p>Display the onode as it was in the given snapshot, rather than as it is now in the live file system. Can only be used on WFS-2 file systems, and only in combination with -o.</p></dd>
+<dt><strong>-h|--hex</strong></dt>
+<dd><p>Dump the onode data in hexadecimal instead. By default, only 512 bytes are dumped unless -n is specified.</p></dd>
+<dt><strong>-n</strong></dt>
+<dd><p>This optional option can be used to specify the number of bytes that the --hex option will dump. Default is 512. The largest value is capped by the block size of the file system on which the object resides.</p></dd>
+<dt><strong>-d|--display &lt;target path&gt;</strong></dt>
+<dd><p>Specify a different target to display. For example, "-d leaf" means displaying the object pointed to by the leaf onode pointer. "-d sdo/p0" means reading the Security Descriptor object (SDO) and then displaying the first block pointer in the SDO. By default, the command displays only the final target in the target path. The target names are defined in the "Target Names" section below.</p></dd>
+<dt><strong>-e|--entry-start &lt;byte offset &gt;</strong></dt>
+<dd><p>Specify an offset to the first entry in a data block of certain well-known objects. See "Special target: e&lt;index&gt;" below.</p></dd>
+<dt><strong>-v|--verbose</strong></dt>
+<dd><p>This option causes the command to display all targets found along the target path.</p></dd>
+<dt><strong>-t|--terse</strong></dt>
+<dd><p>This option causes the command to display just the summary of all objects found along the target path.</p></dd>
+</dl>
+<h2>Target Names</h2>
+<p>By default, the onode command displays the onode of the current object specified by either -o or -s. But users can use -d to select another target to display. If the target is not readily accessible from the current object, it will be specified as a chain of targets similar to a pathname. For example, "-d smo/sfo" means traverse from the Software Metadata object (SMO) to the Snapshot File object (SFO) and display the final target SFO.</p>
+<p>This section will define the target names that can be used with this command. For convenience, they are grouped in the four different tables. Table 1 shows target names for a number of objects.  The remaining tables define target names for pointers in the root or leaf onodes. The target names are listed before the equal signs.</p>
+<p>Note that if the target is specified as a chain and if option --verbose is not specified, only the final target in the chain will be displayed. The only exception is the two special targets:</p>
+<pre>   - "allsfo" - display every SFO encountered in the chain
+   - "allsmo" - display every SMO encountered in the chain
+</pre>
+<p></p>
+<p>In all the tables below, all tokens on the left hand side of an equal sign define the target names and the rightmost hand side describes the target name.</p>
+<pre>         Table 1. Object targets in a root onode.
+    +---------------------------------------------------------------+
+    |         lto = Link Tracker Object (LTO)                       |
+    |         pdo = Parent Directory Object(PDO)                    |
+    |         pfo = Parent File Object (PFO)                        |
+    |         sdo = Security Descriptor Object (SDO)                |
+    |         smo = Software Metadata Object (SMO)                  |
+    |         sfo = Snapshot File Object (SFO)                      |
+    |         msd = alias for "smo/sdo"                             |
+    |         msf = alias for "smo/sfo"                             |
+    |      allsmo = all SMO's in the target path [*]                |
+    |      allsfo = all SFO's in the target path [*]                |
+    |     lastsmo = the last (oldest) SMO in the target path [*]    |
+    |     lastsfo = the last (oldest) SFO in the target path [*]    |
+    |          .. = parent target [+]                               |
+    +---------------------------------------------------------------+
+        [*]: usually for an object that has been cloned many times.
+             - allsmo means "smo/sfo/smo/sfo/.../smo/sfo/smo" where
+               the ending smo does not contains any sfo.
+             - allsfo means "smo/sfo/smo/sfo/.../smo/sfo" where the
+               smo of the ending sfo does not contains any sfo.
+        [+]: e.g., target path "smo/sfo/.." is the same as "smo"
+</pre>
+<p></p>
+<pre>            Table 2. Pointer targets in a root onode. [*]
+    +---------------------------------------------------------------+
+    |     Non-resilient Pointers  |      Resilient Pointers         |
+    +-----------------------------+---------------------------------+
+    |      p0 = BlockPtr[00]      | m0 = p0 = ptr1 of BlockPtr[00]  |
+    |      p1 = BlockPtr[01]      | r0 = p1 = ptr2 Of BlockPtr[00]  |
+    |-----------------------------|---------------------------------|
+    |      p2 = BlockPtr[02]      | m1 = p2 = ptr1 of BlockPtr[01]  |
+    |      p3 = BlockPtr[03]      | r1 = p3 = ptr2 of BlockPtr[01]  |
+    |-----------------------------|---------------------------------|
+    |        ...                  |             ...                 |
+    |        ...                  |             ...                 |
+    |-----------------------------|---------------------------------|
+    |      p14 = BlockPtr[14]     | m7 = p14 = ptr1 of BlockPtr[07] |
+    |      p15 = BlockPtr[15]     | r7 = p15 = ptr2 of BlockPtr[07] |
+    |-----------------------------|---------------------------------|
+    |      p16 = LeafOnodePtr     | m8 = p16 = ptr1 of LeafOnodePtr |
+    |                             | r8 = p17 = ptr2 of LeafOnodePtr |
+    |-----------------------------+---------------------------------|
+    |                 leaf = same as p16, for root onode only       |
+    |                  fro = FreeRootOnodePtr                       |
+    |                  sro = SavedRootOnodePtr                      |
+    |---------------------------------------------------------------|
+    |                 For Resilient Root Onodes:                    |
+    |                leaf2 = ptr2 of LeafOnodePtr, i.e. same as p17 |
+    |                 fro2 = ptr2 of FreeRootOnodePtr               |
+    |                 sro2 = ptr2 of SavedRootOnodePtr              |
+    +---------------------------------------------------------------+
+      [*]: A resilient pointer has two components each of which is a pointer.
+        - ptr1 : the first component, a.k.a. primary component
+        - ptr2 : the second component, a.k.a. resilient component
+      The prefix m (e.g., m0, m1, etc) means the primary, or main, component.
+      The prefix r (e.g., r0, r1, etc) means the resilient component.
+</pre>
+<p></p>
+<pre>       Table 3. Pointer targets in a non-resilient leaf onode.
+    +---------------------------------------------------------------+
+    |               Block Pointers or Object Pointers               |
+    +---------------------------------------------------------------+
+    |                p0 = BlockPtr[00] or ObjectPtr[00]             |
+    |                p1 = BlockPtr[01] or ObjectPtr[01]             |
+    |                p2 = BlockPtr[02] or ObjectPtr[02]             |
+    |                             ...                               |
+    |               p59 = BlockPtr[59] or ObjectPtr[59]             |
+    +---------------------------------------------------------------+
+</pre>
+<p></p>
+<pre>       Table 4. Pointer targets in a resilient leaf onode.
+    +---------------------------------------------------------------+
+    |               Block Pointers or Object Pointers               |
+    +---------------------------------------------------------------+
+    |          m0 = p0 = ptr1 of BlockPtr[00] or ObjectPtr[00]      |
+    |          r0 = p1 = ptr2 of BlockPtr[00] or ObjectPtr[00]      |
+    |          m1 = p2 = ptr1 of BlockPtr[01] or ObjectPtr[01]      |
+    |          r1 = p3 = ptr2 of BlockPtr[01] or ObjectPtr[01]      |
+    |                            ...                                |
+    |         m29 = p58 = ptr1 of BlockPtr[29] or ObjectPtr[29]     |
+    |         r29 = p59 = ptr2 of BlockPtr[29] or ObjectPtr[29]     |
+    +---------------------------------------------------------------+
+</pre>
+<p></p>
+<pre>       Table 5. Resilient pointer targets in the indirection object [*]
+    +---------------------------------------------------------------+
+    |      p0 = m0 = FreeRootOnodePtr                               |
+    |      p1 = r0 = SavedRootOnodePtr                              |
+    |---------------------------------------------------------------|
+    |      p2 = m1 = ptr1 of RootOnodePtr[01]                       |
+    |      p3 = r1 = ptr2 of RootOnodePtr[01]                       |
+    |---------------------------------------------------------------|
+    |      p4 = m2 = ptr1 of RootOnodePtr[02]                       |
+    |      p5 = r2 = ptr2 of RootOnodePtr[02]                       |
+    |---------------------------------------------------------------|
+    |        ...                                                    |
+    |        ...                                                    |
+    |---------------------------------------------------------------|
+    |      p14 = m7 = ptr1 of RootOnodePtr[07]                      |
+    |      p15 = r7 = ptr2 of RootOnodePtr[07]                      |
+    |---------------------------------------------------------------|
+    |      p16 = m8 = ptr1 of LeafOnodePtr                          |
+    |      p17 = r8 = ptr2 of LeafOnodePtr                          |
+    +---------------------------------------------------------------+
+       [*] The resilient components of some RootOnodePtr's may be NULL
+       such as RootOnodePtr[i], i = 2, 4, 5, 7.
+</pre>
+<p></p>
+<h3>Special target prefix "chain-"</h3>
+<p>The prefix "chain-" can be used with a single target name to specify a chain of such targets that are available along the target path. For instance,</p>
+<pre>   - "chain-sro" means "sro/sro/sro/.../sro"
+   - "chain-sro2" means "sro2/sro2/sro2/.../sro2"
+   - "leaf/chain-p0" means "leaf/p0/p0/p0/.../p0"
+   - "leaf/chain-p0/.." means the first direct onode of the object.
+</pre>
+<p></p>
+<p>This prefix is useful when we do not want to count the number of targets in the chain.</p>
+<p>Note that "chain-msf" would mean "smo/sfo/smo/sfo/.../smo/sfo", but this target is not supported simply because msf is not a single target. However, the special targets "allsfo", "allsmo", "lastsmo", "lastsfo", ".." in Table 1 would allow traversing to any object in "chain-msf".</p>
+<h3>Special targets in block data of well-known objects</h3>
+<p>If a target is a block pointer, say p0, the data it points to can be decoded for certain well-known objects such as</p>
+<pre>     OBJ_TYPE_SOFTWARE_METADATA   (smo)
+     OBJ_TYPE_SECURITY_DESCRIPTOR (sdo)
+     OBJ_TYPE_LINK_TRACKER        (lto)
+     OBJ_TYPE_TRUNCATION_LIST     (object number 11)
+     OBJ_TYPE_FSOBJECT_DIR
+     OBJ_TYPE_ROOT_DIR
+</pre>
+<p></p>
+<p>The data part of these objects is generically described as a list of entries.</p>
+<p>For example, the command "onode -o / -d p0" is to read and display the block data pointed to by p0.  Because the data belongs to a directory, the command knows it contains a list of directory entries for the directory. Therefore, the command decodes the data and displays it in human-readable form. In general, the command decodes the data pointed to by block pointers of all the well-known objects listed above. If a hex dump of the raw data is desirable, specify option --hex to tell the command not to decode the data.</p>
+<p><strong>1. Special target: e&lt;index</strong>&gt;</p>
+<p>For dumping purposes, the data entries in a data block are usually indexed starting from zero even if the block data is pointed to by p1, p2, etc. Each entry is then referred to as target "e&lt;index&gt;" such as e0, e1, e2, ... For example, the command "onode -o / -d p0/e2" will display the third entry in the block data pointed to by p0.</p>
+<p>In general, the command assumes the first entry (index 0) in a data block always starts at offset 0, i.e., the first byte of the data block. While this is true for the first data block, it is not necessarily true for subsequent blocks. The user can, however, correct this default offset by specifying option --offset to help the command decode the data correctly.</p>
+<p><strong>2. Special target: e&lt;indexList</strong>&gt;</p>
+<p>A collection of entries can also be specified using the notation "e&lt;indexList&gt;". For example, "p0/e1,3,7-9" refers to entries {e1, e3, e7, e8, e9} in the block data pointed to by p0. In general, &lt;indexList&gt; is a string containing one or more indices, or ranges of indices, separated by commas. A range is specified in the form of "start-end%stepsize" such as "3-8%2" to mean "3,5,7".  The command does not fail if the range over-specifies the number of entries.</p>
+<p><strong>3. Special target: obj</strong></p>
+<p>Certain objects (such as smo, lto, directory objects, etc) store object numbers in data entries, typically one object number per entry.  In this case the object can be generically referred to as target "obj" for dumping purposes. For example, "e3/obj" refers to the object whose object number is listed in entry "e3" and "e3-5/obj" the object number listed in entry "e5".</p>
+<p>To find out what "e3-5/obj" means, it is necessary to understand how the onode command works. First, the command processes a chain of targets from left to right. So the target "e3-5" tells the command to process e3, e4, then e5 in that order. For each entry processed, the command also remembers the object number listed in that entry. When it encounters the target "obj", it interprets that the user wants to display the object associated with the latest object number that it encountered. Note that this interpretation also applies to "p0/obj", where "obj" refers to the object whose object number is in the last entry of the block pointed to by p0.</p>
+<p>It should be pointed out that the target "obj" is meaningful if and only if it appears after a data target. This means "obj" can only appear in a chain after targets such as "e&lt;index&gt;", or "e&lt;indexList&gt;", or block pointers such as p0..p59, m0..m29, r0..r29.</p>
+<h1>Examples</h1>
+<p>1. To display the root onode of the file /foo on file system 'testfs':</p>
+<pre>   onode -f testfs -o /foo
+   onode -f testfs -o ./foo  # if foo is in the current working directory
+</pre>
+<p></p>
+<p>2. To display the root onode whose object-number is 16393 on file system 'testfs':</p>
+<pre>   onode -f testfs -o 16393
+</pre>
+<p></p>
+<p>3. To display the onode at sector address 0x241040 on file system 'testfs':</p>
+<pre>   onode -f testfs -s 0x241040
+</pre>
+<p></p>
+<p>4. Same as (3) but dump out the information in hex instead</p>
+<pre>   onode -f testfs -s 0x241040 -h
+</pre>
+<p></p>
+<p>5. For simplicity, let's select the file system 'testfs' for all subsequent tests and assume file /foo is on 'testfs':</p>
+<pre>   selectfs testfs
+</pre>
+<p></p>
+<p>6. To display the root onode of the file /foo:</p>
+<pre>   onode -o /foo
+</pre>
+<p></p>
+<p>7. Display the second block pointer of the root onode of foo:</p>
+<pre>   onode -o /foo -d p1    #  display BlockPtr[1]
+</pre>
+<p></p>
+<p>8. Display the root onode leaf pointer of foo:</p>
+<pre>   onode -o /foo -d p16   #  display LeafOnodePtr
+   onode -o /foo -d leaf  #  same
+</pre>
+<p></p>
+<p>9. Suppose file foo has 100 data blocks. The first 16 data blocks are in the root onode. The remaining data blocks, starting from index 16, are in the tree pointed to by the root onode leaf pointer.</p>
+<pre>   onode -o /foo -d p16/p0/p0   # display data block number 16
+   onode -o /foo -d p16/p1/p4   # display data block number 80
+</pre>
+<p></p>
+<p>10. Suppose foo is now cloned for the first time. As a result, foo becomes a clone, too. It has one direct SMO, which, in turn, has one PFO, one SDO and one SFO. This SFO object, in turn, has one SMO.  To display the various targets:</p>
+<pre>   onode -o /foo -d smo         # display SMO of foo
+   onode -o /foo -d smo/sdo     # display SDO of SMO
+   onode -o /foo -d msd         # same as -d smo/sdo
+   onode -o /foo -d smo/sfo     # display SFO of foo
+   onode -o /foo -d msf         # same as -d smo/sfo
+   onode -o /foo -d msf/smo     # display SMO of the snapshot file object
+   onode -o /foo -d msf/smo -v  # display everything: SMO, SFO, SMO
+</pre>
+<p></p>
+<p>11. Suppose foo is modified and cloned again.  Each time it is cloned, three objects will be created: a software metadata object, a security descriptor object, and a snapshot file object. As a result, foo has two snapshot file objects:</p>
+<pre>   onode -o /foo -d msf         # smo/sfo: display the most recent SFO
+   onode -o /foo -d msf/msf     # smo/sfo/smo/sfo: display the old SFO
+</pre>
+<p></p>
+<p>12. To list just the summary of each target while walking the target path, use --terse option:</p>
+<pre>   onode -o /foo -d msf -t
+</pre>
+<p></p>
+<p>13. Suppose foo is modified and cloned many times.  As a result, foo has many software metadata objects and snapshot file objects.</p>
+<p>To display all software metadata objects associated with foo:</p>
+<pre>   onode -o /foo -d allsmo
+</pre>
+<p></p>
+<p>To display all snapshot file objects associated with foo:</p>
+<pre>   onode -o /foo -d allsfo
+</pre>
+<p></p>
+<p>To display the oldest software metadata object associated with foo:</p>
+<pre>   onode -o /foo -d lastsmo
+</pre>
+<p></p>
+<p>To display the oldest snapshot file object associated with foo:</p>
+<pre>   onode -o /foo -d lastsfo
+   onode -o /foo -d lastsmo/..  # same effect
+</pre>
+<p></p>
+<p>To display the second oldest snapshot file object associated with foo:</p>
+<pre>   onode -o /foo -d lastsfo/../..
+</pre>
+<p></p>
+<p>Specify -v to display all objects in the chain from foo's direct SMO to its oldest SFO:</p>
+<pre>   onode -o /foo -d lastsfo -v
+</pre>
+<p></p>
+<p>14. Suppose file foo is very large and we don't want to count the number of indirection levels. The root onode has pointers to the first 16 data blocks. The remaining data blocks are reachable from the root onode leaf pointer.  In particular, the 17-th data block is pointed by a chain of p0 pointers from the root onode leaf pointer. Therefore, we can display blocks 17, 18, etc as follows:</p>
+<pre>   onode -o /foo -d leaf/chain-p0        # data block #17
+   onode -o /foo -d leaf/chain-p0/../p1  # data block #18
+   onode -o /foo -d leaf/chain-p0/../p2  # data block #19
+</pre>
+<p></p>
+<p>15. Suppose we have taken many snapshots of the file system. To display the root onodes of foo in the live file system and all the snapshots:</p>
+<pre>   onode -o /foo -d chain-sro
+</pre>
+<p></p>
+<p>The command above dumps all saved root onodes in the chain until it encounters a saved root onode pointer that is zero or points to the root onode which either belongs to a different object or has a greater checkpoint number than the saved root onode preceding it in the chain.</p>
+<h3>Dump block data of special objects</h3>
+<p>The block data pointed to by BlockPtr[] of the following special objects are dumped in the decoded format unless option --hex is specified:</p>
+<pre>     OBJ_TYPE_SOFTWARE_METADATA   (smo)
+     OBJ_TYPE_SECURITY_DESCRIPTOR (sdo)
+     OBJ_TYPE_LINK_TRACKER        (lto)
+     OBJ_TYPE_TRUNCATION_LIST     (object number 11)
+     OBJ_TYPE_FSOBJECT_DIR
+     OBJ_TYPE_ROOT_DIR
+</pre>
+<p></p>
+<p>16. The software metadata object of a snapshot file object associated with a clone contains a list of all objects that reference the snapshot file object.  To dump this list for, say, /foo-clone:</p>
+<pre>   cd /
+   file-clone-create foo foo-clone
+   onode -o /foo-clone -d smo/sfo/smo/p0       # decoded output
+   onode -o /foo-clone -d smo/sfo/smo/p0 --hex # raw output in hex
+</pre>
+<p></p>
+<p>17. To dump the directory entries of the root directory:</p>
+<pre>   onode -o / -d p0       # decoded output
+   onode -o / -d p0 --hex # raw output in hex
+</pre>
+<p></p>
+<p>18. To dump entries in the data block pointed to by p0 of the link tracker object:</p>
+<pre>   cd /
+   touch  f1
+   ln f1 file1a
+   ln f1 file1b
+   . . .
+   ln f1 file1z
+</pre>
+<p></p>
+<pre>   onode -o /f1 -d lto/p0            # dump all entries
+   onode -o /f1 -d lto/p0/e0         # the first entry only
+   onode -o /f1 -d lto/p0/e1         # the second entry only
+   onode -o /f1 -d lto/p0/e3-5       # entries e3, e4, e5
+   onode -o /f1 -d lto/p0/e1,3-5,9   # entries e1, e3, e4, e5, e9
+   onode -o /f1 -d lto/p0/e1,7-20%3  # e1, e7, e10, e13, ... (step = 3)
+</pre>
+<p></p>
+<p>19. Continue example 18. Specify target "obj" after a particular entry to dump the object that is listed in that entry:</p>
+<pre>   onode -o /f1 -d lto/p0/e0/obj
+</pre>
+<p></p>
+<p>20. To dump another target after "obj", specify it in the target chain:</p>
+<pre>   onode -o /f1 -d lto/p0/e3-5,9/obj/smo
+</pre>
+<p></p>
+<p>21. If "obj" is specified after an entry list, only the object in the last entry that has an object number will be dumped:</p>
+<pre>   onode -o / -d p0/e0-100/obj
+</pre>
+<p></p>
+<p>The block data of a directory contains entries that are known as directory chunks. Depending on their types, chunks can or cannot have an object number. The command above will dump only the onode of the last listed object number. Note that this object number may not be in the last listed chunk.</p>
+<p>22. To dump a file in a snapshot</p>
+<p>Suppose the file to dump is /.snapshot/snapshot1/mydir/myfile.txt. Thus, its absolute path just before snapshot "mysnapshot1" was taken was "/mydir/myfile.txt".</p>
+<p>The file must be specified using an absolute path as follows.</p>
+<p>a) absolute path starting with "/.snapshot/&lt;snapshot-name&gt;", i.e.,</p>
+<pre>    onode -o /.snapshot/snapshot1/mydir/myfile.txt
+</pre>
+<p></p>
+<p>b) absolute path in the original live file system along with a snapshot option to identify the snapshot, i.e.,</p>
+<pre>    onode -o /mydir/myfile.txt --snapshot-name snapshot1
+</pre>
+<p></p>
+<h1>Applies To</h1>
+<p>EVS</p>
+
+<h1>Privilege Level</h1>
+<p>Supervisor</p>
+<blockquote></blockquote>
+<!--End footer-->
+</body>
+</html>
