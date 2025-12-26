@@ -24,7 +24,7 @@ The volume on the primary storage system changes to a P-VOL, and the volume on t
 	pairdisplay -g oraDELTA -fxce -IH0
 	
 	Group		PairVol(L/R) 	(Port#,TID, LU),	Seq#, 		LDEV#.P/S,		Status,		Fence, 		%, 		P-LDEV# 	M 	CTG 	JID 	AP 	EM 	E-Seq# 	E-LDEV# 	R/W
-	oraDELTA 	dev2(L)  		(CL1-A-1, 0, 1) 		511111 	2222. P-VOL 	PSUS 		ASYNC ,	0 		6666 		- 	0 		0 		- 	- 		- 			- 			 -/-
+	oraDELTA 	dev2(L)  	(CL1-A-1, 0, 1) 		511111 	2222. P-VOL 	PSUS 		ASYNC ,	0 	6666 	- 	0 		0 		- 	- 		- 			- 			-/-
 	oraDELTA 	dev2(R)		(CL1-A-1, 0, 1) 		544444 	6666. S-VOL	SSUS 		ASYNC ,	0		2222		- 	0 		0 		- 	- 		- 			- 			-/-
 
 **Note**: To check the status of a pair in Device Manager - Storage Navigator, select Refresh All in the File menu, update the information displayed on Device Manager - Storage Navigator, and then view the pair status. The status of the UR delta resync pairs changes from HOLDING to HOLD.
